@@ -1,0 +1,27 @@
+{
+    "name": "Treasured.ExhibitX.Editor",
+    "references": [
+        "GUID:b04eea1a84995674cb42e9e9542bb1f3",
+        "GUID:ca08f6603d42a14438eb4a97a0399d9f",
+        "GUID:478a2357cc57436488a56e564b08d223"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Newtonsoft.Json.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.editorcoroutines",
+            "expression": "",
+            "define": ""
+        }
+    ],
+    "noEngineReferences": false
+}

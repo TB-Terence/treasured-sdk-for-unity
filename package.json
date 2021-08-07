@@ -1,0 +1,21 @@
+{
+  "name": "com.treasured.toolkit",
+  "version": "0.1.0",
+  "displayName": "Treasured Toolkit for Unity",
+  "description": "This package provides tools for creating and exporting files used by Treasured website.",
+  "unity": "2018.1",
+  "keywords": [
+    "Treasured",
+    "Story",
+    "Tool"
+  ],
+  "author": {
+    "name": "Treasured Inc.",
+    "email": "team@treasured.ca",
+    "url": "https://www.treasured.ca"
+  },
+  "type": "tool",
+  "dependencies": {
+    "com.unity.editorcoroutines": "1.0.0"
+  }
+}
