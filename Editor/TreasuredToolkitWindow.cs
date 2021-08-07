@@ -33,7 +33,7 @@ namespace Treasured.ExhibitXEditor
 
         private Vector2 _hotspotScrollPosition;
 
-        private string _outputDirectory;
+        private string _outputFolder;
         private ImageQuality _quality = ImageQuality.Low;
         private ImageFormat _format = ImageFormat.JPEG;
         private bool _openFolderAfterExport = false;
@@ -83,11 +83,11 @@ namespace Treasured.ExhibitXEditor
             EditorGUILayout.BeginHorizontal();
             float previousWidth = EditorGUIUtility.labelWidth;
             EditorGUIUtility.labelWidth = 100;
-            EditorGUILayout.PrefixLabel("Output Directory", Styles.ShortLabel);
-            if (GUILayout.Button(EditorGUIUtils.IconContent("Folder Icon", "Select Directory"), Styles.Label, GUILayout.Width(20), GUILayout.Height(20)))
+            EditorGUILayout.PrefixLabel("Output Folder", Styles.ShortLabel);
+            if (GUILayout.Button(EditorGUIUtils.IconContent("Folder Icon", "Select Folder"), Styles.Label, GUILayout.Width(20), GUILayout.Height(20)))
             {
-                _outputDirectory = EditorUtility.OpenFolderPanel("Select folder", "", "");
-                if (_outputDirectory.StartsWith(Application.dataPath))
+                _outputFolder = EditorUtility.OpenFolderPanel("Select folder", "", "");
+                if (_outputFolder.StartsWith(Application.dataPath))
                 {
                     _folderInAssetFolder = true;
                 }
@@ -96,7 +96,7 @@ namespace Treasured.ExhibitXEditor
                     _folderInAssetFolder = false;
                 }
             }
-            EditorGUILayout.LabelField(new GUIContent(_outputDirectory, _outputDirectory), Styles.Label);
+            EditorGUILayout.LabelField(new GUIContent(_outputFolder, _outputFolder), Styles.Label);
             EditorGUILayout.EndHorizontal();
             
             if (_folderInAssetFolder)
@@ -107,7 +107,11 @@ namespace Treasured.ExhibitXEditor
             _format = (ImageFormat)EditorGUILayout.EnumPopup("Format", _format);
             _openFolderAfterExport = EditorGUILayout.Toggle(new GUIContent("Open Folder", "Open output folder after export"), _openFolderAfterExport);
             GUILayout.FlexibleSpace();
-            EditorGUI.BeginDisabledGroup(string.IsNullOrEmpty(_outputDirectory));
+            if (string.IsNullOrEmpty(_outputFolder))
+            {
+                EditorGUILayout.HelpBox("Output folder not selected.", MessageType.Error);
+            }
+            EditorGUI.BeginDisabledGroup(string.IsNullOrEmpty(_outputFolder));
             if (GUILayout.Button("Export", GUILayout.Height(36)))
             {
                 this.StartCoroutine(Export());
@@ -239,7 +243,7 @@ namespace Treasured.ExhibitXEditor
                 Undo.RegisterFullObjectHierarchyUndo(HotspotManager.Instance.gameObject, "Set y for all hotspot");
                 foreach (var transform in GetHotspotEnumerable())
                 {
-                    transform.position = new Vector3(transform.position.x, _newYForAll, transform.position.y);
+                    transform.position = new Vector3(transform.position.x, _newYForAll, transform.position.z);
                 }
             }
             EditorGUI.EndDisabledGroup();
@@ -330,10 +334,10 @@ namespace Treasured.ExhibitXEditor
             var cubemap = RenderTexture.GetTemporary((int)_quality, (int)_quality, 0);
             cubemap.dimension = TextureDimension.Cube;
 
-            var hotspotDataPath = Path.Combine(_outputDirectory, "hotspots.json");
+            var hotspotDataPath = Path.Combine(_outputFolder, "hotspots.json");
 
             var folderQualityName = $"{Enum.GetName(typeof(ImageQuality), _quality)}/";
-            string qualityFolderPath = Path.Combine(_outputDirectory, folderQualityName);
+            string qualityFolderPath = Path.Combine(_outputFolder, folderQualityName);
 
             bool encodeAsJPEG = _format == ImageFormat.JPEG ? true : false;
 
@@ -408,7 +412,7 @@ namespace Treasured.ExhibitXEditor
                 camera.transform.SetPositionAndRotation(originalCameraPos, originalCameraRot);
                 if (_openFolderAfterExport)
                 {
-                    Application.OpenURL(_outputDirectory);
+                    Application.OpenURL(_outputFolder);
                 }
             }
             catch (Exception e)
