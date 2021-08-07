@@ -2,7 +2,7 @@
   "name": "com.treasured.toolkit",
   "version": "0.1.0",
   "displayName": "Treasured Toolkit for Unity",
-  "description": "This package provides tools for creating and exporting files used by Treasured website.",
+  "description": "This package provides tools for creating and exporting files used by the Treasured website.",
   "unity": "2018.1",
   "keywords": [
     "Treasured",
