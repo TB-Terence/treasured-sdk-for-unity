@@ -6,15 +6,15 @@ using System.Collections.Generic;
 namespace Treasured.ExhibitX
 {
     [Serializable]
-    public class WorldData
+    public sealed class WorldData
     {
+        [JsonConverter(typeof(VersionConverter))]
+        public Version version = new Version(1, 0, 0);
         public string name;
         [JsonConverter(typeof(StringEnumConverter))]
         public ImageQuality quality;
         [JsonConverter(typeof(StringEnumConverter))]
         public ImageFormat format;
-        [JsonConverter(typeof(VersionConverter))]
-        public Version version = new Version(1, 0, 0);
         public bool loop;
         public List<HotspotData> hotspots = new List<HotspotData>();
     }

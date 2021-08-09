@@ -1,11 +1,10 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections;
 using UnityEngine;
 
 namespace Treasured.ExhibitX
 {
-    public class InteractionDataConverter : JsonConverter
+    internal class InteractionDataConverter : JsonConverter
     {
         public override bool CanConvert(Type objectType)
         {

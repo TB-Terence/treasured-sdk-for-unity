@@ -23,7 +23,23 @@ namespace Treasured.ExhibitX
             }
         }
 
-        public bool loop = true;
+        [SerializeField]
+        private bool _loop = true;
+
+        /// <summary>
+        /// Defines if the last active hotspot should be connected to the first active hotspot.
+        /// </summary>
+        public bool Loop
+        {
+            get
+            {
+                return _loop;
+            }
+            set
+            {
+                _loop = value;
+            }
+        }
 
         private void Awake()
         {

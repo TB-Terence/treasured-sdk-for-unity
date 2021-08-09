@@ -1,5 +1,6 @@
 {
     "name": "Treasured.ExhibitX.Editor",
+    "rootNamespace": "Treasured",
     "references": [
         "GUID:b04eea1a84995674cb42e9e9542bb1f3",
         "GUID:ca08f6603d42a14438eb4a97a0399d9f",

@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Treasured.ExhibitXEditor
 {
     [InitializeOnLoad]
-    public static class EditorGUIUtils
+    internal static class EditorGUIUtils
     {
         public static GUIContent IconContent(string iconName, string tooltip)
         {

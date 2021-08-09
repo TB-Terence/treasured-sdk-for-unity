@@ -6,7 +6,7 @@ using Treasured.ExhibitX;
 namespace Treasured.ExhibitXEditor
 {
     [CustomEditor(typeof(Hotspot))]
-    public class HotspotEditor : UnityEditor.Editor
+    internal class HotspotEditor : UnityEditor.Editor
     {
         private bool _interactionFoldout = true;
 
@@ -15,7 +15,7 @@ namespace Treasured.ExhibitXEditor
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-            DrawInteractions(serializedObject.FindProperty("interactions"));
+            DrawInteractions(serializedObject.FindProperty("_interactions"));
             if (GUI.changed)
             {
                 serializedObject.ApplyModifiedProperties();

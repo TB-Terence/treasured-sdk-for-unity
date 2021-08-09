@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Treasured.ExhibitXEditor
 {
     [CustomEditor(typeof(HotspotManager))]
-    public class HotspotManagerEditor : Editor
+    internal class HotspotManagerEditor : Editor
     {
         public override void OnInspectorGUI()
         {

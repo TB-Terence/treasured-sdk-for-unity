@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Treasured.ExhibitX
 {
-    public class Vector3Converter : JsonConverter
+    internal class Vector3Converter : JsonConverter
     {
         public override bool CanConvert(Type objectType)
         {
