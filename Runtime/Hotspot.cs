@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Treasured.ExhibitX
@@ -9,9 +10,22 @@ namespace Treasured.ExhibitX
     public class Hotspot : MonoBehaviour
     {
         [SerializeReference]
-        public List<InteractionData> interactions = new List<InteractionData>();
+        private List<InteractionData> _interactions = new List<InteractionData>();
+
+        /// <summary>
+        /// Returns a list of interactions associated with the hotspot.
+        /// </summary>
+        public List<InteractionData> Interactions
+        {
+            get
+            {
+                return _interactions;
+            }
+        }
 
 #if UNITY_EDITOR
+        private static readonly Color gizmosColor = new Color(0.36f, 0.35f, 1f);
+
         private void OnDrawGizmos()
         {
             if (!transform.parent || !this.isActiveAndEnabled)
@@ -21,10 +35,13 @@ namespace Treasured.ExhibitX
             int nextIndex = NextEnabled(this.transform.GetSiblingIndex());
             if(nextIndex != -1)
             {
-                UnityEditor.Handles.color = new Color(0.36f, 0.35f, 1f);
+                UnityEditor.Handles.color = gizmosColor;
                 Transform next = this.transform.parent.GetChild(nextIndex);
                 UnityEditor.Handles.DrawDottedLine(this.transform.position, next.position, 3);
-                UnityEditor.Handles.DrawWireDisc(this.transform.position, Vector3.up, 0.5f);
+                Color previousColor = Gizmos.color;
+                Gizmos.color = gizmosColor;
+                Gizmos.DrawSphere(this.transform.position, 0.5f);
+                Gizmos.color = previousColor;
                 UnityEditor.Handles.color = Color.green;
                 Vector3 lookRotation = next.position - this.transform.position;
                 if(lookRotation != Vector3.zero)
@@ -41,7 +58,7 @@ namespace Treasured.ExhibitX
 
         private int NextEnabled(int startIndex)
         {
-            int next = HotspotManager.Instance && HotspotManager.Instance.loop && startIndex == this.transform.parent.childCount - 1 ? 0 : startIndex + 1;
+            int next = HotspotManager.Instance && HotspotManager.Instance.Loop && startIndex == this.transform.parent.childCount - 1 ? 0 : startIndex + 1;
             if(next > transform.parent.childCount - 1 || next == this.transform.GetSiblingIndex())
             {
                 return -1;

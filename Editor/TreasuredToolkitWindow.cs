@@ -6,7 +6,6 @@ using System.IO;
 using System;
 using Newtonsoft.Json;
 using Treasured.ExhibitX;
-using Newtonsoft.Json.Converters;
 using Simple360Render;
 using System.Collections.Generic;
 using System.Collections;
@@ -15,7 +14,7 @@ using Unity.EditorCoroutines.Editor;
 
 namespace Treasured.ExhibitXEditor
 {
-    public class TreasuredToolkitWindow : EditorWindow, IHasCustomMenu
+    internal class TreasuredToolkitWindow : EditorWindow, IHasCustomMenu
     {
         private static string[] _tabs = new string[] { "Hotspot Management", "Panoramas Exporter" };
 
@@ -46,13 +45,26 @@ namespace Treasured.ExhibitXEditor
         private List<Hotspot> _hotspots = new List<Hotspot>();
         private float _newYForAll = 0;
 
+        [SerializeField]
+        private SerializedObject _serializedManager;
+
+
         void OnEnable()
         {
             OnHierarchyChange();
         }
 
+        void Init()
+        {
+            if (HotspotManager.Instance)
+            {
+                _serializedManager = new SerializedObject(HotspotManager.Instance);
+            }
+        }
+
         private void OnHierarchyChange()
         {
+            Init();
             _hotspots.Clear();
             if (HotspotManager.Instance)
             {
@@ -136,11 +148,16 @@ namespace Treasured.ExhibitXEditor
             }
             EditorGUILayout.BeginVertical();
             {// manager states
-                EditorGUI.BeginChangeCheck();
-                HotspotManager.Instance.loop = EditorGUILayout.Toggle(new GUIContent("Loop", "If enabled, the last hotspot will connect to the first active hotspot."), HotspotManager.Instance.loop);
-                if (EditorGUI.EndChangeCheck())
+                SerializedProperty loop = _serializedManager?.FindProperty("_loop");
+                if (loop != null)
                 {
-                    SceneView.RepaintAll();
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.PropertyField(_serializedManager.FindProperty("_loop"), new GUIContent("Loop", "If enabled, the last hotspot will connect to the first active hotspot."));
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        _serializedManager.ApplyModifiedProperties();
+                        SceneView.RepaintAll();
+                    }
                 }
             }
             EditorGUILayout.EndVertical();
@@ -348,7 +365,7 @@ namespace Treasured.ExhibitXEditor
                 name = EditorSceneManager.GetActiveScene().name,
                 quality = _quality,
                 format = _format,
-                loop = HotspotManager.Instance.loop
+                loop = HotspotManager.Instance.Loop
             };
             for (int index = 0; index < count; index++)
             {
@@ -357,12 +374,7 @@ namespace Treasured.ExhibitXEditor
                 {
                     continue;
                 }
-                data.hotspots.Add(new HotspotData()
-                {
-                    guid = Guid.NewGuid().ToString(),
-                    position = hotspot.transform.position,
-                    interactions = hotspot.interactions
-                });
+                data.hotspots.Add(new HotspotData(hotspot.transform.position, hotspot.Interactions));
                 // Compute the filename
                 var fileName = $"Panorama_{index}.{(encodeAsJPEG ? "jpeg" : "png")}";
 
@@ -397,14 +409,7 @@ namespace Treasured.ExhibitXEditor
             {
                 JsonSerializerSettings settings = new JsonSerializerSettings()
                 {
-                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                    Converters = new JsonConverter[]
-                    {
-                    new Vector3Converter(),
-                    new StringEnumConverter(),
-                    new VersionConverter(),
-                    new InteractionDataConverter()
-                    }
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
                 };
                 string json = JsonConvert.SerializeObject(data, Formatting.Indented, settings);
                 File.WriteAllText(hotspotDataPath, json);
@@ -448,7 +453,7 @@ namespace Treasured.ExhibitXEditor
             private void OnGUI()
             {
                 EditorGUILayout.LabelField(new GUIContent(Styles.TreasuredIcon), GUILayout.MinWidth(100), GUILayout.MinHeight(100));
-                EditorGUILayout.LabelField(new GUIContent("Version"), new GUIContent("0.1.0"));
+                EditorGUILayout.LabelField(new GUIContent("Version"), new GUIContent("0.2.0"));
                 if (EditorGUIUtils.Link(new GUIContent("Website"), new GUIContent("https://treasured.ca/")))
                 {
                     Application.OpenURL("https://treasured.ca/");

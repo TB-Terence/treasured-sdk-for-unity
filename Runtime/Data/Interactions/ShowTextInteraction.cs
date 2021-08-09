@@ -6,5 +6,7 @@ namespace Treasured.ExhibitX
     {
         [TextArea(3, 3)]
         public string content;
+
+        private ShowTextInteraction() { }
     }
 }
