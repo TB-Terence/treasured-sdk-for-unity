@@ -1,5 +1,6 @@
 {
     "name": "Treasured.ExhibitX.Runtime",
+    "rootNamespace": "",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
