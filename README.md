@@ -2,14 +2,16 @@
 
 This package provides tools for creating and exporting files used by Treasured website.
 
-## Libraries
+## Minimum Unity Version
+ - 2019.4+
 
-This package uses 3rd-party libraries
+## Dependency Packages/Libraries
+- This package requires [Newtonsoft.Json](https://github.com/JamesNK/Newtonsoft.Json), minimum version 10.0.3+. Go to next section if your project already using the library. Otherwise, we recommend installing the [Newtonsoft.Json-for-Unity](https://github.com/jilleJr/Newtonsoft.Json-for-Unity) package. Follow their [guide](https://github.com/jilleJr/Newtonsoft.Json-for-Unity#installation) on installing the package, or install [via Git in Unity Package Manager](https://github.com/jilleJr/Newtonsoft.Json-for-Unity#installation-via-git-in-upm).
 
-- [Newtonsoft.Json](https://github.com/JamesNK/Newtonsoft.Json)
-- [Simple360Render](https://github.com/yasirkula/Unity360ScreenshotCapture)
+## Third-Party Libraries
+- [Simple360Render](https://github.com/yasirkula/Unity360ScreenshotCapture) (Included)
 
-## Installation
+## Package Installation via Unity Package Manager
 
 ### Option 1 - Add package from git URL
 
