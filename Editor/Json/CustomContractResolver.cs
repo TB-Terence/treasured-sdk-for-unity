@@ -31,7 +31,7 @@ namespace Treasured.SDK
             }
             if (objectType.BaseType == typeof(Enum))
             {
-                contract.Converter = new StringEnumConverter();
+                contract.Converter = new StringEnumConverter(new CamelCaseNamingStrategy());
             }
             return contract;
         }

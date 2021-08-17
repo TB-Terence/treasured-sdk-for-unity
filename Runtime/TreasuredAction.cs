@@ -22,6 +22,7 @@ namespace Treasured.SDK
         [StringSelector("openLink", "showText", "media/PlayAudio", "media/PlayVideo", "selectObject")]
         private string _type;
         [SerializeField]
+        [TextArea]
         private string _src;
         [SerializeField]
         private string _targetId;

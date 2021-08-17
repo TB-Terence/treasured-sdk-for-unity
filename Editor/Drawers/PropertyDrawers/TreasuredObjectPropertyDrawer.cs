@@ -1,4 +1,6 @@
-﻿using UnityEditor;
+﻿using System;
+using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 namespace Treasured.SDKEditor
@@ -19,6 +21,11 @@ namespace Treasured.SDKEditor
             SerializedProperty hitboxProp = property.FindPropertyRelative("_hitbox");
             SerializedProperty onSelectedProp = property.FindPropertyRelative("_onSelected");
 
+            if (string.IsNullOrEmpty(idProp.stringValue))
+            {
+                idProp.stringValue = Guid.NewGuid().ToString();
+            }
+
             property.isExpanded = EditorGUI.Foldout(new Rect(position.x, position.y, position.width, 18), property.isExpanded, string.IsNullOrEmpty(nameProp.stringValue) ? label : new GUIContent(nameProp.stringValue), true);
             
             if (property.isExpanded)
@@ -37,7 +44,7 @@ namespace Treasured.SDKEditor
 
                 float transformPropHeight = EditorGUI.GetPropertyHeight(transformProp);
                 EditorGUI.PropertyField(new Rect(position.x, position.y + 60 + descriptionPropHeight, position.width, transformPropHeight), transformProp, true);
-
+                
                 float hitboxPropHeight = EditorGUI.GetPropertyHeight(hitboxProp);
                 EditorGUI.PropertyField(new Rect(position.x, position.y + 60 + descriptionPropHeight + transformPropHeight, position.width, hitboxPropHeight), hitboxProp, true);
 

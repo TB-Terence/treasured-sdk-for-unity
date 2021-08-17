@@ -5,7 +5,7 @@ namespace Treasured.SDK
 {
     public enum ImageFormat
     {
-        JPEG,
+        JPG,
         PNG
     }
     public enum ImageQuality
@@ -19,7 +19,7 @@ namespace Treasured.SDK
     [CreateAssetMenu(fileName = "Data", menuName = "Treasured/Data")]
     public sealed class TreasuredData : ScriptableObject
     {
-        public static readonly string Version = "0.3.0";
+        public static readonly string Version = "0.3.1";
 
         [SerializeField]
         private string _name;

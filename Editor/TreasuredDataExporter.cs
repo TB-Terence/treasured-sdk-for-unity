@@ -63,7 +63,7 @@ namespace Treasured.SDKEditor
             #endregion
 
             #region Settings
-            bool encodeAsJPEG = _data.Format == ImageFormat.JPEG;
+            bool encodeAsJPEG = _data.Format == ImageFormat.JPG;
             int cubeMapSize = Mathf.Min(Mathf.NextPowerOfTwo((int)_data.Quality), 8192);
             int count = _data.Hotspots.Count;
             bool faceCameraDirection = true;
@@ -88,8 +88,7 @@ namespace Treasured.SDKEditor
                 for (int index = 0; index < count; index++)
                 {
                     TreasuredObject hotspot = _data.Hotspots[index];
-                    // Compute the filename
-                    var fileName = $"Panorama_{index}.{_data.Format.ToString().ToLower()}";
+                    var fileName = $"{hotspot.Id}.{_data.Format.ToString().ToLower()}";
                     // Move the camera in the right position
                     _camera.transform.SetPositionAndRotation(hotspot.Transform.Position, Quaternion.identity);
                     

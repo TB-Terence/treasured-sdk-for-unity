@@ -3,16 +3,29 @@ using UnityEditor;
 using Treasured.SDK;
 using System.Linq;
 using UnityEditor.SceneManagement;
+using System;
+using System.Collections.Generic;
 
 namespace Treasured.SDKEditor
 {
     [CustomEditor(typeof(TreasuredData))]
     internal partial class TreasuredDataEditor : Editor
     {
+        /// <summary>
+        /// Current editing data.
+        /// </summary>
+        public static readonly Dictionary<string, string> ObjectIds = new Dictionary<string, string>();
+
         [SerializeField]
         private bool _showPreview;
         [SerializeField]
         private TreasuredData _data;
+
+        private string[] _objectTabs = new string[] { "Interactables", "Hotspots" };
+        private int _selectedTab = 0;
+
+        private Vector2 _hotspotScrollPosition;
+        private Vector2 _interactableScrollPosition;
 
         private void OnEnable()
         {
@@ -32,6 +45,8 @@ namespace Treasured.SDKEditor
                     interactable.Hitbox.Size = Vector3.one;
                 }
             }
+            serializedObject.FindProperty("_hotspots").isExpanded = true;
+            serializedObject.FindProperty("_interactables").isExpanded = true;
         }
 
         private void OnDisable()
@@ -39,8 +54,41 @@ namespace Treasured.SDKEditor
             GameObject.DestroyImmediate(TreasuredDataPreviewer.Instance.gameObject);
         }
 
+        private void RebuildObjectIds()
+        {
+            ObjectIds.Clear();
+            foreach (var hotspot in _data.Hotspots)
+            {
+                string id = hotspot.Id;
+                if (!string.IsNullOrEmpty(id) && !ObjectIds.ContainsKey(id))
+                {
+                    ObjectIds[id] = $"Hotspots/{hotspot.Name} | {id}";
+                }
+                if (hotspot.Hitbox.Size == Vector3.zero)
+                {
+                    hotspot.Hitbox.Size = Vector3.one;
+                }
+            }
+            foreach (var interactable in _data.Interactables)
+            {
+                string id = interactable.Id;
+                if (!string.IsNullOrEmpty(id) && !ObjectIds.ContainsKey(id))
+                {
+                    ObjectIds[id] = $"Interactables/{interactable.Name} | {id}";
+                }
+                if (interactable.Hitbox.Size == Vector3.zero)
+                {
+                    interactable.Hitbox.Size = Vector3.one;
+                }
+            }
+        }
+
         public override void OnInspectorGUI()
         {
+            if (Event.current.type == EventType.Repaint && ObjectIds.Count != _data.Hotspots.Count + _data.Interactables.Count)
+            {
+                RebuildObjectIds();
+            }
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
             EditorGUI.BeginChangeCheck();
             _showPreview = GUILayout.Toggle(_showPreview, "Preview in Scene(Experimental)");
@@ -87,77 +135,20 @@ namespace Treasured.SDKEditor
             };
 
             serializedObject.Update();
+            SerializedProperty nameProp = serializedObject.FindProperty("_name");
+            SerializedProperty loopProp = serializedObject.FindProperty("_loop");
+            SerializedProperty formatProp = serializedObject.FindProperty("_format");
+            SerializedProperty qualityProp = serializedObject.FindProperty("_quality");
+
             SerializedProperty iterator = serializedObject.GetIterator();
             iterator.NextVisible(true);
             while (iterator.NextVisible(false))
             {
-                if (iterator.name == "m_Script")
+                if (iterator.name == "m_Script" || iterator.name == "_hotspots" || iterator.name == "_interactables")
                 {
                     continue;
                 }
-                if (iterator.name == "_hotspots" || iterator.name == "_interactables")
-                {
-                    EditorGUILayout.BeginVertical(GUI.skin.box);
-                    Rect rect = GUILayoutUtility.GetRect(0, 60);
-                    EditorGUILayout.Space(2);
-                    EditorGUI.indentLevel++;
-                    EditorGUILayout.PropertyField(iterator);
-                    EditorGUI.indentLevel--;
-                    CustomEditorGUILayout.CreateDropZone(rect, new GUIContent($"{iterator.displayName} Drop Zone", $"Drag & Drop game object from hierarchy to add it to {iterator.displayName}."), (objects) =>
-                    {
-                        foreach (var obj in objects)
-                        {
-                            GameObject go = obj as GameObject;
-                            if (!go)
-                            {
-                                continue;
-                            }
-                            if (go.TryGetComponent<TreasuredObjectReference>(out var reference))
-                            {
-                                if (string.IsNullOrEmpty(reference.Id))
-                                {
-                                    DestroyImmediate(reference);
-                                    reference = go.AddComponent<TreasuredObjectReference>();
-                                }
-                                if (_data.Hotspots.Any(x => x.Id == reference.Id))
-                                {
-                                    Debug.Log($"Can't add {{{go.name}}} to {{{iterator.displayName}}}. Reference for {{{go.name}}} already exists in Hotspots.");
-                                    continue;
-                                }
-                                if (_data.Interactables.Any(x => x.Id == reference.Id))
-                                {
-                                    Debug.Log($"Can't to add object {{{go.name}}} to {{{iterator.displayName}}}. Reference for {{{go.name}}} already exists in Interactables.");
-                                    continue;
-                                }
-                            }
-                            else
-                            {
-                                reference = go.AddComponent<TreasuredObjectReference>();
-                            }
-                            EditorUtility.SetDirty(go);
-                            iterator.InsertArrayElementAtIndex(iterator.arraySize);
-                            SerializedProperty p = iterator.GetArrayElementAtIndex(iterator.arraySize - 1);
-                            p.FindPropertyRelative("_name").stringValue = obj.name;
-                            p.FindPropertyRelative("_id").stringValue = reference.Id;
-                            p.FindPropertyRelative("_transform._position").vector3Value = go.transform.position;
-                            p.FindPropertyRelative("_transform._rotation").vector3Value = go.transform.rotation.eulerAngles;
-                            if(go.TryGetComponent<Collider>(out var collider))
-                            {
-                                p.FindPropertyRelative("_hitbox._center").vector3Value = collider.bounds.center;
-                                p.FindPropertyRelative("_hitbox._size").vector3Value = collider.bounds.size;
-                            }
-                            p.isExpanded = true;
-                        }
-
-                        iterator.serializedObject.ApplyModifiedProperties();
-                        iterator.serializedObject.Update();
-                    });
-                    EditorGUILayout.EndVertical();
-                }
-                else
-                {
-                    EditorGUILayout.PropertyField(iterator);
-                }
+                EditorGUILayout.PropertyField(iterator);
                 if (iterator.name == "_quality" && iterator.enumValueIndex == 3)
                 {
                     EditorGUILayout.HelpBox("Use with caution!\n" +
@@ -170,7 +161,120 @@ namespace Treasured.SDKEditor
                     EditorGUILayout.HelpBox($"The default output folder name will be '{sceneName}'.", MessageType.Warning);
                 }
             }
+            _selectedTab = GUILayout.SelectionGrid(_selectedTab, _objectTabs, _objectTabs.Length, GUILayout.Height(26));
+            CreateDropZone(_selectedTab);
             serializedObject.ApplyModifiedProperties();
+        }
+
+        private void CreateDropZone(int index)
+        {
+            string name = index == 0 ? "_hotspots" : "_interactables";
+            SerializedProperty property = serializedObject.FindProperty(name);
+            property.serializedObject.Update();
+            EditorGUILayout.BeginVertical(GUI.skin.box);
+            Rect rect = GUILayoutUtility.GetRect(0, 60);
+            EditorGUILayout.Space(2);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("Create New", GUILayout.Height(24)))
+                {
+                    property.InsertArrayElementAtIndex(property.arraySize);
+                    SerializedProperty newElement = property.GetArrayElementAtIndex(property.arraySize - 1);
+                    // insert a new element will copy the data from the previous element
+                    newElement.FindPropertyRelative("_id").stringValue = Guid.NewGuid().ToString();
+                    newElement.FindPropertyRelative("_name").stringValue = $"{(index == 0 ? "Hotspot" : "Interactable")} {property.arraySize}";
+                    newElement.FindPropertyRelative("_description").stringValue = "";
+                    newElement.FindPropertyRelative("_transform._position").vector3Value = Vector3.zero;
+                    newElement.FindPropertyRelative("_transform._rotation").vector3Value = Vector3.zero;
+                    newElement.FindPropertyRelative("_hitbox._center").vector3Value = Vector3.zero;
+                    newElement.FindPropertyRelative("_hitbox._size").vector3Value = Vector3.one;
+                    newElement.FindPropertyRelative("_onSelected").arraySize = 0;
+                }
+                if (GUILayout.Button("Clear All", GUILayout.Height(24)))
+                {
+                    property.arraySize = 0;
+                }
+                if (GUILayout.Button("Collapse All", GUILayout.Height(24)))
+                {
+                    for (int i = 0; i < property.arraySize; i++)
+                    {
+                        property.GetArrayElementAtIndex(i).isExpanded = false;
+                    }
+                    property.isExpanded = false;
+                }
+                if (GUILayout.Button("Expand All", GUILayout.Height(24)))
+                {
+                    for (int i = 0; i < property.arraySize; i++)
+                    {
+                        property.GetArrayElementAtIndex(i).isExpanded = true;
+                    }
+                    property.isExpanded = true;
+                }
+            }
+            EditorGUI.indentLevel++;
+            using (var scope = new EditorGUILayout.ScrollViewScope(index == 0 ? _hotspotScrollPosition : _interactableScrollPosition, GUILayout.MaxHeight(600)))
+            {
+                if (index == 0)
+                {
+                    _hotspotScrollPosition = scope.scrollPosition;
+                }
+                else if (index == 1)
+                {
+                    _interactableScrollPosition = scope.scrollPosition;
+                }
+                EditorGUILayout.PropertyField(property);
+            }
+            EditorGUI.indentLevel--;
+            CustomEditorGUILayout.CreateDropZone(rect, new GUIContent($"{property.displayName} Drop Zone", $"Drag & Drop game object from hierarchy to add it to {property.displayName}."), (objects) =>
+            {
+                foreach (var obj in objects)
+                {
+                    GameObject go = obj as GameObject;
+                    if (!go)
+                    {
+                        continue;
+                    }
+                    if (go.TryGetComponent<TreasuredObjectReference>(out var reference))
+                    {
+                        if (string.IsNullOrEmpty(reference.Id))
+                        {
+                            DestroyImmediate(reference);
+                            reference = go.AddComponent<TreasuredObjectReference>();
+                        }
+                        if (_data.Hotspots.Any(x => x.Id == reference.Id))
+                        {
+                            Debug.Log($"Can't add {{{go.name}}} to {{{property.displayName}}}. Reference for {{{go.name}}} already exists in Hotspots.");
+                            continue;
+                        }
+                        if (_data.Interactables.Any(x => x.Id == reference.Id))
+                        {
+                            Debug.Log($"Can't to add object {{{go.name}}} to {{{property.displayName}}}. Reference for {{{go.name}}} already exists in Interactables.");
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        reference = go.AddComponent<TreasuredObjectReference>();
+                    }
+                    EditorUtility.SetDirty(go);
+                    property.InsertArrayElementAtIndex(property.arraySize);
+                    SerializedProperty p = property.GetArrayElementAtIndex(property.arraySize - 1);
+                    p.FindPropertyRelative("_name").stringValue = obj.name;
+                    p.FindPropertyRelative("_id").stringValue = reference.Id;
+                    p.FindPropertyRelative("_transform._position").vector3Value = go.transform.position;
+                    p.FindPropertyRelative("_transform._rotation").vector3Value = go.transform.rotation.eulerAngles;
+                    if (go.TryGetComponent<Collider>(out var collider))
+                    {
+                        p.FindPropertyRelative("_hitbox._center").vector3Value = collider.bounds.center;
+                        p.FindPropertyRelative("_hitbox._size").vector3Value = collider.bounds.size;
+                    }
+                    p.isExpanded = true;
+                }
+
+                property.serializedObject.ApplyModifiedProperties();
+                property.serializedObject.Update();
+            });
+            EditorGUILayout.EndVertical();
         }
 
         Rect OnDrawList(SerializedProperty property)
