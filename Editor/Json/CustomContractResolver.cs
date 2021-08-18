@@ -33,6 +33,10 @@ namespace Treasured.SDK
             {
                 contract.Converter = new StringEnumConverter(new CamelCaseNamingStrategy());
             }
+            if (objectType == typeof(TreasuredAction))
+            {
+                contract.Converter = new TreasuredActionConverter();
+            }
             return contract;
         }
 

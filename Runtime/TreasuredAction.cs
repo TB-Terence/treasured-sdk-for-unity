@@ -27,7 +27,7 @@ namespace Treasured.SDK
         [SerializeField]
         private string _targetId;
         [SerializeField]
-        private DisplayMode _displayMode;
+        private DisplayMode _displayMode = DisplayMode.Right;
         [SerializeField]
         [TextArea]
         private string _content;

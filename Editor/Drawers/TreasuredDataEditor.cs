@@ -113,16 +113,6 @@ namespace Treasured.SDKEditor
                 _data.Interactables.Clear();
                 GUI.FocusControl(null); // reset control focus
             }
-            using (new EditorGUI.DisabledGroupScope(EditorApplication.isPlaying))
-            {
-                if (GUILayout.Button(new GUIContent("Clear Object References", "Remove all Treasured Object References in scene."), EditorStyles.toolbarButton))
-                {
-                    foreach (var reference in GameObject.FindObjectsOfType<TreasuredObjectReference>())
-                    {
-                        GameObject.DestroyImmediate(reference);
-                    }
-                }
-            }
             Rect exportButtonRect = GUILayoutUtility.GetRect(new GUIContent("Export"), EditorStyles.toolbarButton);
             if (GUI.Button(exportButtonRect, "Export", EditorStyles.toolbarButton))
             {
@@ -234,33 +224,11 @@ namespace Treasured.SDKEditor
                     {
                         continue;
                     }
-                    if (go.TryGetComponent<TreasuredObjectReference>(out var reference))
-                    {
-                        if (string.IsNullOrEmpty(reference.Id))
-                        {
-                            DestroyImmediate(reference);
-                            reference = go.AddComponent<TreasuredObjectReference>();
-                        }
-                        if (_data.Hotspots.Any(x => x.Id == reference.Id))
-                        {
-                            Debug.Log($"Can't add {{{go.name}}} to {{{property.displayName}}}. Reference for {{{go.name}}} already exists in Hotspots.");
-                            continue;
-                        }
-                        if (_data.Interactables.Any(x => x.Id == reference.Id))
-                        {
-                            Debug.Log($"Can't to add object {{{go.name}}} to {{{property.displayName}}}. Reference for {{{go.name}}} already exists in Interactables.");
-                            continue;
-                        }
-                    }
-                    else
-                    {
-                        reference = go.AddComponent<TreasuredObjectReference>();
-                    }
                     EditorUtility.SetDirty(go);
                     property.InsertArrayElementAtIndex(property.arraySize);
                     SerializedProperty p = property.GetArrayElementAtIndex(property.arraySize - 1);
                     p.FindPropertyRelative("_name").stringValue = obj.name;
-                    p.FindPropertyRelative("_id").stringValue = reference.Id;
+                    p.FindPropertyRelative("_id").stringValue = Guid.NewGuid().ToString();
                     p.FindPropertyRelative("_transform._position").vector3Value = go.transform.position;
                     p.FindPropertyRelative("_transform._rotation").vector3Value = go.transform.rotation.eulerAngles;
                     if (go.TryGetComponent<Collider>(out var collider))
