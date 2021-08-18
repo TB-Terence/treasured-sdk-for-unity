@@ -89,27 +89,21 @@ namespace Treasured.SDKEditor
 
             try
             {
-                IEnumerable<TreasuredObject> interactables = _data.All;
+                IEnumerable<TreasuredObject> targets = _data.All;
                 for (int index = 0; index < count; index++)
                 {
                     TreasuredObject hotspot = _data.Hotspots[index];
                     // Calculate Visible Targets
                     hotspot.ResetVisibleTargets();
-                    foreach (var interactable in interactables)
+                    foreach (var target in targets)
                     {
-                        if (interactable.Id == hotspot.Id)
+                        if (target.Id == hotspot.Id)
                         {
                             continue;
                         }
-                        if (Physics.Linecast(hotspot.Transform.Position, interactable.Transform.Position, layerMask))
+                        if (!Physics.Linecast(hotspot.Transform.Position, target.Transform.Position, layerMask))
                         {
-                            Debug.Log($"Something is blocking {hotspot.Name} -> {interactable.Name}." );
-                            Debug.DrawLine(hotspot.Transform.Position, interactable.Transform.Position, Color.magenta, 10.0f);
-                        }
-                        else
-                        {
-                            hotspot.AddVisibleTarget(interactable.Id);
-                            Debug.DrawLine(hotspot.Transform.Position, interactable.Transform.Position, Color.green, 10.0f);
+                            hotspot.AddVisibleTarget(target);
                         }
                     }
 

@@ -54,15 +54,15 @@ namespace Treasured.SDK
         public List<TreasuredAction> OnSelected { get => _onSelected; set => _onSelected = value; }
         public IEnumerable<string> VisibleTargets { get => _visibleTargets; }
 
-        public void AddVisibleTarget(string targetId)
+        public void AddVisibleTarget(TreasuredObject target)
         {
-            if (string.IsNullOrEmpty(targetId) || targetId.Equals(Id))
+            if (string.IsNullOrEmpty(target.Id) || target.Id.Equals(Id))
             {
                 return;
             }
-            if (Guid.TryParse(targetId, out Guid result) &&! _visibleTargets.Contains(targetId))
+            if (Guid.TryParse(target.Id, out Guid result) && !_visibleTargets.Contains(target.Id))
             {
-                _visibleTargets.Add(targetId);
+                _visibleTargets.Add(target.Id);
             }
         }
 

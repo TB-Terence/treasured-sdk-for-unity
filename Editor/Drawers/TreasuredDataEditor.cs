@@ -119,38 +119,10 @@ namespace Treasured.SDKEditor
                 ShowExportConfigWindow(exportButtonRect);
             }
             EditorGUILayout.EndHorizontal();
-            using (new EditorGUI.DisabledGroupScope(true))
-            {
-                EditorGUILayout.LabelField("Version", TreasuredData.Version);
-            };
 
             serializedObject.Update();
-            SerializedProperty nameProp = serializedObject.FindProperty("_name");
-            SerializedProperty loopProp = serializedObject.FindProperty("_loop");
-            SerializedProperty formatProp = serializedObject.FindProperty("_format");
-            SerializedProperty qualityProp = serializedObject.FindProperty("_quality");
-
-            SerializedProperty iterator = serializedObject.GetIterator();
-            iterator.NextVisible(true);
-            while (iterator.NextVisible(false))
-            {
-                if (iterator.name == "m_Script" || iterator.name == "_hotspots" || iterator.name == "_interactables")
-                {
-                    continue;
-                }
-                EditorGUILayout.PropertyField(iterator);
-                if (iterator.name == "_quality" && iterator.enumValueIndex == 3)
-                {
-                    EditorGUILayout.HelpBox("Use with caution!\n" +
-                        "Ultra setting will use a lot of memory due to a bug with Unity.\n" +
-                        "The memory is unlikely to be released until entering or exiting play mode and upon assembly reloaded.", MessageType.Warning);
-                }
-                if (iterator.name == "_name" && string.IsNullOrEmpty(iterator.stringValue))
-                {
-                    string sceneName = EditorSceneManager.GetActiveScene().name;
-                    EditorGUILayout.HelpBox($"The default output folder name will be '{sceneName}'.", MessageType.Warning);
-                }
-            }
+            SerializedProperty interactableProp = serializedObject.FindProperty("_interactables");
+            SerializedProperty hotspotProp = serializedObject.FindProperty("_hotspots");
             _selectedTab = GUILayout.SelectionGrid(_selectedTab, _objectTabs, _objectTabs.Length, GUILayout.Height(26));
             CreateDropZone(_selectedTab);
             serializedObject.ApplyModifiedProperties();
