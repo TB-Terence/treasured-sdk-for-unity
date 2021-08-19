@@ -1,11 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Treasured.SDK
 {
     public enum ImageFormat
     {
-        JPEG,
+        JPG,
         PNG
     }
     public enum ImageQuality
@@ -19,7 +21,7 @@ namespace Treasured.SDK
     [CreateAssetMenu(fileName = "Data", menuName = "Treasured/Data")]
     public sealed class TreasuredData : ScriptableObject
     {
-        public static readonly string Version = "0.3.0";
+        public static readonly string Version = "0.3.2";
 
         [SerializeField]
         private string _name;
@@ -30,9 +32,9 @@ namespace Treasured.SDK
         [SerializeField]
         private ImageQuality _quality = ImageQuality.Medium;
         [SerializeField]
-        private List<TreasuredObject> _hotspots;
+        private List<TreasuredObject> _hotspots = new List<TreasuredObject>();
         [SerializeField]
-        private List<TreasuredObject> _interactables;
+        private List<TreasuredObject> _interactables = new List<TreasuredObject>();
 
         public string Name { get => _name; set => _name = value; }
         public bool Loop { get => _loop; set => _loop = value; }
@@ -40,5 +42,16 @@ namespace Treasured.SDK
         public ImageQuality Quality { get => _quality; set => _quality = value; }
         public List<TreasuredObject> Hotspots { get => _hotspots; set => _hotspots = value; }
         public List<TreasuredObject> Interactables { get => _interactables; set => _interactables = value; }
+        /// <summary>
+        /// Returns a unique list of objects.
+        /// </summary>
+        [JsonIgnore]
+        public IEnumerable<TreasuredObject> All
+        {
+            get
+            {
+                return Hotspots.Union(Interactables);
+            }
+        }
     }
 }

@@ -1,4 +1,6 @@
-﻿using UnityEditor;
+﻿using System;
+using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 namespace Treasured.SDKEditor
@@ -19,13 +21,18 @@ namespace Treasured.SDKEditor
             SerializedProperty hitboxProp = property.FindPropertyRelative("_hitbox");
             SerializedProperty onSelectedProp = property.FindPropertyRelative("_onSelected");
 
+            if (string.IsNullOrEmpty(idProp.stringValue))
+            {
+                idProp.stringValue = Guid.NewGuid().ToString();
+            }
+
             property.isExpanded = EditorGUI.Foldout(new Rect(position.x, position.y, position.width, 18), property.isExpanded, string.IsNullOrEmpty(nameProp.stringValue) ? label : new GUIContent(nameProp.stringValue), true);
-            
+
             if (property.isExpanded)
             {
                 EditorGUI.indentLevel++;
 
-                using(new EditorGUI.DisabledGroupScope(true))
+                using (new EditorGUI.DisabledGroupScope(true))
                 {
                     EditorGUI.PropertyField(new Rect(position.x, position.y + 20, position.width, 18), idProp);
                 }
@@ -43,7 +50,7 @@ namespace Treasured.SDKEditor
 
                 float onSelectedPropHeight = EditorGUI.GetPropertyHeight(onSelectedProp);
                 EditorGUI.PropertyField(new Rect(position.x, position.y + 62 + descriptionPropHeight + hitboxPropHeight + transformPropHeight, position.width, onSelectedPropHeight), onSelectedProp, true);
-                
+
                 EditorGUI.indentLevel--;
             }
 

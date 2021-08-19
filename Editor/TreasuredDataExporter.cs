@@ -7,6 +7,8 @@ using UnityEngine.Rendering;
 using System;
 using UnityEditor.SceneManagement;
 using Simple360Render;
+using UnityEditorInternal;
+using System.Collections.Generic;
 
 namespace Treasured.SDKEditor
 {
@@ -25,20 +27,22 @@ namespace Treasured.SDKEditor
         private static Material _equirectangularConverter;
         private static int _paddingX;
 
-        string Export()
+        bool Export(int layerMask)
         {
             string directory = EditorUtility.SaveFolderPanel("Choose output directory", Path.GetDirectoryName(Application.dataPath), "");
             if (!string.IsNullOrEmpty(directory))
             {
                 string folderName = string.IsNullOrEmpty(_data.Name) ? EditorSceneManager.GetActiveScene().name : _data.Name;
                 directory = Path.Combine(directory, $"{folderName}/");
-                ExportPanorama(directory);
+                ExportPanorama(directory, layerMask);
                 ExportJson(directory);
+                Application.OpenURL(directory);
+                return true;
             }
-            return directory;
+            return false;
         }
 
-        void ExportPanorama(string directory)
+        void ExportPanorama(string directory, int layerMask)
         {
             if (_camera == null)
             {
@@ -63,7 +67,7 @@ namespace Treasured.SDKEditor
             #endregion
 
             #region Settings
-            bool encodeAsJPEG = _data.Format == ImageFormat.JPEG;
+            bool encodeAsJPEG = _data.Format == ImageFormat.JPG;
             int cubeMapSize = Mathf.Min(Mathf.NextPowerOfTwo((int)_data.Quality), 8192);
             int count = _data.Hotspots.Count;
             bool faceCameraDirection = true;
@@ -85,11 +89,25 @@ namespace Treasured.SDKEditor
 
             try
             {
+                IEnumerable<TreasuredObject> targets = _data.All;
                 for (int index = 0; index < count; index++)
                 {
                     TreasuredObject hotspot = _data.Hotspots[index];
-                    // Compute the filename
-                    var fileName = $"Panorama_{index}.{_data.Format.ToString().ToLower()}";
+                    // Calculate Visible Targets
+                    hotspot.ResetVisibleTargets();
+                    foreach (var target in targets)
+                    {
+                        if (target.Id == hotspot.Id)
+                        {
+                            continue;
+                        }
+                        if (!Physics.Linecast(hotspot.Transform.Position, target.Transform.Position, layerMask))
+                        {
+                            hotspot.AddVisibleTarget(target);
+                        }
+                    }
+
+                    var fileName = $"{hotspot.Id}.{_data.Format.ToString().ToLower()}";
                     // Move the camera in the right position
                     _camera.transform.SetPositionAndRotation(hotspot.Transform.Position, Quaternion.identity);
                     
@@ -160,10 +178,11 @@ namespace Treasured.SDKEditor
 
         private class ExportConfigWindow : PopupWindowContent
         {
-            public static readonly Vector2 WindowSize = new Vector2(180, 60);
+            public static readonly Vector2 WindowSize = new Vector2(270, 64);
 
             private TreasuredDataEditor _editor;
             private bool _showInExplorer = true;
+            private int _layerMask;
 
             private GUIContent buttonStart = new GUIContent("Start");
 
@@ -180,11 +199,18 @@ namespace Treasured.SDKEditor
             public override void OnGUI(Rect rect)
             {
                 _showInExplorer = EditorGUI.Toggle(new Rect(2, 2, rect.width, 20), "Show In Explorer", _showInExplorer);
+                _layerMask = EditorGUI.MaskField(new Rect(2, 22, rect.width, 20), new GUIContent("Interactable Layer"), _layerMask, InternalEditorUtility.layers);
                 Rect buttonRect = GUILayoutUtility.GetRect(buttonStart, GUI.skin.button);
                 if (GUI.Button(new Rect(rect.xMax - buttonRect.width - 4, rect.height - buttonRect.height - 4, rect.width - 4, 20), buttonStart))
                 {
-                    string directory = _editor.Export();
-                    Application.OpenURL(directory);
+                    try
+                    {
+                        _editor.Export(_layerMask);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError(e);
+                    }
                 }
             }
         }

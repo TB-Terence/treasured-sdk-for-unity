@@ -1,3 +1,17 @@
+## Version 0.3.2 (August 17, 2021)
+- Add Visible Targets to Json
+- Add Layer Mask for export settings
+## Version 0.3.1 (August 17, 2021)
+#### Fixes
+- Change output format jpg from jpeg and lower case the format in JSON
+- Auto-generate id for the first item in the list
+- Update image output file name
+#### Features
+- Add dropdown for selecting Target ID for `Select Object` action
+- Add button to regenerate Action ID
+- Add tabs for Hotspots and Interactables along with some utilities to work with the list
+- Add Utility for Transform
+- Add Utility for Hitbox
 ## Version 0.3.0 (August 14, 2021)
 #### New export workflow
 - New design for data model
