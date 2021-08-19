@@ -16,7 +16,7 @@ namespace Treasured.SDKEditor
             if (property.isExpanded)
             {
                 EditorGUI.indentLevel++;
-                Rect centerRect = EditorGUI.PrefixLabel(new Rect(position.x, position.y + 20, position.width, 20), new GUIContent("Center", "Position offset of the hitbox relative to the position of the transform."));
+                Rect centerRect = EditorGUI.PrefixLabel(new Rect(position.x, position.y + 20, position.width, 20), new GUIContent("Center", "Position of the hitbox in world space."));
                 centerProp.vector3Value = EditorGUI.Vector3Field(centerRect, "",  centerProp.vector3Value);
                 Rect sizeRect = EditorGUI.PrefixLabel(new Rect(position.x, position.y + 40, position.width, 20), new GUIContent("Size", "Size of the hitbox."));
                 sizeProp.vector3Value = EditorGUI.Vector3Field(sizeRect, "",  sizeProp.vector3Value);
