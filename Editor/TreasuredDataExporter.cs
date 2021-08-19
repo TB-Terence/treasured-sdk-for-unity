@@ -9,6 +9,7 @@ using UnityEditor.SceneManagement;
 using Simple360Render;
 using UnityEditorInternal;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Treasured.SDKEditor
 {
@@ -63,7 +64,23 @@ namespace Treasured.SDKEditor
             #region Create output directories
             string qualityFolderName = $"{Enum.GetName(typeof(ImageQuality), _data.Quality)}/";
             string qualityFolderDirectory = Path.Combine(directory, qualityFolderName);
-            Directory.CreateDirectory(qualityFolderDirectory);
+            if (Directory.Exists(qualityFolderDirectory))
+            {
+                DirectoryInfo info = new DirectoryInfo(qualityFolderDirectory);
+                FileInfo[] fileInfos = info.GetFiles();
+                if (info.GetFiles().Length > 0)
+                {
+                    IEnumerable<string> files = fileInfos.Select(x => Path.GetFileNameWithoutExtension(x.Name)).Except(_data.Hotspots.Select(x => x.Id));
+                    foreach (var file in files)
+                    {
+                        Debug.LogWarning($"{qualityFolderDirectory} contains file '{file}' which is not part of the data.");
+                    }
+                }
+            }
+            else
+            {
+                Directory.CreateDirectory(qualityFolderDirectory);
+            }
             #endregion
 
             #region Settings
@@ -111,24 +128,24 @@ namespace Treasured.SDKEditor
                     // Move the camera in the right position
                     _camera.transform.SetPositionAndRotation(hotspot.Transform.Position, Quaternion.identity);
                     
-                    EditorUtility.DisplayProgressBar($"Generating {fileName} ({index + 1}/{count})", "Generating cubemap...", 0.33f);
+                    EditorUtility.DisplayProgressBar($"Exporting image ({index + 1}/{count})", $"Working on cubemap for {hotspot.Name}", 0.33f);
                     if (!_camera.RenderToCubemap(_cubeMapTexture, 63))
                     {
                         throw new NotSupportedException("Rendering to cubemap is not supported on device/platform!");
                     }
 
-                    EditorUtility.DisplayProgressBar($"Generating {fileName} ({index + 1}/{count})", "Copying texture with shader...", 0.66f);
+                    EditorUtility.DisplayProgressBar($"Exporting image ({index + 1}/{count})", "Applying shader...", 0.66f);
                     _equirectangularConverter.SetFloat(_paddingX, faceCameraDirection ? (_camera.transform.eulerAngles.y / 360f) : 0f);
                     Graphics.Blit(_cubeMapTexture, _equirectangularTexture, _equirectangularConverter);
 
                     RenderTexture.active = _equirectangularTexture;
                     _outputTexture.ReadPixels(new Rect(0, 0, _equirectangularTexture.width, _equirectangularTexture.height), 0, 0);
                     
-                    EditorUtility.DisplayProgressBar($"Generating {fileName} ({index + 1}/{count})", "Inserting XMP Data...", 0.99f);
+                    EditorUtility.DisplayProgressBar($"Exporting image ({index + 1}/{count})", $"Inserting XMP Data for {fileName}...", 0.99f);
                     byte[] bytes = encodeAsJPEG ? I360Render.InsertXMPIntoTexture2D_JPEG(_outputTexture) : I360Render.InsertXMPIntoTexture2D_PNG(_outputTexture);
                     if (bytes != null)
                     {
-                        EditorUtility.DisplayProgressBar($"Generating {fileName} ({index + 1}/{count})", "Saving Image...", 0.99f);
+                        EditorUtility.DisplayProgressBar($"Exporting {fileName} ({index + 1}/{count})", $"Saving {fileName}...", 0.99f);
                         string path = Path.Combine(qualityFolderDirectory, fileName);
                         File.WriteAllBytes(path, bytes);
                     }
