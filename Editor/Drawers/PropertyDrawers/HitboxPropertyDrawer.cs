@@ -16,8 +16,10 @@ namespace Treasured.SDKEditor
             if (property.isExpanded)
             {
                 EditorGUI.indentLevel++;
-                centerProp.vector3Value = EditorGUI.Vector3Field(new Rect(position.x, position.y + 20, position.width, 20), new GUIContent("Center", "Position offset of the hitbox relative to the position of the transform."),  centerProp.vector3Value);
-                sizeProp.vector3Value = EditorGUI.Vector3Field(new Rect(position.x, position.y + 40, position.width, 20), new GUIContent("Size", "Size of the hitbox."),  sizeProp.vector3Value);
+                Rect centerRect = EditorGUI.PrefixLabel(new Rect(position.x, position.y + 20, position.width, 20), new GUIContent("Center", "Position offset of the hitbox relative to the position of the transform."));
+                centerProp.vector3Value = EditorGUI.Vector3Field(centerRect, "",  centerProp.vector3Value);
+                Rect sizeRect = EditorGUI.PrefixLabel(new Rect(position.x, position.y + 40, position.width, 20), new GUIContent("Size", "Size of the hitbox."));
+                sizeProp.vector3Value = EditorGUI.Vector3Field(sizeRect, "",  sizeProp.vector3Value);
                 EditorGUI.indentLevel--;
                 if (GUI.Button(new Rect(position.xMax - 40, position.y, 20, 20), EditorGUIUtility.TrIconContent("BoxCollider Icon", "Use Selected Game Object Collider"), EditorStyles.label))
                 {

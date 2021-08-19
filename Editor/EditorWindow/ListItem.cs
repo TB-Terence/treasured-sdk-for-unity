@@ -8,6 +8,6 @@ namespace Treasured.SDKEditor
     {
         public bool Export;
         public TreasuredObject Object;
-        public string PropertyPath;
+        public int ElementIndex;
     }
 }

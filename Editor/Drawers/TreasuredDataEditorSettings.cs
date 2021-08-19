@@ -22,13 +22,4 @@ namespace Treasured.SDKEditor
         public bool ShowInExplorer { get => _showInExplorer; set => _showInExplorer = value; }
         public string DefaultOutputFolderGUID { get => _defaultOutputFolder; }
     }
-
-    [CustomEditor(typeof(TreasuredDataEditorSettings))]
-    internal class TreasuredDataEditorSettingsEditor : Editor
-    {
-        public override void OnInspectorGUI()
-        {
-            //CustomGUIUtility.FilteredPropertyField(serializedObject);
-        }
-    }
 }

@@ -44,7 +44,7 @@ namespace Treasured.SDKEditor
             {
                 case "selectObject":
                     SerializedProperty _targetIdProp = property.FindPropertyRelative("_targetId");
-                    if (string.IsNullOrEmpty(_targetIdProp.stringValue) || !TreasuredDataEditor.ObjectIds.TryGetValue(_targetIdProp.stringValue, out string path))
+                    if (string.IsNullOrEmpty(_targetIdProp.stringValue) || !TreasuredDataEditorWindow.ObjectIds.TryGetValue(_targetIdProp.stringValue, out string path))
                     {
                         path = "Not Selected";
                     }
@@ -52,7 +52,7 @@ namespace Treasured.SDKEditor
                     if (EditorGUI.DropdownButton(dropdownRect, new GUIContent(text: path), FocusType.Passive))
                     {
                         GenericMenu menu = new GenericMenu();
-                        foreach (var idInfo in TreasuredDataEditor.ObjectIds)
+                        foreach (var idInfo in TreasuredDataEditorWindow.ObjectIds)
                         {
                             if (_targetIdProp.stringValue.Equals(idInfo.Key))
                             {

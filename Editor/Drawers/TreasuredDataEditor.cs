@@ -1,8 +1,6 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using Treasured.SDK;
-using System.Linq;
-using UnityEditor.SceneManagement;
 using System;
 using System.Collections.Generic;
 
@@ -11,11 +9,6 @@ namespace Treasured.SDKEditor
     [CustomEditor(typeof(TreasuredData))]
     internal partial class TreasuredDataEditor : Editor
     {
-        /// <summary>
-        /// Current editing data.
-        /// </summary>
-        public static readonly Dictionary<string, string> ObjectIds = new Dictionary<string, string>();
-
         [SerializeField]
         private bool _showPreview;
         [SerializeField]
@@ -54,41 +47,13 @@ namespace Treasured.SDKEditor
             GameObject.DestroyImmediate(TreasuredDataPreviewer.Instance.gameObject);
         }
 
-        private void RebuildObjectIds()
-        {
-            ObjectIds.Clear();
-            foreach (var hotspot in _data.Hotspots)
-            {
-                string id = hotspot.Id;
-                if (!string.IsNullOrEmpty(id) && !ObjectIds.ContainsKey(id))
-                {
-                    ObjectIds[id] = $"Hotspots/{hotspot.Name} | {id}";
-                }
-                if (hotspot.Hitbox.Size == Vector3.zero)
-                {
-                    hotspot.Hitbox.Size = Vector3.one;
-                }
-            }
-            foreach (var interactable in _data.Interactables)
-            {
-                string id = interactable.Id;
-                if (!string.IsNullOrEmpty(id) && !ObjectIds.ContainsKey(id))
-                {
-                    ObjectIds[id] = $"Interactables/{interactable.Name} | {id}";
-                }
-                if (interactable.Hitbox.Size == Vector3.zero)
-                {
-                    interactable.Hitbox.Size = Vector3.one;
-                }
-            }
-        }
-
         public override void OnInspectorGUI()
         {
-            if (Event.current.type == EventType.Repaint && ObjectIds.Count != _data.Hotspots.Count + _data.Interactables.Count)
+            if (GUILayout.Button("Open in Editor", GUILayout.Height(24)))
             {
-                RebuildObjectIds();
+                TreasuredDataEditorWindow.Open(target as TreasuredData);
             }
+            return;
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
             EditorGUI.BeginChangeCheck();
             _showPreview = GUILayout.Toggle(_showPreview, "Preview in Scene(Experimental)");

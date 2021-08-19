@@ -16,14 +16,23 @@ namespace Treasured.SDKEditor
             if (property.isExpanded)
             {
                 EditorGUI.indentLevel++;
-                positionProp.vector3Value = EditorGUI.Vector3Field(new Rect(position.x, position.y + 20, position.width, 20), new GUIContent("Position", "Position of the transform in world space."),  positionProp.vector3Value);
-                rotationProp.vector3Value = EditorGUI.Vector3Field(new Rect(position.x, position.y + 40, position.width, 20), new GUIContent("Rotation", "Rotation of the transform."),  rotationProp.vector3Value);
+                Rect postitionRect = EditorGUI.PrefixLabel(new Rect(position.x, position.y + 20, position.width, 20), new GUIContent("Position", "Position of the transform in world space."));
+                positionProp.vector3Value = EditorGUI.Vector3Field(postitionRect, "", positionProp.vector3Value);
+                Rect rotationRect = EditorGUI.PrefixLabel(new Rect(position.x, position.y + 40, position.width, 20), new GUIContent("Rotation", "Rotation of the transform."));
+                rotationProp.vector3Value = EditorGUI.Vector3Field(rotationRect,"",  rotationProp.vector3Value);
                 EditorGUI.indentLevel--;
                 if (GUI.Button(new Rect(position.xMax - 20, position.y, 20, 20), EditorGUIUtility.TrIconContent("Transform Icon", "Use Selected Game Object Transform"), EditorStyles.label))
                 {
-                    positionProp.vector3Value = Selection.activeGameObject.transform.position;
-                    rotationProp.vector3Value = Selection.activeGameObject.transform.rotation.eulerAngles;
-                    GUI.FocusControl(null);
+                    if(Selection.activeGameObject == null)
+                    {
+                        Debug.LogWarning("No game object is selected.");
+                    }
+                    else
+                    {
+                        positionProp.vector3Value = Selection.activeGameObject.transform.position;
+                        rotationProp.vector3Value = Selection.activeGameObject.transform.rotation.eulerAngles;
+                        GUI.FocusControl(null);
+                    }
                 }
                 //using (new EditorGUI.DisabledGroupScope(true))
                 //{

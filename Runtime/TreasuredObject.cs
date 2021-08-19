@@ -17,6 +17,7 @@ namespace Treasured.SDK
         /// The instance id of the object.
         /// </summary>
         [SerializeField]
+        [ReadOnly]
         private string _id;
         /// <summary>
         /// The description of the object.
