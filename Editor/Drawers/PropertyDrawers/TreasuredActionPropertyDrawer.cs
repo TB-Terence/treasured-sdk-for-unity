@@ -8,8 +8,6 @@ namespace Treasured.SDKEditor
     [CustomPropertyDrawer(typeof(Treasured.SDK.TreasuredAction))]
     public class TreasuredActionPropertyDrawer : PropertyDrawer
     {
-        private static HashSet<string> ids = new HashSet<string>();
-
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             EditorGUI.BeginProperty(position, label, property);
@@ -51,20 +49,27 @@ namespace Treasured.SDKEditor
                     Rect dropdownRect = EditorGUI.PrefixLabel(new Rect(position.x, position.y + 40, position.width, 18), new GUIContent("Target ID"));
                     if (EditorGUI.DropdownButton(dropdownRect, new GUIContent(text: path), FocusType.Passive))
                     {
-                        GenericMenu menu = new GenericMenu();
-                        foreach (var idInfo in TreasuredDataEditor.ObjectIds)
+                        string idPath = property.propertyPath;
+                        int index = IndexOf(property.propertyPath, '.', 3);
+                        if (index != -1)
                         {
-                            if (_targetIdProp.stringValue.Equals(idInfo.Key))
+                            idPath = $"{property.propertyPath.Substring(0, index)}._id";
+                            SerializedProperty id = property.serializedObject.FindProperty(idPath);
+                            GenericMenu menu = new GenericMenu();
+                            foreach (var idInfo in TreasuredDataEditor.ObjectIds)
                             {
-                                continue;
+                                if (_targetIdProp.stringValue.Equals(idInfo.Key) || idInfo.Key.Equals(id.stringValue))
+                                {
+                                    continue;
+                                }
+                                menu.AddItem(new GUIContent(idInfo.Value), false, () =>
+                                {
+                                    _targetIdProp.stringValue = idInfo.Key;
+                                    _targetIdProp.serializedObject.ApplyModifiedProperties();
+                                });
                             }
-                            menu.AddItem(new GUIContent(idInfo.Value), false, () =>
-                            {
-                                _targetIdProp.stringValue = idInfo.Key;
-                                _targetIdProp.serializedObject.ApplyModifiedProperties();
-                            });
+                            menu.ShowAsContext();
                         }
-                        menu.ShowAsContext();
                     }
                     break;
                 case "showText":
@@ -85,6 +90,25 @@ namespace Treasured.SDKEditor
             EditorGUI.EndProperty();
         }
 
+        private int IndexOf(string value, char c, int count)
+        {
+            if (string.IsNullOrEmpty(value) || count < 1)
+            {
+                return -1;
+            }
+            for (int i = 0; i < value.Length; i++)
+            {
+                if (value[i].Equals(c))
+                {
+                    count--;
+                    if (count == 0)
+                    {
+                        return i;
+                    }
+                }
+            }
+            return -1;
+        }
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {

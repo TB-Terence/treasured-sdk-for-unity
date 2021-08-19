@@ -9,6 +9,7 @@ namespace Treasured.SDKEditor
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
+            bool isHotspot = property.propertyPath.StartsWith("_hotspots");
             EditorGUI.BeginProperty(position, label, property);
             SerializedProperty centerProp = property.FindPropertyRelative("_center");
             SerializedProperty sizeProp = property.FindPropertyRelative("_size");
@@ -21,7 +22,7 @@ namespace Treasured.SDKEditor
                 Rect sizeRect = EditorGUI.PrefixLabel(new Rect(position.x, position.y + 40, position.width, 20), new GUIContent("Size", "Size of the hitbox."));
                 sizeProp.vector3Value = EditorGUI.Vector3Field(sizeRect, "",  sizeProp.vector3Value);
                 EditorGUI.indentLevel--;
-                if (GUI.Button(new Rect(position.xMax - 40, position.y, 20, 20), EditorGUIUtility.TrIconContent("BoxCollider Icon", "Use Selected Game Object Collider"), EditorStyles.label))
+                if (GUI.Button(new Rect(position.xMax - (isHotspot ? 40 : 20), position.y, 20, 20), EditorGUIUtility.TrIconContent("BoxCollider Icon", "Use Selected Game Object Collider"), EditorStyles.label))
                 {
                     if(Selection.activeGameObject)
                     {
@@ -49,22 +50,24 @@ namespace Treasured.SDKEditor
                         }
                     }
                 }
-                if (GUI.Button(new Rect(position.xMax - 20, position.y, 20, 20), EditorGUIUtility.TrIconContent("RaycastCollider Icon", "Raycast to Floor"), EditorStyles.label))
+                if (isHotspot)
                 {
-                    string path = property.propertyPath;
-                    path = $"{path.Substring(0, path.LastIndexOf('.'))}._transform._position";
-                    SerializedProperty positionProp = property.serializedObject.FindProperty(path);
-                    if (positionProp != null)
+                    if (GUI.Button(new Rect(position.xMax - 20, position.y, 20, 20), EditorGUIUtility.TrIconContent("RaycastCollider Icon", "Raycast to Floor"), EditorStyles.label))
                     {
-                        Ray ray = new Ray(positionProp.vector3Value, positionProp.vector3Value + Vector3.down * 100);
-                        if (Physics.Raycast(ray, out var hit))
+                        string path = property.propertyPath;
+                        path = $"{path.Substring(0, path.LastIndexOf('.'))}._transform._position";
+                        SerializedProperty positionProp = property.serializedObject.FindProperty(path);
+                        if (positionProp != null)
                         {
-                            centerProp.vector3Value = hit.point;
-                            sizeProp.vector3Value = Vector3.one;
-                        }
-                        else
-                        {
-                            centerProp.vector3Value = Vector3.zero;
+                            if (Physics.Raycast(positionProp.vector3Value, positionProp.vector3Value - positionProp.vector3Value + Vector3.down, out var hit, 100))
+                            {
+                                centerProp.vector3Value = hit.point;
+                                sizeProp.vector3Value = Vector3.one;
+                            }
+                            else
+                            {
+                                Debug.LogWarning($"No hit found. Make sure the position is above ground and the ground has a collider component. Maximum distance: 100");
+                            }
                         }
                     }
                 }

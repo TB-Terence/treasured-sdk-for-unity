@@ -1,3 +1,6 @@
+## Version 0.3.3 (August 19, 2021)
+- Fixed gizmos for Previewer
+- Improved process of finding hitbox position.
 ## Version 0.3.2 (August 17, 2021)
 - Add Visible Targets to Json
 - Add Layer Mask for export settings
