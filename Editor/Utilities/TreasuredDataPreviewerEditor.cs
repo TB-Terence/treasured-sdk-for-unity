@@ -37,14 +37,14 @@ namespace Treasured.SDKEditor
                 TreasuredObject next = hotspots[(i + 1) % hotspots.Count];
 
                 Handles.color = Color.white;
-                Handles.DrawWireCube(current.Transform.Position, Vector3.one * 0.1f);
-                Handles.DrawWireCube(current.Hitbox.Center, current.Hitbox.Size);
+                Handles.DrawWireCube(current.Transform.Position, Vector3.one * 0.3f);
                 
-                
+                Handles.DrawDottedLine(current.Transform.Position, current.Hitbox.Center, 5);
+
                 if (Tools.current == Tool.Move)
                 {
                     EditorGUI.BeginChangeCheck();
-                    Vector3 newPosition = Handles.FreeMoveHandle(current.Transform.Position, Quaternion.identity, 1, snap, Handles.RectangleHandleCap);
+                    Vector3 newPosition = Handles.FreeMoveHandle(current.Transform.Position, Quaternion.identity, 1, snap, Handles.CircleHandleCap);
                     if (EditorGUI.EndChangeCheck())
                     {
                         current.Transform.Position = newPosition;
@@ -57,7 +57,7 @@ namespace Treasured.SDKEditor
                 {
                     continue;
                 }
-                Handles.DrawDottedLine(current.Transform.Position, next.Transform.Position, 5);
+                Handles.DrawLine(current.Transform.Position, next.Transform.Position, 1);
                 Handles.color = Color.green;
                 Vector3 direction = next.Transform.Position - current.Transform.Position;
                 // draw multiple arrows
@@ -72,6 +72,8 @@ namespace Treasured.SDKEditor
                 }
                 Handles.color = Color.red;
                 Handles.ArrowHandleCap(0, current.Transform.Position, Quaternion.Euler(current.Transform.Rotation), 1, EventType.Repaint);
+                Handles.color = Color.green;
+                Handles.DrawWireCube(current.Hitbox.Center, current.Hitbox.Size);
             }
             Handles.color = Color.white;
             var interactables = _previewer.Data.Interactables;
@@ -109,7 +111,7 @@ namespace Treasured.SDKEditor
                     }
                     
                 }
-                Handles.Label(current.Transform.Position, current.Name);
+                Handles.Label(current.Transform.Position + Vector3.down, new GUIContent($"[Interactable] {current.Name}"));
             }
         }
     }

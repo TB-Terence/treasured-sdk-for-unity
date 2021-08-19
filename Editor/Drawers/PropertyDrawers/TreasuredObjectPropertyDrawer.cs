@@ -34,7 +34,12 @@ namespace Treasured.SDKEditor
 
                 using (new EditorGUI.DisabledGroupScope(true))
                 {
-                    EditorGUI.PropertyField(new Rect(position.x, position.y + 20, position.width, 18), idProp);
+                    EditorGUI.PropertyField(new Rect(position.x, position.y + 20, position.width - 22, 18), idProp);
+                }
+                if (GUI.Button(new Rect(new Rect(position.xMax - 20, position.y + 20, 20, 18)), EditorGUIUtility.TrIconContent("Refresh", "Regenerate ID")))
+                {
+                    idProp.stringValue = Guid.NewGuid().ToString();
+                    TreasuredDataEditor.RefreshObjectIDs();
                 }
 
                 EditorGUI.PropertyField(new Rect(position.x, position.y + 40, position.width, 18), nameProp);
