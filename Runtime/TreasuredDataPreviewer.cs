@@ -26,13 +26,18 @@ namespace Treasured.SDK
             }
         }
 
+        [SerializeField]
         private TreasuredData _data;
 
         public TreasuredData Data { get => _data; set => _data = value; }
 
         private void OnEnable()
         {
-            if (_instance != null && _instance != this)
+            if (_instance == null)
+            {
+                _instance = this;
+            }
+            else if (_instance != null && _instance != this)
             {
                 GameObject.DestroyImmediate(this.gameObject);
             }

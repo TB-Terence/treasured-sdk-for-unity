@@ -1,3 +1,6 @@
+## Version 0.3.4 (August 19, 2021)
+- Fixed find hitbox center position to be based on size of the hitbox instead of ground point.
+- Add utility to find transform in scene
 ## Version 0.3.3 (August 19, 2021)
 - Fixed gizmos for Previewer
 - Improved process of finding hitbox position.

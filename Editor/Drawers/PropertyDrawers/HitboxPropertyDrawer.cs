@@ -61,8 +61,12 @@ namespace Treasured.SDKEditor
                         {
                             if (Physics.Raycast(positionProp.vector3Value, positionProp.vector3Value - positionProp.vector3Value + Vector3.down, out var hit, 100))
                             {
-                                centerProp.vector3Value = hit.point;
-                                sizeProp.vector3Value = Vector3.one;
+                                if (sizeProp.vector3Value == Vector3.zero)
+                                {
+                                    sizeProp.vector3Value = Vector3.one;
+                                }
+                                float sizeHeight = sizeProp.vector3Value.y;
+                                centerProp.vector3Value = hit.point + new Vector3(0, sizeHeight / 2, 0);
                             }
                             else
                             {

@@ -20,7 +20,7 @@ namespace Treasured.SDKEditor
         #region Window Properties
         private static readonly Vector2 MinSize = new Vector2(400, 600);
 
-        [MenuItem("Tools/Treasured/Editor")]
+        //[MenuItem("Tools/Treasured/Editor")]
         static TreasuredDataEditorWindow OpenWindow()
         {
             var window = GetWindow<TreasuredDataEditorWindow>();

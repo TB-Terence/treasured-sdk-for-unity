@@ -21,7 +21,7 @@ namespace Treasured.SDK
     [CreateAssetMenu(fileName = "Data", menuName = "Treasured/Data")]
     public sealed class TreasuredData : ScriptableObject
     {
-        public static readonly string Version = "0.3.3";
+        public static readonly string Version = "0.3.4";
 
         [SerializeField]
         private string _name;

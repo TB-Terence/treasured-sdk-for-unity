@@ -26,8 +26,17 @@ namespace Treasured.SDKEditor
                 idProp.stringValue = Guid.NewGuid().ToString();
             }
 
-            property.isExpanded = EditorGUI.Foldout(new Rect(position.x, position.y, position.width, 18), property.isExpanded, string.IsNullOrEmpty(nameProp.stringValue) ? label : new GUIContent(nameProp.stringValue), true);
-
+            property.isExpanded = EditorGUI.Foldout(new Rect(position.x, position.y, position.width - 20, 18), property.isExpanded, string.IsNullOrEmpty(nameProp.stringValue) ? label : new GUIContent(nameProp.stringValue), true);
+            if (GUI.Button(new Rect(position.xMax - 20, position.y, 20, 20), EditorGUIUtility.TrIconContent("Search Icon", "Move scene view to target"), EditorStyles.label))
+            {
+                SerializedProperty positionProp = transformProp.FindPropertyRelative("_position");
+                SerializedProperty rotationProp = transformProp.FindPropertyRelative("_rotation");
+                if (positionProp != null && rotationProp != null)
+                {
+                    SceneView.lastActiveSceneView.pivot = positionProp.vector3Value;
+                    SceneView.lastActiveSceneView.LookAt(positionProp.vector3Value, Quaternion.Euler(rotationProp.vector3Value), 1);
+                }
+            }
             if (property.isExpanded)
             {
                 EditorGUI.indentLevel++;
