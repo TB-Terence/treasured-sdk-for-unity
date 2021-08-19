@@ -549,7 +549,6 @@ namespace Treasured.SDKEditor
                 //onReorderCallbackWithDetails = (ReorderableList list, int oldIndex, int newIndex) =>
                 //{
                 //    MoveElement(InteractablesPropertyPath, oldIndex, newIndex);
-                    
                 //}
             };
         }

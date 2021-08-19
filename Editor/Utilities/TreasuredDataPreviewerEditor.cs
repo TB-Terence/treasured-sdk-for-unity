@@ -18,7 +18,7 @@ namespace Treasured.SDKEditor
         public override void OnInspectorGUI()
         {
             // Draw nothing in inspector
-            EditorGUILayout.HelpBox("This feature is currently in the Experimental stage.", MessageType.Info);
+            //EditorGUILayout.HelpBox("This feature is currently in the Experimental stage.", MessageType.Info);
         }
 
         private void OnSceneGUI()
@@ -37,8 +37,9 @@ namespace Treasured.SDKEditor
                 TreasuredObject next = hotspots[(i + 1) % hotspots.Count];
 
                 Handles.color = Color.white;
-                //float size = HandleUtility.GetHandleSize(current.Transform.Position) * 0.5f;
-                Handles.DrawWireDisc(current.Transform.Position, Vector3.up, 1);
+                Handles.DrawWireCube(current.Transform.Position, Vector3.one * 0.1f);
+                Handles.DrawWireCube(current.Hitbox.Center, current.Hitbox.Size);
+                
                 
                 if (Tools.current == Tool.Move)
                 {
@@ -49,8 +50,6 @@ namespace Treasured.SDKEditor
                         current.Transform.Position = newPosition;
                     }
                 }
-
-                Handles.DrawWireCube(current.Transform.Position, Vector3.up);
 
                 Handles.Label(current.Transform.Position + Vector3.down, new GUIContent($"[Hotspot] {current.Name}"));
 
@@ -71,6 +70,8 @@ namespace Treasured.SDKEditor
                 {
                     Handles.ArrowHandleCap(0, current.Transform.Position, Quaternion.LookRotation(direction), 1, EventType.Repaint);
                 }
+                Handles.color = Color.red;
+                Handles.ArrowHandleCap(0, current.Transform.Position, Quaternion.Euler(current.Transform.Rotation), 1, EventType.Repaint);
             }
             Handles.color = Color.white;
             var interactables = _previewer.Data.Interactables;

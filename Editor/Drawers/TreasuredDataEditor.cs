@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using Treasured.SDK;
+using System.Linq;
+using UnityEditor.SceneManagement;
 using System;
 using System.Collections.Generic;
 
@@ -9,12 +11,15 @@ namespace Treasured.SDKEditor
     [CustomEditor(typeof(TreasuredData))]
     internal partial class TreasuredDataEditor : Editor
     {
-        [SerializeField]
+        /// <summary>
+        /// Current editing data.
+        /// </summary>
+        public static readonly Dictionary<string, string> ObjectIds = new Dictionary<string, string>();
+
         private bool _showPreview;
-        [SerializeField]
         private TreasuredData _data;
 
-        private string[] _objectTabs = new string[] { "Interactables", "Hotspots" };
+        private string[] _objectTabs = new string[] { "Hotspots", "Interactables" };
         private int _selectedTab = 0;
 
         private Vector2 _hotspotScrollPosition;
@@ -42,26 +47,50 @@ namespace Treasured.SDKEditor
             serializedObject.FindProperty("_interactables").isExpanded = true;
         }
 
-        private void OnDisable()
+        private void RebuildObjectIds()
         {
-            GameObject.DestroyImmediate(TreasuredDataPreviewer.Instance.gameObject);
+            ObjectIds.Clear();
+            foreach (var hotspot in _data.Hotspots)
+            {
+                string id = hotspot.Id;
+                if (!string.IsNullOrEmpty(id) && !ObjectIds.ContainsKey(id))
+                {
+                    ObjectIds[id] = $"Hotspots/{hotspot.Name} | {id}";
+                }
+                if (hotspot.Hitbox.Size == Vector3.zero)
+                {
+                    hotspot.Hitbox.Size = Vector3.one;
+                }
+            }
+            foreach (var interactable in _data.Interactables)
+            {
+                string id = interactable.Id;
+                if (!string.IsNullOrEmpty(id) && !ObjectIds.ContainsKey(id))
+                {
+                    ObjectIds[id] = $"Interactables/{interactable.Name} | {id}";
+                }
+                if (interactable.Hitbox.Size == Vector3.zero)
+                {
+                    interactable.Hitbox.Size = Vector3.one;
+                }
+            }
         }
 
         public override void OnInspectorGUI()
         {
-            if (GUILayout.Button("Open in Editor", GUILayout.Height(24)))
+            if (Event.current.type == EventType.Repaint && ObjectIds.Count != _data.Hotspots.Count + _data.Interactables.Count)
             {
-                TreasuredDataEditorWindow.Open(target as TreasuredData);
+                RebuildObjectIds();
             }
-            return;
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
             EditorGUI.BeginChangeCheck();
             _showPreview = GUILayout.Toggle(_showPreview, "Preview in Scene(Experimental)");
             if (EditorGUI.EndChangeCheck())
             {
-                if(_showPreview)
+                if (_showPreview)
                 {
                     TreasuredDataPreviewer.Instance.Data = (TreasuredData)target;
+                    Selection.activeGameObject = TreasuredDataPreviewer.Instance.gameObject;
                 }
                 else
                 {
@@ -84,10 +113,39 @@ namespace Treasured.SDKEditor
                 ShowExportConfigWindow(exportButtonRect);
             }
             EditorGUILayout.EndHorizontal();
+            using (new EditorGUI.DisabledGroupScope(true))
+            {
+                EditorGUILayout.LabelField("Version", TreasuredData.Version);
+            };
+
+            //serializedObject.Update();
+            //SerializedProperty nameProp = serializedObject.FindProperty("_name");
+            //SerializedProperty loopProp = serializedObject.FindProperty("_loop");
+            //SerializedProperty formatProp = serializedObject.FindProperty("_format");
+            //SerializedProperty qualityProp = serializedObject.FindProperty("_quality");
 
             serializedObject.Update();
-            SerializedProperty interactableProp = serializedObject.FindProperty("_interactables");
-            SerializedProperty hotspotProp = serializedObject.FindProperty("_hotspots");
+            SerializedProperty iterator = serializedObject.GetIterator();
+            iterator.NextVisible(true);
+            while (iterator.NextVisible(false))
+            {
+                if (iterator.name == "m_Script" || iterator.name == "_hotspots" || iterator.name == "_interactables")
+                {
+                    continue;
+                }
+                EditorGUILayout.PropertyField(iterator);
+                if (iterator.name == "_quality" && iterator.enumValueIndex == 3)
+                {
+                    EditorGUILayout.HelpBox("Use with caution!\n" +
+                        "Ultra setting will use a lot of memory due to a bug with Unity.\n" +
+                        "The memory is unlikely to be released until entering or exiting play mode and upon assembly reloaded.", MessageType.Warning);
+                }
+                if (iterator.name == "_name" && string.IsNullOrEmpty(iterator.stringValue))
+                {
+                    string sceneName = EditorSceneManager.GetActiveScene().name;
+                    EditorGUILayout.HelpBox($"The default output folder name will be '{sceneName}'.", MessageType.Warning);
+                }
+            }
             _selectedTab = GUILayout.SelectionGrid(_selectedTab, _objectTabs, _objectTabs.Length, GUILayout.Height(26));
             CreateDropZone(_selectedTab);
             serializedObject.ApplyModifiedProperties();
@@ -97,7 +155,7 @@ namespace Treasured.SDKEditor
         {
             string name = index == 0 ? "_hotspots" : "_interactables";
             SerializedProperty property = serializedObject.FindProperty(name);
-            property.serializedObject.Update();
+            //property.serializedObject.Update();
             EditorGUILayout.BeginVertical(GUI.skin.box);
             Rect rect = GUILayoutUtility.GetRect(0, 60);
             EditorGUILayout.Space(2);

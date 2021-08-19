@@ -26,24 +26,33 @@ namespace Treasured.SDKEditor
                 idProp.stringValue = Guid.NewGuid().ToString();
             }
 
-            using(new EditorGUI.DisabledGroupScope(true))
+            property.isExpanded = EditorGUI.Foldout(new Rect(position.x, position.y, position.width, 18), property.isExpanded, string.IsNullOrEmpty(nameProp.stringValue) ? label : new GUIContent(nameProp.stringValue), true);
+
+            if (property.isExpanded)
             {
-                EditorGUI.PropertyField(new Rect(position.x, position.y, position.width, 18), idProp);
+                EditorGUI.indentLevel++;
+
+                using (new EditorGUI.DisabledGroupScope(true))
+                {
+                    EditorGUI.PropertyField(new Rect(position.x, position.y + 20, position.width, 18), idProp);
+                }
+
+                EditorGUI.PropertyField(new Rect(position.x, position.y + 40, position.width, 18), nameProp);
+
+                float descriptionPropHeight = EditorGUI.GetPropertyHeight(descriptionProp);
+                EditorGUI.PropertyField(new Rect(position.x, position.y + 60, position.width, descriptionPropHeight), descriptionProp);
+
+                float transformPropHeight = EditorGUI.GetPropertyHeight(transformProp);
+                EditorGUI.PropertyField(new Rect(position.x, position.y + 60 + descriptionPropHeight, position.width, transformPropHeight), transformProp, true);
+
+                float hitboxPropHeight = EditorGUI.GetPropertyHeight(hitboxProp);
+                EditorGUI.PropertyField(new Rect(position.x, position.y + 60 + descriptionPropHeight + transformPropHeight, position.width, hitboxPropHeight), hitboxProp, true);
+
+                float onSelectedPropHeight = EditorGUI.GetPropertyHeight(onSelectedProp);
+                EditorGUI.PropertyField(new Rect(position.x, position.y + 62 + descriptionPropHeight + hitboxPropHeight + transformPropHeight, position.width, onSelectedPropHeight), onSelectedProp, true);
+
+                EditorGUI.indentLevel--;
             }
-
-            EditorGUI.PropertyField(new Rect(position.x, position.y + 20, position.width, 18), nameProp);
-
-            float descriptionPropHeight = EditorGUI.GetPropertyHeight(descriptionProp);
-            EditorGUI.PropertyField(new Rect(position.x, position.y + 40, position.width, descriptionPropHeight), descriptionProp);
-
-            float transformPropHeight = EditorGUI.GetPropertyHeight(transformProp);
-            EditorGUI.PropertyField(new Rect(position.x, position.y + 40 + descriptionPropHeight, position.width, transformPropHeight), transformProp, true);
-                
-            float hitboxPropHeight = EditorGUI.GetPropertyHeight(hitboxProp);
-            EditorGUI.PropertyField(new Rect(position.x, position.y + 40 + descriptionPropHeight + transformPropHeight, position.width, hitboxPropHeight), hitboxProp, true);
-
-            float onSelectedPropHeight = EditorGUI.GetPropertyHeight(onSelectedProp);
-            EditorGUI.PropertyField(new Rect(position.x, position.y + 42 + descriptionPropHeight + hitboxPropHeight + transformPropHeight, position.width, onSelectedPropHeight), onSelectedProp, true);
 
             EditorGUI.EndProperty();
         }

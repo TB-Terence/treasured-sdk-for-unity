@@ -59,7 +59,8 @@ namespace Treasured.SDKEditor
                         Ray ray = new Ray(positionProp.vector3Value, positionProp.vector3Value + Vector3.down * 100);
                         if (Physics.Raycast(ray, out var hit))
                         {
-                            centerProp.vector3Value = hit.transform.position;
+                            centerProp.vector3Value = hit.point;
+                            sizeProp.vector3Value = Vector3.one;
                         }
                         else
                         {
