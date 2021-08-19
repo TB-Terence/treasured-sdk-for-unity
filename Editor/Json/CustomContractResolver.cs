@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
@@ -49,7 +50,17 @@ namespace Treasured.SDK
             {
                 property.ShouldSerialize = (instance) => false;
             }
-
+            if (property.DeclaringType == typeof(TreasuredObject) && property.PropertyName == "visibleTargets")
+            {
+                property.ShouldSerialize = (instance) =>
+                {
+                    if (!(instance is TreasuredObject obj))
+                    {
+                        return false;
+                    }
+                    return obj.VisibleTargets is List<string> visibleTargets && visibleTargets.Count > 0;
+                };
+            }
             return property;
         }
     }
