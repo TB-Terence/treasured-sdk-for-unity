@@ -34,10 +34,6 @@ namespace Treasured.SDK
             {
                 contract.Converter = new StringEnumConverter(new CamelCaseNamingStrategy());
             }
-            if (objectType == typeof(TreasuredAction))
-            {
-                contract.Converter = new TreasuredActionConverter();
-            }
             return contract;
         }
 
@@ -59,6 +55,29 @@ namespace Treasured.SDK
                         return false;
                     }
                     return obj.VisibleTargets is List<string> visibleTargets && visibleTargets.Count > 0;
+                };
+            }
+            if (property.DeclaringType == typeof(TreasuredAction))
+            {
+                property.ShouldSerialize = (instance) =>
+                {
+                    if (instance is TreasuredAction action)
+                    {
+                        switch (property.PropertyName)
+                        {
+                            case "id":
+                            case "type":
+                                return true;
+                            case "src":
+                            case "displayMode":
+                                return action.Type == "openLink" || action.Type == "playAudio" || action.Type == "playVideo";
+                            case "content":
+                                return action.Type == "showText";
+                            case "targetId":
+                                return action.Type == "selectObject";
+                        }
+                    }
+                    return true;
                 };
             }
             return property;
