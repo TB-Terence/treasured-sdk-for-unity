@@ -19,7 +19,7 @@ namespace Treasured.SDK
         [HideInInspector]
         private string _id;
         [SerializeField]
-        [StringSelector("openLink", "showText", "media/PlayAudio", "media/PlayVideo", "selectObject")]
+        [StringSelector("openLink", "showText", "playAudio", "playVideo", "selectObject")]
         private string _type;
         [SerializeField]
         [TextArea]
