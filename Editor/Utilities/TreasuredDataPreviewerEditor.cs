@@ -141,6 +141,11 @@ namespace Treasured.SDKEditor
                 Handles.Label(current.Transform.Position + Vector3.down, new GUIContent($"[Interactable] {current.Name}"));
                 Handles.color = HandleColor_Object;
                 Handles.DrawWireCube(current.Transform.Position, Vector3.one);
+                Handles.color = Color.green;
+                Handles.DrawWireCube(current.Hitbox.Center, current.Hitbox.Size);
+                Handles.color = Color.white;
+                Handles.DrawDottedLine(current.Transform.Position, current.Hitbox.Center, 5);
+
             }
             Handles.color = previousHandleColor;
         }
