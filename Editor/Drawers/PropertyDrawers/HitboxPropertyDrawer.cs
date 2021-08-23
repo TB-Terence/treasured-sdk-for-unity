@@ -22,7 +22,7 @@ namespace Treasured.SDKEditor
                 Rect sizeRect = EditorGUI.PrefixLabel(new Rect(position.x, position.y + 40, position.width, 20), new GUIContent("Size", "Size of the hitbox."));
                 sizeProp.vector3Value = EditorGUI.Vector3Field(sizeRect, "",  sizeProp.vector3Value);
                 EditorGUI.indentLevel--;
-                if (GUI.Button(new Rect(position.xMax - (isHotspot ? 40 : 20), position.y, 20, 20), EditorGUIUtility.TrIconContent("BoxCollider Icon", "Use Selected Game Object Collider"), EditorStyles.label))
+                if (GUI.Button(new Rect(position.xMax - 40, position.y, 20, 20), EditorGUIUtility.TrIconContent("BoxCollider Icon", "Use Selected Game Object Collider"), EditorStyles.label))
                 {
                     if(Selection.activeGameObject)
                     {
@@ -72,6 +72,21 @@ namespace Treasured.SDKEditor
                             {
                                 Debug.LogWarning($"No hit found. Make sure the position is above ground and the ground has a collider component. Maximum distance: 100");
                             }
+                        }
+                    }
+                }
+                else
+                {
+                    if (GUI.Button(new Rect(position.xMax - 20, position.y, 20, 20), EditorGUIUtility.TrIconContent("Transform Icon", "Use Selected Game Object Transform"), EditorStyles.label))
+                    {
+                        if (Selection.activeGameObject == null)
+                        {
+                            Debug.LogWarning("No game object is selected.");
+                        }
+                        else
+                        {
+                            centerProp.vector3Value = Selection.activeGameObject.transform.position;
+                            GUI.FocusControl(null);
                         }
                     }
                 }

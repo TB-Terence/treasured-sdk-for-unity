@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using System.IO;
+using UnityEditor.SceneManagement;
+using System.Linq;
 
 namespace Treasured.SDKEditor
 {
@@ -53,6 +55,69 @@ namespace Treasured.SDKEditor
             guid = AssetDatabase.AssetPathToGUID(selectedPath);
             path = selectedPath;
             return true;
+        }
+
+        public static void MoveSceneViewAndSelect(this Transform transform)
+        {
+            SceneView.lastActiveSceneView.LookAt(transform.position, transform.rotation, 0);
+            Selection.activeGameObject = transform.gameObject;
+        }
+
+        public static void MoveSceneView(this Transform transform)
+        {
+            SceneView.lastActiveSceneView.LookAt(transform.position, transform.rotation, 0);
+        }
+
+        public static Transform GetPreviousSibling(this Transform transform)
+        {
+            if (transform == null)
+            {
+                Debug.LogWarning("Can not get previous sibling. The transform is null");
+                return null;
+            }
+            if (transform.parent == null)
+            {
+                Transform[] rootTransforms = transform.gameObject.scene.GetRootGameObjects().Select(x => x.transform).ToArray();
+                int rootIndex = transform.GetSiblingIndex();
+                if (rootIndex == 0 && rootTransforms.Length > 1)
+                {
+                    return rootTransforms[rootTransforms.Length - 1];
+                }
+                return rootTransforms[rootIndex - 1];
+            }
+            int childCount = transform.parent.childCount;
+            int index = transform.GetSiblingIndex();
+            if (index == 0 && childCount > 1)
+            {
+                return transform.parent.GetChild(childCount - 1);
+            }
+            return transform.parent.GetChild(index - 1);
+        }
+
+        public static Transform GetNextSibling(this Transform transform)
+        {
+            if (transform == null)
+            {
+                Debug.LogWarning("Can not get next sibling. The transform is null");
+                return null;
+            }
+            if (transform.parent == null)
+            {
+                Transform[] rootTransforms = transform.gameObject.scene.GetRootGameObjects().Select(x => x.transform).ToArray();
+                int rootIndex = transform.GetSiblingIndex();
+                if (rootIndex == rootTransforms.Length - 1 && rootTransforms.Length > 1)
+                {
+                    return rootTransforms[0];
+                }
+                return rootTransforms[rootIndex + 1];
+            }
+            int childCount = transform.parent.childCount;
+            int index = transform.GetSiblingIndex();
+            if (index == childCount - 1 && childCount > 1)
+            {
+                return transform.parent.GetChild(0);
+            }
+            return transform.parent.GetChild(index + 1);
         }
     }
 }

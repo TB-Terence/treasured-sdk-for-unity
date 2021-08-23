@@ -274,6 +274,11 @@ namespace Treasured.SDKEditor
                         p.FindPropertyRelative("_hitbox._center").vector3Value = collider.bounds.center;
                         p.FindPropertyRelative("_hitbox._size").vector3Value = collider.bounds.size;
                     }
+                    else
+                    {
+                        p.FindPropertyRelative("_hitbox._center").vector3Value = go.transform.position;
+                        p.FindPropertyRelative("_hitbox._size").vector3Value = Vector3.one;
+                    }
                     p.isExpanded = true;
                 }
 

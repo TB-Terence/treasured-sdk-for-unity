@@ -1,3 +1,6 @@
+## Version 0.3.5 (August 23, 2021)
+- Fix output quality folder to be lower case
+- Add hitbox gizmos for interactables
 ## Version 0.3.4 (August 19, 2021)
 - Fixed find hitbox center position to be based on size of the hitbox instead of ground point.
 - Add utility to find transform in scene
