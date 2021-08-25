@@ -13,6 +13,9 @@ namespace Treasured.SDKEditor
             EditorGUI.BeginProperty(position, label, property);
 
             SerializedProperty type = property.FindPropertyRelative("_type");
+            SerializedProperty srcProp = property.FindPropertyRelative("_src");
+            float srcPropHeight = EditorGUI.GetPropertyHeight(srcProp);
+
             EditorGUI.BeginChangeCheck();
             EditorGUI.PropertyField(new Rect(position.x, position.y, position.width, 18), type);
             if (EditorGUI.EndChangeCheck())
@@ -78,12 +81,13 @@ namespace Treasured.SDKEditor
                     EditorGUI.PropertyField(new Rect(position.x, position.y + 38, position.width, contentPropHeight), property.FindPropertyRelative("_content"));
                     break;
                 case "openLink":
-                case "playAudio":
                 case "playVideo":
-                    SerializedProperty srcProp = property.FindPropertyRelative("_src");
-                    float srcPropHeight = EditorGUI.GetPropertyHeight(srcProp);
                     EditorGUI.PropertyField(new Rect(position.x, position.y + 38, position.width, srcPropHeight), srcProp);
                     EditorGUI.PropertyField(new Rect(position.x, position.y + 40 + srcPropHeight, position.width, 18), property.FindPropertyRelative("_displayMode"));
+                    break;
+                case "playAudio":
+                    EditorGUI.PropertyField(new Rect(position.x, position.y + 38, position.width, srcPropHeight), srcProp);
+                    EditorGUI.PropertyField(new Rect(position.x, position.y + 40 + srcPropHeight, position.width, 18), property.FindPropertyRelative("_style"));
                     break;
             }
 
@@ -119,9 +123,9 @@ namespace Treasured.SDKEditor
                     return 60;
                 case "showText":
                     return 102;
-                case "playAudio":
                 case "playVideo":
                 case "openLink":
+                case "playAudio":
                     return 122;
                 default:
                     return 20;

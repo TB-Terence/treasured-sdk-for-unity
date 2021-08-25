@@ -12,6 +12,12 @@ namespace Treasured.SDK
         NewTab
     }
 
+    public enum Style
+    {
+        Dialogue,
+        Fade
+    }
+
     [Serializable]
     public sealed class TreasuredAction
     {
@@ -31,6 +37,8 @@ namespace Treasured.SDK
         [SerializeField]
         [TextArea]
         private string _content;
+        [SerializeField]
+        private Style _style;
 
         public string Id { get => _id; set => _id = value; }
         public string Type { get => _type; set => _type = value; }
@@ -38,5 +46,6 @@ namespace Treasured.SDK
         public string TargetId { get => _targetId; set => _targetId = value; }
         public DisplayMode DisplayMode { get => _displayMode; set => _displayMode = value; }
         public string Content { get => _content; set => _content = value; }
+        public Style Style { get => _style; set => _style = value; }
     }
 }

@@ -19,6 +19,7 @@ namespace Treasured.SDKEditor
         }
         private void OnDisable()
         {
+            _hotspot.transform.hideFlags = HideFlags.None;
             Tools.hidden = false; // show the transform tools for other game object
             if (_hotspot)
             {
