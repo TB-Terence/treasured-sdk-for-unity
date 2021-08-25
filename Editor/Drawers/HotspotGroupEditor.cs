@@ -26,7 +26,6 @@ namespace Treasured.SDKEditor
         private void OnEnable()
         {
             _hotspotGroup = target as HotspotGroup;
-            _hotspotGroup.transform.hideFlags = HideFlags.HideInInspector;
             Tools.hidden = true;
         }
 
@@ -134,6 +133,26 @@ namespace Treasured.SDKEditor
             for (int i = 0; i < _hotspotGroup.transform.childCount; i++)
             {
                 _hotspotGroup.transform.GetChild(i).hideFlags = _childFlags[i];
+            }
+        }
+
+        private void OnSceneGUI()
+        {
+            var hotspots = _hotspotGroup.gameObject.GetComponentsInChildren<Hotspot>();
+            Vector3 hotspotSize = new Vector3(0.5f, 0.5f, 0.5f);
+            for (int i = 0; i < hotspots.Length; i++)
+            {
+                Hotspot current = hotspots[i];
+                Hotspot next = hotspots[(i + 1) % hotspots.Length];
+
+                Gizmos.color = Color.red;
+                Handles.DrawWireCube(current.transform.position, hotspotSize);
+
+                Vector3 nextDirection = next.transform.position - current.transform.position;
+                Handles.color = Color.green;
+                Handles.ArrowHandleCap(0, current.transform.position, Quaternion.LookRotation(nextDirection), 1, EventType.Repaint);
+                Handles.color = Color.white;
+                Handles.DrawDottedLine(current.transform.position, next.transform.position, 5);
             }
         }
 
