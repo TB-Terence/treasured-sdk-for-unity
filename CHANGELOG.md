@@ -1,5 +1,5 @@
-## Version 0.3.6 (August 24, 2021)
-- Added `style` field and removed `display mode` field for `Play Audio` action
+## Version 0.3.6 (August 25, 2021)
+- Added `style` field for `Show Text` action
 ## Version 0.3.5 (August 23, 2021)
 - Fix output quality folder to be lower case
 - Add hitbox gizmos for interactables

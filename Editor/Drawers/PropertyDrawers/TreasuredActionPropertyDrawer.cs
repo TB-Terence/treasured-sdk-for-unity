@@ -79,6 +79,7 @@ namespace Treasured.SDKEditor
                     SerializedProperty contentProp = property.FindPropertyRelative("_content");
                     float contentPropHeight = EditorGUI.GetPropertyHeight(contentProp);
                     EditorGUI.PropertyField(new Rect(position.x, position.y + 38, position.width, contentPropHeight), property.FindPropertyRelative("_content"));
+                    EditorGUI.PropertyField(new Rect(position.x, position.y + 40 + contentPropHeight, position.width, 18), property.FindPropertyRelative("_style"));
                     break;
                 case "openLink":
                 case "playVideo":
@@ -87,7 +88,6 @@ namespace Treasured.SDKEditor
                     break;
                 case "playAudio":
                     EditorGUI.PropertyField(new Rect(position.x, position.y + 38, position.width, srcPropHeight), srcProp);
-                    EditorGUI.PropertyField(new Rect(position.x, position.y + 40 + srcPropHeight, position.width, 18), property.FindPropertyRelative("_style"));
                     break;
             }
 
@@ -121,11 +121,11 @@ namespace Treasured.SDKEditor
             {
                 case "selectObject":
                     return 60;
-                case "showText":
+                case "playAudio":
                     return 102;
+                case "showText":
                 case "playVideo":
                 case "openLink":
-                case "playAudio":
                     return 122;
                 default:
                     return 20;

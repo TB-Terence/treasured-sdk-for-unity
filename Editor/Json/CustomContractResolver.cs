@@ -72,9 +72,8 @@ namespace Treasured.SDK
                                 return action.Type == "openLink" || action.Type == "playAudio" || action.Type == "playVideo";
                             case "displayMode":
                                 return action.Type == "openLink" || action.Type == "playVideo";
-                            case "style":
-                                return action.Type == "playAudio";
                             case "content":
+                            case "style":
                                 return action.Type == "showText";
                             case "targetId":
                                 return action.Type == "selectObject";
