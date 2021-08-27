@@ -1,12 +1,12 @@
 ﻿using UnityEngine;
 
-namespace Treasured.SDKEditor
+namespace Treasured.SDK
 {
     public class AssetSelectorAttribute : PropertyAttribute
     {
         public bool IsFolder { get; set; }
 
-        public AssetSelectorAttribute(bool isFolder)
+        public AssetSelectorAttribute(bool isFolder = false)
         {
             IsFolder = isFolder;
         }

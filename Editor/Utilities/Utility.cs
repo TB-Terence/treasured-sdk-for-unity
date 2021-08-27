@@ -57,15 +57,24 @@ namespace Treasured.SDKEditor
             return true;
         }
 
-        public static void MoveSceneViewAndSelect(this Transform transform)
+        public static void MoveSceneViewAndSelect(this Transform transform, float newSize = 0)
         {
-            SceneView.lastActiveSceneView.LookAt(transform.position, transform.rotation, 0);
+            MoveSceneView(transform, newSize);
             Selection.activeGameObject = transform.gameObject;
         }
 
-        public static void MoveSceneView(this Transform transform)
+        public static void MoveSceneView(this Transform transform, float newSize = 0)
         {
-            SceneView.lastActiveSceneView.LookAt(transform.position, transform.rotation, 0);
+            if (newSize == 0)
+            {
+                SceneView.lastActiveSceneView.LookAt(transform.position, transform.rotation, 0.01f);
+            }
+            else
+            {
+                Vector3 targetPosition = transform.position;
+                Vector3 cameraPosition = transform.position + transform.forward * newSize;
+                SceneView.lastActiveSceneView.LookAt(cameraPosition, Quaternion.LookRotation(targetPosition - cameraPosition), newSize);
+            }
         }
 
         public static Transform GetPreviousSibling(this Transform transform)

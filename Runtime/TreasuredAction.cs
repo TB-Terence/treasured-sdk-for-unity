@@ -35,7 +35,7 @@ namespace Treasured.SDK
         [SerializeField]
         private DisplayMode _displayMode = DisplayMode.Right;
         [SerializeField]
-        [TextArea]
+        [TextArea(5, 5)]
         private string _content;
         [SerializeField]
         private Style _style;

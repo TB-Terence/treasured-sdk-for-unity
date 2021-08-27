@@ -11,11 +11,6 @@ namespace Treasured.SDK
 
         #region JSON Properties
         /// <summary>
-        /// Collider of the object.
-        /// </summary>
-        [SerializeField]
-        private Hitbox _hitbox = new Hitbox();
-        /// <summary>
         /// Visible objects from the hotspot. Used by hotspot.
         /// </summary>
         [SerializeField]
@@ -23,29 +18,16 @@ namespace Treasured.SDK
         private List<string> _visibleTargets = new List<string>();
         #endregion
 
-        #region Editor Properties
-        private Collider _collider;
-        #endregion
-
-        public Hitbox Hitbox { get => _hitbox; set => _hitbox = value; }
         public List<string> VisibleTargets { get => _visibleTargets; set => _visibleTargets = value; }
+    }
 
-        private void OnEnable()
+    public sealed class HotspotData : TObjectData
+    {
+        public HotspotData(Hotspot hotspot)
         {
-            
-            _collider = this.GetComponent<BoxCollider>();
-            if (string.IsNullOrEmpty(Name))
-            {
-                Name = $"Hotspot {transform.GetSiblingIndex() + 1}";
-            }
-        }
-
-        private void OnDrawGizmos()
-        {
-            Gizmos.color = Color.white;
-            Gizmos.DrawWireCube(transform.position, HotspotSize);
-            Gizmos.color = Color.green;
-            Gizmos.DrawCube(_hitbox.Center, _hitbox.Size);
+            this._id = hotspot.Id;
+            this._description = hotspot.Description;
+            this._onSelected = hotspot.OnSelected;
         }
     }
 }

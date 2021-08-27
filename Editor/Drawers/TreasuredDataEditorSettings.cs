@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEditor;
+using Treasured.SDK;
 
 namespace Treasured.SDKEditor
 {
@@ -7,7 +8,7 @@ namespace Treasured.SDKEditor
     {
         // Editor Config
         [SerializeField]
-        [AssetSelector(false)]
+        [AssetSelector()]
         private string _startUpData;
 
         // Export Config

@@ -5,19 +5,6 @@ using UnityEngine;
 
 namespace Treasured.SDK
 {
-    public enum ImageFormat
-    {
-        JPG,
-        PNG
-    }
-    public enum ImageQuality
-    {
-        Low = 1024,
-        Medium = 2048,
-        High = 4096,
-        Ultra = 8192
-    }
-
     [CreateAssetMenu(fileName = "Data", menuName = "Treasured/Data")]
     public sealed class TreasuredData : ScriptableObject
     {
