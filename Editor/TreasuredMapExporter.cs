@@ -25,12 +25,16 @@ namespace Treasured.UnitySdk.Editor
 
         private void ExportPanoramicImages(string directory)
         {
+            if (string.IsNullOrEmpty(directory))
+            {
+                return;
+            }
             Capture(Target, Camera.main, directory);
         }
 
         private void ExportJson(string directory)
         {
-            if (string.IsNullOrEmpty(_outputDirectory.stringValue))
+            if (string.IsNullOrEmpty(directory))
             {
                 return;
             }

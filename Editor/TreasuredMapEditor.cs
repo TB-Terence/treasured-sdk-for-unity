@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Treasured.SDKEditor;
 using UnityEditor;
 using UnityEngine;
@@ -11,11 +12,25 @@ namespace Treasured.UnitySdk.Editor
     [CustomEditor(typeof(TreasuredMap))]
     internal sealed partial class TreasuredMapEditor : TreasuredEditor<TreasuredMap>
     {
+        private enum GroupToggleState
+        {
+            None,
+            All,
+            Mixed
+        }
+
         private bool _showInfo = true;
+
         private bool _showHotspotManagement = true;
         private bool _showHotspotList = true;
+        private bool _exportAllHotspots = true;
+        private GroupToggleState _hotspotsGroupToggleState = GroupToggleState.All;
+
         private bool _showInteractableManagement = true;
         private bool _showInteractableList = true;
+        private bool _exportAllInteractables = true;
+        private GroupToggleState _interactablesGroupToggleState = GroupToggleState.All;
+
         private bool _showExportSettings = true;
 
         private SerializedProperty _title;
@@ -107,25 +122,51 @@ namespace Treasured.UnitySdk.Editor
                     }
                 }
             }
-            DrawTObjectList(Target.Hotspots, "Hotspots", ref _showHotspotList);
+            DrawTObjectList(Target.Hotspots, "Hotspots", ref _showHotspotList, ref _exportAllHotspots, ref _hotspotsGroupToggleState);
         }
 
         private void DrawInteractableManagment()
         {
-            DrawTObjectList(Target.Interactables, "Interactables", ref _showInteractableList, 3);
+            DrawTObjectList(Target.Interactables, "Interactables", ref _showInteractableList, ref _exportAllInteractables, ref _interactablesGroupToggleState, 3);
         }
 
-        private void DrawTObjectList(IList<TreasuredObject> objects, string foldoutName, ref bool foldout, float distance = 0)
+        private void DrawTObjectList(IList<TreasuredObject> objects, string foldoutName, ref bool foldout, ref bool exportAll, ref GroupToggleState groupToggleState, float distance = 0)
         {
             if (objects == null)
             {
                 return;
             }
+            //groupToggleState = objects.All(x => x.gameObject.activeSelf) ? GroupToggleState.All : objects.Any(x => x.gameObject.activeSelf) ? GroupToggleState.Mixed : GroupToggleState.None;
             using (new EditorGUILayout.VerticalScope())
             {
                 foldout = EditorGUILayout.Foldout(foldout, new GUIContent($"{foldoutName} ({objects.Count})"), true);
                 if (foldout)
                 {
+                    if (objects.All(x => !x.gameObject.activeSelf))
+                    {
+                        exportAll = false;
+                        groupToggleState = GroupToggleState.None;
+                    }
+                    else if (objects.Any(x => !x.gameObject.activeSelf))
+                    {
+                        groupToggleState = GroupToggleState.Mixed;
+                    }
+                    else
+                    {
+                        exportAll = true;
+                        groupToggleState = GroupToggleState.All;
+                    }
+                    EditorGUI.showMixedValue = groupToggleState == GroupToggleState.Mixed;
+                    EditorGUI.BeginChangeCheck();
+                    exportAll = EditorGUILayout.ToggleLeft(new GUIContent($"Select All"), exportAll);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        foreach (var obj in objects)
+                        {
+                            obj.gameObject.SetActive(exportAll);
+                        }
+                    }
+                    EditorGUI.showMixedValue = false;
                     foreach (var obj in objects)
                     {
                         using (new EditorGUILayout.HorizontalScope())
