@@ -17,7 +17,6 @@ namespace Treasured.UnitySdk.Editor
                 Target.transform.hideFlags = HideFlags.None;
             }
             Tools.hidden = false; // show the transform tools for other game object
-            //Target.transform.eulerAngles = new Vector3(0, Target.transform.eulerAngles.y, 0);
         }
         public override void OnInspectorGUI()
         {
@@ -31,31 +30,6 @@ namespace Treasured.UnitySdk.Editor
                         Target.OffsetHitbox();
                     }
                 }
-                //EditorGUILayout.LabelField("Preview", EditorStyles.largeLabel);
-                //using (new GUILayout.HorizontalScope())
-                //{
-                //    using (new EditorGUI.DisabledGroupScope(false))
-                //    {
-                //        if (GUILayout.Button("Previous"))
-                //        {
-                //            Target.transform.GetPreviousSibling()?.MoveSceneViewAndSelect();
-                //        }
-                //    }
-                //    using (new EditorGUI.DisabledGroupScope(false))
-                //    {
-                //        if (GUILayout.Button("Current"))
-                //        {
-                //            Target.transform.MoveSceneViewAndSelect();
-                //        }
-                //    }
-                //    using (new EditorGUI.DisabledGroupScope(false))
-                //    {
-                //        if (GUILayout.Button("Next"))
-                //        {
-                //            Target.transform.GetNextSibling()?.MoveSceneViewAndSelect();
-                //        }
-                //    }
-                //}
             }
         }
 

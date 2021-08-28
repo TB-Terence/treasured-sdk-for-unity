@@ -1,20 +1,49 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Treasured.UnitySdk;
+﻿using UnityEngine;
 using UnityEditor;
-using UnityEngine;
+using Newtonsoft.Json;
+using System.IO;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine.Rendering;
 
-namespace Treasured.SDKEditor
+namespace Treasured.UnitySdk.Editor
 {
-    public static class PanoramicImageExporter
+    internal partial class TreasuredMapEditor
     {
+        private static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings()
+        {
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+            ContractResolver = SDK.CustomContractResolver.Instance
+        };
+
+        private void ExportAll(string directory)
+        {
+            ExportPanoramicImages(directory);
+            ExportJson(directory);
+        }
+
+        private void ExportPanoramicImages(string directory)
+        {
+            Capture(Target, Camera.main, directory);
+        }
+
+        private void ExportJson(string directory)
+        {
+            if (string.IsNullOrEmpty(_outputDirectory.stringValue))
+            {
+                return;
+            }
+            Target.Data.GenerateHotspots(Target.Hotspots);
+            Target.Data.GenerateInteractables(Target.Interactables);
+            string json = JsonConvert.SerializeObject(Target.Data, Formatting.Indented, JsonSettings);
+            File.WriteAllText(Path.Combine(directory, $"map.json"), json);
+        }
+
         private static Material _equirectangularConverter;
         private static int _paddingX;
 
-        public static void Capture(TreasuredMap map, Camera camera, string directory)
+        private void Capture(TreasuredMap map, Camera camera, string directory)
         {
             if (camera == null)
             {
