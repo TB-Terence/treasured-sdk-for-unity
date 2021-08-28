@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Treasured.SDKEditor
 {
 #if UNITY_2020_3_OR_NEWER
-    [CustomPropertyDrawer(typeof(SDK.TreasuredObject))]
+    [CustomPropertyDrawer(typeof(UnitySdk.TreasuredObject))]
 #endif
     public class TreasuredObjectPropertyDrawer : PropertyDrawer
     {

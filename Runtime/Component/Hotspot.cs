@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace Treasured.SDK
+namespace Treasured.UnitySdk
 {
     [AddComponentMenu("")]
-    public sealed class Hotspot : TObject
+    public sealed class Hotspot : TreasuredObject
     {
         private static readonly Vector3 HotspotSize = Vector3.one * 0.3f;
 
@@ -19,15 +18,5 @@ namespace Treasured.SDK
         #endregion
 
         public List<string> VisibleTargets { get => _visibleTargets; set => _visibleTargets = value; }
-    }
-
-    public sealed class HotspotData : TObjectData
-    {
-        public HotspotData(Hotspot hotspot)
-        {
-            this._id = hotspot.Id;
-            this._description = hotspot.Description;
-            this._onSelected = hotspot.OnSelected;
-        }
     }
 }

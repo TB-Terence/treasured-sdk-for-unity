@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json;
-using Treasured.SDK;
+using Treasured.UnitySdk;
 using System;
 using Newtonsoft.Json.Linq;
 
@@ -36,7 +36,7 @@ namespace Treasured.SDKEditor
             writer.WriteValue(value);
         }
 
-        private void WritePropertyArray(JsonWriter writer, string name, TObject[] values)
+        private void WritePropertyArray(JsonWriter writer, string name, TreasuredObject[] values)
         {
             writer.WritePropertyName(name);
             writer.WriteStartArray();

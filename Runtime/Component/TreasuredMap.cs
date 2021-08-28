@@ -1,7 +1,7 @@
-﻿using Newtonsoft.Json;
+﻿using Treasured.SDK;
 using UnityEngine;
 
-namespace Treasured.SDK
+namespace Treasured.UnitySdk
 {
     [DisallowMultipleComponent]
     [ExecuteInEditMode]
@@ -12,14 +12,14 @@ namespace Treasured.SDK
 
         [SerializeField]
         [AssetSelector(true)]
-        private string _exportDirectory = "";
+        private string _outputDirectory = "";
 
         private Hotspot[] _hotspots;
         private Interactable[] _interactables;
 
         public TreasuredMapData Data { get => _data; }
 
-        public string ExportDirectory { get => _exportDirectory; }
+        public string OutputDirectory { get => _outputDirectory; }
         public Hotspot[] Hotspots => _hotspots;
         public Interactable[] Interactables => _interactables;
 

@@ -72,38 +72,38 @@ namespace Treasured.SDKEditor
                 return;
             }
             bool isEmpty = string.IsNullOrEmpty(property.stringValue);
-            using (new EditorGUILayout.VerticalScope())
+            using (var scope = new EditorGUILayout.HorizontalScope())
             {
-                using (var scope = new EditorGUILayout.HorizontalScope())
+                EditorGUILayout.LabelField(label, new GUIContent(isEmpty ? "Folder not selected" : property.stringValue), GUILayout.Height(18));
+                if(GUILayout.Button(EditorGUIUtility.TrIconContent("FolderOpened Icon", $"Choose output directory"), EditorStyles.label, GUILayout.Width(18), GUILayout.Height(18)))
                 {
-                    Rect rect = GUILayoutUtility.GetRect(scope.rect.width, 18, EditorStyles.textField);
-                    rect = EditorGUI.PrefixLabel(rect, label);
-                    EditorGUI.SelectableLabel(new Rect(rect.x, rect.y, rect.width - 36, rect.height), isEmpty ? "Not selected" : property.stringValue);
-                    EditorGUI.EndDisabledGroup();
-                    if (GUI.Button(new Rect(rect.x + rect.width - 36, rect.y, 18, rect.height), EditorGUIUtility.TrIconContent("FolderOpened Icon", $"Select folder"), EditorStyles.label))
+                    string absolutePath = EditorUtility.OpenFolderPanel("Choose output directory", DataDirectoryInfo.Parent.FullName, "");
+                    if (!string.IsNullOrEmpty(absolutePath))
                     {
-                        string absolutePath = EditorUtility.OpenFolderPanel("Choose folder", DataDirectoryInfo.Parent.FullName, "");
-                        if (!string.IsNullOrEmpty(absolutePath))
+                        if (!absolutePath.StartsWith(DataDirectoryInfo.Parent.FullName.Replace('\\', '/')))
                         {
-                            if (!absolutePath.StartsWith(DataDirectoryInfo.Parent.FullName.Replace('\\', '/')))
-                            {
-                                Debug.LogError($"The folder should be under the Project folder and outside the Assets folder.");
-                            }
-                            else if(absolutePath.StartsWith(Application.dataPath))
-                            {
-                                Debug.LogError($"The folder should NOT be under the Assets folder to avoid Unity generating the .meta files.");
-                            }
-                            else
-                            {
-                                property.stringValue = absolutePath;
-                                GUI.FocusControl(null); // clear focus on textfield so the ui gets updated
-                                //property.stringValue = AssetDatabase.AssetPathToGUID(selectedPath.Substring(Application.dataPath.Length - 6));
-                            }
+                            Debug.LogError($"The folder should be under the Project folder and outside the Assets folder.");
+                        }
+                        else if (absolutePath.StartsWith(Application.dataPath))
+                        {
+                            Debug.LogError($"The folder should NOT be under the Assets folder to avoid Unity generating the .meta files.");
+                        }
+                        else
+                        {
+                            property.stringValue = absolutePath;
+                            GUI.FocusControl(null); // clear focus on textfield so the ui gets updated
                         }
                     }
-                    if (GUI.Button(new Rect(rect.x + rect.width - 18, rect.y, 18, rect.height), EditorGUIUtility.TrIconContent("winbtn_win_close", "Reset"), EditorStyles.label))
+                }
+                //if (GUILayout.Button(EditorGUIUtility.TrIconContent("winbtn_win_close", "Reset"), EditorStyles.label, GUILayout.Width(18), GUILayout.Height(18)))
+                //{
+                //    property.stringValue = string.Empty;
+                //}
+                if (GUILayout.Button(EditorGUIUtility.TrIconContent("Folder Icon", $"Show in Explorer"), EditorStyles.label, GUILayout.Width(18), GUILayout.Height(18)))
+                {
+                    if (Directory.Exists(property.stringValue))
                     {
-                        property.stringValue = "";
+                        Application.OpenURL(property.stringValue);
                     }
                 }
             }

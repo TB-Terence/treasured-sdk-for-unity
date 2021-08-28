@@ -2,18 +2,20 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Treasured.SDK;
+using Treasured.SDKEditor;
 using UnityEditor;
 using UnityEngine;
 
-namespace Treasured.SDKEditor
+namespace Treasured.UnitySdk.Editor
 {
     [CustomEditor(typeof(TreasuredMap))]
     internal sealed class TreasuredMapEditor : TreasuredEditor<TreasuredMap>
     {
         private bool _showInfo = true;
         private bool _showHotspotManagement = true;
+        private bool _showHotspotList = true;
         private bool _showInteractableManagement = true;
+        private bool _showInteractableList = true;
         private bool _showExportSettings = true;
 
         private SerializedProperty _title;
@@ -30,7 +32,7 @@ namespace Treasured.SDKEditor
         #region Export Settings
         private SerializedProperty _format;
         private SerializedProperty _quality;
-        private SerializedProperty _exportDirectory;
+        private SerializedProperty _outputDirectory;
         private bool _showInExplorer = true;
         #endregion
 
@@ -53,7 +55,7 @@ namespace Treasured.SDKEditor
             _loop = serializedObject.FindProperty($"_data.{nameof(_loop)}");
             _format = serializedObject.FindProperty($"_data.{nameof(_format)}");
             _quality = serializedObject.FindProperty($"_data.{nameof(_quality)}");
-            _exportDirectory = serializedObject.FindProperty(nameof(_exportDirectory));
+            _outputDirectory = serializedObject.FindProperty(nameof(_outputDirectory));
         }
 
         public override void OnInspectorGUI()
@@ -72,6 +74,7 @@ namespace Treasured.SDKEditor
         private void DrawFoldoutGroup(ref bool foldout, GUIContent label, Action action)
         {
             foldout = EditorGUILayout.BeginFoldoutHeaderGroup(foldout, label);
+            EditorGUI.indentLevel++;
             if (foldout)
             {
                 using (new EditorGUILayout.VerticalScope())
@@ -79,6 +82,7 @@ namespace Treasured.SDKEditor
                     action.Invoke();
                 }
             }
+            EditorGUI.indentLevel--;
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
@@ -106,15 +110,15 @@ namespace Treasured.SDKEditor
                     }
                 }
             }
-            DrawTObjectList(Target.Hotspots);
+            DrawTObjectList(Target.Hotspots, "Hotspots", ref _showHotspotList);
         }
 
         private void DrawInteractableManagment()
         {
-            DrawTObjectList(Target.Interactables, 3);
+            DrawTObjectList(Target.Interactables, "Interactables", ref _showInteractableList, 3);
         }
 
-        private void DrawTObjectList(IEnumerable<TObject> objects, float distance = 0)
+        private void DrawTObjectList(IList<TreasuredObject> objects, string foldoutName, ref bool foldout, float distance = 0)
         {
             if (objects == null)
             {
@@ -122,33 +126,38 @@ namespace Treasured.SDKEditor
             }
             using (new EditorGUILayout.VerticalScope())
             {
-                EditorGUI.indentLevel++;
-                foreach (var obj in objects)
+                //float previousLabelWidth = EditorGUIUtility.labelWidth;
+                //EditorGUIUtility.labelWidth = 1;
+                foldout = EditorGUILayout.Foldout(foldout, new GUIContent($"{foldoutName} ({objects.Count})"), true);
+                if (foldout)
                 {
-                    using (new EditorGUILayout.HorizontalScope())
+                    foreach (var obj in objects)
                     {
-                        EditorGUI.BeginChangeCheck();
-                        bool active = EditorGUILayout.ToggleLeft(obj.gameObject.name, obj.gameObject.activeSelf);
-                        if (EditorGUI.EndChangeCheck())
+                        using (new EditorGUILayout.HorizontalScope())
                         {
-                            //obj.gameObject.SetActive(_exportables[obj.Id]);
-                            obj.gameObject.SetActive(active);
-                        }
-                        using(new EditorGUI.DisabledGroupScope(!obj.gameObject.activeSelf))
-                        {
-                            if (GUILayout.Button(EditorGUIUtility.TrIconContent("SceneViewCamera", "Move scene view to target"), EditorStyles.label, GUILayout.Width(20), GUILayout.Height(20)))
+                            EditorGUI.BeginChangeCheck();
+                            bool active = EditorGUILayout.Toggle("", obj.gameObject.activeSelf, GUILayout.Width(20));
+                            if (EditorGUI.EndChangeCheck())
                             {
-                                obj.transform.MoveSceneView(distance);
-                                _showPreview = false;
+                                obj.gameObject.SetActive(active);
                             }
-                        }
-                        if (GUILayout.Button(EditorGUIUtility.TrIconContent("Search Icon", "Select the game object in the hierarchy"), EditorStyles.label, GUILayout.Width(20), GUILayout.Height(20)))
-                        {
-                            Selection.activeGameObject = obj.gameObject;
+                            obj.gameObject.name = EditorGUILayout.TextField(obj.gameObject.name);
+                            using(new EditorGUI.DisabledGroupScope(!obj.gameObject.activeSelf))
+                            {
+                                if (GUILayout.Button(EditorGUIUtility.TrIconContent("SceneViewCamera", "Move scene view to target"), EditorStyles.label, GUILayout.Width(20), GUILayout.Height(20)))
+                                {
+                                    obj.transform.MoveSceneView(distance);
+                                    _showPreview = false;
+                                }
+                            }
+                            if (GUILayout.Button(EditorGUIUtility.TrIconContent("Search Icon", "Select the game object in the hierarchy"), EditorStyles.label, GUILayout.Width(20), GUILayout.Height(20)))
+                            {
+                                Selection.activeGameObject = obj.gameObject;
+                            }
                         }
                     }
                 }
-                EditorGUI.indentLevel--;
+                //EditorGUIUtility.labelWidth = previousLabelWidth;
             }
         }
 
@@ -156,11 +165,37 @@ namespace Treasured.SDKEditor
         {
             EditorGUILayout.PropertyField(_format);
             EditorGUILayout.PropertyField(_quality);
-            CustomEditorGUILayout.FolderField(_exportDirectory, new GUIContent("Export Directory"));
+            CustomEditorGUILayout.FolderField(_outputDirectory, new GUIContent("Output Directory"));
             _showInExplorer = EditorGUILayout.Toggle(new GUIContent("Show In Explorer", "Opens the output directory once the exporting is done if enabled."), _showInExplorer);
-            if (GUILayout.Button("Export"))
+            using (new EditorGUILayout.HorizontalScope())
             {
-                Export();
+                if (GUILayout.Button("Export Panoramic Images", GUILayout.Height(24)))
+                {
+                    DirectoryInfo outputDirectory = Directory.CreateDirectory(Path.Combine(_outputDirectory.stringValue, $"{Target.Data.Title}"));
+                    ExportPanoramicImages(outputDirectory.FullName);
+                    if (_showInExplorer)
+                    {
+                        Application.OpenURL(outputDirectory.FullName);
+                    }
+                }
+                if (GUILayout.Button("Export Json", GUILayout.Height(24)))
+                {
+                    DirectoryInfo outputDirectory = Directory.CreateDirectory(Path.Combine(_outputDirectory.stringValue, $"{Target.Data.Title}"));
+                    ExportJson(outputDirectory.FullName);
+                    if (_showInExplorer)
+                    {
+                        Application.OpenURL(outputDirectory.FullName);
+                    }
+                }
+                if (GUILayout.Button("Export All", GUILayout.Height(24)))
+                {
+                    DirectoryInfo outputDirectory = Directory.CreateDirectory(Path.Combine(_outputDirectory.stringValue, $"{Target.Data.Title}"));
+                    ExportAll(outputDirectory.FullName);
+                    if (_showInExplorer)
+                    {
+                        Application.OpenURL(outputDirectory.FullName);
+                    }
+                }
             }
         }
 
@@ -176,6 +211,7 @@ namespace Treasured.SDKEditor
                 return;
             }
             Vector3 hotspotSize = Vector3.one * 0.3f;
+            // Hotspots
             for (int i = 0; i < Target.Hotspots.Length; i++)
             {
                 Hotspot current = Target.Hotspots[i];
@@ -244,6 +280,46 @@ namespace Treasured.SDKEditor
                     Handles.DrawLine(current.transform.position, next.transform.position);
                 }
             }
+            // Interactables
+            for (int i = 0; i < Target.Interactables.Length; i++)
+            {
+                Interactable current = Target.Interactables[i];
+                Handles.color = Color.white;
+                Handles.Label(current.transform.position, new GUIContent(current.gameObject.name));
+                switch (Tools.current)
+                {
+                    case Tool.Move:
+                        EditorGUI.BeginChangeCheck();
+                        Vector3 newHotspotPosition = Handles.PositionHandle(current.transform.position, current.transform.rotation);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            Undo.RecordObject(current.transform, "Move Interactable Position");
+                            current.transform.position = newHotspotPosition;
+                        }
+                        break;
+                    case Tool.Rotate:
+                        EditorGUI.BeginChangeCheck();
+                        Quaternion newHotspotRotation = Handles.RotationHandle(current.transform.rotation, current.transform.position);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            Undo.RecordObject(current.transform, "Edit Interactable Rotation");
+                            current.transform.rotation = newHotspotRotation;
+                        }
+                        break;
+                    case Tool.Scale:
+                        if (current.Hitbox)
+                        {
+                            EditorGUI.BeginChangeCheck();
+                            Vector3 newSize = Handles.ScaleHandle(current.Hitbox.size, current.transform.position, current.transform.rotation, 1);
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                Undo.RecordObject(current.transform, "Scale Interactable Hitbox");
+                                current.Hitbox.size = newSize;
+                            }
+                        }
+                        break;
+                }
+            }
         }
 
         private Hotspot GetNextHotspot(int currentIndex, int totalCount)
@@ -253,6 +329,10 @@ namespace Treasured.SDKEditor
             Hotspot next = Target.Hotspots[(index + 1) % totalCount];
             while (next != current)
             {
+                if (index == totalCount - 1 && !Target.Data.Loop)
+                {
+                    return null;
+                }
                 if (next.gameObject.activeSelf)
                 {
                     return next;
@@ -265,24 +345,31 @@ namespace Treasured.SDKEditor
         private static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings()
         {
             ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-            ContractResolver = CustomContractResolver.Instance
+            ContractResolver = SDK.CustomContractResolver.Instance
         };
 
-        private void Export()
+        private void ExportAll(string directory)
         {
-            if (string.IsNullOrEmpty(_exportDirectory.stringValue))
+            ExportPanoramicImages(directory);
+            ExportJson(directory);
+        }
+
+        private void ExportPanoramicImages(string directory)
+        {
+            PanoramicImageExporter.Capture(Target, Camera.main, directory);
+
+        }
+
+        private void ExportJson(string directory)
+        {
+            if (string.IsNullOrEmpty(_outputDirectory.stringValue))
             {
                 return;
             }
             Target.Data.GenerateHotspots(Target.Hotspots);
             Target.Data.GenerateInteractables(Target.Interactables);
-            DirectoryInfo outputDirectory = Directory.CreateDirectory(Path.Combine(_exportDirectory.stringValue, $"{Target.Data.Title}"));
             string json = JsonConvert.SerializeObject(Target.Data, Formatting.Indented, JsonSettings);
-            File.WriteAllText(Path.Combine(outputDirectory.FullName, $"map.json"), json);
-            if (_showInExplorer)
-            {
-                Application.OpenURL(outputDirectory.FullName);
-            }
+            File.WriteAllText(Path.Combine(directory, $"map.json"), json);
         }
     }
 }

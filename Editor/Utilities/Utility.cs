@@ -4,7 +4,7 @@ using System.IO;
 using UnityEditor.SceneManagement;
 using System.Linq;
 
-namespace Treasured.SDKEditor
+namespace Treasured.UnitySdk.Editor
 {
     internal static class Utility
     {

@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using Treasured.SDK;
 using UnityEditor;
 using UnityEngine;
 
 namespace Treasured.SDKEditor
 {
-    [CustomPropertyDrawer(typeof(Treasured.SDK.TreasuredAction))]
+    [CustomPropertyDrawer(typeof(TreasuredAction))]
     public class TreasuredActionPropertyDrawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)

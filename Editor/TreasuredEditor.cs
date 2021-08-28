@@ -2,9 +2,9 @@
 using UnityEditor;
 using System.Linq;
 
-namespace Treasured.SDKEditor
+namespace Treasured.UnitySdk.Editor
 {
-    internal abstract class TreasuredEditor<T> : Editor where T : MonoBehaviour
+    internal abstract class TreasuredEditor<T> : UnityEditor.Editor where T : MonoBehaviour
     {
         protected static readonly Color LabelColor = Color.white;
 

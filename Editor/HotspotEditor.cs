@@ -1,9 +1,7 @@
-﻿using UnityEngine;
-using UnityEditor;
-using Treasured.SDK;
-using System.Linq;
+﻿using UnityEditor;
+using UnityEngine;
 
-namespace Treasured.SDKEditor
+namespace Treasured.UnitySdk.Editor
 {
     [CustomEditor(typeof(Hotspot))]
     internal class HotspotEditor : TreasuredEditor<Hotspot>
@@ -64,6 +62,7 @@ namespace Treasured.SDKEditor
         protected override void OnSceneGUI()
         {
             base.OnSceneGUI();
+            Handles.color = Color.red;
             Handles.DrawWireCube(Target.transform.position, Vector3.one * 0.3f);
 
             if (Tools.current == Tool.Scale || Tools.current == Tool.Transform || Tools.current == Tool.Rect)

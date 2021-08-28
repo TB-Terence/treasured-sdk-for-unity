@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
 using UnityEditor;
-using Treasured.SDK;
+using Treasured.UnitySdk;
 using UnityEditor.SceneManagement;
 using System;
 using System.Collections.Generic;
+using Treasured.SDK;
 
 namespace Treasured.SDKEditor
 {

@@ -62,7 +62,7 @@ namespace Treasured.SDKEditor
             #endregion
 
             #region Create output directories
-            string qualityFolderName = $"{Enum.GetName(typeof(ImageQuality), _data.Quality).ToLower()}/";
+            string qualityFolderName = $"{Enum.GetName(typeof(SDK.ImageQuality), _data.Quality).ToLower()}/";
             string qualityFolderDirectory = Path.Combine(directory, qualityFolderName);
             if (Directory.Exists(qualityFolderDirectory))
             {

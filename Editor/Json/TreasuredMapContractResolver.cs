@@ -4,6 +4,7 @@ using Newtonsoft.Json.Serialization;
 using System;
 using System.Reflection;
 using Treasured.SDK;
+using Treasured.UnitySdk;
 using UnityEngine;
 
 namespace Treasured.SDKEditor
