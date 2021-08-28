@@ -38,8 +38,8 @@ namespace Treasured.UnitySdk.Editor
             {
                 return;
             }
-            Target.Data.GenerateHotspots(Target.Hotspots);
-            Target.Data.GenerateInteractables(Target.Interactables);
+            Target.Data.GenerateHotspots(_hotspots);
+            Target.Data.GenerateInteractables(_interactables);
             string json = JsonConvert.SerializeObject(Target.Data, Formatting.Indented, JsonSettings);
             File.WriteAllText(Path.Combine(directory, $"map.json"), json);
         }
@@ -74,7 +74,7 @@ namespace Treasured.UnitySdk.Editor
                 FileInfo[] fileInfos = info.GetFiles();
                 if (info.GetFiles().Length > 0)
                 {
-                    IEnumerable<string> files = fileInfos.Select(x => Path.GetFileNameWithoutExtension(x.Name)).Except(map.Hotspots.Select(x => x.Id));
+                    IEnumerable<string> files = fileInfos.Select(x => Path.GetFileNameWithoutExtension(x.Name)).Except(_hotspots.Select(x => x.Id));
                     foreach (var file in files)
                     {
                         Debug.LogWarning($"{qualityFolderDirectory} contains file '{file}' which is not part of the data.");
@@ -114,9 +114,9 @@ namespace Treasured.UnitySdk.Editor
             try
             {
                 //IEnumerable<TreasuredObject> targets = _data.All;
-                for (int index = 0; index < map.Hotspots.Length; index++)
+                for (int index = 0; index < _hotspots.Length; index++)
                 {
-                    Hotspot hotspot = map.Hotspots[index];
+                    Hotspot hotspot = _hotspots[index];
                     if (!hotspot.gameObject.activeSelf)
                     {
                         continue;
@@ -139,13 +139,13 @@ namespace Treasured.UnitySdk.Editor
                     // Move the camera in the right position
                     camera.transform.SetPositionAndRotation(hotspot.transform.position, Quaternion.identity);
 
-                    EditorUtility.DisplayProgressBar($"Exporting image ({index + 1}/{map.Hotspots.Length})", $"Working on cubemap for {hotspot.Name}", 0.33f);
+                    EditorUtility.DisplayProgressBar($"Exporting image ({index + 1}/{_hotspots.Length})", $"Working on cubemap for {hotspot.Name}", 0.33f);
                     if (!camera.RenderToCubemap(cubeMapTexture, 63))
                     {
                         throw new NotSupportedException("Rendering to cubemap is not supported on device/platform!");
                     }
 
-                    EditorUtility.DisplayProgressBar($"Exporting image ({index + 1}/{map.Hotspots.Length})", "Applying shader...", 0.66f);
+                    EditorUtility.DisplayProgressBar($"Exporting image ({index + 1}/{_hotspots.Length})", "Applying shader...", 0.66f);
                     _equirectangularConverter.SetFloat(_paddingX, faceCameraDirection ? (camera.transform.eulerAngles.y / 360f) : 0f);
                     Graphics.Blit(cubeMapTexture, equirectangularTexture, _equirectangularConverter);
 
@@ -156,7 +156,7 @@ namespace Treasured.UnitySdk.Editor
                     byte[] bytes = encodeAsJPEG ? outputTexture.EncodeToJPG() : outputTexture.EncodeToPNG(); // I360Render.InsertXMPIntoTexture2D_JPEG(_outputTexture) : I360Render.InsertXMPIntoTexture2D_PNG(_outputTexture);
                     if (bytes != null)
                     {
-                        EditorUtility.DisplayProgressBar($"Exporting {fileName} ({index + 1}/{map.Hotspots.Length})", $"Saving {fileName}...", 0.99f);
+                        EditorUtility.DisplayProgressBar($"Exporting {fileName} ({index + 1}/{_hotspots.Length})", $"Saving {fileName}...", 0.99f);
                         string path = Path.Combine(qualityFolderDirectory, fileName);
                         File.WriteAllBytes(path, bytes);
                     }

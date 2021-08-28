@@ -22,7 +22,7 @@ namespace Treasured.UnitySdk
         /// The description of the exhibit on the landing page.
         /// </summary>
         [SerializeField]
-        [TextArea(5, 5)]
+        [TextArea(3, 5)]
         [Tooltip("The description of the exhibit on the landing page.")]
         private string _description;
 

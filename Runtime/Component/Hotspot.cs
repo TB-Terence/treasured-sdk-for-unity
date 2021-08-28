@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    [AddComponentMenu("")]
+    [AddComponentMenu("Treasured/Hotspot")]
     public sealed class Hotspot : TreasuredObject
     {
         private static readonly Vector3 HotspotSize = Vector3.one * 0.3f;

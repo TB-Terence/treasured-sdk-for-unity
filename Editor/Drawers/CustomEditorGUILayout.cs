@@ -10,16 +10,6 @@ namespace Treasured.SDKEditor
     {
         private static readonly DirectoryInfo DataDirectoryInfo = new DirectoryInfo(Application.dataPath);
 
-        public static GUIContent IconContent(string iconName, string tooltip)
-        {
-            return IconContent(iconName, "", tooltip);
-        }
-
-        public static GUIContent IconContent(string iconName, string text, string tooltip)
-        {
-            return EditorGUIUtility.TrTextContent(text, tooltip, iconName);
-        }
-
         public static bool Link(GUIContent label, GUIContent url)
         {
             EditorGUILayout.BeginHorizontal();
@@ -74,8 +64,17 @@ namespace Treasured.SDKEditor
             bool isEmpty = string.IsNullOrEmpty(property.stringValue);
             using (var scope = new EditorGUILayout.HorizontalScope())
             {
-                EditorGUILayout.LabelField(label, new GUIContent(isEmpty ? "Folder not selected" : property.stringValue), GUILayout.Height(18));
-                if(GUILayout.Button(EditorGUIUtility.TrIconContent("FolderOpened Icon", $"Choose output directory"), EditorStyles.label, GUILayout.Width(18), GUILayout.Height(18)))
+                //if (isEmpty)
+                //{
+                //    EditorGUILayout.LabelField(EditorGUIUtility.TrTextContentWithIcon(label.text, MessageType.Error), new GUIContent("Folder not selected"), GUILayout.Height(18));
+                //}
+                //else
+                //{
+                //    EditorGUILayout.LabelField(label, new GUIContent(property.stringValue), GUILayout.Height(18));
+                //}
+                LabelField(label, new GUIContent(property.stringValue), isEmpty);
+                //EditorGUILayout.LabelField(, GUILayout.Height(18));
+                if (GUILayout.Button(EditorGUIUtility.TrIconContent("FolderOpened Icon", $"Choose output directory"), EditorStyles.label, GUILayout.Width(18), GUILayout.Height(18)))
                 {
                     string absolutePath = EditorUtility.OpenFolderPanel("Choose output directory", DataDirectoryInfo.Parent.FullName, "");
                     if (!string.IsNullOrEmpty(absolutePath))
@@ -106,6 +105,30 @@ namespace Treasured.SDKEditor
                         Application.OpenURL(property.stringValue);
                     }
                 }
+            }
+        }
+
+        public static void LabelField(GUIContent label, GUIContent label2, bool isRequired = false)
+        {
+            if (isRequired)
+            {
+                EditorGUILayout.LabelField(EditorGUIUtility.TrTextContentWithIcon(label.text, label.tooltip, MessageType.Error), label2);
+            }
+            else
+            {
+                EditorGUILayout.LabelField(label, label2);
+            }
+        }
+
+        public static void PropertyField(SerializedProperty property, bool isRequired = false)
+        {
+            if (isRequired)
+            {
+                EditorGUILayout.PropertyField(property, EditorGUIUtility.TrTextContentWithIcon(property.displayName, property.tooltip, MessageType.Error));
+            }
+            else
+            {
+                EditorGUILayout.PropertyField(property);
             }
         }
     }

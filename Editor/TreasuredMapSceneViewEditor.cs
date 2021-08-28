@@ -20,14 +20,14 @@ namespace Treasured.UnitySdk.Editor
             }
             Vector3 hotspotSize = Vector3.one * 0.3f;
             // Hotspots
-            for (int i = 0; i < Target.Hotspots.Length; i++)
+            for (int i = 0; i < _interactables.Length; i++)
             {
-                Hotspot current = Target.Hotspots[i];
+                Hotspot current = _hotspots[i];
                 if (!current.gameObject.activeSelf)
                 {
                     continue;
                 }
-                Hotspot next = GetNextHotspot(i, Target.Hotspots.Length);
+                Hotspot next = GetNextHotspot(i, _hotspots.Length);
                 switch (Tools.current)
                 {
                     //case Tool.View:
@@ -89,9 +89,9 @@ namespace Treasured.UnitySdk.Editor
                 }
             }
             // Interactables
-            for (int i = 0; i < Target.Interactables.Length; i++)
+            for (int i = 0; i < _interactables.Length; i++)
             {
-                Interactable current = Target.Interactables[i];
+                Interactable current = _interactables[i];
                 Handles.color = Color.white;
                 Handles.Label(current.transform.position, new GUIContent(current.gameObject.name));
                 switch (Tools.current)
@@ -133,8 +133,8 @@ namespace Treasured.UnitySdk.Editor
         private Hotspot GetNextHotspot(int currentIndex, int totalCount)
         {
             int index = currentIndex;
-            Hotspot current = Target.Hotspots[index];
-            Hotspot next = Target.Hotspots[(index + 1) % totalCount];
+            Hotspot current = _hotspots[index];
+            Hotspot next = _hotspots[(index + 1) % totalCount];
             while (next != current)
             {
                 if (index == totalCount - 1 && !Target.Data.Loop)
@@ -145,7 +145,7 @@ namespace Treasured.UnitySdk.Editor
                 {
                     return next;
                 }
-                next = Target.Hotspots[++index % totalCount];
+                next = _hotspots[++index % totalCount];
             }
             return null;
         }

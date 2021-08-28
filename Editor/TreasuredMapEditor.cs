@@ -22,11 +22,13 @@ namespace Treasured.UnitySdk.Editor
         private bool _showInfo = true;
 
         private bool _showHotspotManagement = true;
+        private Hotspot[] _hotspots;
         private bool _showHotspotList = true;
         private bool _exportAllHotspots = true;
         private GroupToggleState _hotspotsGroupToggleState = GroupToggleState.All;
 
         private bool _showInteractableManagement = true;
+        private Interactable[] _interactables;
         private bool _showInteractableList = true;
         private bool _exportAllInteractables = true;
         private GroupToggleState _interactablesGroupToggleState = GroupToggleState.All;
@@ -36,6 +38,9 @@ namespace Treasured.UnitySdk.Editor
         private SerializedProperty _title;
         private SerializedProperty _description;
         private SerializedProperty _loop;
+
+
+        private Transform _transform;
 
         #region Hotspot Management
         private float _hotspotGroundOffset = 2;
@@ -50,14 +55,22 @@ namespace Treasured.UnitySdk.Editor
 
         protected override void Init()
         {
-            Target.transform.hideFlags = HideFlags.HideInInspector;
+            _transform = Target.transform;
+            _hotspots = Target.gameObject.GetComponentsInChildren<Hotspot>();
+            _interactables = Target.gameObject.GetComponentsInChildren<Interactable>();
+            _transform.hideFlags = HideFlags.HideInInspector;
             InitSerializedProperty();
             Tools.hidden = true;
         }
 
         private void OnDisable()
         {
+            _transform.hideFlags = HideFlags.None;
             Tools.hidden = false;
+        }
+
+        private void OnDestroy()
+        {
         }
 
         private void InitSerializedProperty()
@@ -100,8 +113,8 @@ namespace Treasured.UnitySdk.Editor
 
         private void DrawInfo()
         {
-            EditorGUILayout.PropertyField(_title);
-            EditorGUILayout.PropertyField(_description);
+            CustomEditorGUILayout.PropertyField(_title, string.IsNullOrEmpty(_title.stringValue.Trim()));
+            CustomEditorGUILayout.PropertyField(_description, string.IsNullOrEmpty(_description.stringValue.Trim()));
             EditorGUILayout.PropertyField(_loop);
         }
 
@@ -112,7 +125,7 @@ namespace Treasured.UnitySdk.Editor
                 _hotspotGroundOffset = EditorGUILayout.Slider(new GUIContent("Ground Offset for All", "Offset all Hotspots off the ground by this amount."), _hotspotGroundOffset, 0, 100);
                 if (GUILayout.Button("Overwrite", GUILayout.Width(72)))
                 {
-                    foreach (var hotspot in Target.Hotspots)
+                    foreach (var hotspot in _hotspots)
                     {
                         if(hotspot.FindGroundPoint(100, ~0, out Vector3 ground))
                         {
@@ -122,12 +135,12 @@ namespace Treasured.UnitySdk.Editor
                     }
                 }
             }
-            DrawTObjectList(Target.Hotspots, "Hotspots", ref _showHotspotList, ref _exportAllHotspots, ref _hotspotsGroupToggleState);
+            DrawTObjectList(_hotspots, "Hotspots", ref _showHotspotList, ref _exportAllHotspots, ref _hotspotsGroupToggleState);
         }
 
         private void DrawInteractableManagment()
         {
-            DrawTObjectList(Target.Interactables, "Interactables", ref _showInteractableList, ref _exportAllInteractables, ref _interactablesGroupToggleState, 3);
+            DrawTObjectList(_interactables, "Interactables", ref _showInteractableList, ref _exportAllInteractables, ref _interactablesGroupToggleState, 3);
         }
 
         private void DrawTObjectList(IList<TreasuredObject> objects, string foldoutName, ref bool foldout, ref bool exportAll, ref GroupToggleState groupToggleState, float distance = 0)
@@ -142,31 +155,34 @@ namespace Treasured.UnitySdk.Editor
                 foldout = EditorGUILayout.Foldout(foldout, new GUIContent($"{foldoutName} ({objects.Count})"), true);
                 if (foldout)
                 {
-                    if (objects.All(x => !x.gameObject.activeSelf))
+                    if (objects.Count > 1)
                     {
-                        exportAll = false;
-                        groupToggleState = GroupToggleState.None;
-                    }
-                    else if (objects.Any(x => !x.gameObject.activeSelf))
-                    {
-                        groupToggleState = GroupToggleState.Mixed;
-                    }
-                    else
-                    {
-                        exportAll = true;
-                        groupToggleState = GroupToggleState.All;
-                    }
-                    EditorGUI.showMixedValue = groupToggleState == GroupToggleState.Mixed;
-                    EditorGUI.BeginChangeCheck();
-                    exportAll = EditorGUILayout.ToggleLeft(new GUIContent($"Select All"), exportAll);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        foreach (var obj in objects)
+                        if (objects.All(x => !x.gameObject.activeSelf))
                         {
-                            obj.gameObject.SetActive(exportAll);
+                            exportAll = false;
+                            groupToggleState = GroupToggleState.None;
                         }
+                        else if (objects.Any(x => !x.gameObject.activeSelf))
+                        {
+                            groupToggleState = GroupToggleState.Mixed;
+                        }
+                        else
+                        {
+                            exportAll = true;
+                            groupToggleState = GroupToggleState.All;
+                        }
+                        EditorGUI.showMixedValue = groupToggleState == GroupToggleState.Mixed;
+                        EditorGUI.BeginChangeCheck();
+                        exportAll = EditorGUILayout.ToggleLeft(new GUIContent($"Select All"), exportAll);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            foreach (var obj in objects)
+                            {
+                                obj.gameObject.SetActive(exportAll);
+                            }
+                        }
+                        EditorGUI.showMixedValue = false;
                     }
-                    EditorGUI.showMixedValue = false;
                     foreach (var obj in objects)
                     {
                         using (new EditorGUILayout.HorizontalScope())
@@ -213,25 +229,36 @@ namespace Treasured.UnitySdk.Editor
                         Application.OpenURL(outputDirectory.FullName);
                     }
                 }
-                if (GUILayout.Button("Export Json", GUILayout.Height(24)))
+                using (new EditorGUI.DisabledGroupScope(!IsAllRequiredFieldFilled()))
                 {
-                    DirectoryInfo outputDirectory = Directory.CreateDirectory(Path.Combine(_outputDirectory.stringValue, $"{Target.Data.Title}"));
-                    ExportJson(outputDirectory.FullName);
-                    if (_showInExplorer)
+                    if (GUILayout.Button("Export Json", GUILayout.Height(24)))
                     {
-                        Application.OpenURL(outputDirectory.FullName);
+                        DirectoryInfo outputDirectory = Directory.CreateDirectory(Path.Combine(_outputDirectory.stringValue, $"{Target.Data.Title}"));
+                        ExportJson(outputDirectory.FullName);
+                        if (_showInExplorer)
+                        {
+                            Application.OpenURL(outputDirectory.FullName);
+                        }
                     }
-                }
-                if (GUILayout.Button("Export All", GUILayout.Height(24)))
-                {
-                    DirectoryInfo outputDirectory = Directory.CreateDirectory(Path.Combine(_outputDirectory.stringValue, $"{Target.Data.Title}"));
-                    ExportAll(outputDirectory.FullName);
-                    if (_showInExplorer)
+                    if (GUILayout.Button("Export All", GUILayout.Height(24)))
                     {
-                        Application.OpenURL(outputDirectory.FullName);
+                        DirectoryInfo outputDirectory = Directory.CreateDirectory(Path.Combine(_outputDirectory.stringValue, $"{Target.Data.Title}"));
+                        ExportAll(outputDirectory.FullName);
+                        if (_showInExplorer)
+                        {
+                            Application.OpenURL(outputDirectory.FullName);
+                        }
                     }
                 }
             }
+        }
+
+        private bool IsAllRequiredFieldFilled()
+        {
+            bool allFilled = !string.IsNullOrEmpty(_title.stringValue.Trim());
+            allFilled &= !string.IsNullOrEmpty(_description.stringValue.Trim());
+            allFilled &= !string.IsNullOrEmpty(_outputDirectory.stringValue);
+            return allFilled;
         }
     }
 }
