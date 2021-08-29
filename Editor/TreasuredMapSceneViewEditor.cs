@@ -1,5 +1,5 @@
-﻿using UnityEngine;
-using UnityEditor;
+﻿using UnityEditor;
+using UnityEngine;
 
 namespace Treasured.UnitySdk.Editor
 {
@@ -20,112 +20,129 @@ namespace Treasured.UnitySdk.Editor
             }
             Vector3 hotspotSize = Vector3.one * 0.3f;
             // Hotspots
-            for (int i = 0; i < _interactables.Length; i++)
+            if (_showAll || _selectedObjectTab == 0)
             {
-                Hotspot current = _hotspots[i];
-                if (!current.gameObject.activeSelf)
+                for (int i = 0; i < _hotspots.Length; i++)
                 {
-                    continue;
-                }
-                Hotspot next = GetNextHotspot(i, _hotspots.Length);
-                switch (Tools.current)
-                {
-                    //case Tool.View:
-                    //    EditorGUI.BeginChangeCheck();
-                    //    Vector3 newPosition = Handles.PositionHandle(Target.transform.position, Quaternion.identity);
-                    //    if (EditorGUI.EndChangeCheck())
-                    //    {
-                    //        Undo.RecordObject(Target.transform, "Move Map Position");
-                    //        Target.transform.position = newPosition;
-                    //    }
-                    //    break;
-                    case Tool.Move:
-                        EditorGUI.BeginChangeCheck();
-                        Vector3 newHotspotPosition = Handles.PositionHandle(current.transform.position, current.transform.rotation);
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            Undo.RecordObject(current.transform, "Move Hotspot Position");
-                            current.transform.position = newHotspotPosition;
-                        }
-                        break;
-                    case Tool.Rotate:
-                        EditorGUI.BeginChangeCheck();
-                        Quaternion newHotspotRotation = Handles.RotationHandle(current.transform.rotation, current.transform.position);
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            Undo.RecordObject(current.transform, "Edit Hotspot Rotation");
-                            current.transform.rotation = newHotspotRotation;
-                        }
-                        float size = HandleUtility.GetHandleSize(current.transform.position);
-                        Handles.color = Color.blue;
-                        Handles.ArrowHandleCap(0, current.transform.position + current.transform.forward * size, current.transform.rotation, size, EventType.Repaint);
-                        break;
-                }
-                Handles.color = Color.red;
-                Handles.DrawWireCube(current.transform.position, hotspotSize);
-                Handles.color = Color.white;
-                if (current.Hitbox)
-                {
-                    Handles.DrawDottedLine(current.transform.position, current.transform.position + current.Hitbox.center, 5);
-                }
-                Handles.Label(current.transform.position, new GUIContent(current.gameObject.name));
-
-                if (next)
-                {
-                    Vector3 direction = next.transform.position - current.transform.position;
-                    if (direction != Vector3.zero)
+                    Hotspot current = _hotspots[i];
+                    if (_currentEditingObject != null && _currentEditingObject != current)
                     {
-                        Handles.color = Color.green;
-                        Handles.ArrowHandleCap(0, current.transform.position, Quaternion.LookRotation(direction), 0.5f, EventType.Repaint);
-                        //draw multiple arrows
-                        //int segement = (int)(direction.magnitude / 3);
-                        //for (int x = 0; x < segement; x++)
-                        //{
-                        //    Handles.ArrowHandleCap(0, current.transform.position + direction.normalized * x * direction.magnitude / segement, Quaternion.LookRotation(direction), 1, EventType.Repaint);
-                        //}
+                        continue;
                     }
+                    if (!current.gameObject.activeSelf)
+                    {
+                        continue;
+                    }
+                    Hotspot next = GetNextHotspot(i, _hotspots.Length);
+                    switch (Tools.current)
+                    {
+                        //case Tool.View:
+                        //    EditorGUI.BeginChangeCheck();
+                        //    Vector3 newPosition = Handles.PositionHandle(Target.transform.position, Quaternion.identity);
+                        //    if (EditorGUI.EndChangeCheck())
+                        //    {
+                        //        Undo.RecordObject(Target.transform, "Move Map Position");
+                        //        Target.transform.position = newPosition;
+                        //    }
+                        //    break;
+                        case Tool.Move:
+                            EditorGUI.BeginChangeCheck();
+                            Vector3 newHotspotPosition = Handles.PositionHandle(current.transform.position, current.transform.rotation);
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                Undo.RecordObject(current.transform, "Move Hotspot Position");
+                                current.transform.position = newHotspotPosition;
+                            }
+                            break;
+                        case Tool.Rotate:
+                            EditorGUI.BeginChangeCheck();
+                            Quaternion newHotspotRotation = Handles.RotationHandle(current.transform.rotation, current.transform.position);
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                Undo.RecordObject(current.transform, "Edit Hotspot Rotation");
+                                current.transform.rotation = newHotspotRotation;
+                            }
+                            float size = HandleUtility.GetHandleSize(current.transform.position);
+                            Handles.color = Color.blue;
+                            Handles.ArrowHandleCap(0, current.transform.position + current.transform.forward * size, current.transform.rotation, size, EventType.Repaint);
+                            break;
+                    }
+                    Handles.color = Color.red;
+                    Handles.DrawWireCube(current.transform.position, hotspotSize);
                     Handles.color = Color.white;
-                    Handles.DrawLine(current.transform.position, next.transform.position);
+                    if (current.Hitbox)
+                    {
+                        Handles.DrawDottedLine(current.transform.position, current.transform.position + current.Hitbox.center, 5);
+                    }
+                    Handles.Label(current.transform.position, new GUIContent(current.gameObject.name));
+
+                    if(_currentEditingObject == null)
+                    {
+                        if (next)
+                        {
+                            Vector3 direction = next.transform.position - current.transform.position;
+                            if (direction != Vector3.zero)
+                            {
+                                Handles.color = Color.green;
+                                Handles.ArrowHandleCap(0, current.transform.position, Quaternion.LookRotation(direction), 0.5f, EventType.Repaint);
+                                //draw multiple arrows
+                                //int segement = (int)(direction.magnitude / 3);
+                                //for (int x = 0; x < segement; x++)
+                                //{
+                                //    Handles.ArrowHandleCap(0, current.transform.position + direction.normalized * x * direction.magnitude / segement, Quaternion.LookRotation(direction), 1, EventType.Repaint);
+                                //}
+                            }
+                            Handles.color = Color.white;
+                            Handles.DrawLine(current.transform.position, next.transform.position);
+                        }
+                    }
                 }
             }
             // Interactables
-            for (int i = 0; i < _interactables.Length; i++)
+            if (_showAll || _selectedObjectTab == 1)
             {
-                Interactable current = _interactables[i];
-                Handles.color = Color.white;
-                Handles.Label(current.transform.position, new GUIContent(current.gameObject.name));
-                switch (Tools.current)
+                for (int i = 0; i < _interactables.Length; i++)
                 {
-                    case Tool.Move:
-                        EditorGUI.BeginChangeCheck();
-                        Vector3 newHotspotPosition = Handles.PositionHandle(current.transform.position, current.transform.rotation);
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            Undo.RecordObject(current.transform, "Move Interactable Position");
-                            current.transform.position = newHotspotPosition;
-                        }
-                        break;
-                    case Tool.Rotate:
-                        EditorGUI.BeginChangeCheck();
-                        Quaternion newHotspotRotation = Handles.RotationHandle(current.transform.rotation, current.transform.position);
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            Undo.RecordObject(current.transform, "Edit Interactable Rotation");
-                            current.transform.rotation = newHotspotRotation;
-                        }
-                        break;
-                    case Tool.Scale:
-                        if (current.Hitbox)
-                        {
+                    Interactable current = _interactables[i];
+                    if (_currentEditingObject != null && _currentEditingObject != current)
+                    {
+                        continue;
+                    }
+                    Handles.color = Color.white;
+                    Handles.Label(current.transform.position, new GUIContent(current.gameObject.name));
+                    switch (Tools.current)
+                    {
+                        case Tool.Move:
                             EditorGUI.BeginChangeCheck();
-                            Vector3 newSize = Handles.ScaleHandle(current.Hitbox.size, current.transform.position, current.transform.rotation, 1);
+                            Vector3 newHotspotPosition = Handles.PositionHandle(current.transform.position, current.transform.rotation);
                             if (EditorGUI.EndChangeCheck())
                             {
-                                Undo.RecordObject(current.transform, "Scale Interactable Hitbox");
-                                current.Hitbox.size = newSize;
+                                Undo.RecordObject(current.transform, "Move Interactable Position");
+                                current.transform.position = newHotspotPosition;
                             }
-                        }
-                        break;
+                            break;
+                        case Tool.Rotate:
+                            EditorGUI.BeginChangeCheck();
+                            Quaternion newHotspotRotation = Handles.RotationHandle(current.transform.rotation, current.transform.position);
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                Undo.RecordObject(current.transform, "Edit Interactable Rotation");
+                                current.transform.rotation = newHotspotRotation;
+                            }
+                            break;
+                        case Tool.Scale:
+                            if (current.Hitbox)
+                            {
+                                EditorGUI.BeginChangeCheck();
+                                Vector3 newSize = Handles.ScaleHandle(current.Hitbox.size, current.transform.position, current.transform.rotation, 1);
+                                if (EditorGUI.EndChangeCheck())
+                                {
+                                    Undo.RecordObject(current.transform, "Scale Interactable Hitbox");
+                                    current.Hitbox.size = newSize;
+                                }
+                            }
+                            break;
+                    }
                 }
             }
         }

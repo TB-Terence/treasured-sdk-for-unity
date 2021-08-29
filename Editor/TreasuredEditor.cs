@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityEditor;
 using System.Linq;
+using System.Collections.Generic;
+using System;
 
 namespace Treasured.UnitySdk.Editor
 {
@@ -9,6 +11,9 @@ namespace Treasured.UnitySdk.Editor
         protected static readonly Color LabelColor = Color.white;
 
         private static readonly string[] Excludes = new string[] { "m_Script" };
+
+        private Dictionary<string, Action> _beforePropertyField = new Dictionary<string, Action>();
+        private Dictionary<string, Action> _afterPropertyField = new Dictionary<string, Action>();
 
         protected T Target { get; set; }
 
@@ -37,7 +42,15 @@ namespace Treasured.UnitySdk.Editor
                 {
                     continue;
                 }
+                if (_beforePropertyField.TryGetValue(iterator.name, out Action beforeDrawer))
+                {
+                    beforeDrawer.Invoke();
+                }
                 EditorGUILayout.PropertyField(iterator);
+                if (_afterPropertyField.TryGetValue(iterator.name, out Action afterDrawer))
+                {
+                    afterDrawer.Invoke();
+                }
             }
             iterator.serializedObject.ApplyModifiedProperties();
         }
@@ -48,6 +61,16 @@ namespace Treasured.UnitySdk.Editor
             Handles.BeginGUI();
             Handles.Label(Target.transform.position, Target.gameObject.name);
             Handles.EndGUI();
+        }
+
+        protected void InjectDrawerBefore(string propertyName, Action drawer)
+        {
+            _beforePropertyField[propertyName] = drawer;
+        }
+
+        protected void InjectDrawerAfter(string propertyName, Action drawer)
+        {
+            _afterPropertyField[propertyName] = drawer;
         }
     }
 }

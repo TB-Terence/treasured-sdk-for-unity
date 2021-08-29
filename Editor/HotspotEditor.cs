@@ -9,7 +9,9 @@ namespace Treasured.UnitySdk.Editor
         protected override void Init()
         {
             Target.transform.eulerAngles = new Vector3(0, Target.transform.eulerAngles.y, 0);
+            InjectDrawerAfter("_id", DrawNameField);
         }
+
         private void OnDisable()
         {
             if (Target)
@@ -18,6 +20,12 @@ namespace Treasured.UnitySdk.Editor
             }
             Tools.hidden = false; // show the transform tools for other game object
         }
+
+        private void DrawNameField()
+        {
+            Target.gameObject.name = EditorGUILayout.TextField("Name", Target.gameObject.name);
+        }
+
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();

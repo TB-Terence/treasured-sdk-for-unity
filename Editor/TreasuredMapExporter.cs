@@ -17,6 +17,13 @@ namespace Treasured.UnitySdk.Editor
             ContractResolver = SDK.CustomContractResolver.Instance
         };
 
+        private string _sceneName;
+
+        private string GetAbosluteOutputDirectory(string folderName)
+        {
+            return Path.Combine(Utility.ProjectPath, _outputDirectory.stringValue, folderName);
+        }
+
         private void ExportAll(string directory)
         {
             ExportPanoramicImages(directory);

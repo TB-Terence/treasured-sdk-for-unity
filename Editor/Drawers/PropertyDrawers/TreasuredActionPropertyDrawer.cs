@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Treasured.SDK;
 using UnityEditor;
 using UnityEngine;
@@ -15,7 +14,7 @@ namespace Treasured.SDKEditor
             SerializedProperty typeProp = property.FindPropertyRelative("_type");
             SerializedProperty srcProp = property.FindPropertyRelative("_src");
 
-            property.isExpanded = EditorGUI.Foldout(new Rect(position.x, position.y, position.width, 20), property.isExpanded, new GUIContent(ObjectNames.NicifyVariableName(typeProp.stringValue)), true);
+            property.isExpanded = EditorGUI.Foldout(new Rect(position.x, position.y, position.width, 20), property.isExpanded, new GUIContent(string.IsNullOrEmpty(typeProp.stringValue) ? "Type not selected" : ObjectNames.NicifyVariableName(typeProp.stringValue)), true);
             float srcPropHeight = EditorGUI.GetPropertyHeight(srcProp);
             if (property.isExpanded)
             {
@@ -137,7 +136,7 @@ namespace Treasured.SDKEditor
                 case "openLink":
                     return 142;
                 default:
-                    return 20;
+                    return 40;
             }
         }
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Treasured.UnitySdk.Editor;
 using UnityEditor;
 using UnityEngine;
 
@@ -8,8 +9,6 @@ namespace Treasured.SDKEditor
     [InitializeOnLoad]
     internal static class CustomEditorGUILayout
     {
-        private static readonly DirectoryInfo DataDirectoryInfo = new DirectoryInfo(Application.dataPath);
-
         public static bool Link(GUIContent label, GUIContent url)
         {
             EditorGUILayout.BeginHorizontal();
@@ -54,7 +53,7 @@ namespace Treasured.SDKEditor
             Handles.color = Color.white;
         }
 
-        public static void FolderField(SerializedProperty property, GUIContent label)
+        public static void FolderField(SerializedProperty property, GUIContent label, string suffix = "")
         {
             if (property.propertyType != SerializedPropertyType.String)
             {
@@ -64,24 +63,17 @@ namespace Treasured.SDKEditor
             bool isEmpty = string.IsNullOrEmpty(property.stringValue);
             using (var scope = new EditorGUILayout.HorizontalScope())
             {
-                //if (isEmpty)
-                //{
-                //    EditorGUILayout.LabelField(EditorGUIUtility.TrTextContentWithIcon(label.text, MessageType.Error), new GUIContent("Folder not selected"), GUILayout.Height(18));
-                //}
-                //else
-                //{
-                //    EditorGUILayout.LabelField(label, new GUIContent(property.stringValue), GUILayout.Height(18));
-                //}
-                LabelField(label, new GUIContent(property.stringValue), isEmpty);
-                //EditorGUILayout.LabelField(, GUILayout.Height(18));
+                LabelField(label, new GUIContent($"{property.stringValue}{suffix}"), isEmpty);
+                GUILayout.Label(EditorGUIUtility.TrIconContent("_Help", tooltip: $"{property.stringValue}{suffix}"), GUILayout.Width(20));
                 if (GUILayout.Button(EditorGUIUtility.TrIconContent("FolderOpened Icon", $"Choose output directory"), EditorStyles.label, GUILayout.Width(18), GUILayout.Height(18)))
                 {
-                    string absolutePath = EditorUtility.OpenFolderPanel("Choose output directory", DataDirectoryInfo.Parent.FullName, "");
+                    string absolutePath = EditorUtility.OpenFolderPanel("Choose output directory", Utility.ProjectPath, "");
                     if (!string.IsNullOrEmpty(absolutePath))
                     {
-                        if (!absolutePath.StartsWith(DataDirectoryInfo.Parent.FullName.Replace('\\', '/')))
+                        string projectPath = Utility.ProjectPath.Replace('\\', '/');
+                        if (!absolutePath.StartsWith(projectPath))
                         {
-                            Debug.LogError($"The folder should be under the Project folder and outside the Assets folder.");
+                            Debug.LogError($"The folder should be under the root folder of the Project.");
                         }
                         else if (absolutePath.StartsWith(Application.dataPath))
                         {
@@ -89,7 +81,9 @@ namespace Treasured.SDKEditor
                         }
                         else
                         {
-                            property.stringValue = absolutePath;
+                            string relativePath = absolutePath.Substring(Utility.ProjectPath.Length);
+                            property.stringValue = $"Assets/..{(string.IsNullOrEmpty(relativePath) ? "/" : relativePath)}";
+                            
                             GUI.FocusControl(null); // clear focus on textfield so the ui gets updated
                         }
                     }
@@ -100,9 +94,10 @@ namespace Treasured.SDKEditor
                 //}
                 if (GUILayout.Button(EditorGUIUtility.TrIconContent("Folder Icon", $"Show in Explorer"), EditorStyles.label, GUILayout.Width(18), GUILayout.Height(18)))
                 {
-                    if (Directory.Exists(property.stringValue))
+                    string absolutePath = Path.Combine(Utility.ProjectPath, property.stringValue);
+                    if (Directory.Exists(absolutePath))
                     {
-                        Application.OpenURL(property.stringValue);
+                        Application.OpenURL(absolutePath);
                     }
                 }
             }
@@ -112,7 +107,7 @@ namespace Treasured.SDKEditor
         {
             if (isRequired)
             {
-                EditorGUILayout.LabelField(EditorGUIUtility.TrTextContentWithIcon(label.text, label.tooltip, MessageType.Error), label2);
+                EditorGUILayout.LabelField(EditorGUIUtility.TrTextContentWithIcon(label.text, label.tooltip, MessageType.Warning), label2);
             }
             else
             {
@@ -124,7 +119,7 @@ namespace Treasured.SDKEditor
         {
             if (isRequired)
             {
-                EditorGUILayout.PropertyField(property, EditorGUIUtility.TrTextContentWithIcon(property.displayName, property.tooltip, MessageType.Error));
+                EditorGUILayout.PropertyField(property, EditorGUIUtility.TrTextContentWithIcon(property.displayName, property.tooltip, MessageType.Warning));
             }
             else
             {

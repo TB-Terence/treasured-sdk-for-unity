@@ -3,11 +3,15 @@ using UnityEditor;
 using System.IO;
 using UnityEditor.SceneManagement;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Treasured.UnitySdk.Editor
 {
     internal static class Utility
     {
+        private static readonly DirectoryInfo DataDirectoryInfo = new DirectoryInfo(Application.dataPath);
+        public static readonly string ProjectPath = DataDirectoryInfo.Parent.FullName;
+
         public static T ShowCreateAssetPanel<T>(string fileName, string defaultFolderIfInvalid) where T : ScriptableObject
         {
             string filePath = EditorUtility.SaveFilePanel("Choose folder", Application.dataPath, fileName, "asset");
