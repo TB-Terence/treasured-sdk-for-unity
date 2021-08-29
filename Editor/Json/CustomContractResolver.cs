@@ -42,10 +42,10 @@ namespace Treasured.SDK
             JsonProperty property = base.CreateProperty(member, memberSerialization);
 
             // ignore name and hideFlags for ScriptableObject
-            if (property.DeclaringType.IsAssignableFrom(typeof(ScriptableObject)) && (property.PropertyName == "name" || property.PropertyName == "hideFlags"))
-            {
-                property.ShouldSerialize = (instance) => false;
-            }
+            //if (property.DeclaringType.IsAssignableFrom(typeof(ScriptableObject)) && (property.PropertyName == "name" || property.PropertyName == "hideFlags"))
+            //{
+            //    property.ShouldSerialize = (instance) => false;
+            //}
             if (property.DeclaringType == typeof(TreasuredObject) && property.PropertyName == "visibleTargets")
             {
                 property.ShouldSerialize = (instance) =>

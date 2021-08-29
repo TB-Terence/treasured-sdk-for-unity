@@ -41,8 +41,6 @@ namespace Treasured.UnitySdk.Editor
         private SerializedProperty _description;
         private SerializedProperty _loop;
 
-        private Transform _transform;
-
         private TreasuredObject _currentEditingObject = null;
 
         #region Hotspot Management
@@ -58,10 +56,9 @@ namespace Treasured.UnitySdk.Editor
 
         protected override void Init()
         {
-            _transform = Target.transform;
             _hotspots = Target.gameObject.GetComponentsInChildren<Hotspot>(true);
             _interactables = Target.gameObject.GetComponentsInChildren<Interactable>(true);
-            _transform.hideFlags = HideFlags.HideInInspector;
+            Target.transform.hideFlags = HideFlags.HideInInspector;
             InitSerializedProperty();
             Tools.hidden = true;
             _sceneName = SceneManager.GetActiveScene().name;
@@ -69,7 +66,10 @@ namespace Treasured.UnitySdk.Editor
 
         private void OnDisable()
         {
-            _transform.hideFlags = HideFlags.None;
+            if (Target)
+            {
+                Target.transform.hideFlags = HideFlags.None;
+            }
             Tools.hidden = false;
         }
 
@@ -101,7 +101,7 @@ namespace Treasured.UnitySdk.Editor
         private void DrawObjectManagement()
         {
             EditorGUI.BeginChangeCheck();
-            _showAll = EditorGUILayout.Toggle(new GUIContent("Show All", "Show transform tool for Hotspots and Interactables if enabled, otherwise only show from selected tab."), _showAll);
+            _showAll = EditorGUILayout.Toggle(new GUIContent("Show Transform Tool for All", "Show transform tool for Hotspots and Interactables if enabled, otherwise only show from selected tab."), _showAll);
             using (new EditorGUILayout.HorizontalScope(Styles.TabBar))
             {
                 _selectedObjectTab = GUILayout.SelectionGrid(_selectedObjectTab, _objectManagementTabs, _objectManagementTabs.Length, Styles.TabButton);
@@ -186,11 +186,14 @@ namespace Treasured.UnitySdk.Editor
                     {
                         EditorGUILayout.LabelField(new GUIContent("Index", "The order of the Hotspot for the Guide Tour."), GUILayout.Width(64));
                         EditorGUILayout.LabelField(new GUIContent("Export", "Enable if the object should be included in the output file."), GUILayout.Width(72));
-                        GUILayout.FlexibleSpace();
-                        if (GUILayout.Button(EditorGUIUtility.TrIconContent("Transform Icon", "Edit All Transform"), EditorStyles.label, GUILayout.Width(20), GUILayout.Height(20)))
+                        if (objects.Count > 1)
                         {
-                            _currentEditingObject = null;
-                            SceneView.RepaintAll();
+                            GUILayout.FlexibleSpace();
+                            if (GUILayout.Button(EditorGUIUtility.TrIconContent("Transform Icon", "Edit All Transform"), EditorStyles.label, GUILayout.Width(20), GUILayout.Height(20)))
+                            {
+                                _currentEditingObject = null;
+                                SceneView.RepaintAll();
+                            }
                         }
                     }
                     if (objects.Count > 1)

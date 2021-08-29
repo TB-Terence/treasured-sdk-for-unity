@@ -1,12 +1,24 @@
-﻿namespace Treasured.UnitySdk
+﻿using Newtonsoft.Json;
+using Treasured.SDK;
+
+namespace Treasured.UnitySdk
 {
     public sealed class InteractableData : TreasuredObjectData
     {
-        public InteractableData(Interactable interactable)
+        private InteractableData(Interactable interactable) : base(interactable)
         {
-            this._id = interactable.Id;
-            this.Description = interactable.Description;
-            this.OnSelected = interactable.OnSelected;
+
+        }
+
+        [JsonConstructor]
+        private InteractableData(string id) : base(id)
+        {
+
+        }
+
+        public static implicit operator InteractableData(Interactable data)
+        {
+            return new InteractableData(data);
         }
     }
 }

@@ -35,7 +35,20 @@ namespace Treasured.UnitySdk
 
         private BoxCollider _hitbox;
 
-        public BoxCollider Hitbox { get => _hitbox; }
+        public BoxCollider Hitbox
+        {
+            get
+            {
+                if(_hitbox == null)
+                {
+                    if (TryGetComponent(out _hitbox))
+                    {
+                        _hitbox.isTrigger = true;
+                    }
+                }
+                return _hitbox;
+            }
+        }
 
         protected virtual void OnEnable()
         {
@@ -77,6 +90,16 @@ namespace Treasured.UnitySdk
                     Hitbox.center = point - transform.position + new Vector3(0, Hitbox.size.y / 2, 0);       
                 }
             }
+        }
+
+        public void LoadFromData(TreasuredObjectData data)
+        {
+            this._id = data.Id;
+            this._description = data.Description;
+            this._onSelected = data.OnSelected;
+            this.transform.position = data.Transform.Position;
+            this.transform.eulerAngles = data.Transform.Rotation;
+            this.Hitbox.size = data.Hitbox.Size;
         }
     }
 }

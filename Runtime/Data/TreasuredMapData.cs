@@ -45,6 +45,8 @@ namespace Treasured.UnitySdk
         public List<HotspotData> Hotspots { get; private set; } = new List<HotspotData>();
         public List<InteractableData> Interactables { get; private set; } = new List<InteractableData>();
 
+        private TreasuredMapData() { }
+
         public void GenerateHotspots(IEnumerable<Hotspot> hotspots)
         {
             Hotspots.Clear();
@@ -54,7 +56,7 @@ namespace Treasured.UnitySdk
                 {
                     continue;
                 }
-                Hotspots.Add(new HotspotData(hotspot));
+                Hotspots.Add(hotspot);
             }
         }
 
@@ -67,7 +69,7 @@ namespace Treasured.UnitySdk
                 {
                     continue;
                 }
-                Interactables.Add(new InteractableData(interactable));
+                Interactables.Add(interactable);
             }
         }
     }

@@ -14,8 +14,20 @@ namespace Treasured.UnitySdk
         [AssetSelector(true)]
         private string _outputDirectory = "";
 
-        public TreasuredMapData Data { get => _data; }
+        public TreasuredMapData Data
+        {
+            get
+            {
+                return _data;
+            }
+            set
+            {
+                _data = value;
+            }
+        }
 
         public string OutputDirectory { get => _outputDirectory; }
+
+        private TreasuredMap() { }
     }
 }

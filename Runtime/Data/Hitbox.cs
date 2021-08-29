@@ -1,7 +1,8 @@
 ﻿using System;
+using Treasured.SDK;
 using UnityEngine;
 
-namespace Treasured.SDK
+namespace Treasured.UnitySdk
 {
     [Serializable]
     public class Hitbox
@@ -20,5 +21,14 @@ namespace Treasured.SDK
         /// Boundary box of the object.
         /// </summary>
         public Vector3 Size { get => _size; set => _size = value; }
+
+        public static implicit operator Hitbox(Collider collider)
+        {
+            return new Hitbox()
+            {
+                _center = collider.bounds.center,
+                _size = collider.bounds.extents
+            };
+        }
     }
 }

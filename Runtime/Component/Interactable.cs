@@ -2,9 +2,11 @@
 
 namespace Treasured.UnitySdk
 {
-    [AddComponentMenu("Treasured/Interactable")]
+    [AddComponentMenu("")]
     public class Interactable : TreasuredObject
     {
+        private Interactable() { }
+
         protected override void OnEnable()
         {
             base.OnEnable();

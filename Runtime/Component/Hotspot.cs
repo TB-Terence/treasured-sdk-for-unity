@@ -3,11 +3,9 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    [AddComponentMenu("Treasured/Hotspot")]
+    [AddComponentMenu("")]
     public sealed class Hotspot : TreasuredObject
     {
-        private static readonly Vector3 HotspotSize = Vector3.one * 0.3f;
-
         #region JSON Properties
         /// <summary>
         /// Visible objects from the hotspot. Used by hotspot.
@@ -18,5 +16,12 @@ namespace Treasured.UnitySdk
         #endregion
 
         public List<string> VisibleTargets { get => _visibleTargets; set => _visibleTargets = value; }
+
+        private Hotspot() { }
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+        }
     }
 }
