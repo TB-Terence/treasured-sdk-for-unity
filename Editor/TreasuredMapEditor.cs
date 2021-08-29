@@ -187,7 +187,7 @@ namespace Treasured.UnitySdk.Editor
                     {
                         using (new EditorGUILayout.HorizontalScope())
                         {
-                            EditorGUILayout.LabelField("Index", GUILayout.Width(50));
+                            EditorGUILayout.LabelField("Index", GUILayout.Width(64));
                             if (objects.All(x => !x.gameObject.activeSelf))
                             {
                                 exportAll = false;
@@ -225,7 +225,7 @@ namespace Treasured.UnitySdk.Editor
                         using (new EditorGUILayout.HorizontalScope())
                         {
                             TreasuredObject current = objects[i];
-                            EditorGUILayout.LabelField($"{i + 1}", GUILayout.Width(50));
+                            EditorGUILayout.LabelField($"{i + 1}", GUILayout.Width(64));
                             EditorGUI.BeginChangeCheck();
                             bool active = EditorGUILayout.Toggle("", current.gameObject.activeSelf, GUILayout.Width(20));
                             if (EditorGUI.EndChangeCheck())
