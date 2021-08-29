@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using Treasured.SDKEditor;
 using UnityEditor;
 using UnityEngine;
@@ -74,10 +73,6 @@ namespace Treasured.UnitySdk.Editor
             Tools.hidden = false;
         }
 
-        private void OnDestroy()
-        {
-        }
-
         private void InitSerializedProperty()
         {
             _title = serializedObject.FindProperty($"_data.{nameof(_title)}");
@@ -92,6 +87,7 @@ namespace Treasured.UnitySdk.Editor
 
         public override void OnInspectorGUI()
         {
+            Styles.Init();
             serializedObject.Update();
             using (new EditorGUILayout.VerticalScope())
             {
@@ -106,12 +102,15 @@ namespace Treasured.UnitySdk.Editor
         {
             EditorGUI.BeginChangeCheck();
             _showAll = EditorGUILayout.Toggle(new GUIContent("Show All", "Show transform tool for Hotspots and Interactables if enabled, otherwise only show from selected tab."), _showAll);
-            _selectedObjectTab = GUILayout.SelectionGrid(_selectedObjectTab, _objectManagementTabs, _objectManagementTabs.Length);
+            using (new EditorGUILayout.HorizontalScope(Styles.TabBar))
+            {
+                _selectedObjectTab = GUILayout.SelectionGrid(_selectedObjectTab, _objectManagementTabs, _objectManagementTabs.Length, Styles.TabButton);
+            }
             if(EditorGUI.EndChangeCheck())
             {
                 SceneView.RepaintAll();
             }
-            using (new EditorGUILayout.VerticalScope("box"))
+            using (new EditorGUILayout.VerticalScope(Styles.TabPage))
             {
                 if (_selectedObjectTab == 0)
                 {
@@ -183,11 +182,21 @@ namespace Treasured.UnitySdk.Editor
                 foldout = EditorGUILayout.Foldout(foldout, new GUIContent($"{foldoutName} ({objects.Count})"), true);
                 if (foldout)
                 {
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        EditorGUILayout.LabelField(new GUIContent("Index", "The order of the Hotspot for the Guide Tour."), GUILayout.Width(64));
+                        EditorGUILayout.LabelField(new GUIContent("Export", "Enable if the object should be included in the output file."), GUILayout.Width(72));
+                        GUILayout.FlexibleSpace();
+                        if (GUILayout.Button(EditorGUIUtility.TrIconContent("Transform Icon", "Edit All Transform"), EditorStyles.label, GUILayout.Width(20), GUILayout.Height(20)))
+                        {
+                            _currentEditingObject = null;
+                            SceneView.RepaintAll();
+                        }
+                    }
                     if (objects.Count > 1)
                     {
                         using (new EditorGUILayout.HorizontalScope())
                         {
-                            EditorGUILayout.LabelField("Index", GUILayout.Width(64));
                             if (objects.All(x => !x.gameObject.activeSelf))
                             {
                                 exportAll = false;
@@ -203,8 +212,9 @@ namespace Treasured.UnitySdk.Editor
                                 groupToggleState = GroupToggleState.All;
                             }
                             EditorGUI.showMixedValue = groupToggleState == GroupToggleState.Mixed;
+                            GUILayout.Space(70);
                             EditorGUI.BeginChangeCheck();
-                            exportAll = EditorGUILayout.ToggleLeft(new GUIContent($"Select All"), exportAll);
+                            exportAll = EditorGUILayout.ToggleLeft(GUIContent.none, exportAll);
                             if (EditorGUI.EndChangeCheck())
                             {
                                 foreach (var obj in objects)
@@ -213,11 +223,6 @@ namespace Treasured.UnitySdk.Editor
                                 }
                             }
                             EditorGUI.showMixedValue = false;
-                            if (GUILayout.Button(EditorGUIUtility.TrIconContent("Transform Icon", "Edit All Transform"), EditorStyles.label, GUILayout.Width(20), GUILayout.Height(20)))
-                            {
-                                _currentEditingObject = null;
-                                SceneView.RepaintAll();
-                            }
                         }
                     }
                     for (int i = 0; i < objects.Count; i++)
@@ -225,9 +230,9 @@ namespace Treasured.UnitySdk.Editor
                         using (new EditorGUILayout.HorizontalScope())
                         {
                             TreasuredObject current = objects[i];
-                            EditorGUILayout.LabelField($"{i + 1}", GUILayout.Width(64));
+                            EditorGUILayout.LabelField($"{i + 1}", Styles.IndexLabel, GUILayout.Width(64));
                             EditorGUI.BeginChangeCheck();
-                            bool active = EditorGUILayout.Toggle("", current.gameObject.activeSelf, GUILayout.Width(20));
+                            bool active = EditorGUILayout.Toggle(GUIContent.none, current.gameObject.activeSelf, GUILayout.Width(20));
                             if (EditorGUI.EndChangeCheck())
                             {
                                 current.gameObject.SetActive(active);

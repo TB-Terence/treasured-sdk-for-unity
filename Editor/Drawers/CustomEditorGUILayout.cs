@@ -13,23 +13,23 @@ namespace Treasured.SDKEditor
         {
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PrefixLabel(label);
-            Rect position = GUILayoutUtility.GetRect(url, CustomStyles.Link);
+            Rect position = GUILayoutUtility.GetRect(url, Styles.Link);
 
             Handles.BeginGUI();
-            Handles.color = CustomStyles.Link.normal.textColor;
+            Handles.color = Styles.Link.normal.textColor;
             Handles.DrawLine(new Vector3(position.xMin, position.yMax), new Vector3(position.xMax, position.yMax));
             Handles.color = Color.white;
             Handles.EndGUI();
 
             EditorGUIUtility.AddCursorRect(position, MouseCursor.Link);
             EditorGUILayout.EndHorizontal();
-            return GUI.Button(position, url, CustomStyles.Link);
+            return GUI.Button(position, url, Styles.Link);
         }
 
         public static void CreateDropZone(Rect rect, GUIContent label, Action<UnityEngine.Object[]> onDrop)
         {
             DrawDottedBox(rect, EditorGUIUtility.isProSkin ? Color.white : Color.black, 2);
-            GUI.Box(rect, label, CustomStyles.DropZone);
+            GUI.Box(rect, label, Styles.DropZone);
             Event e = Event.current;
             if (rect.Contains(e.mousePosition) && (e.type == EventType.DragUpdated || e.type == EventType.DragPerform))
             {
