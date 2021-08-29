@@ -137,7 +137,7 @@ namespace Treasured.UnitySdk.Editor
                                 Vector3 newSize = Handles.ScaleHandle(current.Hitbox.size, current.transform.position, current.transform.rotation, 1);
                                 if (EditorGUI.EndChangeCheck())
                                 {
-                                    Undo.RecordObject(current.transform, "Scale Interactable Hitbox");
+                                    Undo.RecordObject(current.Hitbox, "Scale Interactable Hitbox");
                                     current.Hitbox.size = newSize;
                                 }
                             }
