@@ -9,7 +9,7 @@ namespace Treasured.UnitySdk.Editor
     internal partial class TreasuredMapEditor
     {
 
-        [MenuItem("GameObject/Treasured/Create Map from Json", false)]
+        [MenuItem("GameObject/Treasured/Create Map from Json", false, 49)]
         static void CreateMapFromJson()
         {
             string jsonPath = EditorUtility.OpenFilePanel("Select Json", Utility.ProjectPath, "json");
@@ -56,7 +56,7 @@ namespace Treasured.UnitySdk.Editor
             obj.LoadFromData(data);
         }
 
-        [MenuItem("GameObject/Treasured/Create Hotspot", false)]
+        [MenuItem("GameObject/Treasured/Create Hotspot", false, 49)]
         static void CreateHotspotFromContextMenu()
         {
             TreasuredMap map = Selection.activeGameObject.GetComponentInParent<TreasuredMap>();
@@ -78,7 +78,7 @@ namespace Treasured.UnitySdk.Editor
             }
         }
 
-        [MenuItem("GameObject/Treasured/Create Interactable", false)]
+        [MenuItem("GameObject/Treasured/Create Interactable", false, 49)]
         static void CreateInteractableFromContextMenu()
         {
             TreasuredMap map = Selection.activeGameObject.GetComponentInParent<TreasuredMap>();
@@ -100,7 +100,7 @@ namespace Treasured.UnitySdk.Editor
             }
         }
 
-        [MenuItem("GameObject/Treasured/Create Map from Json", true)]
+        [MenuItem("CONTEXT/GameObject/Treasured/Create Map from Json", true, 49)]
         static bool CanCreateMapFromJson()
         {
             return Selection.activeGameObject == null;
@@ -112,7 +112,7 @@ namespace Treasured.UnitySdk.Editor
             return Selection.activeGameObject?.GetComponentInParent<TreasuredMap>();
         }
 
-        [MenuItem("GameObject/Treasured/Create Interactable", true)]
+        [MenuItem("GameObject/Treasured/Create Interactable", true, 49)]
         static bool CanCreateInteractableFromContextMenu()
         {
             return Selection.activeGameObject?.GetComponentInParent<TreasuredMap>();
