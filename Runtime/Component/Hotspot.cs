@@ -4,20 +4,27 @@ using UnityEngine;
 namespace Treasured.UnitySdk
 {
     [AddComponentMenu("")]
-    public sealed class Hotspot : TreasuredObject
+    public sealed class Hotspot : TreasuredObject, IDataComponent<HotspotData>
     {
         [SerializeField]
         private HotspotData _data;
+
         public HotspotData Data
         {
             get
             {
                 return _data;
             }
-            set
-            {
-                _data = value;
-            }
+        }
+
+        public void BindData(HotspotData data)
+        {
+            gameObject.name = data.Name;
+            gameObject.transform.position = data.Transform.Position;
+            gameObject.transform.eulerAngles = data.Transform.Rotation;
+            Hitbox.center = data.Hitbox.Center;
+            Hitbox.size = data.Hitbox.Size;
+            _data = data;
         }
 
         #region JSON Properties
@@ -30,7 +37,7 @@ namespace Treasured.UnitySdk
         #endregion
 
         public List<string> VisibleTargets { get => _visibleTargets; set => _visibleTargets = value; }
-       
+
         private Hotspot() { }
 
         protected override void OnEnable()
@@ -41,12 +48,6 @@ namespace Treasured.UnitySdk
         void Reset()
         {
             _data?.Validate();
-        }
-
-        public override void LoadFromData(TreasuredObjectData data)
-        {
-            base.LoadFromData(data);
-            _data = (HotspotData)data;
         }
     }
 }

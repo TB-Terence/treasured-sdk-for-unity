@@ -104,12 +104,10 @@ namespace Treasured.UnitySdk.Editor
             #region Create RenderTexture/Texture2D
             RenderTexture cubeMapTexture = RenderTexture.GetTemporary(cubeMapSize, cubeMapSize, 0);
             cubeMapTexture.dimension = TextureDimension.Cube;
-            cubeMapTexture.useMipMap = false;
-            cubeMapTexture.autoGenerateMips = false;
+            cubeMapTexture.useMipMap = false; // RenderTexture.GetTemporary(cubeMapSize, cubeMapSize, 0);
             RenderTexture equirectangularTexture = RenderTexture.GetTemporary(cubeMapSize, cubeMapSize / 2, 0);
             equirectangularTexture.dimension = TextureDimension.Tex2D;
             equirectangularTexture.useMipMap = false;
-            equirectangularTexture.autoGenerateMips = false;
             Texture2D outputTexture = new Texture2D(equirectangularTexture.width, equirectangularTexture.height, TextureFormat.RGB24, false);
             #endregion
 
@@ -187,14 +185,14 @@ namespace Treasured.UnitySdk.Editor
                 #region Free resources
                 if (cubeMapTexture != null)
                 {
-                    RenderTexture.ReleaseTemporary(cubeMapTexture);
+                    //RenderTexture.ReleaseTemporary(cubeMapTexture);
                     cubeMapTexture.Release();
                     cubeMapTexture = null;
                 }
 
                 if (equirectangularTexture != null)
                 {
-                    RenderTexture.ReleaseTemporary(equirectangularTexture);
+                    //RenderTexture.ReleaseTemporary(equirectangularTexture);
                     equirectangularTexture.Release();
                     equirectangularTexture = null;
                 }

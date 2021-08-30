@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using Treasured.SDK;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
     [RequireComponent(typeof(BoxCollider))]
-    public abstract class TreasuredObject : MonoBehaviour
+    public abstract class TreasuredObject : MonoBehaviour//, IDataComponent<TreasuredObjectData>
     {
         [SerializeField]
         [HideInInspector]
@@ -28,6 +25,9 @@ namespace Treasured.UnitySdk
                 return _hitbox;
             }
         }
+
+        //public abstract TreasuredObjectData Data { get; }
+        //protected abstract TreasuredObjectData GetData();
 
         protected virtual void OnEnable()
         {
@@ -60,15 +60,6 @@ namespace Treasured.UnitySdk
                     Hitbox.center = point - transform.position + new Vector3(0, Hitbox.size.y / 2, 0);       
                 }
             }
-        }
-
-        public virtual void LoadFromData(TreasuredObjectData data)
-        {
-            gameObject.name = data.Name;
-            gameObject.transform.position = data.Transform.Position;
-            gameObject.transform.eulerAngles = data.Transform.Rotation;
-            Hitbox.center = data.Hitbox.Center;
-            Hitbox.size = data.Hitbox.Size;
         }
     }
 }

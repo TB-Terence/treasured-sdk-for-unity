@@ -38,7 +38,7 @@ namespace Treasured.UnitySdk
             this._id = id;
         }
 
-        public void Validate()
+        public virtual void Validate()
         {
             if (string.IsNullOrEmpty(_id))
             {

@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Treasured.UnitySdk
 {
     [Serializable]
-    public class Hitbox
+    public sealed class Hitbox
     {
         [SerializeField]
         private Vector3 _center;

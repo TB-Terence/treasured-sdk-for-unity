@@ -3,20 +3,27 @@
 namespace Treasured.UnitySdk
 {
     [AddComponentMenu("")]
-    public class Interactable : TreasuredObject
+    public sealed class Interactable : TreasuredObject, IDataComponent<InteractableData>
     {
         [SerializeField]
         private InteractableData _data;
+
         public InteractableData Data
         {
             get
             {
                 return _data;
             }
-            set
-            {
-                _data = value;
-            }
+        }
+
+        public void BindData(InteractableData data)
+        {
+            gameObject.name = data.Name;
+            gameObject.transform.position = data.Transform.Position;
+            gameObject.transform.eulerAngles = data.Transform.Rotation;
+            Hitbox.center = data.Hitbox.Center;
+            Hitbox.size = data.Hitbox.Size;
+            _data = data;
         }
 
         private Interactable() { }
@@ -29,12 +36,6 @@ namespace Treasured.UnitySdk
         void Reset()
         {
             _data?.Validate();
-        }
-
-        public override void LoadFromData(TreasuredObjectData data)
-        {
-            base.LoadFromData(data);
-            _data = (InteractableData)data;
         }
     }
 }

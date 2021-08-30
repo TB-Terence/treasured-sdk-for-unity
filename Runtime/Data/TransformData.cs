@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Treasured.UnitySdk
 {
     [Serializable]
-    public class TransformData
+    public sealed class TransformData
     {
         [SerializeField]
         private Vector3 _position;

@@ -172,15 +172,15 @@ namespace Treasured.UnitySdk.Editor
                     }
                 }
             }
-            DrawTObjectList(_hotspots, "Hotspots", ref _showHotspotList, ref _exportAllHotspots, ref _hotspotsGroupToggleState);
+            DrawTObjectList<Hotspot, HotspotData>(_hotspots, "Hotspots", ref _showHotspotList, ref _exportAllHotspots, ref _hotspotsGroupToggleState);
         }
 
         private void DrawInteractableManagment()
         {
-            DrawTObjectList(_interactables, "Interactables", ref _showInteractableList, ref _exportAllInteractables, ref _interactablesGroupToggleState, 3);
+            DrawTObjectList<Interactable, InteractableData>(_interactables, "Interactables", ref _showInteractableList, ref _exportAllInteractables, ref _interactablesGroupToggleState, 3);
         }
 
-        private void DrawTObjectList(IList<TreasuredObject> objects, string foldoutName, ref bool foldout, ref bool exportAll, ref GroupToggleState groupToggleState, float distance = 0)
+        private void DrawTObjectList<T, D>(IList<T> objects, string foldoutName, ref bool foldout, ref bool exportAll, ref GroupToggleState groupToggleState, float distance = 0) where T : TreasuredObject, IDataComponent<D> where D : TreasuredObjectData
         {
             if (objects == null)
             {
@@ -242,7 +242,7 @@ namespace Treasured.UnitySdk.Editor
                     {
                         using (new EditorGUILayout.HorizontalScope())
                         {
-                            TreasuredObject current = objects[i];
+                            T current = objects[i];
                             EditorGUILayout.LabelField($"{i + 1}", Styles.IndexLabel, GUILayout.Width(64));
                             EditorGUI.BeginChangeCheck();
                             bool active = EditorGUILayout.Toggle(GUIContent.none, current.gameObject.activeSelf, GUILayout.Width(20));
@@ -250,7 +250,7 @@ namespace Treasured.UnitySdk.Editor
                             {
                                 current.gameObject.SetActive(active);
                             }
-                            EditorGUILayout.LabelField(current.gameObject.name);
+                            EditorGUILayout.LabelField(new GUIContent(current.gameObject.name, current.Data.Id));
                             if (GUILayout.Button(EditorGUIUtility.TrIconContent("Transform Icon", "Edit Transform"), EditorStyles.label, GUILayout.Width(20), GUILayout.Height(20)))
                             {
                                 _currentEditingObject = current;
@@ -289,14 +289,17 @@ namespace Treasured.UnitySdk.Editor
             _showInExplorer = EditorGUILayout.Toggle(new GUIContent("Show In Explorer", "Opens the output directory once the exporting is done if enabled."), _showInExplorer);
             using (new EditorGUILayout.HorizontalScope())
             {
-                if (GUILayout.Button("Export Panoramic Images", GUILayout.Height(24)))
+                using (new EditorGUI.DisabledGroupScope(_hotspots.Length == 0))
                 {
-                    string outputDirectory = GetAbosluteOutputDirectory(_sceneName);
-                    Directory.CreateDirectory(outputDirectory);
-                    ExportPanoramicImages(outputDirectory);
-                    if (_showInExplorer)
+                    if (GUILayout.Button("Export Panoramic Images", GUILayout.Height(24)))
                     {
-                        Application.OpenURL(outputDirectory);
+                        string outputDirectory = GetAbosluteOutputDirectory(_sceneName);
+                        Directory.CreateDirectory(outputDirectory);
+                        ExportPanoramicImages(outputDirectory);
+                        if (_showInExplorer)
+                        {
+                            Application.OpenURL(outputDirectory);
+                        }
                     }
                 }
                 using (new EditorGUI.DisabledGroupScope(!IsAllRequiredFieldFilled()))
