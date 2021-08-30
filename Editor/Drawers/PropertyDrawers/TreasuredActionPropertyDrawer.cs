@@ -1,5 +1,6 @@
 ﻿using System;
 using Treasured.SDK;
+using Treasured.UnitySdk;
 using UnityEditor;
 using UnityEngine;
 
@@ -18,13 +19,6 @@ namespace Treasured.SDKEditor
             float srcPropHeight = EditorGUI.GetPropertyHeight(srcProp);
             if (property.isExpanded)
             {
-                position.y += 20;
-                EditorGUI.BeginChangeCheck();
-                EditorGUI.PropertyField(new Rect(position.x, position.y, position.width, 18), typeProp);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    property.serializedObject.ApplyModifiedProperties();
-                }
                 SerializedProperty idProp = property.FindPropertyRelative("_id");
 
                 if (string.IsNullOrEmpty(idProp.stringValue))
@@ -32,49 +26,68 @@ namespace Treasured.SDKEditor
                     idProp.stringValue = Guid.NewGuid().ToString();
                 }
 
-                if (!string.IsNullOrEmpty(typeProp.stringValue)) // if type selected
+                using (new EditorGUI.DisabledGroupScope(true))
                 {
-                    using (new EditorGUI.DisabledGroupScope(true))
-                    {
-                        EditorGUI.PropertyField(new Rect(position.x, position.y + 20, position.width - 22, 18), property.FindPropertyRelative("_id"));
-                    }
-                    if (GUI.Button(new Rect(new Rect(position.xMax - 20, position.y + 20, 20, 18)), EditorGUIUtility.TrIconContent("Refresh", "Regenerate ID")))
-                    {
-                        idProp.stringValue = Guid.NewGuid().ToString();
-                    }
+                    EditorGUI.PropertyField(new Rect(position.x, position.y + 20, position.width, 18), property.FindPropertyRelative("_id"));
                 }
 
                 switch (typeProp.stringValue)
                 {
                     case "selectObject":
                         SerializedProperty _targetIdProp = property.FindPropertyRelative("_targetId");
-                        if (string.IsNullOrEmpty(_targetIdProp.stringValue) || !TreasuredDataEditor.ObjectIds.TryGetValue(_targetIdProp.stringValue, out string path))
+                        Rect dropdownRect = EditorGUI.PrefixLabel(new Rect(position.x, position.y + 40, position.width, 18), new GUIContent("Target"));
+                        if (EditorGUI.DropdownButton(dropdownRect, new GUIContent(string.IsNullOrEmpty(_targetIdProp.stringValue) ? "Not selected" : _targetIdProp.stringValue), FocusType.Passive))
                         {
-                            path = "Not Selected";
-                        }
-                        Rect dropdownRect = EditorGUI.PrefixLabel(new Rect(position.x, position.y + 40, position.width, 18), new GUIContent("Target ID"));
-                        if (EditorGUI.DropdownButton(dropdownRect, new GUIContent(text: path), FocusType.Passive))
-                        {
-                            string idPath = property.propertyPath;
-                            int index = IndexOf(property.propertyPath, '.', 3);
-                            if (index != -1)
+                            if (property.serializedObject.targetObject is UnitySdk.TreasuredObject target)
                             {
-                                idPath = $"{property.propertyPath.Substring(0, index)}._id";
-                                SerializedProperty id = property.serializedObject.FindProperty(idPath);
-                                GenericMenu menu = new GenericMenu();
-                                foreach (var idInfo in TreasuredDataEditor.ObjectIds)
+                                TreasuredMap map = target.GetComponentInParent<TreasuredMap>();
+                                if (map != null)
                                 {
-                                    if (_targetIdProp.stringValue.Equals(idInfo.Key) || idInfo.Key.Equals(id.stringValue))
+                                    Hotspot[] hotspots = map.GetComponentsInChildren<Hotspot>();
+                                    Interactable[] interactables = map.GetComponentsInChildren<Interactable>();
+                                    GenericMenu menu = new GenericMenu();
+                                    foreach (var hotspot in hotspots)
                                     {
-                                        continue;
+                                        menu.AddItem(EditorGUIUtility.TrTextContent($"Hotspot/{hotspot.name} | {hotspot.Data.Id}", hotspot.Data.Id), false, () =>
+                                        {
+                                            _targetIdProp.stringValue = hotspot.Data.Id;
+                                            _targetIdProp.serializedObject.ApplyModifiedProperties();
+                                        });
                                     }
-                                    menu.AddItem(new GUIContent(idInfo.Value), false, () =>
+                                    foreach (var interactable in interactables)
                                     {
-                                        _targetIdProp.stringValue = idInfo.Key;
-                                        _targetIdProp.serializedObject.ApplyModifiedProperties();
-                                    });
+                                        menu.AddItem(EditorGUIUtility.TrTextContent($"Interactables/{interactable.name} | {interactable.Data.Id}", interactable.Data.Id), false, () =>
+                                        {
+                                            _targetIdProp.stringValue = interactable.Data.Id;
+                                            _targetIdProp.serializedObject.ApplyModifiedProperties();
+                                        });
+                                    }
+                                    menu.ShowAsContext();
                                 }
-                                menu.ShowAsContext();
+                            }
+                            else
+                            {
+                                string idPath = property.propertyPath;
+                                int index = IndexOf(property.propertyPath, '.', 3);
+                                if (index != -1)
+                                {
+                                    idPath = $"{property.propertyPath.Substring(0, index)}._id";
+                                    SerializedProperty id = property.serializedObject.FindProperty(idPath);
+                                    GenericMenu menu = new GenericMenu();
+                                    foreach (var idInfo in TreasuredDataEditor.ObjectIds)
+                                    {
+                                        if (_targetIdProp.stringValue.Equals(idInfo.Key) || idInfo.Key.Equals(id.stringValue))
+                                        {
+                                            continue;
+                                        }
+                                        menu.AddItem(new GUIContent(idInfo.Value), false, () =>
+                                        {
+                                            _targetIdProp.stringValue = idInfo.Key;
+                                            _targetIdProp.serializedObject.ApplyModifiedProperties();
+                                        });
+                                    }
+                                    menu.ShowAsContext();
+                                }
                             }
                         }
                         break;
@@ -127,16 +140,16 @@ namespace Treasured.SDKEditor
             switch (type.stringValue)
             {
                 case "selectObject":
-                    return 80;
+                    return 60;
                 case "playAudio":
-                    return 122;
+                    return 102;
                 case "showText":
                     return 146;
                 case "playVideo":
                 case "openLink":
-                    return 142;
+                    return 122;
                 default:
-                    return 40;
+                    return EditorGUIUtility.singleLineHeight;
             }
         }
     }

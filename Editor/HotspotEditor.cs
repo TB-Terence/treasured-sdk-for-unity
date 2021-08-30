@@ -4,10 +4,11 @@ using UnityEngine;
 namespace Treasured.UnitySdk.Editor
 {
     [CustomEditor(typeof(Hotspot))]
-    internal class HotspotEditor : TreasuredEditor<Hotspot>
+    internal class HotspotEditor : TreasuredObjectEditor<Hotspot, HotspotData>
     {
         protected override void Init()
         {
+            base.Init();
             Target.transform.eulerAngles = new Vector3(0, Target.transform.eulerAngles.y, 0);
             InjectDrawerAfter("_id", DrawNameField);
         }

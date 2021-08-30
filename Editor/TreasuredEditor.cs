@@ -10,7 +10,7 @@ namespace Treasured.UnitySdk.Editor
     {
         protected static readonly Color LabelColor = Color.white;
 
-        private static readonly string[] Excludes = new string[] { "m_Script" };
+        protected static readonly string[] Excludes = new string[] { "m_Script" };
 
         private Dictionary<string, Action> _beforePropertyField = new Dictionary<string, Action>();
         private Dictionary<string, Action> _afterPropertyField = new Dictionary<string, Action>();
@@ -34,7 +34,7 @@ namespace Treasured.UnitySdk.Editor
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-            SerializedProperty iterator = serializedObject.GetIterator().Copy();
+            SerializedProperty iterator = serializedObject.GetIterator();
             iterator.NextVisible(true);
             while (iterator.NextVisible(false))
             {
