@@ -1,24 +1,15 @@
 ﻿using Newtonsoft.Json;
-using Treasured.SDK;
+using System;
 
 namespace Treasured.UnitySdk
 {
+    [Serializable]
     public sealed class HotspotData : TreasuredObjectData
     {
-        private HotspotData(Hotspot hotspot) : base(hotspot)
-        {
-
-        }
-
         [JsonConstructor]
         private HotspotData(string id) : base(id)
         {
 
-        }
-
-        public static implicit operator HotspotData(Hotspot data)
-        {
-            return new HotspotData(data);
         }
     }
 }

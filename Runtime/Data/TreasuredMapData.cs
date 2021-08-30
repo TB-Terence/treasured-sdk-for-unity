@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using Treasured.SDK;
 using UnityEngine;
@@ -9,6 +10,12 @@ namespace Treasured.UnitySdk
     public sealed class TreasuredMapData
     {
         public static readonly string Version = "0.4.0";
+
+        /// <summary>
+        /// The unique identifier of the map.
+        /// </summary>
+        [SerializeField]
+        private string _id;
 
         /// <summary>
         /// The title of the exhibit on the landing page.
@@ -36,16 +43,26 @@ namespace Treasured.UnitySdk
         [SerializeField]
         private ImageQuality _quality = ImageQuality.High;
 
+        public string Id { get => _id; }
         public string Title { get => _title; set => _title = value; }
         public string Description { get => _description; set => _description = value; }
         public bool Loop { get => _loop; set => _loop = value; }
         public ImageFormat Format { get => _format; set => _format = value; }
         public ImageQuality Quality { get => _quality; set => _quality = value; }
 
-        public List<HotspotData> Hotspots { get; private set; } = new List<HotspotData>();
-        public List<InteractableData> Interactables { get; private set; } = new List<InteractableData>();
+        [SerializeField]
+        private List<HotspotData> _hotspots = new List<HotspotData>();
+        [SerializeField]
+        private List<InteractableData> _interactables = new List<InteractableData>();
 
-        private TreasuredMapData() { }
+        public List<HotspotData> Hotspots { get => _hotspots; }
+        public List<InteractableData> Interactables { get => _interactables; }
+
+        [JsonConstructor]
+        private TreasuredMapData(string id)
+        {
+            this._id = id;
+        }
 
         public void GenerateHotspots(IEnumerable<Hotspot> hotspots)
         {
@@ -56,7 +73,11 @@ namespace Treasured.UnitySdk
                 {
                     continue;
                 }
-                Hotspots.Add(hotspot);
+                hotspot.Data.Name = hotspot.name;
+                hotspot.Data.Transform = hotspot.transform;
+                hotspot.Data.Hitbox = hotspot.Hitbox;
+                hotspot.Data.Validate();
+                Hotspots.Add(hotspot.Data);
             }
         }
 
@@ -69,7 +90,27 @@ namespace Treasured.UnitySdk
                 {
                     continue;
                 }
-                Interactables.Add(interactable);
+                interactable.Data.Name = interactable.name;
+                interactable.Data.Transform = interactable.transform;
+                interactable.Data.Hitbox = interactable.Hitbox;
+                interactable.Data.Validate();
+                Interactables.Add(interactable.Data);
+            }
+        }
+
+        public void Validate()
+        {
+            if (string.IsNullOrEmpty(_id))
+            {
+                _id = Guid.NewGuid().ToString();
+            }
+            foreach (var hotspot in _hotspots)
+            {
+                hotspot.Validate();
+            }
+            foreach (var interactable in _interactables)
+            {
+                interactable.Validate();
             }
         }
     }

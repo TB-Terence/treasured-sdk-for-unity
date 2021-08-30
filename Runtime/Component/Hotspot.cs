@@ -6,6 +6,20 @@ namespace Treasured.UnitySdk
     [AddComponentMenu("")]
     public sealed class Hotspot : TreasuredObject
     {
+        [SerializeField]
+        private HotspotData _data;
+        public HotspotData Data
+        {
+            get
+            {
+                return _data;
+            }
+            set
+            {
+                _data = value;
+            }
+        }
+
         #region JSON Properties
         /// <summary>
         /// Visible objects from the hotspot. Used by hotspot.
@@ -16,12 +30,23 @@ namespace Treasured.UnitySdk
         #endregion
 
         public List<string> VisibleTargets { get => _visibleTargets; set => _visibleTargets = value; }
-
+       
         private Hotspot() { }
 
         protected override void OnEnable()
         {
             base.OnEnable();
+        }
+
+        void Reset()
+        {
+            _data?.Validate();
+        }
+
+        public override void LoadFromData(TreasuredObjectData data)
+        {
+            base.LoadFromData(data);
+            _data = (HotspotData)data;
         }
     }
 }

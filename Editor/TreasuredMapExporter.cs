@@ -47,6 +47,7 @@ namespace Treasured.UnitySdk.Editor
             }
             Target.Data.GenerateHotspots(_hotspots);
             Target.Data.GenerateInteractables(_interactables);
+            Target.Data.Validate();
             string json = JsonConvert.SerializeObject(Target.Data, Formatting.Indented, JsonSettings);
             File.WriteAllText(Path.Combine(directory, $"map.json"), json);
         }
@@ -81,7 +82,7 @@ namespace Treasured.UnitySdk.Editor
                 FileInfo[] fileInfos = info.GetFiles();
                 if (info.GetFiles().Length > 0)
                 {
-                    IEnumerable<string> files = fileInfos.Select(x => Path.GetFileNameWithoutExtension(x.Name)).Except(_hotspots.Select(x => x.Id));
+                    IEnumerable<string> files = fileInfos.Select(x => Path.GetFileNameWithoutExtension(x.Name)).Except(_hotspots.Select(x => x.Data.Id));
                     foreach (var file in files)
                     {
                         Debug.LogWarning($"{qualityFolderDirectory} contains file '{file}' which is not part of the data.");
@@ -142,11 +143,11 @@ namespace Treasured.UnitySdk.Editor
                     //    }
                     //}
 
-                    var fileName = $"{hotspot.Id}.{map.Data.Format.ToString().ToLower()}";
+                    var fileName = $"{hotspot.Data.Id}.{map.Data.Format.ToString().ToLower()}";
                     // Move the camera in the right position
                     camera.transform.SetPositionAndRotation(hotspot.transform.position, Quaternion.identity);
 
-                    EditorUtility.DisplayProgressBar($"Exporting image ({index + 1}/{_hotspots.Length})", $"Working on cubemap for {hotspot.Name}", 0.33f);
+                    EditorUtility.DisplayProgressBar($"Exporting image ({index + 1}/{_hotspots.Length})", $"Working on cubemap for {hotspot.Data.Name}", 0.33f);
                     if (!camera.RenderToCubemap(cubeMapTexture, 63))
                     {
                         throw new NotSupportedException("Rendering to cubemap is not supported on device/platform!");

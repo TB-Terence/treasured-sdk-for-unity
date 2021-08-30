@@ -1,4 +1,5 @@
-﻿using Treasured.SDK;
+﻿using System;
+using Treasured.SDK;
 using UnityEngine;
 
 namespace Treasured.UnitySdk

@@ -10,29 +10,8 @@ namespace Treasured.UnitySdk
     [RequireComponent(typeof(BoxCollider))]
     public abstract class TreasuredObject : MonoBehaviour
     {
-        /// <summary>
-        /// The instance id of the object.
-        /// </summary>
         [SerializeField]
-        [ReadOnly]
-        protected string _id;
-        /// <summary>
-        /// The description of the object.
-        /// </summary>
-        [SerializeField]
-        [TextArea(5, 5)]
-        protected string _description;
-        /// <summary>
-        /// List of actions that will trigger when the object is selected.
-        /// </summary>
-        [SerializeField]
-        protected List<TreasuredAction> _onSelected;
-
-        public string Id { get => _id; }
-        public string Name { get => gameObject.name; set => gameObject.name = value; }
-        public string Description { get => _description; set => _description = value; }
-        public List<TreasuredAction> OnSelected { get => _onSelected; set => _onSelected = value; }
-
+        [HideInInspector]
         private BoxCollider _hitbox;
 
         public BoxCollider Hitbox
@@ -52,18 +31,9 @@ namespace Treasured.UnitySdk
 
         protected virtual void OnEnable()
         {
-            Reset();
             if (TryGetComponent(out _hitbox))
             {
                 _hitbox.isTrigger = true;
-            }
-        }
-
-        protected virtual void Reset()
-        {
-            if (string.IsNullOrEmpty(_id))
-            {
-                _id = Guid.NewGuid().ToString();
             }
         }
 
@@ -81,26 +51,24 @@ namespace Treasured.UnitySdk
             return false;
         }
 
-        public void OffsetHitbox()
+        public void OffsetHitbox(float distance = 100)
         {
             if (Hitbox)
             {
-                if (FindGroundPoint(100, ~0, out Vector3 point))
+                if (FindGroundPoint(distance, ~0, out Vector3 point))
                 {
                     Hitbox.center = point - transform.position + new Vector3(0, Hitbox.size.y / 2, 0);       
                 }
             }
         }
 
-        public void LoadFromData(TreasuredObjectData data)
+        public virtual void LoadFromData(TreasuredObjectData data)
         {
-            this._id = data.Id;
-            this._description = data.Description;
-            this._onSelected = data.OnSelected;
-            this.transform.position = data.Transform.Position;
-            this.transform.eulerAngles = data.Transform.Rotation;
-            this.Hitbox.center = data.Hitbox.Center;
-            this.Hitbox.size = data.Hitbox.Size;
+            gameObject.name = data.Name;
+            gameObject.transform.position = data.Transform.Position;
+            gameObject.transform.eulerAngles = data.Transform.Rotation;
+            Hitbox.center = data.Hitbox.Center;
+            Hitbox.size = data.Hitbox.Size;
         }
     }
 }

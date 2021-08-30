@@ -33,12 +33,12 @@ namespace Treasured.UnitySdk.Editor
 
                 for (int i = 0; i < data.Hotspots.Count; i++)
                 {
-                    CreateTreasuredObject<Hotspot>(hotspotRoot.transform, $"Hotspot {i + 1}", data.Hotspots[i]);
+                    CreateTreasuredObject<Hotspot>(hotspotRoot.transform,data.Hotspots[i]);
                 }
 
                 for (int i = 0; i < data.Interactables.Count; i++)
                 {
-                    CreateTreasuredObject<Interactable>(interactableRoot.transform, $"Interactable {i + 1}", data.Interactables[i]);
+                    CreateTreasuredObject<Interactable>(interactableRoot.transform, data.Interactables[i]);
                 }
             }
             catch (Exception e)
@@ -48,9 +48,9 @@ namespace Treasured.UnitySdk.Editor
             }
         }
 
-        static void CreateTreasuredObject<T>(Transform parent, string name, TreasuredObjectData data) where T : TreasuredObject
+        static void CreateTreasuredObject<T>(Transform parent, TreasuredObjectData data) where T : TreasuredObject
         {
-            GameObject go = new GameObject(name);
+            GameObject go = new GameObject(data.Name);
             go.transform.SetParent(parent);
             T obj = go.AddComponent<T>();
             obj.LoadFromData(data);

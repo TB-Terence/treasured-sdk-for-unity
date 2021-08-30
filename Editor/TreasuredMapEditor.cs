@@ -37,6 +37,7 @@ namespace Treasured.UnitySdk.Editor
 
         private bool _showExportSettings = true;
 
+        private SerializedProperty _id;
         private SerializedProperty _title;
         private SerializedProperty _description;
         private SerializedProperty _loop;
@@ -56,9 +57,12 @@ namespace Treasured.UnitySdk.Editor
 
         protected override void Init()
         {
+            Target.transform.hideFlags = HideFlags.HideInInspector;
             _hotspots = Target.gameObject.GetComponentsInChildren<Hotspot>(true);
             _interactables = Target.gameObject.GetComponentsInChildren<Interactable>(true);
-            Target.transform.hideFlags = HideFlags.HideInInspector;
+            Target.Data.GenerateHotspots(_hotspots);
+            Target.Data.GenerateInteractables(_interactables);
+            Target.Data.Validate();
             InitSerializedProperty();
             Tools.hidden = true;
             _sceneName = SceneManager.GetActiveScene().name;
@@ -75,6 +79,7 @@ namespace Treasured.UnitySdk.Editor
 
         private void InitSerializedProperty()
         {
+            _id = serializedObject.FindProperty($"_data.{nameof(_id)}");
             _title = serializedObject.FindProperty($"_data.{nameof(_title)}");
             _description = serializedObject.FindProperty($"_data.{nameof(_description)}");
             _loop = serializedObject.FindProperty($"_data.{nameof(_loop)}");
@@ -140,6 +145,10 @@ namespace Treasured.UnitySdk.Editor
 
         private void DrawInfo()
         {
+            using(new EditorGUI.DisabledGroupScope(true))
+            {
+                EditorGUILayout.PropertyField(_id);
+            }
             CustomEditorGUILayout.PropertyField(_title, string.IsNullOrEmpty(_title.stringValue.Trim()));
             CustomEditorGUILayout.PropertyField(_description, string.IsNullOrEmpty(_description.stringValue.Trim()));
         }
@@ -149,9 +158,10 @@ namespace Treasured.UnitySdk.Editor
             EditorGUILayout.PropertyField(_loop);
             using (new EditorGUILayout.HorizontalScope())
             {
-                _hotspotGroundOffset = EditorGUILayout.Slider(new GUIContent("Ground Offset for All", "Offset all Hotspots off the ground by this amount."), _hotspotGroundOffset, 0, 100);
+                _hotspotGroundOffset = EditorGUILayout.Slider(new GUIContent("Ground offset for all", "Offset all Hotspots off the ground by this amount."), _hotspotGroundOffset, 0, 100);
                 if (GUILayout.Button("Overwrite", GUILayout.Width(72)))
                 {
+                    Undo.RegisterFullObjectHierarchyUndo(Target.gameObject, "Overwrite ground offset for all");
                     foreach (var hotspot in _hotspots)
                     {
                         if(hotspot.FindGroundPoint(100, ~0, out Vector3 ground))
