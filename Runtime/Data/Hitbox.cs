@@ -22,12 +22,12 @@ namespace Treasured.UnitySdk
         /// </summary>
         public Vector3 Size { get => _size; set => _size = value; }
 
-        public static implicit operator Hitbox(Collider collider)
+        public static implicit operator Hitbox(BoxCollider collider)
         {
             return new Hitbox()
             {
-                _center = collider.bounds.center,
-                _size = collider.bounds.extents
+                _center = collider.center,
+                _size = collider.size
             };
         }
     }

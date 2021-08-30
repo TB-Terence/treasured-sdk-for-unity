@@ -99,6 +99,7 @@ namespace Treasured.UnitySdk
             this._onSelected = data.OnSelected;
             this.transform.position = data.Transform.Position;
             this.transform.eulerAngles = data.Transform.Rotation;
+            this.Hitbox.center = data.Hitbox.Center;
             this.Hitbox.size = data.Hitbox.Size;
         }
     }

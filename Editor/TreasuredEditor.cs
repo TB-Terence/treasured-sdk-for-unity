@@ -52,7 +52,7 @@ namespace Treasured.UnitySdk.Editor
                     afterDrawer.Invoke();
                 }
             }
-            iterator.serializedObject.ApplyModifiedProperties();
+            serializedObject.ApplyModifiedProperties();
         }
 
         protected virtual void OnSceneGUI()
