@@ -8,6 +8,76 @@ namespace Treasured.UnitySdk.Editor
 {
     internal partial class TreasuredMapEditor
     {
+        static T CreateTreasuredObject<T>(Transform parent) where T : TreasuredObject
+        {
+            GameObject go = new GameObject();
+            go.transform.SetParent(parent);
+            return go.AddComponent<T>();
+        }
+
+        [MenuItem("GameObject/Treasured/Create Interactable", false, 49)]
+        static void CreateInteractableFromContextMenu()
+        {
+            TreasuredMap map = Selection.activeGameObject.GetComponentInParent<TreasuredMap>();
+            Transform root = map.transform;
+            Transform interactableRoot = root.Find("Interactables");
+            if (interactableRoot == null)
+            {
+                interactableRoot = new GameObject("Interactables").transform;
+                interactableRoot.SetParent(root);
+            }
+            GameObject interactable = new GameObject("New Interacatble", typeof(Interactable));
+            if (Selection.activeGameObject.transform == root)
+            {
+                interactable.transform.SetParent(interactableRoot);
+            }
+            else
+            {
+                interactable.transform.SetParent(Selection.activeGameObject.transform);
+            }
+        }
+
+        [MenuItem("GameObject/Treasured/Create Hotspot", false, 49)]
+        static void CreateHotspotFromContextMenu()
+        {
+            TreasuredMap map = Selection.activeGameObject.GetComponentInParent<TreasuredMap>();
+            Transform root = map.transform;
+            Transform hotspotRoot = root.Find("Hotspots");
+            if (hotspotRoot == null)
+            {
+                hotspotRoot = new GameObject("Hotspots").transform;
+                hotspotRoot.SetParent(root);
+            }
+            GameObject hotspot = new GameObject("New Hotspot", typeof(Hotspot));
+            if (Selection.activeGameObject.transform == root)
+            {
+                hotspot.transform.SetParent(hotspotRoot);
+            }
+            else
+            {
+                hotspot.transform.SetParent(Selection.activeGameObject.transform);
+            }
+        }
+
+        [MenuItem("GameObject/Treasured/Create Empty Map", false, 49)]
+        static void CreateEmptyMap()
+        {
+            GameObject map = new GameObject("Treasured Map", typeof(TreasuredMap));
+            if (Selection.activeGameObject)
+            {
+                map.transform.SetParent(Selection.activeGameObject.transform);
+            }
+        }
+
+        [MenuItem("GameObject/Treasured/Create Empty Map", true, 49)]
+        static bool CanCreateEmptyMap()
+        {
+            if(Selection.activeGameObject == null)
+            {
+                return true;
+            }
+            return !Selection.activeGameObject.GetComponentInParent<TreasuredMap>();
+        }
 
         [MenuItem("GameObject/Treasured/Create Map from Json", false, 49)]
         static void CreateMapFromJson()
@@ -48,58 +118,7 @@ namespace Treasured.UnitySdk.Editor
             }
         }
 
-        static T CreateTreasuredObject<T>(Transform parent) where T : TreasuredObject
-        {
-            GameObject go = new GameObject();
-            go.transform.SetParent(parent);
-            return go.AddComponent<T>();
-        }
-
-        [MenuItem("GameObject/Treasured/Create Hotspot", false, 49)]
-        static void CreateHotspotFromContextMenu()
-        {
-            TreasuredMap map = Selection.activeGameObject.GetComponentInParent<TreasuredMap>();
-            Transform root = map.transform;
-            Transform hotspotRoot = root.Find("Hotspots");
-            if (hotspotRoot == null)
-            {
-                hotspotRoot = new GameObject("Hotspots").transform;
-                hotspotRoot.SetParent(root);
-            }
-            GameObject hotspot = new GameObject("New Hotspot", typeof(Hotspot));
-            if (Selection.activeGameObject.transform == root)
-            {
-                hotspot.transform.SetParent(hotspotRoot);
-            }
-            else
-            {
-                hotspot.transform.SetParent(Selection.activeGameObject.transform);
-            }
-        }
-
-        [MenuItem("GameObject/Treasured/Create Interactable", false, 49)]
-        static void CreateInteractableFromContextMenu()
-        {
-            TreasuredMap map = Selection.activeGameObject.GetComponentInParent<TreasuredMap>();
-            Transform root = map.transform;
-            Transform interactableRoot = root.Find("Interactables");
-            if (interactableRoot == null)
-            {
-                interactableRoot = new GameObject("Interactables").transform;
-                interactableRoot.SetParent(root);
-            }
-            GameObject interactable = new GameObject("New Interacatble", typeof(Interactable));
-            if (Selection.activeGameObject.transform == root)
-            {
-                interactable.transform.SetParent(interactableRoot);
-            }
-            else
-            {
-                interactable.transform.SetParent(Selection.activeGameObject.transform);
-            }
-        }
-
-        [MenuItem("CONTEXT/GameObject/Treasured/Create Map from Json", true, 49)]
+        [MenuItem("GameObject/Treasured/Create Map from Json", true, 49)]
         static bool CanCreateMapFromJson()
         {
             return Selection.activeGameObject == null;

@@ -6,7 +6,7 @@ using System.Linq;
 namespace Treasured.UnitySdk.Editor
 {
     [CustomEditor(typeof(Interactable))]
-    internal class InteractableEditor : TreasuredEditor<Interactable>
+    internal class InteractableEditor : TreasuredObjectEditor<Interactable, InteractableData>
     {
         protected override void Init()
         {

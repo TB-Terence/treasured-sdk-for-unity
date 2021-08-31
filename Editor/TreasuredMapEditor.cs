@@ -98,7 +98,7 @@ namespace Treasured.UnitySdk.Editor
             {
                 DrawFoldoutGroup(ref _showInfo, new GUIContent("Info"), DrawInfo);
                 DrawFoldoutGroup(ref _showManagementTabs, new GUIContent("Object Management"), DrawObjectManagement);
-                DrawFoldoutGroup(ref _showExportSettings, new GUIContent("Export"), DrawExportSettings);
+                DrawFoldoutGroup(ref _showExportSettings, new GUIContent("Export Settings"), DrawExportSettings);
             }
             serializedObject.ApplyModifiedProperties();
         }

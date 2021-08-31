@@ -64,6 +64,8 @@ namespace Treasured.UnitySdk
             this._id = id;
         }
 
+        internal TreasuredMapData() { }
+
         public void GenerateHotspots(IEnumerable<Hotspot> hotspots)
         {
             Hotspots.Clear();

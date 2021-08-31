@@ -48,6 +48,7 @@ namespace Treasured.UnitySdk.Editor
             Target.Data.GenerateHotspots(_hotspots);
             Target.Data.GenerateInteractables(_interactables);
             Target.Data.Validate();
+            // TODO: Add Select Object Id Validation
             string json = JsonConvert.SerializeObject(Target.Data, Formatting.Indented, JsonSettings);
             File.WriteAllText(Path.Combine(directory, $"map.json"), json);
         }

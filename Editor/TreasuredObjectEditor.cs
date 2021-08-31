@@ -29,12 +29,14 @@ namespace Treasured.UnitySdk.Editor
             idProp = serializedObject.FindProperty("_data._id");
             descriptionProp = serializedObject.FindProperty("_data._description");
             onSelectedProp = serializedObject.FindProperty("_data._onSelected");
-            list = new ReorderableList(serializedObject, onSelectedProp);
-            list.drawHeaderCallback = OnDrawHeader;
-            list.drawElementCallback = OnDrawElement;
-            list.elementHeightCallback = GetElementHeight;
-            list.onAddDropdownCallback = OnAddDropDownCallback;
-            list.list = Target.Data.OnSelected;
+            list = new ReorderableList(serializedObject, onSelectedProp)
+            {
+                drawHeaderCallback = OnDrawHeader,
+                drawElementCallback = OnDrawElement,
+                elementHeightCallback = GetElementHeight,
+                onAddDropdownCallback = OnAddDropDownCallback,
+                list = Target.Data.OnSelected
+            };
         }
 
         public override void OnInspectorGUI()
@@ -61,11 +63,6 @@ namespace Treasured.UnitySdk.Editor
             EditorGUI.LabelField(rect, new GUIContent("On Selected"));
         }
 
-        void OnDrawFooter(Rect rect)
-        {
-
-        }
-
         void OnDrawElement(Rect rect, int index, bool isActive, bool isFocused)
         {
             rect.xMin += 10;
@@ -84,7 +81,7 @@ namespace Treasured.UnitySdk.Editor
             for (int i = 0; i < actionTypes.Length; i++)
             {
                 string type = actionTypes[i];
-                menu.AddItem(new GUIContent(ObjectNames.NicifyVariableName(type)), false, () =>
+                menu.AddItem(new GUIContent(ObjectNames.NicifyVariableName(type), "test"), false, () =>
                 {
                     list.list.Add(new TreasuredAction() 
                     { 

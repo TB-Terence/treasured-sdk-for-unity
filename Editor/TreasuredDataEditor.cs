@@ -5,6 +5,7 @@ using UnityEditor.SceneManagement;
 using System;
 using System.Collections.Generic;
 using Treasured.SDK;
+using Treasured.UnitySdk.Editor;
 
 namespace Treasured.SDKEditor
 {
@@ -80,6 +81,7 @@ namespace Treasured.SDKEditor
 
         public override void OnInspectorGUI()
         {
+            Styles.Init();
             if (Event.current.type == EventType.Repaint && ObjectIds.Count != _data.Hotspots.Count + _data.Interactables.Count)
             {
                 RefreshObjectIDs();
@@ -115,6 +117,7 @@ namespace Treasured.SDKEditor
                 ShowExportConfigWindow(exportButtonRect);
             }
             EditorGUILayout.EndHorizontal();
+            EditorGUILayout.HelpBox("Deprecated. Use Treasured Map from GameObject/Treasured/Create Empty Map instead.", MessageType.Error, true);
             using (new EditorGUI.DisabledGroupScope(true))
             {
                 EditorGUILayout.LabelField("Version", TreasuredData.Version);
