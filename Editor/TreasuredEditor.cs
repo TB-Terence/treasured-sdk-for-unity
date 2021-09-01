@@ -57,10 +57,7 @@ namespace Treasured.UnitySdk.Editor
 
         protected virtual void OnSceneGUI()
         {
-            Handles.color = LabelColor;
-            Handles.BeginGUI();
-            Handles.Label(Target.transform.position, Target.gameObject.name);
-            Handles.EndGUI();
+            
         }
 
         protected void InjectDrawerBefore(string propertyName, Action drawer)

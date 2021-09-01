@@ -81,7 +81,7 @@ namespace Treasured.UnitySdk.Editor
             for (int i = 0; i < actionTypes.Length; i++)
             {
                 string type = actionTypes[i];
-                menu.AddItem(new GUIContent(ObjectNames.NicifyVariableName(type), "test"), false, () =>
+                menu.AddItem(new GUIContent(ObjectNames.NicifyVariableName(type)), false, () =>
                 {
                     list.list.Add(new TreasuredAction() 
                     { 
@@ -90,6 +90,14 @@ namespace Treasured.UnitySdk.Editor
                 });
             }
             menu.DropDown(buttonRect);
+        }
+
+        protected override void OnSceneGUI()
+        {
+            Handles.color = LabelColor;
+            Handles.BeginGUI();
+            Handles.Label(Target.transform.position, Target.gameObject.name);
+            Handles.EndGUI();
         }
     }
 }

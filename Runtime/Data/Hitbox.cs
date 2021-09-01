@@ -14,7 +14,7 @@ namespace Treasured.UnitySdk
         private Vector3 _size;
 
         /// <summary>
-        /// Position in world space.
+        /// Position in local space relative to the Transform position.
         /// </summary>
         public Vector3 Center { get => _center; set => _center = value; }
         /// <summary>

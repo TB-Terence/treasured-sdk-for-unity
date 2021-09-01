@@ -72,11 +72,11 @@ namespace Treasured.UnitySdk.Editor
                     Handles.color = Color.white;
                     if (current.Hitbox)
                     {
-                        Handles.DrawDottedLine(current.transform.position, current.transform.position + current.Hitbox.center, 5);
+                        Handles.DrawDottedLine(current.transform.position, current.Hitbox.bounds.center, 5);
                     }
                     Handles.Label(current.transform.position, new GUIContent(current.gameObject.name));
 
-                    if(_currentEditingObject == null)
+                    if (_currentEditingObject == null)
                     {
                         if (next)
                         {
@@ -134,7 +134,7 @@ namespace Treasured.UnitySdk.Editor
                             if (current.Hitbox)
                             {
                                 EditorGUI.BeginChangeCheck();
-                                Vector3 newSize = Handles.ScaleHandle(current.Hitbox.size, current.transform.position, current.transform.rotation, 1);
+                                Vector3 newSize = Handles.ScaleHandle(current.Hitbox.size, current.transform.position + current.Hitbox.center, current.transform.rotation, 1);
                                 if (EditorGUI.EndChangeCheck())
                                 {
                                     Undo.RecordObject(current.Hitbox, "Scale Interactable Hitbox");

@@ -43,6 +43,7 @@ namespace Treasured.UnitySdk.Editor
         private SerializedProperty _loop;
 
         private TreasuredObject _currentEditingObject = null;
+        private int _selectedObjectTab;
 
         #region Hotspot Management
         private float _hotspotGroundOffset = 2;
@@ -88,7 +89,6 @@ namespace Treasured.UnitySdk.Editor
             _outputDirectory = serializedObject.FindProperty(nameof(_outputDirectory));
         }
 
-        private int _selectedObjectTab = 0;
 
         public override void OnInspectorGUI()
         {
@@ -177,6 +177,17 @@ namespace Treasured.UnitySdk.Editor
 
         private void DrawInteractableManagment()
         {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                if (GUILayout.Button("Reset center for all Hitbox"))
+                {
+                    Undo.RecordObjects(_interactables.Select(x => x.Hitbox).ToArray(), "Reset center for all Hitbox");
+                    for (int i = 0; i < _interactables.Length; i++)
+                    {
+                        _interactables[i].Hitbox.center = Vector3.zero;
+                    }
+                }
+            }
             DrawTObjectList<Interactable, InteractableData>(_interactables, "Interactables", ref _showInteractableList, ref _exportAllInteractables, ref _interactablesGroupToggleState, 3);
         }
 

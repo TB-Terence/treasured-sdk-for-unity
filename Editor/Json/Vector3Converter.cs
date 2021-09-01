@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using UnityEngine;
 
@@ -14,7 +15,19 @@ namespace Treasured.SDK
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             Vector3 result = new Vector3();
-            serializer.Populate(reader, result);
+            JToken token = JToken.Load(reader);
+            if(token["x"] != null)
+            {
+                result.x = (float)token["x"];
+            }
+            if (token["y"] != null)
+            {
+                result.y = (float)token["y"];
+            }
+            if (token["z"] != null)
+            {
+                result.z = (float)token["z"];
+            }
             return result;
         }
 

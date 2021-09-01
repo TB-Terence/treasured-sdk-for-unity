@@ -9,7 +9,7 @@ namespace Treasured.UnitySdk
     public sealed class TreasuredMap : MonoBehaviour
     {
         [SerializeField]
-        private TreasuredMapData _data = new TreasuredMapData();
+        private TreasuredMapData _data;
 
         [SerializeField]
         [AssetSelector(true)]
@@ -19,6 +19,10 @@ namespace Treasured.UnitySdk
         {
             get
             {
+                if (_data == null)
+                {
+                    _data = new TreasuredMapData();
+                }
                 return _data;
             }
             set
