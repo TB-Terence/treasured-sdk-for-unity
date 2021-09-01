@@ -25,12 +25,12 @@ namespace Treasured.UnitySdk.Editor
         private string[] _objectManagementTabs = new string[2] { "Hotspot Management", "Interactable Management" };
 
         private bool _showAll;
-        private Hotspot[] _hotspots;
+        private List<Hotspot> _hotspots;
         private bool _showHotspotList = true;
         private bool _exportAllHotspots = true;
         private GroupToggleState _hotspotsGroupToggleState = GroupToggleState.All;
 
-        private Interactable[] _interactables;
+        private List<Interactable> _interactables;
         private bool _showInteractableList = true;
         private bool _exportAllInteractables = true;
         private GroupToggleState _interactablesGroupToggleState = GroupToggleState.All;
@@ -59,8 +59,8 @@ namespace Treasured.UnitySdk.Editor
         protected override void Init()
         {
             Target.transform.hideFlags = HideFlags.HideInInspector;
-            _hotspots = Target.gameObject.GetComponentsInChildren<Hotspot>(true);
-            _interactables = Target.gameObject.GetComponentsInChildren<Interactable>(true);
+            _hotspots = Target.gameObject.GetComponentsInChildren<Hotspot>(true).ToList();
+            _interactables = Target.gameObject.GetComponentsInChildren<Interactable>(true).ToList();
             Target.Data.GenerateHotspots(_hotspots);
             Target.Data.GenerateInteractables(_interactables);
             Target.Data.Validate();
@@ -182,7 +182,7 @@ namespace Treasured.UnitySdk.Editor
                 if (GUILayout.Button("Reset center for all Hitbox"))
                 {
                     Undo.RecordObjects(_interactables.Select(x => x.Hitbox).ToArray(), "Reset center for all Hitbox");
-                    for (int i = 0; i < _interactables.Length; i++)
+                    for (int i = 0; i < _interactables.Count; i++)
                     {
                         _interactables[i].Hitbox.center = Vector3.zero;
                     }
@@ -289,6 +289,34 @@ namespace Treasured.UnitySdk.Editor
                     }
                 }
                 EditorGUI.indentLevel--;
+                EditorGUILayout.Space(16);
+                if (GUILayout.Button(new GUIContent($"Create new {(_selectedObjectTab == 0 ? "Hotspot" : "Interactable")}")))
+                {
+                    if (_selectedObjectTab == 0)
+                    {
+                        Transform root = GetChild(Target.transform, "Hotspots");
+                        Hotspot hotspot = CreateTreasuredObject<Hotspot>(root);
+                        hotspot.gameObject.name = $"Hotspot {_hotspots.Count + 1}";
+                        _hotspots.Add(hotspot);
+                        if(_currentEditingObject != null)
+                        {
+                            hotspot.transform.position = _currentEditingObject.gameObject.transform.position;
+                            _currentEditingObject = hotspot;
+                        }
+                    }
+                    else
+                    {
+                        Transform root = GetChild(Target.transform, "Interactables");
+                        Interactable interactable = CreateTreasuredObject<Interactable>(root);
+                        interactable.gameObject.name = $"Interactable {_interactables.Count + 1}";
+                        _interactables.Add(interactable);
+                        if (_currentEditingObject != null)
+                        {
+                            interactable.transform.position = _currentEditingObject.gameObject.transform.position;
+                            _currentEditingObject = interactable;
+                        }
+                    }
+                }
             }
         }
 
@@ -300,7 +328,7 @@ namespace Treasured.UnitySdk.Editor
             _showInExplorer = EditorGUILayout.Toggle(new GUIContent("Show In Explorer", "Opens the output directory once the exporting is done if enabled."), _showInExplorer);
             using (new EditorGUILayout.HorizontalScope())
             {
-                using (new EditorGUI.DisabledGroupScope(_hotspots.Length == 0))
+                using (new EditorGUI.DisabledGroupScope(_hotspots.Count == 0))
                 {
                     if (GUILayout.Button("Export Panoramic Images", GUILayout.Height(24)))
                     {

@@ -6,7 +6,7 @@ namespace Treasured.UnitySdk
     public sealed class Interactable : TreasuredObject, IDataComponent<InteractableData>
     {
         [SerializeField]
-        private InteractableData _data;
+        private InteractableData _data = new InteractableData();
 
         public InteractableData Data
         {

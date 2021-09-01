@@ -22,7 +22,7 @@ namespace Treasured.UnitySdk.Editor
             // Hotspots
             if (_showAll || _selectedObjectTab == 0)
             {
-                for (int i = 0; i < _hotspots.Length; i++)
+                for (int i = 0; i < _hotspots.Count; i++)
                 {
                     Hotspot current = _hotspots[i];
                     if (_currentEditingObject != null && _currentEditingObject != current)
@@ -33,7 +33,7 @@ namespace Treasured.UnitySdk.Editor
                     {
                         continue;
                     }
-                    Hotspot next = GetNextHotspot(i, _hotspots.Length);
+                    Hotspot next = GetNextHotspot(i, _hotspots.Count);
                     switch (Tools.current)
                     {
                         //case Tool.View:
@@ -101,7 +101,7 @@ namespace Treasured.UnitySdk.Editor
             // Interactables
             if (_showAll || _selectedObjectTab == 1)
             {
-                for (int i = 0; i < _interactables.Length; i++)
+                for (int i = 0; i < _interactables.Count; i++)
                 {
                     Interactable current = _interactables[i];
                     if (_currentEditingObject != null && _currentEditingObject != current)

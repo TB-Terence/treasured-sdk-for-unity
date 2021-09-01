@@ -8,6 +8,23 @@ namespace Treasured.UnitySdk.Editor
 {
     internal partial class TreasuredMapEditor
     {
+        /// <summary>
+        /// Get the child with the name. Create a new game object if child not found.
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        static Transform GetChild(Transform parent, string name)
+        {
+            Transform child = parent.Find(name);
+            if (child == null)
+            {
+                child = new GameObject(name).transform;
+                child.SetParent(parent);
+            }
+            return child;
+        }
+
         static T CreateTreasuredObject<T>(Transform parent) where T : TreasuredObject
         {
             GameObject go = new GameObject();

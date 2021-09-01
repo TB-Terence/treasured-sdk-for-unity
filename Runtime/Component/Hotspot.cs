@@ -7,7 +7,7 @@ namespace Treasured.UnitySdk
     public sealed class Hotspot : TreasuredObject, IDataComponent<HotspotData>
     {
         [SerializeField]
-        private HotspotData _data;
+        private HotspotData _data = new HotspotData();
 
         public HotspotData Data
         {

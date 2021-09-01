@@ -121,7 +121,7 @@ namespace Treasured.UnitySdk.Editor
             try
             {
                 //IEnumerable<TreasuredObject> targets = _data.All;
-                for (int index = 0; index < _hotspots.Length; index++)
+                for (int index = 0; index < _hotspots.Count; index++)
                 {
                     Hotspot hotspot = _hotspots[index];
                     if (!hotspot.gameObject.activeSelf)
@@ -146,13 +146,13 @@ namespace Treasured.UnitySdk.Editor
                     // Move the camera in the right position
                     camera.transform.SetPositionAndRotation(hotspot.transform.position, Quaternion.identity);
 
-                    EditorUtility.DisplayProgressBar($"Exporting image ({index + 1}/{_hotspots.Length})", $"Working on cubemap for {hotspot.Data.Name}", 0.33f);
+                    EditorUtility.DisplayProgressBar($"Exporting image ({index + 1}/{_hotspots.Count})", $"Working on cubemap for {hotspot.Data.Name}", 0.33f);
                     if (!camera.RenderToCubemap(cubeMapTexture, 63))
                     {
                         throw new NotSupportedException("Rendering to cubemap is not supported on device/platform!");
                     }
 
-                    EditorUtility.DisplayProgressBar($"Exporting image ({index + 1}/{_hotspots.Length})", "Applying shader...", 0.66f);
+                    EditorUtility.DisplayProgressBar($"Exporting image ({index + 1}/{_hotspots.Count})", "Applying shader...", 0.66f);
                     _equirectangularConverter.SetFloat(_paddingX, faceCameraDirection ? (camera.transform.eulerAngles.y / 360f) : 0f);
                     Graphics.Blit(cubeMapTexture, equirectangularTexture, _equirectangularConverter);
 
@@ -163,7 +163,7 @@ namespace Treasured.UnitySdk.Editor
                     byte[] bytes = encodeAsJPEG ? outputTexture.EncodeToJPG() : outputTexture.EncodeToPNG(); // I360Render.InsertXMPIntoTexture2D_JPEG(_outputTexture) : I360Render.InsertXMPIntoTexture2D_PNG(_outputTexture);
                     if (bytes != null)
                     {
-                        EditorUtility.DisplayProgressBar($"Exporting {fileName} ({index + 1}/{_hotspots.Length})", $"Saving {fileName}...", 0.99f);
+                        EditorUtility.DisplayProgressBar($"Exporting {fileName} ({index + 1}/{_hotspots.Count})", $"Saving {fileName}...", 0.99f);
                         string path = Path.Combine(qualityFolderDirectory, fileName);
                         File.WriteAllBytes(path, bytes);
                     }
