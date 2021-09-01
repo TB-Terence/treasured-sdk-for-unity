@@ -22,7 +22,7 @@ namespace Treasured.UnitySdk
             gameObject.name = data.Name;
             gameObject.transform.position = data.Transform.Position;
             gameObject.transform.eulerAngles = data.Transform.Rotation;
-            Hitbox.center = data.Hitbox.Center;
+            Hitbox.center = data.Transform.Position + data.Hitbox.Center;
             Hitbox.size = data.Hitbox.Size;
             _data = data;
         }

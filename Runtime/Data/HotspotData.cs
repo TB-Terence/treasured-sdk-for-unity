@@ -11,5 +11,10 @@ namespace Treasured.UnitySdk
         {
 
         }
+
+        internal HotspotData() : base()
+        {
+
+        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using Treasured.SDK;
 using UnityEngine;
@@ -33,9 +34,18 @@ namespace Treasured.UnitySdk
         public Hitbox Hitbox { get; set; } // Simplified collider of the game object
         public List<TreasuredAction> OnSelected { get => _onSelected; set => _onSelected = value; }
 
+        [JsonConstructor]
         protected TreasuredObjectData(string id)
         {
             this._id = id;
+        }
+
+        /// <summary>
+        /// Default Constructor with auto-assigned Id.
+        /// </summary>
+        protected TreasuredObjectData()
+        {
+            this._id = Guid.NewGuid().ToString();
         }
 
         public virtual void Validate()
