@@ -111,7 +111,7 @@ namespace Treasured.UnitySdk.Editor
             {
                 _selectedObjectTab = GUILayout.SelectionGrid(_selectedObjectTab, _objectManagementTabs, _objectManagementTabs.Length, Styles.TabButton);
             }
-            if(EditorGUI.EndChangeCheck())
+            if (EditorGUI.EndChangeCheck())
             {
                 SceneView.RepaintAll();
             }
@@ -152,6 +152,7 @@ namespace Treasured.UnitySdk.Editor
 
         private void DrawHotspotManagement()
         {
+            DrawObjectManagementMenu<Hotspot, HotspotData>(_hotspots);
             EditorGUILayout.PropertyField(_loop);
             using (new EditorGUILayout.HorizontalScope())
             {
@@ -161,7 +162,7 @@ namespace Treasured.UnitySdk.Editor
                     Undo.RegisterFullObjectHierarchyUndo(Target.gameObject, "Overwrite ground offset for all");
                     foreach (var hotspot in _hotspots)
                     {
-                        if(hotspot.FindGroundPoint(100, ~0, out Vector3 ground))
+                        if (hotspot.FindGroundPoint(100, ~0, out Vector3 ground))
                         {
                             hotspot.transform.position = ground + new Vector3(0, _hotspotGroundOffset, 0);
                             hotspot.OffsetHitbox();
@@ -172,20 +173,59 @@ namespace Treasured.UnitySdk.Editor
             DrawTObjectList<Hotspot, HotspotData>(_hotspots, "Hotspots", ref _showHotspotList, ref _exportAllHotspots, ref _hotspotsGroupToggleState);
         }
 
+        private class CustomMenuItem
+        {
+            public GUIContent content;
+            public bool on;
+            public GenericMenu.MenuFunction func;
+        }
+
         private void DrawInteractableManagment()
         {
-            using (new EditorGUILayout.HorizontalScope())
+            DrawObjectManagementMenu<Interactable, InteractableData>(_interactables, new CustomMenuItem()
             {
-                if (GUILayout.Button("Reset center for all Hitbox"))
+                content = new GUIContent("Reset Hitbox center for all Interactables"),
+                on = false,
+                func = () =>
                 {
-                    Undo.RecordObjects(_interactables.Select(x => x.Hitbox).ToArray(), "Reset center for all Hitbox");
+                    Undo.RecordObjects(_interactables.Select(x => x.Hitbox).ToArray(), "Reset Hitbox center for all Interactables");
                     for (int i = 0; i < _interactables.Count; i++)
                     {
                         _interactables[i].Hitbox.center = Vector3.zero;
                     }
                 }
-            }
+            });
             DrawTObjectList<Interactable, InteractableData>(_interactables, "Interactables", ref _showInteractableList, ref _exportAllInteractables, ref _interactablesGroupToggleState, 3);
+        }
+
+        private void DrawObjectManagementMenu<T, D>(IList<T> objects, params CustomMenuItem[] menuItems) where T : TreasuredObject, IDataComponent<D> where D : TreasuredObjectData
+        {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.FlexibleSpace();
+                if (GUILayout.Button(EditorGUIUtility.TrIconContent("_Menu"), EditorStyles.label))
+                {
+                    GenericMenu menu = new GenericMenu();
+                    menu.AddItem(new GUIContent($"Regenerate Ids for {(_selectedObjectTab == 0 ? "Hotspots" : "Interactables")}"), false, () =>
+                    {
+                        if (EditorUtility.DisplayDialog("Warning", $"This function resets id for all {(_selectedObjectTab == 0 ? "Hotspots" : "Interactables")}. Currently target id of the Select Object action will not be update automatically and you have to manually reset it. Do you still want to proceed?", "Yes", "Cancel"))
+                        {
+                            foreach (var obj in objects)
+                            {
+                                SerializedObject o = new SerializedObject(obj);
+                                SerializedProperty id = o.FindProperty("_data._id");
+                                id.stringValue = Guid.NewGuid().ToString();
+                                o.ApplyModifiedProperties();
+                            }
+                        }
+                    });
+                    foreach (var menuItem in menuItems)
+                    {
+                        menu.AddItem(menuItem.content, menuItem.on, menuItem.func);
+                    }
+                    menu.ShowAsContext();
+                }
+            }
         }
 
         private void DrawTObjectList<T, D>(IList<T> objects, string foldoutName, ref bool foldout, ref bool exportAll, ref GroupToggleState groupToggleState, float distance = 0) where T : TreasuredObject, IDataComponent<D> where D : TreasuredObjectData
@@ -211,24 +251,6 @@ namespace Treasured.UnitySdk.Editor
                             {
                                 _currentEditingObject = null;
                                 SceneView.RepaintAll();
-                            }
-                            if (GUILayout.Button(EditorGUIUtility.TrIconContent("_Menu"), EditorStyles.label))
-                            {
-                                GenericMenu menu = new GenericMenu();
-                                menu.AddItem(new GUIContent($"Regenerate Ids for {(_selectedObjectTab == 0 ? "Hotspots" : "Interactables")}"), false, () =>
-                                {
-                                    if (EditorUtility.DisplayDialog("Warning", $"This function resets id for all {(_selectedObjectTab == 0 ? "Hotspots" : "Interactables")}. Currently target id of the Select Object action will not be update automatically and you have to manually reset it. Do you still want to proceed?", "Yes", "Cancel"))
-                                    {
-                                        foreach (var obj in objects)
-                                        {
-                                            SerializedObject o = new SerializedObject(obj);
-                                            SerializedProperty id = o.FindProperty("_data._id");
-                                            id.stringValue = Guid.NewGuid().ToString();
-                                            o.ApplyModifiedProperties();
-                                        }
-                                    }
-                                });
-                                menu.ShowAsContext();
                             }
                         }
                     }
