@@ -50,7 +50,7 @@ namespace Treasured.UnitySdk.Editor
             Target.Data.Validate();
             // TODO: Add Select Object Id Validation
             string json = JsonConvert.SerializeObject(Target.Data, Formatting.Indented, JsonSettings);
-            File.WriteAllText(Path.Combine(directory, $"map.json"), json);
+            File.WriteAllText(Path.Combine(directory, $"data.json"), json);
         }
 
         private static Material _equirectangularConverter;
