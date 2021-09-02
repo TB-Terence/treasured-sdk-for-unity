@@ -13,7 +13,7 @@ namespace Treasured.UnitySdk
         /// The instance id of the object.
         /// </summary>
         [SerializeField]
-        [ReadOnly]
+        [UniqueId]
         protected string _id;
         /// <summary>
         /// The description of the object.
@@ -25,7 +25,7 @@ namespace Treasured.UnitySdk
         /// List of actions that will trigger when the object is selected.
         /// </summary>
         [SerializeField]
-        protected List<TreasuredAction> _onSelected;
+        protected List<TreasuredAction> _onSelected = new List<TreasuredAction>();
 
         public string Id { get => _id; }
         public string Name { get; set; } // Name of the game object

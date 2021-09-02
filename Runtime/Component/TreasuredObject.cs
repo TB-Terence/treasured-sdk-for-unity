@@ -1,11 +1,12 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
     [RequireComponent(typeof(BoxCollider))]
-    public abstract class TreasuredObject : MonoBehaviour//, IDataComponent<TreasuredObjectData>
+    public abstract class TreasuredObject : MonoBehaviour, IDataComponent<TreasuredObjectData>
     {
         [SerializeField]
         [HideInInspector]
@@ -26,8 +27,7 @@ namespace Treasured.UnitySdk
             }
         }
 
-        //public abstract TreasuredObjectData Data { get; }
-        //protected abstract TreasuredObjectData GetData();
+        public abstract TreasuredObjectData Data { get; }
 
         protected virtual void OnEnable()
         {
@@ -60,6 +60,11 @@ namespace Treasured.UnitySdk
                     Hitbox.center = point - transform.position + new Vector3(0, Hitbox.size.y / 2, 0);       
                 }
             }
+        }
+
+        void IDataComponent<TreasuredObjectData>.BindData(TreasuredObjectData data)
+        {
+
         }
     }
 }

@@ -42,10 +42,7 @@ namespace Treasured.UnitySdk.Editor
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-            using (new EditorGUI.DisabledGroupScope(true))
-            {
-                EditorGUILayout.PropertyField(idProp);
-            }
+            EditorGUILayout.PropertyField(idProp);
             EditorGUI.BeginChangeCheck();
             string newName = EditorGUILayout.TextField(new GUIContent("Name"), Target.gameObject.name);
             if (EditorGUI.EndChangeCheck() && newName.Length > 0)

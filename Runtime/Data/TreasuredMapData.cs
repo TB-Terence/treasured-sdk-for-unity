@@ -15,6 +15,7 @@ namespace Treasured.UnitySdk
         /// The unique identifier of the map.
         /// </summary>
         [SerializeField]
+        [UniqueId]
         private string _id;
 
         /// <summary>

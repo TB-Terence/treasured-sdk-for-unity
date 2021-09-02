@@ -9,8 +9,6 @@ namespace Treasured.UnitySdk.Editor
         protected override void Init()
         {
             base.Init();
-            Target.transform.eulerAngles = new Vector3(0, Target.transform.eulerAngles.y, 0);
-            InjectDrawerAfter("_id", DrawNameField);
         }
 
         private void OnDisable()

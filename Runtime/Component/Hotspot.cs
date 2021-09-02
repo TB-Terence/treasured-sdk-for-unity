@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
@@ -9,13 +10,14 @@ namespace Treasured.UnitySdk
         [SerializeField]
         private HotspotData _data = new HotspotData();
 
-        public HotspotData Data
+        public override TreasuredObjectData Data
         {
             get
             {
                 return _data;
             }
         }
+        HotspotData IDataComponent<HotspotData>.Data => _data;
 
         public void BindData(HotspotData data)
         {
@@ -37,6 +39,7 @@ namespace Treasured.UnitySdk
         #endregion
 
         public List<string> VisibleTargets { get => _visibleTargets; set => _visibleTargets = value; }
+
 
         private Hotspot() { }
 

@@ -26,10 +26,7 @@ namespace Treasured.SDKEditor
                     idProp.stringValue = Guid.NewGuid().ToString();
                 }
 
-                using (new EditorGUI.DisabledGroupScope(true))
-                {
-                    EditorGUI.PropertyField(new Rect(position.x, position.y + 20, position.width, 18), property.FindPropertyRelative("_id"));
-                }
+                EditorGUI.PropertyField(new Rect(position.x, position.y + 20, position.width, 18), property.FindPropertyRelative("_id"));
 
                 switch (typeProp.stringValue)
                 {

@@ -145,10 +145,7 @@ namespace Treasured.UnitySdk.Editor
 
         private void DrawInfo()
         {
-            using(new EditorGUI.DisabledGroupScope(true))
-            {
-                EditorGUILayout.PropertyField(_id);
-            }
+            EditorGUILayout.PropertyField(_id);
             CustomEditorGUILayout.PropertyField(_title, string.IsNullOrEmpty(_title.stringValue.Trim()));
             CustomEditorGUILayout.PropertyField(_description, string.IsNullOrEmpty(_description.stringValue.Trim()));
         }
@@ -214,6 +211,24 @@ namespace Treasured.UnitySdk.Editor
                             {
                                 _currentEditingObject = null;
                                 SceneView.RepaintAll();
+                            }
+                            if (GUILayout.Button(EditorGUIUtility.TrIconContent("_Menu"), EditorStyles.label))
+                            {
+                                GenericMenu menu = new GenericMenu();
+                                menu.AddItem(new GUIContent($"Regenerate Ids for {(_selectedObjectTab == 0 ? "Hotspots" : "Interactables")}"), false, () =>
+                                {
+                                    if (EditorUtility.DisplayDialog("Warning", $"This function resets id for all {(_selectedObjectTab == 0 ? "Hotspots" : "Interactables")}. Currently target id of the Select Object action will not be update automatically and you have to manually reset it. Do you still want to proceed?", "Yes", "Cancel"))
+                                    {
+                                        foreach (var obj in objects)
+                                        {
+                                            SerializedObject o = new SerializedObject(obj);
+                                            SerializedProperty id = o.FindProperty("_data._id");
+                                            id.stringValue = Guid.NewGuid().ToString();
+                                            o.ApplyModifiedProperties();
+                                        }
+                                    }
+                                });
+                                menu.ShowAsContext();
                             }
                         }
                     }

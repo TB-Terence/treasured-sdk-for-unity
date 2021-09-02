@@ -1,4 +1,5 @@
 ﻿using System;
+using Treasured.UnitySdk;
 using UnityEngine;
 
 namespace Treasured.SDK
@@ -23,6 +24,7 @@ namespace Treasured.SDK
     {
         [SerializeField]
         [HideInInspector]
+        [UniqueId]
         private string _id;
         [SerializeField]
         [StringSelector("openLink", "showText", "playAudio", "playVideo", "selectObject")]

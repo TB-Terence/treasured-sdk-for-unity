@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
@@ -8,13 +9,15 @@ namespace Treasured.UnitySdk
         [SerializeField]
         private InteractableData _data = new InteractableData();
 
-        public InteractableData Data
+        public override TreasuredObjectData Data
         {
             get
             {
                 return _data;
             }
         }
+
+        InteractableData IDataComponent<InteractableData>.Data => _data;
 
         public void BindData(InteractableData data)
         {
