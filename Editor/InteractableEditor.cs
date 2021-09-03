@@ -47,14 +47,14 @@ namespace Treasured.UnitySdk.Editor
                     }
                     break;
                 case Tool.Scale:
-                    if (Target.Hitbox)
+                    if (Target.BoxCollider)
                     {
                         EditorGUI.BeginChangeCheck();
-                        Vector3 newSize = Handles.ScaleHandle(Target.Hitbox.size, Target.Hitbox.bounds.center, Target.transform.rotation, 1);
+                        Vector3 newSize = Handles.ScaleHandle(Target.BoxCollider.size, Target.BoxCollider.bounds.center, Target.transform.rotation, 1);
                         if (EditorGUI.EndChangeCheck())
                         {
-                            Undo.RecordObject(Target.Hitbox, "Scale Interactable Hitbox");
-                            Target.Hitbox.size = newSize;
+                            Undo.RecordObject(Target.BoxCollider, "Scale Interactable Hitbox");
+                            Target.BoxCollider.size = newSize;
                         }
                     }
                     break;

@@ -70,9 +70,9 @@ namespace Treasured.UnitySdk.Editor
                     Handles.color = Color.red;
                     Handles.DrawWireCube(current.transform.position, hotspotSize);
                     Handles.color = Color.white;
-                    if (current.Hitbox)
+                    if (current.BoxCollider)
                     {
-                        Handles.DrawDottedLine(current.transform.position, current.Hitbox.bounds.center, 5);
+                        Handles.DrawDottedLine(current.transform.position, current.BoxCollider.bounds.center, 5);
                     }
                     Handles.Label(current.transform.position, new GUIContent(current.gameObject.name));
 
@@ -131,14 +131,14 @@ namespace Treasured.UnitySdk.Editor
                             }
                             break;
                         case Tool.Scale:
-                            if (current.Hitbox)
+                            if (current.BoxCollider)
                             {
                                 EditorGUI.BeginChangeCheck();
-                                Vector3 newSize = Handles.ScaleHandle(current.Hitbox.size, current.transform.position + current.Hitbox.center, current.transform.rotation, 1);
+                                Vector3 newSize = Handles.ScaleHandle(current.BoxCollider.size, current.transform.position + current.BoxCollider.center, current.transform.rotation, 1);
                                 if (EditorGUI.EndChangeCheck())
                                 {
-                                    Undo.RecordObject(current.Hitbox, "Scale Interactable Hitbox");
-                                    current.Hitbox.size = newSize;
+                                    Undo.RecordObject(current.BoxCollider, "Scale Interactable Hitbox");
+                                    current.BoxCollider.size = newSize;
                                 }
                             }
                             break;

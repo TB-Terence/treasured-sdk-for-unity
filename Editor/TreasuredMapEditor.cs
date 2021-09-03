@@ -188,10 +188,10 @@ namespace Treasured.UnitySdk.Editor
                 on = false,
                 func = () =>
                 {
-                    Undo.RecordObjects(_interactables.Select(x => x.Hitbox).ToArray(), "Reset Hitbox center for all Interactables");
+                    Undo.RecordObjects(_interactables.Select(x => x.BoxCollider).ToArray(), "Reset Hitbox center for all Interactables");
                     for (int i = 0; i < _interactables.Count; i++)
                     {
-                        _interactables[i].Hitbox.center = Vector3.zero;
+                        _interactables[i].BoxCollider.center = Vector3.zero;
                     }
                 }
             });

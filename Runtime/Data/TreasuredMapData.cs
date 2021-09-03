@@ -78,7 +78,7 @@ namespace Treasured.UnitySdk
                 }
                 hotspot.Data.Name = hotspot.name;
                 hotspot.Data.Transform = hotspot.transform;
-                hotspot.Data.Hitbox = hotspot.Hitbox;
+                hotspot.Data.Hitbox = hotspot.BoxCollider;
                 hotspot.Data.Validate();
                 Hotspots.Add((HotspotData)hotspot.Data);
             }
@@ -95,7 +95,7 @@ namespace Treasured.UnitySdk
                 }
                 interactable.Data.Name = interactable.name;
                 interactable.Data.Transform = interactable.transform;
-                interactable.Data.Hitbox = interactable.Hitbox;
+                interactable.Data.Hitbox = interactable.BoxCollider;
                 interactable.Data.Validate();
                 Interactables.Add((InteractableData)interactable.Data);
             }

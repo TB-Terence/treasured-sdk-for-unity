@@ -14,7 +14,7 @@ namespace Treasured.UnitySdk
         private Vector3 _size;
 
         /// <summary>
-        /// Position in local space relative to the Transform position.
+        /// Center point of the hitbox in world position.
         /// </summary>
         public Vector3 Center { get => _center; set => _center = value; }
         /// <summary>
@@ -26,7 +26,7 @@ namespace Treasured.UnitySdk
         {
             return new Hitbox()
             {
-                _center = collider.center,
+                _center = collider.center + collider.gameObject.transform.position,
                 _size = collider.size
             };
         }

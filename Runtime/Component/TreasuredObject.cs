@@ -10,20 +10,20 @@ namespace Treasured.UnitySdk
     {
         [SerializeField]
         [HideInInspector]
-        private BoxCollider _hitbox;
+        private BoxCollider _boxCollider;
 
-        public BoxCollider Hitbox
+        public BoxCollider BoxCollider
         {
             get
             {
-                if(_hitbox == null)
+                if(_boxCollider == null)
                 {
-                    if (TryGetComponent(out _hitbox))
+                    if (TryGetComponent(out _boxCollider))
                     {
-                        _hitbox.isTrigger = true;
+                        _boxCollider.isTrigger = true;
                     }
                 }
-                return _hitbox;
+                return _boxCollider;
             }
         }
 
@@ -31,15 +31,15 @@ namespace Treasured.UnitySdk
 
         protected virtual void OnEnable()
         {
-            if (TryGetComponent(out _hitbox))
+            if (TryGetComponent(out _boxCollider))
             {
-                _hitbox.isTrigger = true;
+                _boxCollider.isTrigger = true;
             }
         }
 
         public bool FindGroundPoint(float distance, int layerMask, out Vector3 point)
         {
-            if (Hitbox)
+            if (BoxCollider)
             {
                 if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit, distance, layerMask, QueryTriggerInteraction.Ignore))
                 {
@@ -53,11 +53,11 @@ namespace Treasured.UnitySdk
 
         public void OffsetHitbox(float distance = 100)
         {
-            if (Hitbox)
+            if (BoxCollider)
             {
                 if (FindGroundPoint(distance, ~0, out Vector3 point))
                 {
-                    Hitbox.center = point - transform.position + new Vector3(0, Hitbox.size.y / 2, 0);       
+                    BoxCollider.center = point - transform.position + new Vector3(0, BoxCollider.size.y / 2, 0);       
                 }
             }
         }

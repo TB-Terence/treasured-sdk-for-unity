@@ -34,7 +34,7 @@ namespace Treasured.UnitySdk.Editor
                 {
                     if (GUILayout.Button(new GUIContent("Place Hitbox on ground", "Put the Hitbox on the ground by doing a Raycast. The maximum distance for the Raycast is 100."), GUILayout.Height(24)))
                     {
-                        Undo.RecordObject(Target.Hitbox, "Offset Hitbox position");
+                        Undo.RecordObject(Target.BoxCollider, "Offset Hitbox position");
                         Target.OffsetHitbox();
                     }
                 }
