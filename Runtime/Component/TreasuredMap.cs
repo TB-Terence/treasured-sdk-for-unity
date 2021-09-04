@@ -8,12 +8,21 @@ namespace Treasured.UnitySdk
     [AddComponentMenu("Treasured/Treasured Map")]
     public sealed class TreasuredMap : MonoBehaviour
     {
+        #region Map Settings
+        [SerializeField]
+        private LayerMask _interactableLayer;
+        #endregion
+
+        #region Map Data
         [SerializeField]
         private TreasuredMapData _data;
+        #endregion
 
+        #region Export Settings
         [SerializeField]
         [AssetSelector(true)]
         private string _outputDirectory = "";
+        #endregion
 
         public TreasuredMapData Data
         {

@@ -48,6 +48,16 @@ namespace Treasured.UnitySdk.Editor
             Target.Data.GenerateHotspots(_hotspots);
             Target.Data.GenerateInteractables(_interactables);
             Target.Data.Validate();
+            List<TreasuredObject> objects = new List<TreasuredObject>();
+            objects.AddRange(_hotspots);
+            objects.AddRange(_interactables);
+            foreach (var hotspot in _hotspots)
+            {
+                if (hotspot.Data is HotspotData data)
+                {
+                    data.FindVisibleTargets(objects, _interactableLayer.intValue);
+                }
+            }
             // TODO: Add Select Object Id Validation
             string json = JsonConvert.SerializeObject(Target.Data, Formatting.Indented, JsonSettings);
             File.WriteAllText(Path.Combine(directory, $"data.json"), json);

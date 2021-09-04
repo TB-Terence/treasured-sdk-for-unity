@@ -19,6 +19,9 @@ namespace Treasured.UnitySdk.Editor
             Mixed
         }
 
+        private bool _showMapSettings = true;
+        private SerializedProperty _interactableLayer;
+
         private bool _showInfo = true;
 
         private bool _showManagementTabs = true;
@@ -80,6 +83,7 @@ namespace Treasured.UnitySdk.Editor
 
         private void InitSerializedProperty()
         {
+            _interactableLayer = serializedObject.FindProperty(nameof(_interactableLayer));
             _id = serializedObject.FindProperty($"_data.{nameof(_id)}");
             _title = serializedObject.FindProperty($"_data.{nameof(_title)}");
             _description = serializedObject.FindProperty($"_data.{nameof(_description)}");
@@ -96,6 +100,7 @@ namespace Treasured.UnitySdk.Editor
             serializedObject.Update();
             using (new EditorGUILayout.VerticalScope())
             {
+                DrawFoldoutGroup(ref _showMapSettings, new GUIContent("Map Settings"), DrawMapSettings);
                 DrawFoldoutGroup(ref _showInfo, new GUIContent("Info"), DrawInfo);
                 DrawFoldoutGroup(ref _showManagementTabs, new GUIContent("Object Management"), DrawObjectManagement);
                 DrawFoldoutGroup(ref _showExportSettings, new GUIContent("Export Settings"), DrawExportSettings);
@@ -141,6 +146,11 @@ namespace Treasured.UnitySdk.Editor
             }
             EditorGUI.indentLevel--;
             EditorGUILayout.EndFoldoutHeaderGroup();
+        }
+
+        private void DrawMapSettings()
+        {
+            EditorGUILayout.PropertyField(_interactableLayer);
         }
 
         private void DrawInfo()

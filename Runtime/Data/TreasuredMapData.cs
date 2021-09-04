@@ -69,7 +69,7 @@ namespace Treasured.UnitySdk
 
         public void GenerateHotspots(IEnumerable<Hotspot> hotspots)
         {
-            Hotspots.Clear();
+            _hotspots.Clear();
             foreach (var hotspot in hotspots)
             {
                 if (!hotspot.gameObject.activeSelf)
@@ -80,7 +80,7 @@ namespace Treasured.UnitySdk
                 hotspot.Data.Transform = hotspot.transform;
                 hotspot.Data.Hitbox = hotspot.BoxCollider;
                 hotspot.Data.Validate();
-                Hotspots.Add((HotspotData)hotspot.Data);
+                _hotspots.Add((HotspotData)hotspot.Data);
             }
         }
 
