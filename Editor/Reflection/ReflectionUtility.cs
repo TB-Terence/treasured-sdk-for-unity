@@ -1,9 +1,9 @@
-﻿using UnityEngine;
-using UnityEditor;
-using System;
+﻿using System;
 using System.Reflection;
+using UnityEditor;
+using UnityEngine;
 
-namespace Treasured.SDKEditor
+namespace Treasured.UnitySdk.Editor
 {
     [InitializeOnLoad]
     public static class ReflectionUtility
@@ -13,7 +13,7 @@ namespace Treasured.SDKEditor
 
         static ReflectionUtility()
         {
-            PropertyEditor = typeof(Editor).Assembly.GetType("UnityEditor.PropertyEditor");
+            PropertyEditor = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.PropertyEditor");
             if (PropertyEditor != null)
             {
                 OpenPropertyEditorMethod = PropertyEditor.GetMethod("OpenPropertyEditor", BindingFlags.Static | BindingFlags.NonPublic);

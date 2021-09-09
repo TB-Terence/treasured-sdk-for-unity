@@ -1,5 +1,4 @@
 ﻿using System;
-using Treasured.SDK;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
@@ -10,7 +9,6 @@ namespace Treasured.UnitySdk
         [SerializeField]
         private Vector3 _center;
         [SerializeField]
-        [Vector3Range(MinX = 0.1f, MinY = 0.1f, MinZ = 0.1f)]
         private Vector3 _size;
 
         /// <summary>

@@ -1,4 +1,4 @@
-﻿namespace Treasured.SDK
+﻿namespace Treasured.UnitySdk
 {
     public enum ImageQuality
     {

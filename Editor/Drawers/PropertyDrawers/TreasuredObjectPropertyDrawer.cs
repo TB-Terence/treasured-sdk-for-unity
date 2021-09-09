@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-namespace Treasured.SDKEditor
+namespace Treasured.UnitySdk.Editor
 {
-#if UNITY_2020_3_OR_NEWER
-    [CustomPropertyDrawer(typeof(UnitySdk.TreasuredObject))]
-#endif
+    [CustomPropertyDrawer(typeof(TreasuredObject))]
     public class TreasuredObjectPropertyDrawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
@@ -47,8 +44,9 @@ namespace Treasured.SDKEditor
                 }
                 if (GUI.Button(new Rect(new Rect(position.xMax - 20, position.y + 20, 20, 18)), EditorGUIUtility.TrIconContent("Refresh", "Regenerate ID")))
                 {
+                    string oldId = idProp.stringValue;
                     idProp.stringValue = Guid.NewGuid().ToString();
-                    TreasuredDataEditor.RefreshObjectIDs();
+                    TreasuredMapEditorUtility.UpdateId(property, oldId, idProp.stringValue);
                 }
 
                 EditorGUI.PropertyField(new Rect(position.x, position.y + 40, position.width, 18), nameProp);

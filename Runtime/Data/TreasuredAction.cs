@@ -1,8 +1,7 @@
 ﻿using System;
-using Treasured.UnitySdk;
 using UnityEngine;
 
-namespace Treasured.SDK
+namespace Treasured.UnitySdk
 {
     public enum DisplayMode
     {

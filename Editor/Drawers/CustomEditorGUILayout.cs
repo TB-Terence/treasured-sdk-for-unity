@@ -1,10 +1,9 @@
 ﻿using System;
 using System.IO;
-using Treasured.UnitySdk.Editor;
 using UnityEditor;
 using UnityEngine;
 
-namespace Treasured.SDKEditor
+namespace Treasured.UnitySdk.Editor
 {
     [InitializeOnLoad]
     internal static class CustomEditorGUILayout

@@ -1,12 +1,12 @@
-﻿using UnityEngine;
-using UnityEditor;
-using Newtonsoft.Json;
-using System.IO;
+﻿using Newtonsoft.Json;
+using Simple360Render;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using UnityEditor;
+using UnityEngine;
 using UnityEngine.Rendering;
-using Simple360Render;
 
 namespace Treasured.UnitySdk.Editor
 {
@@ -15,7 +15,7 @@ namespace Treasured.UnitySdk.Editor
         private static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings()
         {
             ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-            ContractResolver = SDK.CustomContractResolver.Instance
+            ContractResolver = CustomContractResolver.Instance
         };
 
         private string _sceneName;
@@ -107,7 +107,7 @@ namespace Treasured.UnitySdk.Editor
             #endregion
 
             #region Create output directories
-            string qualityFolderName = $"{Enum.GetName(typeof(SDK.ImageQuality), map.Data.Quality).ToLower()}/";
+            string qualityFolderName = $"{Enum.GetName(typeof(ImageQuality), map.Data.Quality).ToLower()}/";
             string qualityFolderDirectory = Path.Combine(directory, qualityFolderName);
             if (Directory.Exists(qualityFolderDirectory))
             {

@@ -1,8 +1,7 @@
-﻿using Treasured.SDK;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 
-namespace Treasured.SDKEditor
+namespace Treasured.UnitySdk.Editor
 {
     [CustomPropertyDrawer(typeof(AssetSelectorAttribute))]
     public class AssetSelectorAttributePropertyDrawer : PropertyDrawer

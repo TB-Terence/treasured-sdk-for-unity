@@ -1,9 +1,7 @@
-﻿using UnityEngine;
-using UnityEditor;
-using Treasured.SDK;
-using Treasured.UnitySdk;
+﻿using UnityEditor;
+using UnityEngine;
 
-namespace Treasured.SDKEditor
+namespace Treasured.UnitySdk.Editor
 {
     [CustomPropertyDrawer(typeof(TransformData))]
     public class TransformDataPropertyDrawer : PropertyDrawer

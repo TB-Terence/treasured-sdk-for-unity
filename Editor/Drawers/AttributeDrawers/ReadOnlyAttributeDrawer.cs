@@ -1,8 +1,7 @@
-﻿using UnityEngine;
-using UnityEditor;
-using Treasured.SDK;
+﻿using UnityEditor;
+using UnityEngine;
 
-namespace Treasured.SDKEditor
+namespace Treasured.UnitySdk.Editor
 {
     [CustomPropertyDrawer(typeof(ReadOnlyAttribute))]
     public class ReadOnlyAttributeDrawer : PropertyDrawer

@@ -1,10 +1,8 @@
 ﻿using System;
-using Treasured.SDK;
-using Treasured.UnitySdk;
 using UnityEditor;
 using UnityEngine;
 
-namespace Treasured.SDKEditor
+namespace Treasured.UnitySdk.Editor
 {
     [CustomPropertyDrawer(typeof(TreasuredAction))]
     public class TreasuredActionPropertyDrawer : PropertyDrawer
@@ -35,27 +33,22 @@ namespace Treasured.SDKEditor
                         Rect dropdownRect = EditorGUI.PrefixLabel(new Rect(position.x, position.y + 40, position.width, 18), new GUIContent("Target"));
                         if (EditorGUI.DropdownButton(dropdownRect, new GUIContent(string.IsNullOrEmpty(_targetIdProp.stringValue) ? "Not selected" : _targetIdProp.stringValue), FocusType.Passive))
                         {
-                            if (property.serializedObject.targetObject is UnitySdk.TreasuredObject target)
+                            if (property.serializedObject.targetObject is TreasuredObject target)
                             {
                                 TreasuredMap map = target.GetComponentInParent<TreasuredMap>();
                                 if (map != null)
                                 {
-                                    Hotspot[] hotspots = map.GetComponentsInChildren<Hotspot>();
-                                    Interactable[] interactables = map.GetComponentsInChildren<Interactable>();
+                                    TreasuredMapEditorUtility.RefreshIds(property);
                                     GenericMenu menu = new GenericMenu();
-                                    foreach (var hotspot in hotspots)
+                                    foreach (var idInfo in TreasuredMapEditorUtility.GetPathsForMap(property))
                                     {
-                                        menu.AddItem(EditorGUIUtility.TrTextContent($"Hotspot/{hotspot.name} | {hotspot.Data.Id}", hotspot.Data.Id), false, () =>
+                                        if (_targetIdProp.stringValue.Equals(idInfo.Key))
                                         {
-                                            _targetIdProp.stringValue = hotspot.Data.Id;
-                                            _targetIdProp.serializedObject.ApplyModifiedProperties();
-                                        });
-                                    }
-                                    foreach (var interactable in interactables)
-                                    {
-                                        menu.AddItem(EditorGUIUtility.TrTextContent($"Interactables/{interactable.name} | {interactable.Data.Id}", interactable.Data.Id), false, () =>
+                                            continue;
+                                        }
+                                        menu.AddItem(new GUIContent(idInfo.Value), false, () =>
                                         {
-                                            _targetIdProp.stringValue = interactable.Data.Id;
+                                            _targetIdProp.stringValue = idInfo.Key;
                                             _targetIdProp.serializedObject.ApplyModifiedProperties();
                                         });
                                     }
@@ -71,7 +64,7 @@ namespace Treasured.SDKEditor
                                     idPath = $"{property.propertyPath.Substring(0, index)}._id";
                                     SerializedProperty id = property.serializedObject.FindProperty(idPath);
                                     GenericMenu menu = new GenericMenu();
-                                    foreach (var idInfo in TreasuredDataEditor.ObjectIds)
+                                    foreach (var idInfo in TreasuredMapEditorUtility.GetPathsForMap(property))
                                     {
                                         if (_targetIdProp.stringValue.Equals(idInfo.Key) || idInfo.Key.Equals(id.stringValue))
                                         {

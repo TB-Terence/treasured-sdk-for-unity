@@ -1,7 +1,5 @@
-﻿using UnityEngine;
-using UnityEditor;
-using Treasured.UnitySdk;
-using System.Linq;
+﻿using UnityEditor;
+using UnityEngine;
 
 namespace Treasured.UnitySdk.Editor
 {

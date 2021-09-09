@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Treasured.SDKEditor;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -61,6 +60,7 @@ namespace Treasured.UnitySdk.Editor
 
         protected override void Init()
         {
+            TreasuredMapEditorUtility.RefreshIds(Target);
             Target.transform.hideFlags = HideFlags.HideInInspector;
             _hotspots = Target.gameObject.GetComponentsInChildren<Hotspot>(true).ToList();
             _interactables = Target.gameObject.GetComponentsInChildren<Interactable>(true).ToList();

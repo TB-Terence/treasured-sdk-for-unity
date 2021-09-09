@@ -1,9 +1,7 @@
-﻿using UnityEngine;
-using UnityEditor;
-using System.IO;
-using UnityEditor.SceneManagement;
+﻿using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
+using UnityEditor;
+using UnityEngine;
 
 namespace Treasured.UnitySdk.Editor
 {
