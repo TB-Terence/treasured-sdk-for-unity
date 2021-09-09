@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Rendering;
+using Simple360Render;
 
 namespace Treasured.UnitySdk.Editor
 {
@@ -36,7 +37,28 @@ namespace Treasured.UnitySdk.Editor
             {
                 return;
             }
+            //Capture2(Target, Camera.main, directory);
             Capture(Target, Camera.main, directory);
+        }
+
+        private void Capture2(TreasuredMap map, Camera camera, string directory)
+        {
+            int width = (int)Target.Data.Quality;
+            RenderTexture equirect = RenderTexture.GetTemporary(width, width / 2, 0);
+            RenderTexture cubemapLeftEye = RenderTexture.GetTemporary(width / 2, width / 2, 0);
+            cubemapLeftEye.dimension = TextureDimension.Cube;
+            RenderTexture cubemapRightEye = RenderTexture.GetTemporary(width / 2, width / 2, 0);
+            cubemapRightEye.dimension = TextureDimension.Cube;
+            camera.stereoSeparation = 0.064f; // Eye separation (IPD) of 64mm.
+            camera.RenderToCubemap(cubemapLeftEye, 63, Camera.MonoOrStereoscopicEye.Left);
+
+            camera.RenderToCubemap(cubemapRightEye, 63, Camera.MonoOrStereoscopicEye.Right);
+
+            cubemapLeftEye.ConvertToEquirect(equirect, Camera.MonoOrStereoscopicEye.Left);
+            cubemapRightEye.ConvertToEquirect(equirect, Camera.MonoOrStereoscopicEye.Right);
+            RenderTexture.ReleaseTemporary(equirect);
+            RenderTexture.ReleaseTemporary(cubemapLeftEye);
+            RenderTexture.ReleaseTemporary(cubemapRightEye);
         }
 
         private void ExportJson(string directory)
@@ -130,39 +152,22 @@ namespace Treasured.UnitySdk.Editor
 
             try
             {
-                //IEnumerable<TreasuredObject> targets = _data.All;
-                for (int index = 0; index < _hotspots.Count; index++)
+                var exportables = _hotspots.Where(hotspot => hotspot.gameObject.activeSelf).ToArray();
+                for (int index = 0; index < exportables.Length; index++)
                 {
-                    Hotspot hotspot = _hotspots[index];
-                    if (!hotspot.gameObject.activeSelf)
-                    {
-                        continue;
-                    }
-                    // Calculate Visible Targets
-                    //hotspot.ResetVisibleTargets();
-                    //foreach (var target in targets)
-                    //{
-                    //    if (target.Id == hotspot.Id)
-                    //    {
-                    //        continue;
-                    //    }
-                    //    if (!Physics.Linecast(hotspot.Transform.Position, target.Transform.Position, layerMask))
-                    //    {
-                    //        hotspot.AddVisibleTarget(target);
-                    //    }
-                    //}
+                    Hotspot hotspot = exportables[index];
 
                     var fileName = $"{hotspot.Data.Id}.{map.Data.Format.ToString().ToLower()}";
                     // Move the camera in the right position
                     camera.transform.SetPositionAndRotation(hotspot.transform.position, Quaternion.identity);
 
-                    EditorUtility.DisplayProgressBar($"Exporting image ({index + 1}/{_hotspots.Count})", $"Working on cubemap for {hotspot.Data.Name}", 0.33f);
+                    EditorUtility.DisplayProgressBar($"Exporting image ({index + 1}/{exportables.Length})", $"Working on cubemap for {hotspot.Data.Name}", 0.33f);
                     if (!camera.RenderToCubemap(cubeMapTexture, 63))
                     {
                         throw new NotSupportedException("Rendering to cubemap is not supported on device/platform!");
                     }
 
-                    EditorUtility.DisplayProgressBar($"Exporting image ({index + 1}/{_hotspots.Count})", "Applying shader...", 0.66f);
+                    EditorUtility.DisplayProgressBar($"Exporting image ({index + 1}/{exportables.Length})", "Applying shader...", 0.66f);
                     _equirectangularConverter.SetFloat(_paddingX, faceCameraDirection ? (camera.transform.eulerAngles.y / 360f) : 0f);
                     Graphics.Blit(cubeMapTexture, equirectangularTexture, _equirectangularConverter);
 
@@ -170,10 +175,10 @@ namespace Treasured.UnitySdk.Editor
                     outputTexture.ReadPixels(new Rect(0, 0, equirectangularTexture.width, equirectangularTexture.height), 0, 0, false);
 
                     //EditorUtility.DisplayProgressBar($"Exporting image ({index + 1}/{count})", $"Inserting XMP Data for {fileName}...", 0.99f);
-                    byte[] bytes = encodeAsJPEG ? outputTexture.EncodeToJPG() : outputTexture.EncodeToPNG(); // I360Render.InsertXMPIntoTexture2D_JPEG(_outputTexture) : I360Render.InsertXMPIntoTexture2D_PNG(_outputTexture);
+                    byte[] bytes = encodeAsJPEG ? I360Render.InsertXMPIntoTexture2D_JPEG(outputTexture) : I360Render.InsertXMPIntoTexture2D_PNG(outputTexture);
                     if (bytes != null)
                     {
-                        EditorUtility.DisplayProgressBar($"Exporting {fileName} ({index + 1}/{_hotspots.Count})", $"Saving {fileName}...", 0.99f);
+                        EditorUtility.DisplayProgressBar($"Exporting {fileName} ({index + 1}/{exportables.Length})", $"Saving {fileName}...", 0.99f);
                         string path = Path.Combine(qualityFolderDirectory, fileName);
                         File.WriteAllBytes(path, bytes);
                     }
