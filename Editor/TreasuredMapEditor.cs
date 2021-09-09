@@ -102,16 +102,16 @@ namespace Treasured.UnitySdk.Editor
             serializedObject.Update();
             using (new EditorGUILayout.VerticalScope())
             {
-                OnHeaderGUI();
-                DrawFoldoutGroup(ref _showMapSettings, new GUIContent("Map Settings"), DrawMapSettings);
-                DrawFoldoutGroup(ref _showInfo, new GUIContent("Info"), DrawInfo);
-                DrawFoldoutGroup(ref _showManagementTabs, new GUIContent("Object Management"), DrawObjectManagement);
-                DrawFoldoutGroup(ref _showExportSettings, new GUIContent("Export Settings"), DrawExportSettings);
+                OnFoldoutGroupGUI(ref _showMapSettings, new GUIContent("Map Settings"), OnDrawMapSettings);
+                OnFoldoutGroupGUI(ref _showInfo, new GUIContent("Info"), OnDrawInfo);
+                OnFoldoutGroupGUI(ref _showManagementTabs, new GUIContent("Object Management"), OnDrawObjectManagement);
+                OnFoldoutGroupGUI(ref _showExportSettings, new GUIContent("Export Settings"), OnDrawExportSettings);
+                OnFooter();
             }
             serializedObject.ApplyModifiedProperties();
         }
 
-        protected override void OnHeaderGUI()
+        private void OnFooter()
         {
             if (GUILayout.Button("Open Upload URL", GUILayout.Height(24f)))
             {
@@ -119,7 +119,7 @@ namespace Treasured.UnitySdk.Editor
             }
         }
 
-        private void DrawObjectManagement()
+        private void OnDrawObjectManagement()
         {
             EditorGUI.BeginChangeCheck();
             _showAll = EditorGUILayout.Toggle(new GUIContent("Show Transform Tool for All", "Show transform tool for Hotspots and Interactables if enabled, otherwise only show from selected tab."), _showAll);
@@ -144,7 +144,7 @@ namespace Treasured.UnitySdk.Editor
             }
         }
 
-        private void DrawFoldoutGroup(ref bool foldout, GUIContent label, Action action)
+        private void OnFoldoutGroupGUI(ref bool foldout, GUIContent label, Action action)
         {
             foldout = EditorGUILayout.BeginFoldoutHeaderGroup(foldout, label);
             EditorGUI.indentLevel++;
@@ -159,13 +159,13 @@ namespace Treasured.UnitySdk.Editor
             EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
-        private void DrawMapSettings()
+        private void OnDrawMapSettings()
         {
             EditorGUILayout.PropertyField(_interactableLayer);
             EditorGUILayout.PropertyField(_fixedExposure);
         }
 
-        private void DrawInfo()
+        private void OnDrawInfo()
         {
             EditorGUILayout.PropertyField(_id);
             CustomEditorGUILayout.PropertyField(_title, string.IsNullOrEmpty(_title.stringValue.Trim()));
@@ -379,7 +379,7 @@ namespace Treasured.UnitySdk.Editor
             }
         }
 
-        private void DrawExportSettings()
+        private void OnDrawExportSettings()
         {
             EditorGUILayout.PropertyField(_format);
             EditorGUILayout.PropertyField(_quality);
