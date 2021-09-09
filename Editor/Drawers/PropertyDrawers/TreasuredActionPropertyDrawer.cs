@@ -31,29 +31,30 @@ namespace Treasured.UnitySdk.Editor
                     case "selectObject":
                         SerializedProperty _targetIdProp = property.FindPropertyRelative("_targetId");
                         Rect dropdownRect = EditorGUI.PrefixLabel(new Rect(position.x, position.y + 40, position.width, 18), new GUIContent("Target"));
-                        if (EditorGUI.DropdownButton(dropdownRect, new GUIContent(string.IsNullOrEmpty(_targetIdProp.stringValue) ? "Not selected" : _targetIdProp.stringValue), FocusType.Passive))
+                        string displayText = string.Empty;
+                        if (!string.IsNullOrEmpty(_targetIdProp.stringValue))
+                        {
+                            displayText = TreasuredMapEditorUtility.GetRelativePath(property, _targetIdProp.stringValue);
+                        }
+                        if (EditorGUI.DropdownButton(dropdownRect, new GUIContent(string.IsNullOrEmpty(displayText) ? "Not selected" : displayText), FocusType.Passive))
                         {
                             if (property.serializedObject.targetObject is TreasuredObject target)
                             {
-                                TreasuredMap map = target.GetComponentInParent<TreasuredMap>();
-                                if (map != null)
+                                TreasuredMapEditorUtility.RefreshIds(property);
+                                GenericMenu menu = new GenericMenu();
+                                foreach (var idInfo in TreasuredMapEditorUtility.GetPathsForMap(property))
                                 {
-                                    TreasuredMapEditorUtility.RefreshIds(property);
-                                    GenericMenu menu = new GenericMenu();
-                                    foreach (var idInfo in TreasuredMapEditorUtility.GetPathsForMap(property))
+                                    if (_targetIdProp.stringValue.Equals(idInfo.Key))
                                     {
-                                        if (_targetIdProp.stringValue.Equals(idInfo.Key))
-                                        {
-                                            continue;
-                                        }
-                                        menu.AddItem(new GUIContent(idInfo.Value), false, () =>
-                                        {
-                                            _targetIdProp.stringValue = idInfo.Key;
-                                            _targetIdProp.serializedObject.ApplyModifiedProperties();
-                                        });
+                                        continue;
                                     }
-                                    menu.ShowAsContext();
+                                    menu.AddItem(new GUIContent(idInfo.Value), false, () =>
+                                    {
+                                        _targetIdProp.stringValue = idInfo.Key;
+                                        _targetIdProp.serializedObject.ApplyModifiedProperties();
+                                    });
                                 }
+                                menu.ShowAsContext();
                             }
                             else
                             {

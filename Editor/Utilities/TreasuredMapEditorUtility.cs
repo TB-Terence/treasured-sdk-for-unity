@@ -73,6 +73,20 @@ namespace Treasured.UnitySdk.Editor
             return s_ids[map.Data.Id];
         }
 
+        public static string GetRelativePath(SerializedProperty property, string id)
+        {
+            TreasuredMap map = GetMap(property);
+            if (map)
+            {
+                if (!s_ids.ContainsKey(map.Data.Id))
+                {
+                    RefreshIds(map);
+                }
+                return s_ids[map.Data.Id][id];
+            }
+            return string.Empty;
+        }
+
         private static TreasuredMap GetMap(SerializedProperty treasuredObject)
         {
             if (treasuredObject.serializedObject.targetObject is TreasuredObject obj)
