@@ -7,6 +7,7 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.HighDefinition;
 
 namespace Treasured.UnitySdk.Editor
 {
@@ -37,8 +38,8 @@ namespace Treasured.UnitySdk.Editor
             {
                 return;
             }
-            //Capture2(Target, Camera.main, directory);
             Capture(Target, Camera.main, directory);
+            //Capture2(Target, Camera.main, directory);
         }
 
         private void Capture2(TreasuredMap map, Camera camera, string directory)
@@ -90,6 +91,27 @@ namespace Treasured.UnitySdk.Editor
 
         private void Capture(TreasuredMap map, Camera camera, string directory)
         {
+            // TODO: Find a better solution for seam in output images
+            Volume[] volumes = GameObject.FindObjectsOfType<Volume>();
+            Volume globalVolume = null;
+            Exposure exposure = null;
+            ExposureMode previousMode = ExposureMode.Fixed;
+            float previousFixedExposure = 13;
+            if (volumes.Length > 0)
+            {
+                globalVolume = volumes.FirstOrDefault(x => x.isGlobal);
+                if (globalVolume)
+                {
+                    if(globalVolume.profile.TryGet<Exposure>(out exposure))
+                    {
+                        previousMode = exposure.mode.value;
+                        previousFixedExposure = exposure.fixedExposure.value;
+                        exposure.mode.value = ExposureMode.Fixed;
+                        exposure.fixedExposure.value = _fixedExposure.floatValue;
+                    }
+                }
+            }
+
             if (camera == null)
             {
                 camera = Camera.main;
@@ -196,6 +218,13 @@ namespace Treasured.UnitySdk.Editor
                 camera.transform.rotation = originalCameraRot;
                 camera.targetTexture = camTarget;
                 RenderTexture.active = activeRT;
+
+                // TODO: Find a better solution for seam in output images
+                if (exposure)
+                {
+                    exposure.mode.value = previousMode;
+                    exposure.fixedExposure.value = previousFixedExposure;
+                }
                 #endregion
 
                 #region Free resources

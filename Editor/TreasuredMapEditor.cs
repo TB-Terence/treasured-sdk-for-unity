@@ -20,6 +20,7 @@ namespace Treasured.UnitySdk.Editor
 
         private bool _showMapSettings = true;
         private SerializedProperty _interactableLayer;
+        private SerializedProperty _fixedExposure;
 
         private bool _showInfo = true;
 
@@ -84,6 +85,7 @@ namespace Treasured.UnitySdk.Editor
         private void InitSerializedProperty()
         {
             _interactableLayer = serializedObject.FindProperty(nameof(_interactableLayer));
+            _fixedExposure = serializedObject.FindProperty(nameof(_fixedExposure));
             _id = serializedObject.FindProperty($"_data.{nameof(_id)}");
             _title = serializedObject.FindProperty($"_data.{nameof(_title)}");
             _description = serializedObject.FindProperty($"_data.{nameof(_description)}");
@@ -100,12 +102,21 @@ namespace Treasured.UnitySdk.Editor
             serializedObject.Update();
             using (new EditorGUILayout.VerticalScope())
             {
+                OnHeaderGUI();
                 DrawFoldoutGroup(ref _showMapSettings, new GUIContent("Map Settings"), DrawMapSettings);
                 DrawFoldoutGroup(ref _showInfo, new GUIContent("Info"), DrawInfo);
                 DrawFoldoutGroup(ref _showManagementTabs, new GUIContent("Object Management"), DrawObjectManagement);
                 DrawFoldoutGroup(ref _showExportSettings, new GUIContent("Export Settings"), DrawExportSettings);
             }
             serializedObject.ApplyModifiedProperties();
+        }
+
+        protected override void OnHeaderGUI()
+        {
+            if (GUILayout.Button("Open Upload URL", GUILayout.Height(24f)))
+            {
+                Application.OpenURL("https://dev.world.treasured.ca/upload");
+            }
         }
 
         private void DrawObjectManagement()
@@ -151,6 +162,7 @@ namespace Treasured.UnitySdk.Editor
         private void DrawMapSettings()
         {
             EditorGUILayout.PropertyField(_interactableLayer);
+            EditorGUILayout.PropertyField(_fixedExposure);
         }
 
         private void DrawInfo()
