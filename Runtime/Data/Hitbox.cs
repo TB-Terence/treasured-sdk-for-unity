@@ -24,7 +24,7 @@ namespace Treasured.UnitySdk
         {
             return new Hitbox()
             {
-                _center = collider.center + collider.gameObject.transform.position, // the center on the web uses world space.
+                _center = collider.bounds.center, // the center on the web uses world space.
                 _size = collider.size
             };
         }
