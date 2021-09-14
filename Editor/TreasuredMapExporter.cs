@@ -91,27 +91,6 @@ namespace Treasured.UnitySdk.Editor
 
         private void Capture(TreasuredMap map, Camera camera, string directory)
         {
-            // TODO: Find a better solution for seam in output images
-            Volume[] volumes = GameObject.FindObjectsOfType<Volume>();
-            Volume globalVolume = null;
-            Exposure exposure = null;
-            ExposureMode previousMode = ExposureMode.Fixed;
-            float previousFixedExposure = 13;
-            if (volumes.Length > 0)
-            {
-                globalVolume = volumes.FirstOrDefault(x => x.isGlobal);
-                if (globalVolume)
-                {
-                    if(globalVolume.profile.TryGet<Exposure>(out exposure))
-                    {
-                        previousMode = exposure.mode.value;
-                        previousFixedExposure = exposure.fixedExposure.value;
-                        exposure.mode.value = ExposureMode.Fixed;
-                        exposure.fixedExposure.value = _fixedExposure.floatValue;
-                    }
-                }
-            }
-
             if (camera == null)
             {
                 camera = Camera.main;
@@ -218,13 +197,6 @@ namespace Treasured.UnitySdk.Editor
                 camera.transform.rotation = originalCameraRot;
                 camera.targetTexture = camTarget;
                 RenderTexture.active = activeRT;
-
-                // TODO: Find a better solution for seam in output images
-                if (exposure)
-                {
-                    exposure.mode.value = previousMode;
-                    exposure.fixedExposure.value = previousFixedExposure;
-                }
                 #endregion
 
                 #region Free resources

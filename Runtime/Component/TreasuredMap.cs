@@ -9,11 +9,6 @@ namespace Treasured.UnitySdk
         #region Map Settings
         [SerializeField]
         private LayerMask _interactableLayer;
-        [SerializeField]
-        [Range(-5, 15)]
-#pragma warning disable IDE0051 // Remove unused private members
-        private float _fixedExposure = 13;
-#pragma warning restore IDE0051 // Remove unused private members
         #endregion
 
         #region Map Data

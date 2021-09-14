@@ -20,7 +20,6 @@ namespace Treasured.UnitySdk.Editor
 
         private bool _showMapSettings = true;
         private SerializedProperty _interactableLayer;
-        private SerializedProperty _fixedExposure;
 
         private bool _showInfo = true;
 
@@ -85,7 +84,6 @@ namespace Treasured.UnitySdk.Editor
         private void InitSerializedProperty()
         {
             _interactableLayer = serializedObject.FindProperty(nameof(_interactableLayer));
-            _fixedExposure = serializedObject.FindProperty(nameof(_fixedExposure));
             _id = serializedObject.FindProperty($"_data.{nameof(_id)}");
             _title = serializedObject.FindProperty($"_data.{nameof(_title)}");
             _description = serializedObject.FindProperty($"_data.{nameof(_description)}");
@@ -162,7 +160,6 @@ namespace Treasured.UnitySdk.Editor
         private void OnDrawMapSettings()
         {
             EditorGUILayout.PropertyField(_interactableLayer);
-            EditorGUILayout.PropertyField(_fixedExposure);
         }
 
         private void OnDrawInfo()
