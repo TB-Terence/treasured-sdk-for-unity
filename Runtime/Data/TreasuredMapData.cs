@@ -16,7 +16,7 @@ namespace Treasured.UnitySdk
         /// </summary>
         [SerializeField]
         [UniqueId]
-        private string _id;
+        private string _id = Guid.NewGuid().ToString();
 
         /// <summary>
         /// The title of the exhibit on the landing page.

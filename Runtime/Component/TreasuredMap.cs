@@ -13,7 +13,7 @@ namespace Treasured.UnitySdk
 
         #region Map Data
         [SerializeField]
-        private TreasuredMapData _data;
+        private TreasuredMapData _data = new TreasuredMapData();
         #endregion
 
         #region Export Settings
