@@ -1,0 +1,18 @@
+{
+    "name": "Treasured.UnitySdk.Editor",
+    "rootNamespace": "",
+    "references": [
+        "GUID:ff4bebc46e39e944a96849696524b47e"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
