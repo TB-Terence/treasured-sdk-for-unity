@@ -1,8 +1,7 @@
-﻿using UnityEngine;
-using UnityEditor;
-using Treasured.SDK;
+﻿using UnityEditor;
+using UnityEngine;
 
-namespace Treasured.SDKEditor
+namespace Treasured.UnitySdk.Editor
 {
     [CustomPropertyDrawer(typeof(StringSelectorAttribute))]
     public class StringSelectorAttributeDrawer : PropertyDrawer

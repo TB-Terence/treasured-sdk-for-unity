@@ -1,7 +1,7 @@
-﻿using UnityEngine;
-using UnityEditor;
+﻿using UnityEditor;
+using UnityEngine;
 
-namespace Treasured.SDKEditor
+namespace Treasured.UnitySdk.Editor
 {
     [CustomPropertyDrawer(typeof(AssetSelectorAttribute))]
     public class AssetSelectorAttributePropertyDrawer : PropertyDrawer
@@ -23,7 +23,7 @@ namespace Treasured.SDKEditor
                 {
                     if (!selectedPath.StartsWith(Application.dataPath))
                     {
-                        Debug.LogWarning($"The selected {(attr.IsFolder ? "folder" : "asset")} is outside Asset folder.");
+                        Debug.LogWarning($"The selected {(attr.IsFolder ? "folder" : "asset")} is outside the Asset folder.");
                     }
                     else
                     {

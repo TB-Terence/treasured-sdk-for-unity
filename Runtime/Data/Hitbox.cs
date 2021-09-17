@@ -1,24 +1,32 @@
 ﻿using System;
 using UnityEngine;
 
-namespace Treasured.SDK
+namespace Treasured.UnitySdk
 {
     [Serializable]
-    public class Hitbox
+    public sealed class Hitbox
     {
         [SerializeField]
         private Vector3 _center;
         [SerializeField]
-        [Vector3Range(MinX = 0.1f, MinY = 0.1f, MinZ = 0.1f)]
         private Vector3 _size;
 
         /// <summary>
-        /// Position in world space.
+        /// Center point of the hitbox in world space.
         /// </summary>
         public Vector3 Center { get => _center; set => _center = value; }
         /// <summary>
         /// Boundary box of the object.
         /// </summary>
         public Vector3 Size { get => _size; set => _size = value; }
+
+        public static implicit operator Hitbox(BoxCollider collider)
+        {
+            return new Hitbox()
+            {
+                _center = collider.bounds.center, // the center on the web uses world space.
+                _size = collider.size
+            };
+        }
     }
 }

@@ -1,13 +1,15 @@
-﻿using UnityEngine;
-using UnityEditor;
-using System.IO;
-using UnityEditor.SceneManagement;
+﻿using System.IO;
 using System.Linq;
+using UnityEditor;
+using UnityEngine;
 
-namespace Treasured.SDKEditor
+namespace Treasured.UnitySdk.Editor
 {
     internal static class Utility
     {
+        private static readonly DirectoryInfo DataDirectoryInfo = new DirectoryInfo(Application.dataPath);
+        public static readonly string ProjectPath = DataDirectoryInfo.Parent.FullName;
+
         public static T ShowCreateAssetPanel<T>(string fileName, string defaultFolderIfInvalid) where T : ScriptableObject
         {
             string filePath = EditorUtility.SaveFilePanel("Choose folder", Application.dataPath, fileName, "asset");
@@ -57,15 +59,24 @@ namespace Treasured.SDKEditor
             return true;
         }
 
-        public static void MoveSceneViewAndSelect(this Transform transform)
+        public static void MoveSceneViewAndSelect(this Transform transform, float newSize = 0)
         {
-            SceneView.lastActiveSceneView.LookAt(transform.position, transform.rotation, 0);
+            MoveSceneView(transform, newSize);
             Selection.activeGameObject = transform.gameObject;
         }
 
-        public static void MoveSceneView(this Transform transform)
+        public static void MoveSceneView(this Transform transform, float newSize = 0)
         {
-            SceneView.lastActiveSceneView.LookAt(transform.position, transform.rotation, 0);
+            if (newSize == 0)
+            {
+                SceneView.lastActiveSceneView.LookAt(transform.position, transform.rotation, 0.01f);
+            }
+            else
+            {
+                Vector3 targetPosition = transform.position;
+                Vector3 cameraPosition = transform.position + transform.forward * newSize;
+                SceneView.lastActiveSceneView.LookAt(cameraPosition, Quaternion.LookRotation(targetPosition - cameraPosition), newSize);
+            }
         }
 
         public static Transform GetPreviousSibling(this Transform transform)

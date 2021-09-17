@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Treasured.SDK
+namespace Treasured.UnitySdk
 {
     public class StringSelectorAttribute : PropertyAttribute
     {

@@ -1,6 +1,6 @@
-﻿using UnityEngine;
+﻿using Treasured.UnitySdk;
 using UnityEditor;
-using Treasured.SDK;
+using UnityEngine;
 
 namespace Treasured.SDKEditor
 {

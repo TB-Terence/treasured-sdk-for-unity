@@ -2,11 +2,10 @@
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using System;
-using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
-namespace Treasured.SDK
+namespace Treasured.UnitySdk.Editor
 {
     internal class CustomContractResolver : DefaultContractResolver
     {
@@ -40,23 +39,6 @@ namespace Treasured.SDK
         protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
         {
             JsonProperty property = base.CreateProperty(member, memberSerialization);
-
-            // ignore name and hideFlags for ScriptableObject
-            if (property.DeclaringType.IsAssignableFrom(typeof(ScriptableObject)) && (property.PropertyName == "name" || property.PropertyName == "hideFlags"))
-            {
-                property.ShouldSerialize = (instance) => false;
-            }
-            if (property.DeclaringType == typeof(TreasuredObject) && property.PropertyName == "visibleTargets")
-            {
-                property.ShouldSerialize = (instance) =>
-                {
-                    if (!(instance is TreasuredObject obj))
-                    {
-                        return false;
-                    }
-                    return obj.VisibleTargets is List<string> visibleTargets && visibleTargets.Count > 0;
-                };
-            }
             if (property.DeclaringType == typeof(TreasuredAction))
             {
                 property.ShouldSerialize = (instance) =>
