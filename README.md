@@ -6,10 +6,7 @@ This package provides tools for creating and exporting files used by Treasured w
  - 2020.3+
 
 ## Dependency Packages/Libraries
-- This package requires [Newtonsoft.Json](https://github.com/JamesNK/Newtonsoft.Json), minimum version 10.0.3+. Go to next section if your project already using the library. Otherwise, we recommend installing the [Newtonsoft.Json-for-Unity](https://github.com/jilleJr/Newtonsoft.Json-for-Unity) package. Follow their [guide](https://github.com/jilleJr/Newtonsoft.Json-for-Unity#installation) on installing the package, or install [via Git in Unity Package Manager](https://github.com/jilleJr/Newtonsoft.Json-for-Unity#installation-via-git-in-upm).
-
-## Third-Party Libraries
-- [Simple360Render](https://github.com/yasirkula/Unity360ScreenshotCapture) (Included)
+- This package requires [Newtonsoft.Json](https://github.com/JamesNK/Newtonsoft.Json), minimum version 12.0.0+. Go to next section if your project already using the library. Otherwise, we recommend installing the [Newtonsoft.Json-for-Unity](https://github.com/jilleJr/Newtonsoft.Json-for-Unity) package. Follow their [guide](https://github.com/jilleJr/Newtonsoft.Json-for-Unity#installation) on installing the package, or install [via Git in Unity Package Manager](https://github.com/jilleJr/Newtonsoft.Json-for-Unity#installation-via-git-in-upm).
 
 ## Package Installation via Unity Package Manager
 
