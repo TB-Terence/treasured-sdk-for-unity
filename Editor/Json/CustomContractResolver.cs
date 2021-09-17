@@ -59,6 +59,8 @@ namespace Treasured.UnitySdk.Editor
                                 return action.Type == "showText";
                             case "targetId":
                                 return action.Type == "selectObject";
+                            case "volume":
+                                return action.Type == "playAudio";
                         }
                     }
                     return true;

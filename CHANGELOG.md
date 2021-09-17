@@ -1,3 +1,5 @@
+## Version 0.4.1 (September 17, 2021)
+- Add `volume` property to `Play Audio` action
 ## Version 0.3.6 (August 25, 2021)
 - Added `style` field for `Show Text` action
 ## Version 0.3.5 (August 23, 2021)

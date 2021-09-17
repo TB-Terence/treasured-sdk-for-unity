@@ -40,6 +40,9 @@ namespace Treasured.UnitySdk
         private string _content;
         [SerializeField]
         private Style _style;
+        [SerializeField]
+        [Range(0, 100)]
+        private int _volume = 100;
 
         public string Id { get => _id; set => _id = value; }
         public string Type { get => _type; set => _type = value; }
@@ -48,5 +51,6 @@ namespace Treasured.UnitySdk
         public DisplayMode DisplayMode { get => _displayMode; set => _displayMode = value; }
         public string Content { get => _content; set => _content = value; }
         public Style Style { get => _style; set => _style = value; }
+        public int Volume { get => _volume; set => _volume = value; }
     }
 }
