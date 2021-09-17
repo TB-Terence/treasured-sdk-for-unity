@@ -95,6 +95,8 @@ namespace Treasured.UnitySdk.Editor
                         break;
                     case "playAudio":
                         EditorGUI.PropertyField(new Rect(position.x, position.y + 38, position.width, srcPropHeight), srcProp);
+                        SerializedProperty volumeProp = property.FindPropertyRelative("_volume");
+                        EditorGUI.PropertyField(new Rect(position.x, position.y + 40 + srcPropHeight, position.width, 20), volumeProp);
                         break;
                 }
             }
@@ -132,11 +134,10 @@ namespace Treasured.UnitySdk.Editor
             {
                 case "selectObject":
                     return 60;
-                case "playAudio":
-                    return 102;
                 case "showText":
-                    return 146;
+                    return 148;
                 case "playVideo":
+                case "playAudio":
                 case "openLink":
                     return 122;
                 default:

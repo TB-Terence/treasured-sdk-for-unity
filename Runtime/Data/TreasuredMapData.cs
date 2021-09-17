@@ -9,7 +9,7 @@ namespace Treasured.UnitySdk
     [Serializable]
     public sealed class TreasuredMapData
     {
-        public static readonly string Version = "0.4.0";
+        public static readonly string Version = "0.4.1";
 
         /// <summary>
         /// The unique identifier of the map.
