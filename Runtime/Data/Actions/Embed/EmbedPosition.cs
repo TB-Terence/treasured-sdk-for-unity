@@ -2,11 +2,11 @@
 {
     public enum EmbedPosition
     {
-        Center,
         TopLeft,
         TopRight,
         BottomLeft,
         BottomRight,
+        Center,
         Fullscreen
     }
 }

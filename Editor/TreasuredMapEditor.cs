@@ -98,15 +98,7 @@ namespace Treasured.UnitySdk.Editor
 
         protected override void Init()
         {
-            //TreasuredMapEditorUtility.RefreshIds(Target);
-            //Target.transform.hideFlags = HideFlags.HideInInspector;
-            //_hotspots = Target.gameObject.GetComponentsInChildren<Hotspot>(true).ToList();
-            //_interactables = Target.gameObject.GetComponentsInChildren<Interactable>(true).ToList();
-            //Target.Data.GenerateHotspots(_hotspots);
-            //Target.Data.GenerateInteractables(_interactables);
-            //Target.Data.Validate();
             InitSerializedProperty();
-            //Tools.hidden = true;
 
             hotspots = Target.gameObject.GetComponentsInChildren<Hotspot>(true).ToList();
             interactables = Target.gameObject.GetComponentsInChildren<Interactable>(true).ToList();
@@ -132,19 +124,23 @@ namespace Treasured.UnitySdk.Editor
             {
                 Hotspot current = hotspots[i];
                 Hotspot next = hotspots[(i + 1) % hotspots.Count];
+
+                Vector3 currentCameraPosition = current.transform.position + current.CameraPositionOffset;
+                Vector3 nextCameraPosition = next.transform.position + next.CameraPositionOffset;
+
                 Handles.color = Color.white;
-                Handles.Label(current.cameraTransform.Position, current.name);
+                Handles.Label(currentCameraPosition, current.name);
 
                 if (!loop.boolValue && i == hotspots.Count - 1)
                 {
                     continue;
                 }
-                Handles.DrawLine(current.cameraTransform.Position, next.cameraTransform.Position);
-                Vector3 direction = next.cameraTransform.Position - current.cameraTransform.Position;
+                Handles.DrawLine(currentCameraPosition, nextCameraPosition);
+                Vector3 direction = nextCameraPosition - currentCameraPosition;
                 if (direction != Vector3.zero)
                 {
                     Handles.color = Color.green;
-                    Handles.ArrowHandleCap(0, current.cameraTransform.Position, Quaternion.LookRotation(direction), 0.5f, EventType.Repaint);
+                    Handles.ArrowHandleCap(0, currentCameraPosition, Quaternion.LookRotation(direction), 0.5f, EventType.Repaint);
                 }
             }
         }
@@ -170,14 +166,6 @@ namespace Treasured.UnitySdk.Editor
         {
             Styles.Init();
             serializedObject.Update();
-            //using (new EditorGUILayout.VerticalScope())
-            //{
-            //    OnFoldoutGroupGUI(ref _showMapSettings, new GUIContent("Map Settings"), OnDrawMapSettings);
-            //    OnFoldoutGroupGUI(ref _showInfo, new GUIContent("Info"), OnDrawInfo);
-            //    OnFoldoutGroupGUI(ref _showManagementTabs, new GUIContent("Object Management"), OnDrawObjectManagement);
-            //    //OnFoldoutGroupGUI(ref _showExportSettings, new GUIContent("Export Settings"), OnDrawExportSettings);
-            //    OnFooter();
-            //}
             if (GUILayout.Button("Upgrade to Version 0.5.0", GUILayout.Height(36)))
             {
                 if (Target != null && Target.Data != null)
@@ -192,6 +180,9 @@ namespace Treasured.UnitySdk.Editor
                         SerializedProperty data = obj.FindProperty("_data");
                         SerializedProperty oldId = data.FindPropertyRelative("_id");
                         SerializedProperty newId = obj.FindProperty("_id");
+
+                        MigrateAction(data.FindPropertyRelative("_onSelected"), obj.FindProperty("_onSelected"));
+                        
                         newId.stringValue = oldId.stringValue;
 
                         obj.ApplyModifiedProperties();
@@ -202,6 +193,9 @@ namespace Treasured.UnitySdk.Editor
                         SerializedProperty data = obj.FindProperty("_data");
                         SerializedProperty oldId = data.FindPropertyRelative("_id");
                         SerializedProperty newId = obj.FindProperty("_id");
+
+                        MigrateAction(data.FindPropertyRelative("_onSelected"), obj.FindProperty("_onSelected"));
+
                         newId.stringValue = oldId.stringValue;
 
                         obj.ApplyModifiedProperties();
@@ -213,6 +207,53 @@ namespace Treasured.UnitySdk.Editor
             OnObjectManagementGUI();
             OnExportGUI();
             serializedObject.ApplyModifiedProperties();
+        }
+
+        void MigrateAction(SerializedProperty oldOnSelected, SerializedProperty newOnSelected)
+        {
+            newOnSelected.arraySize = 0;
+            for (int i = 0; i < oldOnSelected.arraySize; i++)
+            {
+                SerializedProperty oldElement = oldOnSelected.GetArrayElementAtIndex(i);
+                SerializedProperty newElement = null;
+
+                SerializedProperty _type = oldElement.FindPropertyRelative("_type");
+                SerializedProperty _id = oldElement.FindPropertyRelative("_id");
+
+                //SerializedProperty _src;
+                //SerializedProperty _targetId;
+                //SerializedProperty _displayMode = DisplayMode.Right;
+                //SerializedProperty _content;
+                //SerializedProperty _style;
+                //SerializedProperty _volume = 100;
+                switch (_type.stringValue)
+                {
+                    case "openLink":
+                        newElement = newOnSelected.AppendManagedObject(typeof(OpenLinkAction));
+                        newElement.FindPropertyRelative("_src").stringValue = oldElement.FindPropertyRelative("_src").stringValue;
+                        break;
+                    case "showText":
+                        newElement = newOnSelected.AppendManagedObject(typeof(ShowTextAction));
+                        newElement.FindPropertyRelative("_content").stringValue = oldElement.FindPropertyRelative("_content").stringValue;
+                        break;
+                    case "playAudio":
+                        newElement = newOnSelected.AppendManagedObject(typeof(PlayAudioAction));
+                        newElement.FindPropertyRelative("_volume").stringValue = oldElement.FindPropertyRelative("_volume").stringValue;
+                        break;
+                    case "playVideo":
+                        newElement = newOnSelected.AppendManagedObject(typeof(OpenLinkAction));
+
+                        break;
+                    case "selectObject":
+                        newElement = newOnSelected.AppendManagedObject(typeof(SelectObjectAction));
+                        newElement.FindPropertyRelative("_targetId").stringValue = oldElement.FindPropertyRelative("_targetId").stringValue;
+                        break;
+                }
+                if (newElement != null)
+                {
+                    newElement.FindPropertyRelative("_id").stringValue = _id.stringValue;
+                }
+            }
         }
 
         void OnLaunchPageSettingsGUI()
@@ -263,45 +304,45 @@ namespace Treasured.UnitySdk.Editor
                 using (new EditorGUILayout.HorizontalScope())
                 {
                     EditorGUILayout.LabelField(new GUIContent("Index", "The order of the Hotspot for the Guide Tour."), GUILayout.Width(64));
-                    EditorGUILayout.LabelField(new GUIContent("Export", "Enable if the object should be included in the output file."), GUILayout.Width(72));
+                    //EditorGUILayout.LabelField(new GUIContent("Export", "Enable if the object should be included in the output file."), GUILayout.Width(72));
                     //GUILayout.FlexibleSpace();
                     //if (GUILayout.Button(Icons.menu, EditorStyles.label, GUILayout.Width(20), GUILayout.Height(20)))
                     //{
                     //    ShowObjectsMenu(objects);
                     //};
                 }
-                if (objects.Count > 1)
-                {
-                    using (new EditorGUILayout.HorizontalScope())
-                    {
-                        if (objects.All(x => !x.gameObject.activeSelf))
-                        {
-                            exportAll = false;
-                            groupToggleState = GroupToggleState.None;
-                        }
-                        else if (objects.Any(x => !x.gameObject.activeSelf))
-                        {
-                            groupToggleState = GroupToggleState.Mixed;
-                        }
-                        else
-                        {
-                            exportAll = true;
-                            groupToggleState = GroupToggleState.All;
-                        }
-                        EditorGUI.showMixedValue = groupToggleState == GroupToggleState.Mixed;
-                        GUILayout.Space(70);
-                        EditorGUI.BeginChangeCheck();
-                        exportAll = EditorGUILayout.ToggleLeft(GUIContent.none, exportAll);
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            foreach (var obj in objects)
-                            {
-                                obj.gameObject.SetActive(exportAll);
-                            }
-                        }
-                        EditorGUI.showMixedValue = false;
-                    }
-                }
+                //if (objects.Count > 1)
+                //{
+                //    using (new EditorGUILayout.HorizontalScope())
+                //    {
+                //        if (objects.All(x => !x.gameObject.activeSelf))
+                //        {
+                //            exportAll = false;
+                //            groupToggleState = GroupToggleState.None;
+                //        }
+                //        else if (objects.Any(x => !x.gameObject.activeSelf))
+                //        {
+                //            groupToggleState = GroupToggleState.Mixed;
+                //        }
+                //        else
+                //        {
+                //            exportAll = true;
+                //            groupToggleState = GroupToggleState.All;
+                //        }
+                //        EditorGUI.showMixedValue = groupToggleState == GroupToggleState.Mixed;
+                //        GUILayout.Space(70);
+                //        EditorGUI.BeginChangeCheck();
+                //        exportAll = EditorGUILayout.ToggleLeft(GUIContent.none, exportAll);
+                //        if (EditorGUI.EndChangeCheck())
+                //        {
+                //            foreach (var obj in objects)
+                //            {
+                //                obj.gameObject.SetActive(exportAll);
+                //            }
+                //        }
+                //        EditorGUI.showMixedValue = false;
+                //    }
+                //}
                 using (var scope = new EditorGUILayout.ScrollViewScope(scrollPosition, GUILayout.Height(220)))
                 {
                     scrollPosition = scope.scrollPosition;
@@ -311,12 +352,12 @@ namespace Treasured.UnitySdk.Editor
                         {
                             T current = objects[i];
                             EditorGUILayout.LabelField($"{i + 1}", GUILayout.Width(64));
-                            EditorGUI.BeginChangeCheck();
-                            bool active = EditorGUILayout.Toggle(GUIContent.none, current.gameObject.activeSelf, GUILayout.Width(20));
-                            if (EditorGUI.EndChangeCheck())
-                            {
-                                current.gameObject.SetActive(active);
-                            }
+                            //EditorGUI.BeginChangeCheck();
+                            //bool active = EditorGUILayout.Toggle(GUIContent.none, current.gameObject.activeSelf, GUILayout.Width(20));
+                            //if (EditorGUI.EndChangeCheck())
+                            //{
+                            //    current.gameObject.SetActive(active);
+                            //}
                             EditorGUILayout.LabelField(new GUIContent(current.gameObject.name, current.Id));
                             if (EditorGUILayoutUtilities.CreateClickZone(Event.current, GUILayoutUtility.GetLastRect(), MouseCursor.Link, 0))
                             {
@@ -342,7 +383,7 @@ namespace Treasured.UnitySdk.Editor
             {
                 if (obj is Hotspot hotspot)
                 {
-                    SceneView.lastActiveSceneView.LookAt(hotspot.transform.position + hotspot.cameraPositionOffset, hotspot.transform.rotation, 0.01f);
+                    SceneView.lastActiveSceneView.LookAt(hotspot.transform.position + hotspot.CameraPositionOffset, hotspot.transform.rotation, 0.01f);
                 }
                 else
                 {
@@ -392,7 +433,7 @@ namespace Treasured.UnitySdk.Editor
             OnFoldoutGroupGUI("Export", () =>
             {
                 exporter?.OnGUI();
-            }, false);
+            }, true);
         }
 
         void OnFoldoutGroupGUI(string groupName, Action action, bool isExpandByDefault = false)

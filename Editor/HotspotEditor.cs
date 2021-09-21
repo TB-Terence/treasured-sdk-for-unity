@@ -21,8 +21,8 @@ namespace Treasured.UnitySdk
             map = (target as Hotspot).GetComponentInParent<TreasuredMap>();
 
             id = serializedObject.FindProperty("_id");
-            cameraPositionOffset = serializedObject.FindProperty("cameraPositionOffset");
-            onSelected = serializedObject.FindProperty("onSelected");
+            cameraPositionOffset = serializedObject.FindProperty("_cameraPositionOffset");
+            onSelected = serializedObject.FindProperty("_onSelected");
             list = new ActionBaseListDrawer(serializedObject, onSelected);
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;

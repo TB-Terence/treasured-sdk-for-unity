@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
@@ -11,12 +12,15 @@ namespace Treasured.UnitySdk
         [SerializeField]
         private HotspotData _data = new HotspotData();
 
+        [SerializeField]
         [JsonIgnore]
-        public Vector3 cameraPositionOffset = new Vector3(0, 2f, 0);
+        private Vector3 _cameraPositionOffset = new Vector3(0, 2f, 0);
 
-        public TransformData cameraTransform => new TransformData()
+        public Vector3 CameraPositionOffset { get => _cameraPositionOffset; set => _cameraPositionOffset = value; }
+
+        public TransformData CameraTransform => new TransformData()
         {
-            Position = transform.position + cameraPositionOffset,
+            Position = transform.position + _cameraPositionOffset,
             Rotation = transform.eulerAngles
         };
 
@@ -27,6 +31,8 @@ namespace Treasured.UnitySdk
                 transform.position = hit.point + new Vector3(0, 0.01f, 0);
             }
         }
+
+        public List<string> VisibleTargets { get; set; }
 
         [JsonIgnore]
         [Obsolete]

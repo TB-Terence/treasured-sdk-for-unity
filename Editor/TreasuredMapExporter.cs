@@ -35,8 +35,6 @@ namespace Treasured.UnitySdk
         public TreasuredMap target;
         public SerializedObject serializedObject;
 
-        public string folderName;
-
         public bool showInExplorer;
 
         private DirectoryInfo outputDirectory;
@@ -59,7 +57,12 @@ namespace Treasured.UnitySdk
         public void OnGUI()
         {
             serializedObject.Update();
-            EditorGUILayout.PropertyField(outputFolderName);
+            EditorGUI.BeginChangeCheck();
+            string newOutputFolderName = EditorGUILayout.TextField(new GUIContent("Output Folder Name"), outputFolderName.stringValue);
+            if (EditorGUI.EndChangeCheck() && !string.IsNullOrEmpty(newOutputFolderName))
+            {
+                outputFolderName.stringValue = newOutputFolderName;
+            }
             EditorGUILayout.PropertyField(serializedObject.FindProperty("format"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("quality"));
             serializedObject.ApplyModifiedProperties();
@@ -94,11 +97,11 @@ namespace Treasured.UnitySdk
             }
             try
             {
-                outputDirectory = Directory.CreateDirectory($"{DefaultOutputFolderPath}/{folderName}");
+                outputDirectory = Directory.CreateDirectory($"{DefaultOutputFolderPath}/{target.OutputFolderName}");
             }
             catch (ArgumentException)
             {
-                throw new ArgumentException($"Invalid folder name : {folderName}");
+                throw new ArgumentException($"Invalid folder name : {target.OutputFolderName}");
             }
         }
 

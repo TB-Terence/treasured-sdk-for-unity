@@ -5,9 +5,15 @@ namespace Treasured.UnitySdk
     [Category("Media")]
     public abstract class EmbedAction : ActionBase
     {
+        [SerializeField]
         [TextArea(1, 3)]
-        public string src;
+        private string _src;
 
-        public EmbedPosition position = EmbedPosition.TopRight;
+        [SerializeField]
+        private EmbedPosition _position = EmbedPosition.TopRight;
+
+        public string Src { get => _src; set => _src = value; }
+
+        private EmbedPosition Position { get => _position; set => _position = value; }
     }
 }

@@ -28,6 +28,7 @@ namespace Treasured.UnitySdk
         #endregion
 
         [Obsolete]
+        [JsonIgnore]
         public TreasuredMapData Data
         {
             get

@@ -10,8 +10,15 @@ namespace Treasured.UnitySdk
             Dialogue,
             Fade
         }
+
+        [SerializeField]
         [TextArea(5, 5)]
-        public string content;
-        public TextStyles style;
+        private string _content;
+
+        [SerializeField]
+        private TextStyles _style = TextStyles.Dialogue;
+
+        public string Content { get => _content; set => _content = value; }
+        public TextStyles Style { get => Style; set => _style = value; }
     }
 }

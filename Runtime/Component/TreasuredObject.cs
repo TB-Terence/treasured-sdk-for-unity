@@ -18,7 +18,40 @@ namespace Treasured.UnitySdk
         /// Action to perform when the object in selected.
         /// </summary>
         [SerializeReference]
-        public List<ActionBase> onSelected = new List<ActionBase>();
+        [JsonProperty]
+        private List<ActionBase> _onSelected = new List<ActionBase>();
+
+        [JsonIgnore]
+
+        public IEnumerable<ActionBase> OnSelected => _onSelected;
+
+        // Will be removed in next release
+        [Obsolete]
+        public TransformData Transform
+        {
+            get
+            {
+                return new TransformData()
+                {
+                    Position = transform.position,
+                    Rotation = transform.eulerAngles
+                };
+            }
+        }
+
+        // Will be removed in next release.
+        [Obsolete]
+        public Hitbox Hitbox
+        {
+            get
+            {
+                return new Hitbox()
+                {
+                    Center = _boxCollider.bounds.center, // the center on the web uses world space.
+                    Size = _boxCollider.size
+                };
+            }
+        }
 
         [SerializeField]
         [HideInInspector]

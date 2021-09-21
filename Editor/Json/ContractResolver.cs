@@ -49,8 +49,12 @@ namespace Treasured.UnitySdk
             property.Order = GetOrder(property); // Manually assign the order since we can't add JsonProperty(order) to the `name` field of UnityEngine.Object
             property.ShouldSerialize = (instance) =>
             {
+                if (property.PropertyName.Equals("name"))
+                {
+                    return !property.DeclaringType.IsAssignableFrom(typeof(TreasuredMap));
+                }
                 // Only allow the `name` field of the UnityEngine.Object to be serialized, ignore all properties that are assignable from MonoBehaviour(e.g. MonoBehaviour, Behaviour, Component, and UnityEngine.Object)
-                return property.PropertyName.Equals("name") || !property.DeclaringType.IsAssignableFrom(typeof(MonoBehaviour));
+                return !property.DeclaringType.IsAssignableFrom(typeof(MonoBehaviour));
             };
             return property;
         }
