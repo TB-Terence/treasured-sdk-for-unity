@@ -6,12 +6,12 @@ using UnityEngine;
 namespace Treasured.UnitySdk.Editor
 {
     [InitializeOnLoad]
-    public static class ReflectionUtility
+    public static class ReflectionUtilities
     {
         private static readonly Type PropertyEditor;
         private static readonly MethodInfo OpenPropertyEditorMethod;
 
-        static ReflectionUtility()
+        static ReflectionUtilities()
         {
             PropertyEditor = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.PropertyEditor");
             if (PropertyEditor != null)

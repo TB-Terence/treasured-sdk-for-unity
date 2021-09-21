@@ -9,6 +9,7 @@ namespace Treasured.UnitySdk.Editor
 
         protected override void OnSceneGUI()
         {
+            return;
             HandleUtility.AddDefaultControl(0);
             if (Event.current.type == EventType.MouseDown)
             {

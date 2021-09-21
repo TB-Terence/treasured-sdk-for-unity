@@ -1,17 +1,32 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
-    [RequireComponent(typeof(BoxCollider))]
     public abstract class TreasuredObject : MonoBehaviour, IDataComponent<TreasuredObjectData>
     {
         [SerializeField]
+        private string _id = Guid.NewGuid().ToString();
+
+        public string Id { get => _id; }
+
+        /// <summary>
+        /// Action to perform when the object in selected.
+        /// </summary>
+        [SerializeReference]
+        public List<ActionBase> onSelected = new List<ActionBase>();
+
+        [SerializeField]
         [HideInInspector]
+        [Obsolete]
         private BoxCollider _boxCollider;
 
+        [Obsolete]
+        [JsonIgnore]
         public BoxCollider BoxCollider
         {
             get
@@ -27,6 +42,7 @@ namespace Treasured.UnitySdk
             }
         }
 
+        [JsonIgnore]
         public abstract TreasuredObjectData Data { get; }
 
         protected virtual void OnEnable()
@@ -65,6 +81,14 @@ namespace Treasured.UnitySdk
         void IDataComponent<TreasuredObjectData>.BindData(TreasuredObjectData data)
         {
 
+        }
+
+        public void Upgrade()
+        {
+            if (Data == null)
+            {
+                return;
+            }
         }
     }
 }

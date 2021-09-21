@@ -63,8 +63,8 @@ namespace Treasured.UnitySdk
         #endregion
 
         #region Export Properties
-        public Format format = Format.PNG;
-        public Quality quality = Quality.Low;
+        public ImageFormat format = ImageFormat.PNG;
+        public ImageQuality quality = ImageQuality.Low;
         #endregion
 
         #region Guide Tour
@@ -88,13 +88,10 @@ namespace Treasured.UnitySdk
         }
         #endregion
 
-        internal void Upgrade()
-        {
-            if (_data == null)
-            {
-                return;
-            }
-            _id = Data.Id;
-        }
+        #region Export Settings
+        [SerializeField]
+        private string _outputFolderName;
+        public string OutputFolderName { get => _outputFolderName; set => _outputFolderName = value; }
+        #endregion
     }
 }

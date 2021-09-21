@@ -1,14 +1,18 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    [AddComponentMenu("")]
+    [AddComponentMenu("Treasured/Interactable")]
     public sealed class Interactable : TreasuredObject, IDataComponent<InteractableData>
     {
+        [Obsolete]
         [SerializeField]
         private InteractableData _data = new InteractableData();
 
+        [Obsolete]
+        [JsonIgnore]
         public override TreasuredObjectData Data
         {
             get
@@ -17,6 +21,7 @@ namespace Treasured.UnitySdk
             }
         }
 
+        [JsonIgnore]
         InteractableData IDataComponent<InteractableData>.Data => _data;
 
         public void BindData(InteractableData data)

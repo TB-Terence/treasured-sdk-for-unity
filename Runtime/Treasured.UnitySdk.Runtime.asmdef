@@ -1,5 +1,5 @@
 {
-    "name": "Treasured.ExhibitX.Runtime",
+    "name": "Treasured.UnitySdk.Runtime",
     "rootNamespace": "",
     "references": [],
     "includePlatforms": [],

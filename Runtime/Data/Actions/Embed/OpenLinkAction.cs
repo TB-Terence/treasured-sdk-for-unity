@@ -1,8 +1,6 @@
 ﻿namespace Treasured.UnitySdk
 {
-    public enum Format
+    public class OpenLinkAction : EmbedAction
     {
-        PNG,
-        JPG
     }
 }
