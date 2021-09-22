@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
@@ -8,9 +10,10 @@ using UnityEngine;
 namespace Treasured.UnitySdk.Editor
 {
     [CustomEditor(typeof(TreasuredMap))]
-    internal sealed partial class TreasuredMapEditor : TreasuredEditor<TreasuredMap>
+    internal class TreasuredMapEditor : UnityEditor.Editor
     {
         private static readonly string[] selectableObjectListNames = new string[] { "Hotspots", "Interactables" };
+        private static Vector3 cameraBoxSize = new Vector3(0.3f, 0.3f, 0.3f);
 
         [AttributeUsage(AttributeTargets.Method)]
         class FoldoutGroupAttribute : Attribute
@@ -88,7 +91,7 @@ namespace Treasured.UnitySdk.Editor
             }
         }
 
-        private enum GroupToggleState
+        enum GroupToggleState
         {
             None,
             All,
@@ -97,11 +100,7 @@ namespace Treasured.UnitySdk.Editor
 
         private SerializedProperty _interactableLayer;
 
-        private TreasuredObject _currentEditingObject = null;
-        private int _selectedObjectTab;
-
         #region Hotspot Management
-        private float _hotspotGroundOffset = 2;
         #endregion
 
         #region Version 0.5
@@ -133,10 +132,9 @@ namespace Treasured.UnitySdk.Editor
         private Dictionary<MethodInfo, FoldoutGroupState> foldoutGroupGUI = new Dictionary<MethodInfo, FoldoutGroupState>();
         #endregion
 
-        protected override void Init()
+        private void OnEnable()
         {
             GetFoldoutGroupMethods();
-
             _interactableLayer = serializedObject.FindProperty(nameof(_interactableLayer));
 
             _title = serializedObject.FindProperty(nameof(_title));
@@ -147,11 +145,15 @@ namespace Treasured.UnitySdk.Editor
             _format = serializedObject.FindProperty(nameof(_format));
             _quality = serializedObject.FindProperty(nameof(_quality));
 
-            hotspots = Target.gameObject.GetComponentsInChildren<Hotspot>(true).ToList();
-            interactables = Target.gameObject.GetComponentsInChildren<Interactable>(true).ToList();
+            TreasuredMap map = (target as TreasuredMap);
+            if (map)
+            {
+                hotspots = map.gameObject.GetComponentsInChildren<Hotspot>(true).ToList();
+                interactables = map.gameObject.GetComponentsInChildren<Interactable>(true).ToList();
 
-            exporter = new TreasuredMapExporter(serializedObject, Target);
-
+                exporter = new TreasuredMapExporter(serializedObject, map);
+            }
+            
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
         }
@@ -181,6 +183,7 @@ namespace Treasured.UnitySdk.Editor
             {
                 return;
             }
+            Color previousColor = Handles.color;
             for (int i = 0; i < hotspots.Count; i++)
             {
                 Hotspot current = hotspots[i];
@@ -193,12 +196,20 @@ namespace Treasured.UnitySdk.Editor
                 {
                     Handles.color = Color.white;
                     Handles.Label(currentCameraPosition, current.name);
+
+                    // Show facing direction
+                    Handles.color = Color.blue;
+                    Handles.ArrowHandleCap(0, currentCameraPosition, current.gameObject.transform.rotation, 0.5f, EventType.Repaint);
+
+                    Handles.color = Color.red;
+                    Handles.DrawWireCube(currentCameraPosition, cameraBoxSize);
                 }
 
                 if (!_loop.boolValue && i == hotspots.Count - 1)
                 {
                     continue;
                 }
+                Handles.color = Color.white;
                 Handles.DrawLine(currentCameraPosition, nextCameraPosition);
                 Vector3 direction = nextCameraPosition - currentCameraPosition;
                 if (direction != Vector3.zero)
@@ -207,6 +218,7 @@ namespace Treasured.UnitySdk.Editor
                     Handles.ArrowHandleCap(0, currentCameraPosition, Quaternion.LookRotation(direction), 0.5f, EventType.Repaint);
                 }
             }
+            Handles.color = previousColor;
         }
 
         public override void OnInspectorGUI()
@@ -401,5 +413,152 @@ namespace Treasured.UnitySdk.Editor
             allFilled &= !string.IsNullOrEmpty(_description.stringValue.Trim());
             return allFilled;
         }
+
+        #region Context Menu
+        /// <summary>
+        /// Get the child with the name. Create a new game object if child not found.
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        static Transform GetChild(Transform parent, string name)
+        {
+            Transform child = parent.Find(name);
+            if (child == null)
+            {
+                child = new GameObject(name).transform;
+                child.SetParent(parent);
+            }
+            return child;
+        }
+
+        static T CreateTreasuredObject<T>(Transform parent) where T : TreasuredObject
+        {
+            GameObject go = new GameObject();
+            go.transform.SetParent(parent);
+            return go.AddComponent<T>();
+        }
+
+        [MenuItem("GameObject/Treasured/Create Interactable", false, 49)]
+        static void CreateInteractableFromContextMenu()
+        {
+            TreasuredMap map = Selection.activeGameObject.GetComponentInParent<TreasuredMap>();
+            Transform root = map.transform;
+            Transform interactableRoot = root.Find("Interactables");
+            if (interactableRoot == null)
+            {
+                interactableRoot = new GameObject("Interactables").transform;
+                interactableRoot.SetParent(root);
+            }
+            GameObject interactable = new GameObject("New Interacatble", typeof(Interactable));
+            if (Selection.activeGameObject.transform == root)
+            {
+                interactable.transform.SetParent(interactableRoot);
+            }
+            else
+            {
+                interactable.transform.SetParent(Selection.activeGameObject.transform);
+            }
+        }
+
+        [MenuItem("GameObject/Treasured/Create Hotspot", false, 49)]
+        static void CreateHotspotFromContextMenu()
+        {
+            TreasuredMap map = Selection.activeGameObject.GetComponentInParent<TreasuredMap>();
+            Transform root = map.transform;
+            Transform hotspotRoot = root.Find("Hotspots");
+            if (hotspotRoot == null)
+            {
+                hotspotRoot = new GameObject("Hotspots").transform;
+                hotspotRoot.SetParent(root);
+            }
+            GameObject hotspot = new GameObject("New Hotspot", typeof(Hotspot));
+            if (Selection.activeGameObject.transform == root)
+            {
+                hotspot.transform.SetParent(hotspotRoot);
+            }
+            else
+            {
+                hotspot.transform.SetParent(Selection.activeGameObject.transform);
+            }
+        }
+
+        [MenuItem("GameObject/Treasured/Create Empty Map", false, 49)]
+        static void CreateEmptyMap()
+        {
+            GameObject map = new GameObject("Treasured Map", typeof(TreasuredMap));
+            if (Selection.activeGameObject)
+            {
+                map.transform.SetParent(Selection.activeGameObject.transform);
+            }
+        }
+
+        [MenuItem("GameObject/Treasured/Create Empty Map", true, 49)]
+        static bool CanCreateEmptyMap()
+        {
+            if (Selection.activeGameObject == null)
+            {
+                return true;
+            }
+            return !Selection.activeGameObject.GetComponentInParent<TreasuredMap>();
+        }
+
+        [MenuItem("GameObject/Treasured/Create Map from Json", false, 49)]
+        static void CreateMapFromJson()
+        {
+            string jsonPath = EditorUtility.OpenFilePanel("Select Json", Utility.ProjectPath, "json");
+            if (!File.Exists(jsonPath))
+            {
+                return;
+            }
+            string json = File.ReadAllText(jsonPath);
+            try
+            {
+                TreasuredMapData data = JsonConvert.DeserializeObject<TreasuredMapData>(json);
+                GameObject mapGO = new GameObject("Treasured Map");
+                TreasuredMap map = mapGO.AddComponent<TreasuredMap>();
+                map.Populate(data);
+
+                GameObject hotspotRoot = new GameObject("Hotspots");
+                hotspotRoot.transform.SetParent(mapGO.transform);
+
+                GameObject interactableRoot = new GameObject("Interactables");
+                interactableRoot.transform.SetParent(mapGO.transform);
+
+                for (int i = 0; i < data.Hotspots.Count; i++)
+                {
+                    CreateTreasuredObject<Hotspot>(hotspotRoot.transform).BindData(data.Hotspots[i]);
+                }
+
+                for (int i = 0; i < data.Interactables.Count; i++)
+                {
+                    CreateTreasuredObject<Interactable>(interactableRoot.transform).BindData(data.Interactables[i]);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e.StackTrace);
+                throw e;
+            }
+        }
+
+        [MenuItem("GameObject/Treasured/Create Map from Json", true, 49)]
+        static bool CanCreateMapFromJson()
+        {
+            return Selection.activeGameObject == null;
+        }
+
+        [MenuItem("GameObject/Treasured/Create Hotspot", true)]
+        static bool CanCreateHotspotFromContextMenu()
+        {
+            return Selection.activeGameObject?.GetComponentInParent<TreasuredMap>();
+        }
+
+        [MenuItem("GameObject/Treasured/Create Interactable", true, 49)]
+        static bool CanCreateInteractableFromContextMenu()
+        {
+            return Selection.activeGameObject?.GetComponentInParent<TreasuredMap>();
+        }
+        #endregion
     }
 }

@@ -56,7 +56,6 @@ namespace Treasured.UnitySdk
 
         public void OnGUI()
         {
-            serializedObject.Update();
             EditorGUI.BeginChangeCheck();
             string newOutputFolderName = EditorGUILayout.TextField(new GUIContent("Output Folder Name"), outputFolderName.stringValue);
             if (EditorGUI.EndChangeCheck() && !string.IsNullOrEmpty(newOutputFolderName))
@@ -65,7 +64,6 @@ namespace Treasured.UnitySdk
             }
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_format"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_quality"));
-            serializedObject.ApplyModifiedProperties();
             if (GUILayout.Button("Export Json"))
             {
                 ExportJson();
@@ -99,9 +97,13 @@ namespace Treasured.UnitySdk
             {
                 outputDirectory = Directory.CreateDirectory($"{DefaultOutputFolderPath}/{target.OutputFolderName}");
             }
-            catch (ArgumentException)
+            catch (Exception ex) when (ex is IOException || ex is ArgumentException)
             {
                 throw new ArgumentException($"Invalid folder name : {target.OutputFolderName}");
+            }
+            catch
+            {
+                throw;
             }
         }
 

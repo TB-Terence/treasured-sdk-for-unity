@@ -20,13 +20,6 @@ namespace Treasured.UnitySdk
         private TreasuredMapData _data = new TreasuredMapData();
         #endregion
 
-        #region Export Settings
-        [SerializeField]
-        [AssetSelector(true)]
-        [Obsolete]
-        private string _outputDirectory = "";
-        #endregion
-
         [Obsolete]
         [JsonIgnore]
         public TreasuredMapData Data
@@ -65,7 +58,8 @@ namespace Treasured.UnitySdk
         public string Description { get => _description; set => _title = _description; }
 
         [JsonIgnore]
-        public Texture2D cover;
+        [SerializeField]
+        private Texture2D _cover;
         #endregion
 
         #region Export Properties
