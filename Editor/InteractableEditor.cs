@@ -18,23 +18,19 @@ namespace Treasured.UnitySdk
             map = (target as Interactable).GetComponentInParent<TreasuredMap>();
 
             id = serializedObject.FindProperty("_id");
-            onSelected = serializedObject.FindProperty("onSelected");
+            onSelected = serializedObject.FindProperty("_onSelected");
             list = new ActionBaseListDrawer(serializedObject, onSelected);
         }
 
         public override void OnInspectorGUI()
         {
-            if (serializedObject.targetObjects.Length == 1 && GUILayout.Button("Select Map"))
-            {
-                if (map)
-                {
-                    Selection.activeGameObject = map.gameObject;
-                }
-            }
             serializedObject.Update();
             if (!id.hasMultipleDifferentValues)
             {
-                EditorGUILayout.PropertyField(id);
+                using (new EditorGUI.DisabledGroupScope(true))
+                {
+                    EditorGUILayout.PropertyField(id);
+                }
             }
             if (!onSelected.hasMultipleDifferentValues)
             {

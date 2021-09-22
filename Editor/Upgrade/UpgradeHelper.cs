@@ -50,6 +50,7 @@ namespace Treasured.UnitySdk
 
                 obj.ApplyModifiedProperties();
             }
+            serializedObject.ApplyModifiedProperties();
             EditorUtility.DisplayDialog("Completed", "Upgrade completed, to ensure all data is moved over enable `Debug` view on the Inspector.", "Ok");
         }
 
