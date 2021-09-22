@@ -18,10 +18,7 @@ namespace Treasured.UnitySdk
         /// Action to perform when the object in selected.
         /// </summary>
         [SerializeReference]
-        [JsonProperty]
         private List<ActionBase> _onSelected = new List<ActionBase>();
-
-        [JsonIgnore]
 
         public IEnumerable<ActionBase> OnSelected => _onSelected;
 

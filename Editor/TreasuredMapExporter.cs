@@ -63,8 +63,8 @@ namespace Treasured.UnitySdk
             {
                 outputFolderName.stringValue = newOutputFolderName;
             }
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("format"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("quality"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_format"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_quality"));
             serializedObject.ApplyModifiedProperties();
             if (GUILayout.Button("Export Json"))
             {

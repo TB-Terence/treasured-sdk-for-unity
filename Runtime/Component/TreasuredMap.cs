@@ -50,26 +50,39 @@ namespace Treasured.UnitySdk
         public static readonly string Version = typeof(TreasuredMap).Assembly.GetName().Version.ToString();
         [SerializeField]
         private string _id = Guid.NewGuid().ToString();
+        public string Id { get => _id; }
         #endregion
 
         #region Launch Page
-        public string Id { get => _id; }
+        [SerializeField]
         [TextArea(3, 3)]
-        public string title;
+        private string _title;
+        public string Title { get => _title; set => _title = value; }
+
+        [SerializeField]
         [TextArea(5, 5)]
-        public string description;
+        private string _description;
+        public string Description { get => _description; set => _title = _description; }
 
         [JsonIgnore]
         public Texture2D cover;
         #endregion
 
         #region Export Properties
-        public ImageFormat format = ImageFormat.PNG;
-        public ImageQuality quality = ImageQuality.Low;
+        [SerializeField]
+        private ImageFormat _format = ImageFormat.PNG;
+        public ImageFormat Format { get => _format; set => _format = value; }
+
+        [SerializeField]
+        private ImageQuality _quality = ImageQuality.High;
+        public ImageQuality Quality { get => _quality; set => _quality = value; }
         #endregion
 
         #region Guide Tour
-        public bool loop;
+        [SerializeField]
+        private bool _loop;
+
+        public bool Loop { get => _loop; set => _loop = value; }
         #endregion
 
         #region Objects

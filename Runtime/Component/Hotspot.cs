@@ -13,11 +13,12 @@ namespace Treasured.UnitySdk
         private HotspotData _data = new HotspotData();
 
         [SerializeField]
-        [JsonIgnore]
         private Vector3 _cameraPositionOffset = new Vector3(0, 2f, 0);
 
+        [JsonIgnore]
         public Vector3 CameraPositionOffset { get => _cameraPositionOffset; set => _cameraPositionOffset = value; }
 
+        [JsonIgnore]
         public TransformData CameraTransform => new TransformData()
         {
             Position = transform.position + _cameraPositionOffset,

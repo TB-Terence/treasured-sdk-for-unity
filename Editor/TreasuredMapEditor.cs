@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace Treasured.UnitySdk.Editor
 {
@@ -48,9 +45,6 @@ namespace Treasured.UnitySdk.Editor
         private bool _showExportSettings = true;
 
         private SerializedProperty _id;
-        private SerializedProperty _title;
-        private SerializedProperty _description;
-        private SerializedProperty _loop;
 
         private TreasuredObject _currentEditingObject = null;
         private int _selectedObjectTab;
@@ -60,22 +54,19 @@ namespace Treasured.UnitySdk.Editor
         #endregion
 
         #region Export Settings
-        private SerializedProperty _format;
-        private SerializedProperty _quality;
-        private SerializedProperty _outputDirectory;
         private bool _showInExplorer = true;
         #endregion
 
         #region Version 0.5
         private TreasuredMapExporter exporter;
 
-        private SerializedProperty title;
-        private SerializedProperty description;
+        private SerializedProperty _title;
+        private SerializedProperty _description;
 
-        private SerializedProperty format;
-        private SerializedProperty quality;
+        private SerializedProperty _format;
+        private SerializedProperty _quality;
 
-        private SerializedProperty loop;
+        private SerializedProperty _loop;
 
         private bool exportAllHotspots = true;
         private GroupToggleState hotspotsGroupToggleState = GroupToggleState.All;
@@ -131,7 +122,7 @@ namespace Treasured.UnitySdk.Editor
                 Handles.color = Color.white;
                 Handles.Label(currentCameraPosition, current.name);
 
-                if (!loop.boolValue && i == hotspots.Count - 1)
+                if (!_loop.boolValue && i == hotspots.Count - 1)
                 {
                     continue;
                 }
@@ -148,17 +139,11 @@ namespace Treasured.UnitySdk.Editor
         private void InitSerializedProperty()
         {
             _interactableLayer = serializedObject.FindProperty(nameof(_interactableLayer));
-            _id = serializedObject.FindProperty($"_data.{nameof(_id)}");
-            _title = serializedObject.FindProperty($"_data.{nameof(_title)}");
-            _description = serializedObject.FindProperty($"_data.{nameof(_description)}");
-            _loop = serializedObject.FindProperty($"_data.{nameof(_loop)}");
-            _format = serializedObject.FindProperty($"_data.{nameof(_format)}");
-            _quality = serializedObject.FindProperty($"_data.{nameof(_quality)}");
-            _outputDirectory = serializedObject.FindProperty(nameof(_outputDirectory));
-
-            title = serializedObject.FindProperty(nameof(title));
-            description = serializedObject.FindProperty(nameof(description));
-            loop = serializedObject.FindProperty(nameof(loop));
+            _title = serializedObject.FindProperty(nameof(_title));
+            _description = serializedObject.FindProperty(nameof(_description));
+            _loop = serializedObject.FindProperty(nameof(_loop));
+            _format = serializedObject.FindProperty(nameof(_format));
+            _quality = serializedObject.FindProperty(nameof(_quality));
         }
 
 
@@ -171,9 +156,9 @@ namespace Treasured.UnitySdk.Editor
                 if (Target != null && Target.Data != null)
                 {
                     serializedObject.FindProperty("_id").stringValue = Target.Data.Id;
-                    title.stringValue = Target.Data.Title;
-                    description.stringValue = Target.Data.Description;
-                    loop.boolValue = Target.Data.Loop;
+                    _title.stringValue = Target.Data.Title;
+                    _description.stringValue = Target.Data.Description;
+                    _loop.boolValue = Target.Data.Loop;
                     foreach (var hotspot in hotspots)
                     {
                         SerializedObject obj = new SerializedObject(hotspot);
@@ -260,8 +245,8 @@ namespace Treasured.UnitySdk.Editor
         {
             OnFoldoutGroupGUI("Launch Page Settings", () =>
             {
-                EditorGUILayout.PropertyField(title);
-                EditorGUILayout.PropertyField(description);
+                EditorGUILayout.PropertyField(_title);
+                EditorGUILayout.PropertyField(_description);
                 //EditorGUILayout.PropertyField(cover);
                 //if (cover.objectReferenceValue is Texture2D preview)
                 //{
@@ -275,7 +260,7 @@ namespace Treasured.UnitySdk.Editor
         {
             OnFoldoutGroupGUI("Guide Tour Settings", () =>
             {
-                EditorGUILayout.PropertyField(loop);
+                EditorGUILayout.PropertyField(_loop);
             });
         }
 
@@ -768,7 +753,6 @@ namespace Treasured.UnitySdk.Editor
         {
             bool allFilled = !string.IsNullOrEmpty(_title.stringValue.Trim());
             allFilled &= !string.IsNullOrEmpty(_description.stringValue.Trim());
-            allFilled &= !string.IsNullOrEmpty(_outputDirectory.stringValue);
             return allFilled;
         }
     }

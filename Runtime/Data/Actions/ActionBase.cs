@@ -10,6 +10,8 @@ namespace Treasured.UnitySdk
         [HideInInspector]
         private string _id = Guid.NewGuid().ToString();
 
+        public string Id { get => _id; }
+
         public string Type {
             get
             {

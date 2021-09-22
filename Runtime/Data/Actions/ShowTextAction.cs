@@ -19,6 +19,6 @@ namespace Treasured.UnitySdk
         private TextStyles _style = TextStyles.Dialogue;
 
         public string Content { get => _content; set => _content = value; }
-        public TextStyles Style { get => Style; set => _style = value; }
+        public TextStyles Style { get => _style; set => _style = value; }
     }
 }

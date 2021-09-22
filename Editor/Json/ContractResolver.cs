@@ -2,6 +2,7 @@
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
@@ -43,19 +44,31 @@ namespace Treasured.UnitySdk
             return contract;
         }
 
+        protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
+        {
+            var properties = base.CreateProperties(type, memberSerialization);
+            if (type.IsSubclassOf(typeof(MonoBehaviour)))
+            {
+                // filter out `name` field if type is subclass of TreasuredObject OR if DeclaringType of the property is subclass of MonoBehaviour
+                properties = properties.Where(x => (x.PropertyName.Equals("name") && type.IsSubclassOf(typeof(TreasuredObject))) || x.DeclaringType.IsSubclassOf(typeof(MonoBehaviour))).ToList();
+            }
+            return properties;
+        }
+
         protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
         {
             JsonProperty property = base.CreateProperty(member, memberSerialization);
             property.Order = GetOrder(property); // Manually assign the order since we can't add JsonProperty(order) to the `name` field of UnityEngine.Object
-            property.ShouldSerialize = (instance) =>
-            {
-                if (property.PropertyName.Equals("name"))
-                {
-                    return !property.DeclaringType.IsAssignableFrom(typeof(TreasuredMap));
-                }
-                // Only allow the `name` field of the UnityEngine.Object to be serialized, ignore all properties that are assignable from MonoBehaviour(e.g. MonoBehaviour, Behaviour, Component, and UnityEngine.Object)
-                return !property.DeclaringType.IsAssignableFrom(typeof(MonoBehaviour));
-            };
+            //Debug.LogError(property.PropertyName + " " + member.ReflectedType);
+            //property.ShouldSerialize = (instance) =>
+            //{
+            //    if (property.PropertyName.Equals("name"))
+            //    {
+                
+            //        return typeof(TreasuredObject).IsAssignableFrom(member.ReflectedType);
+            //    }
+            //    return !property.DeclaringType.IsAssignableFrom(typeof(MonoBehaviour));
+            //};
             return property;
         }
 
