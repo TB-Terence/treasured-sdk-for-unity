@@ -7,7 +7,7 @@
 - Default output location is fixed to project root under a folder called `Treasured Data`. The output exhibit folder is customizable and will have the scene name as default.
 
 ### Change
-
+- The output path for image is changed to `Treasured Data/{folder name}/images/{hotspot id}/{quality}.{extension}`
 - `Target` for `SelectObjectAction` is replaced with object field. The assigned target must belong to the same map.
 - Replaced `displayMode` with `position` for `EmbedAction`
 
