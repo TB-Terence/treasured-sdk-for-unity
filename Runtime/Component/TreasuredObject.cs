@@ -44,7 +44,7 @@ namespace Treasured.UnitySdk
 
         // Will be removed in next release
         [Obsolete]
-        public TransformData Transform
+        public virtual TransformData Transform
         {
             get
             {
