@@ -9,6 +9,7 @@ namespace Treasured.UnitySdk
         static class Styles
         {
             public static GUIStyle Link = new GUIStyle() { stretchWidth = false, normal = { textColor = new Color(0f, 0.47f, 0.85f) } };
+            public static readonly GUIContent requiredField = EditorGUIUtility.TrIconContent("Error", "Required field");
         }
 
         public static bool Link(GUIContent label, GUIContent url)
@@ -67,6 +68,36 @@ namespace Treasured.UnitySdk
                 e.Use();
             }
             return clicked;
+        }
+
+        /// <summary>
+        /// Show Error icon if the field is missing.
+        /// </summary>
+        /// <param name="property"></param>
+        /// <returns>Return true if data is missing otherwise false.</returns>
+        public static bool RequiredPropertyField(SerializedProperty property)
+        {
+            bool missingData = false;
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                // TODO: possible turn this into Func<bool> with custom condition check
+                switch (property.propertyType)
+                {
+                    case SerializedPropertyType.String:
+                        missingData = string.IsNullOrWhiteSpace(property.stringValue);
+                        break;
+                }
+                // fixes TextArea indent
+                if (missingData)
+                {
+                    EditorGUILayout.PropertyField(property, EditorGUIUtility.TrTextContent(property.displayName, property.tooltip, "Error"));
+                }
+                else
+                {
+                    EditorGUILayout.PropertyField(property);
+                }
+            }
+            return missingData;
         }
     }
 }

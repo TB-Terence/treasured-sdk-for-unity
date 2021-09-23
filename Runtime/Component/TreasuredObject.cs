@@ -12,7 +12,6 @@ namespace Treasured.UnitySdk
         [SerializeField]
         private string _id = Guid.NewGuid().ToString();
 
-        [SerializeField]
         internal TreasuredMap _map; // Internal reference of the Map for this object, this will be set every time the object is selected.
 
         [JsonIgnore]
@@ -23,10 +22,6 @@ namespace Treasured.UnitySdk
                 if (_map == null)
                 {
                     _map = GetComponentInParent<TreasuredMap>();
-                    if (_map == null)
-                    {
-                        throw new Exception("This object does not belongs to any Treasured Map. Make sure there is a Treasured Map component in parent game object.");
-                    }
                 }
                 return _map;
             }

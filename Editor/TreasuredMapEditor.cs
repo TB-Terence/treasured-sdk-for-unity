@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace Treasured.UnitySdk.Editor
@@ -130,9 +131,13 @@ namespace Treasured.UnitySdk.Editor
         private List<Interactable> interactables = new List<Interactable>();
 
         private Dictionary<MethodInfo, FoldoutGroupState> foldoutGroupGUI = new Dictionary<MethodInfo, FoldoutGroupState>();
-        #endregion
 
-        private void OnEnable()
+        private bool canExport = true;
+
+        private SerializedProperty _outputFolderName;
+    #endregion
+
+    private void OnEnable()
         {
             GetFoldoutGroupMethods();
             _interactableLayer = serializedObject.FindProperty(nameof(_interactableLayer));
@@ -144,6 +149,14 @@ namespace Treasured.UnitySdk.Editor
 
             _format = serializedObject.FindProperty(nameof(_format));
             _quality = serializedObject.FindProperty(nameof(_quality));
+
+
+            _outputFolderName = serializedObject.FindProperty(nameof(_outputFolderName));
+            if (string.IsNullOrEmpty(_outputFolderName.stringValue))
+            {
+                _outputFolderName.stringValue = EditorSceneManager.GetActiveScene().name;
+                serializedObject.ApplyModifiedProperties();
+            }
 
             TreasuredMap map = (target as TreasuredMap);
             if (map)
@@ -245,8 +258,8 @@ namespace Treasured.UnitySdk.Editor
         [FoldoutGroup("Launch Page Settings")]
         void OnLaunchPageSettingsGUI()
         {
-            EditorGUILayout.PropertyField(_title);
-            EditorGUILayout.PropertyField(_description);
+            EditorGUILayoutUtilities.RequiredPropertyField(_title);
+            EditorGUILayoutUtilities.RequiredPropertyField(_description);
             //EditorGUILayout.PropertyField(cover);
             //if (cover.objectReferenceValue is Texture2D preview)
             //{
@@ -278,7 +291,38 @@ namespace Treasured.UnitySdk.Editor
         [FoldoutGroup("Export", true)]
         void OnExportGUI()
         {
-            exporter?.OnGUI();
+            EditorGUI.BeginChangeCheck();
+            string newOutputFolderName = EditorGUILayout.TextField(new GUIContent("Output Folder Name"), _outputFolderName.stringValue);
+            if (EditorGUI.EndChangeCheck() && !string.IsNullOrEmpty(newOutputFolderName))
+            {
+                _outputFolderName.stringValue = newOutputFolderName;
+            }
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_format"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_quality"));
+            using (new EditorGUI.DisabledGroupScope(!canExport))
+            {
+                if (GUILayout.Button(new GUIContent("Export")))
+                {
+                    GenericMenu menu = new GenericMenu();
+                    menu.AddItem(new GUIContent("All"), false, () =>
+                    {
+                        exporter.Export360Images();
+                        exporter.ExportJson();
+                        exporter.OpenOutputDirectory();
+                    });
+                    menu.AddItem(new GUIContent("JSON"), false, () =>
+                    {
+                        exporter.ExportJson();
+                        exporter.OpenOutputDirectory();
+                    });
+                    menu.AddItem(new GUIContent("360 Images"), false, () =>
+                    {
+                        exporter.Export360Images();
+                        exporter.OpenOutputDirectory();
+                    });
+                    menu.ShowAsContext();
+                }
+            }
         }
 
         [FoldoutGroup("Upload", true)]
@@ -502,61 +546,61 @@ namespace Treasured.UnitySdk.Editor
             return !Selection.activeGameObject.GetComponentInParent<TreasuredMap>();
         }
 
-        [MenuItem("GameObject/Treasured/Create Map from Json", false, 49)]
-        static void CreateMapFromJson()
-        {
-            string jsonPath = EditorUtility.OpenFilePanel("Select Json", Utility.ProjectPath, "json");
-            if (!File.Exists(jsonPath))
-            {
-                return;
-            }
-            string json = File.ReadAllText(jsonPath);
-            try
-            {
-                TreasuredMapData data = JsonConvert.DeserializeObject<TreasuredMapData>(json);
-                GameObject mapGO = new GameObject("Treasured Map");
-                TreasuredMap map = mapGO.AddComponent<TreasuredMap>();
-                map.Populate(data);
+        //[MenuItem("GameObject/Treasured/Create Map from Json", false, 49)]
+        //static void CreateMapFromJson()
+        //{
+        //    string jsonPath = EditorUtility.OpenFilePanel("Select Json", Utility.ProjectPath, "json");
+        //    if (!File.Exists(jsonPath))
+        //    {
+        //        return;
+        //    }
+        //    string json = File.ReadAllText(jsonPath);
+        //    try
+        //    {
+        //        TreasuredMapData data = JsonConvert.DeserializeObject<TreasuredMapData>(json);
+        //        GameObject mapGO = new GameObject("Treasured Map");
+        //        TreasuredMap map = mapGO.AddComponent<TreasuredMap>();
+        //        map.Populate(data);
 
-                GameObject hotspotRoot = new GameObject("Hotspots");
-                hotspotRoot.transform.SetParent(mapGO.transform);
+        //        GameObject hotspotRoot = new GameObject("Hotspots");
+        //        hotspotRoot.transform.SetParent(mapGO.transform);
 
-                GameObject interactableRoot = new GameObject("Interactables");
-                interactableRoot.transform.SetParent(mapGO.transform);
+        //        GameObject interactableRoot = new GameObject("Interactables");
+        //        interactableRoot.transform.SetParent(mapGO.transform);
 
-                for (int i = 0; i < data.Hotspots.Count; i++)
-                {
-                    CreateTreasuredObject<Hotspot>(hotspotRoot.transform).BindData(data.Hotspots[i]);
-                }
+        //        for (int i = 0; i < data.Hotspots.Count; i++)
+        //        {
+        //            CreateTreasuredObject<Hotspot>(hotspotRoot.transform).BindData(data.Hotspots[i]);
+        //        }
 
-                for (int i = 0; i < data.Interactables.Count; i++)
-                {
-                    CreateTreasuredObject<Interactable>(interactableRoot.transform).BindData(data.Interactables[i]);
-                }
-            }
-            catch (Exception e)
-            {
-                Debug.LogError(e.StackTrace);
-                throw e;
-            }
-        }
+        //        for (int i = 0; i < data.Interactables.Count; i++)
+        //        {
+        //            CreateTreasuredObject<Interactable>(interactableRoot.transform).BindData(data.Interactables[i]);
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        Debug.LogError(e.StackTrace);
+        //        throw e;
+        //    }
+        //}
 
-        [MenuItem("GameObject/Treasured/Create Map from Json", true, 49)]
-        static bool CanCreateMapFromJson()
-        {
-            return Selection.activeGameObject == null;
-        }
+        //[MenuItem("GameObject/Treasured/Create Map from Json", true, 49)]
+        //static bool CanCreateMapFromJson()
+        //{
+        //    return Selection.activeGameObject == null;
+        //}
 
         [MenuItem("GameObject/Treasured/Create Hotspot", true)]
         static bool CanCreateHotspotFromContextMenu()
         {
-            return Selection.activeGameObject?.GetComponentInParent<TreasuredMap>();
+            return (Selection.activeObject as Hotspot)?.Map;
         }
 
         [MenuItem("GameObject/Treasured/Create Interactable", true, 49)]
         static bool CanCreateInteractableFromContextMenu()
         {
-            return Selection.activeGameObject?.GetComponentInParent<TreasuredMap>();
+            return (Selection.activeObject as Interactable)?.Map;
         }
         #endregion
     }

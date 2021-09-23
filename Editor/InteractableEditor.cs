@@ -24,6 +24,11 @@ namespace Treasured.UnitySdk
 
         public override void OnInspectorGUI()
         {
+            if (map == null)
+            {
+                EditorGUILayout.LabelField(HotspotEditor.Styles.missingMapComponent);
+                return;
+            }
             serializedObject.Update();
             if (!id.hasMultipleDifferentValues)
             {

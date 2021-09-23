@@ -38,8 +38,6 @@ namespace Treasured.UnitySdk
 
         private DirectoryInfo outputDirectory;
 
-        private SerializedProperty outputFolderName;
-
 
         private int paddingXId;
 
@@ -54,51 +52,9 @@ namespace Treasured.UnitySdk
             this.target = map;
             this.serializedObject = serializedObject;
             this.showInExplorer = showInExplorer;
-            outputFolderName = serializedObject.FindProperty("_outputFolderName");
-            if (string.IsNullOrEmpty(outputFolderName.stringValue))
-            {
-                outputFolderName.stringValue = EditorSceneManager.GetActiveScene().name;
-                serializedObject.ApplyModifiedProperties();
-            }
         }
 
-        public void OnGUI()
-        {
-            EditorGUI.BeginChangeCheck();
-            string newOutputFolderName = EditorGUILayout.TextField(new GUIContent("Output Folder Name"), outputFolderName.stringValue);
-            if (EditorGUI.EndChangeCheck() && !string.IsNullOrEmpty(newOutputFolderName))
-            {
-                outputFolderName.stringValue = newOutputFolderName;
-            }
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("_format"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("_quality"));
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                if (GUILayout.Button(new GUIContent("Export")))
-                {
-                    GenericMenu menu = new GenericMenu();
-                    menu.AddItem(new GUIContent("All"), false, () =>
-                    {
-                        Export360Images();
-                        ExportJson();
-                        ShowInExplorer();
-                    });
-                    menu.AddItem(new GUIContent("JSON"), false, () =>
-                    {
-                        ExportJson();
-                        ShowInExplorer();
-                    });
-                    menu.AddItem(new GUIContent("360 Images"), false, () =>
-                    {
-                        Export360Images();
-                        ShowInExplorer();
-                    });
-                    menu.ShowAsContext();
-                }
-            }
-        }
-
-        private void ValidateOutputDirectory()
+        public void ValidateOutputDirectory()
         {
             if (target == null)
             {
@@ -118,7 +74,7 @@ namespace Treasured.UnitySdk
             }
         }
 
-        private void ShowInExplorer()
+        public void OpenOutputDirectory()
         {
             if (showInExplorer)
             {
@@ -126,7 +82,7 @@ namespace Treasured.UnitySdk
             }
         }
 
-        private void ExportJson()
+        public void ExportJson()
         {
             ValidateOutputDirectory();
             foreach (var hotspot in target.Hotspots)
@@ -138,7 +94,7 @@ namespace Treasured.UnitySdk
             File.WriteAllText(jsonPath, json);
         }
 
-        private void Export360Images()
+        public void Export360Images()
         {
             var hotspots = target.Hotspots;
             if (hotspots == null || hotspots.Length == 0)
@@ -200,7 +156,7 @@ namespace Treasured.UnitySdk
                     if (bytes != null)
                     {
                         EditorUtility.DisplayProgressBar(progressTitle, $"Saving image file...", 0.99f);
-                        var directory = CreateDirectory(DefaultOutputFolderPath, outputFolderName.stringValue, "images", current.Id);
+                        var directory = CreateDirectory(DefaultOutputFolderPath, target.OutputFolderName, "images", current.Id);
                         string imagePath = Path.Combine(directory.FullName, $"{quality}.{extension}");
                         File.WriteAllBytes(imagePath, bytes);
                     }
