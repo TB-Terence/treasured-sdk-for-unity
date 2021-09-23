@@ -15,7 +15,7 @@ namespace Treasured.UnitySdk
 
         private void OnEnable()
         {
-            map = (target as Interactable).GetComponentInParent<TreasuredMap>();
+            map = (target as Interactable).Map;
 
             id = serializedObject.FindProperty("_id");
             onSelected = serializedObject.FindProperty("_onSelected");

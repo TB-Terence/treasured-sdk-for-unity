@@ -91,7 +91,7 @@ namespace Treasured.UnitySdk
                         break;
                     case "selectObject":
                         newElement = newOnSelected.AppendManagedObject(typeof(SelectObjectAction));
-                        newElement.FindPropertyRelative("_targetId").stringValue = oldElement.FindPropertyRelative("_targetId").stringValue;
+                        Debug.LogError("Unable to re-assign target reference. Please manually set the target for SelectObjectAction. Click to find the object.", newElement.serializedObject.targetObject);
                         break;
                 }
                 if (newElement != null)

@@ -7,6 +7,10 @@ namespace Treasured.UnitySdk
     [CanEditMultipleObjects]
     internal class HotspotEditor : UnityEditor.Editor
     {
+        static class Styles
+        {
+            public static readonly GUIContent snapToGround = EditorGUIUtility.TrTextContent("Snap on Ground", "Snap the object slightly above the ground from camera position. This also snap the first box collider to the ground based on the size.");
+        }
         private static readonly Vector3 cameraCubeSize = Vector3.one * 0.3f;
 
         private ActionBaseListDrawer list;
@@ -18,7 +22,7 @@ namespace Treasured.UnitySdk
 
         private void OnEnable()
         {
-            map = (target as Hotspot).GetComponentInParent<TreasuredMap>();
+            map = (target as Hotspot).Map;
 
             id = serializedObject.FindProperty("_id");
             cameraPositionOffset = serializedObject.FindProperty("_cameraPositionOffset");
@@ -44,7 +48,7 @@ namespace Treasured.UnitySdk
                 }
             }
             EditorGUILayout.PropertyField(cameraPositionOffset);
-            if (!onSelected.hasMultipleDifferentValues)
+            if (serializedObject.targetObjects.Length == 1)
             {
                 list.OnGUI();
             }
