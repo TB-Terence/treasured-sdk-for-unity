@@ -135,10 +135,14 @@ namespace Treasured.UnitySdk.Editor
         private bool canExport = true;
 
         private SerializedProperty _outputFolderName;
+
+        private TreasuredMap map;
     #endregion
 
     private void OnEnable()
         {
+            map = target as TreasuredMap;
+
             GetFoldoutGroupMethods();
             _interactableLayer = serializedObject.FindProperty(nameof(_interactableLayer));
 
@@ -158,7 +162,6 @@ namespace Treasured.UnitySdk.Editor
                 serializedObject.ApplyModifiedProperties();
             }
 
-            TreasuredMap map = (target as TreasuredMap);
             if (map)
             {
                 hotspots = map.gameObject.GetComponentsInChildren<Hotspot>(true).ToList();
@@ -342,11 +345,11 @@ namespace Treasured.UnitySdk.Editor
                 {
                     EditorGUILayout.LabelField(new GUIContent("Index", typeof(T) == typeof(Hotspot) ? "The order of the Hotspot for the Guide Tour." : string.Empty), GUILayout.Width(64));
                     //EditorGUILayout.LabelField(new GUIContent("Export", "Enable if the object should be included in the output file."), GUILayout.Width(72));
-                    //GUILayout.FlexibleSpace();
-                    //if (GUILayout.Button(Icons.menu, EditorStyles.label, GUILayout.Width(20), GUILayout.Height(20)))
-                    //{
-                    //    ShowObjectsMenu(objects);
-                    //};
+                    GUILayout.FlexibleSpace();
+                    if (GUILayout.Button(Icons.menu, EditorStyles.label, GUILayout.Width(18), GUILayout.Height(20)))
+                    {
+                        ShowObjectsMenu(objects);
+                    };
                 }
                 //if (objects.Count > 1)
                 //{
@@ -425,20 +428,20 @@ namespace Treasured.UnitySdk.Editor
         void ShowObjectsMenu<T>(IList<T> objects) where T : TreasuredObject
         {
             GenericMenu menu = new GenericMenu();
-            if (typeof(T) == typeof(Hotspot))
-            {
-                menu.AddItem(Styles.snapAllToGround, false, () =>
-                {
-                    foreach (var hotspot in objects as IList<Hotspot>)
-                    {
-                        hotspot.SnapToGround();
-                    }
-                });
-                menu.AddSeparator("");
-            }
+            //if (typeof(T) == typeof(Hotspot))
+            //{
+            //    menu.AddItem(Styles.snapAllToGround, false, () =>
+            //    {
+            //        foreach (var hotspot in objects as IList<Hotspot>)
+            //        {
+            //            hotspot.SnapToGround();
+            //        }
+            //    });
+            //    menu.AddSeparator("");
+            //}
             menu.AddItem(Styles.selectAll, false, () =>
             {
-                Selection.objects = objects.Select(x => x.gameObject).ToArray();
+                Selection.objects = map.GetComponentsInChildren<T>().Select(x => x.gameObject).ToArray();
             });
             menu.ShowAsContext();
         }

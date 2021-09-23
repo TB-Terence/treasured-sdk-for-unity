@@ -37,7 +37,7 @@ namespace Treasured.UnitySdk
                     EditorGUILayout.PropertyField(id);
                 }
             }
-            if (!onSelected.hasMultipleDifferentValues)
+            if (targets.Length == 1)
             {
                 list.OnGUI();
             }
