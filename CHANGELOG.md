@@ -1,37 +1,83 @@
+## Version 0.5.0.0 (September 23, 2021)
+
+**_The system has changed internally and must be manually upgraded by click Upgrade to v0.5.0.0 from the Treasured Map component's context menu_**
+
+### Update
+
+- Default output location is fixed to project root under a folder called `Treasured Data`. The output exhibit folder is customizable and will have the scene name as default.
+
+### Change
+
+- `Target` for `SelectObjectAction` is replaced with object field. The assigned target must belong to the same map.
+- Replaced `displayMode` with `position` for `EmbedAction`
+
+### Add
+
+- Add transform tools for Hotspot camera position.
+
+### Remove
+
+- All object controls have been removed. The same functionality can be achieved by click the list item.
+- Hotspot overwrite has been removed and replaced with `Camera Position Offset` on the Hotspot component. The same functionality can be achieved by selecting all hotspots and adjusting the `Camera Position Offset`.
+- Multi-object editing has been removed to make the scene view much cleaner.
+
 ## Version 0.4.1 (September 17, 2021)
+
 - Add `volume` property to `Play Audio` action
+
 ## Version 0.3.6 (August 25, 2021)
+
 - Added `style` field for `Show Text` action
+
 ## Version 0.3.5 (August 23, 2021)
+
 - Fix output quality folder to be lower case
 - Add hitbox gizmos for interactables
+
 ## Version 0.3.4 (August 19, 2021)
+
 - Fixed find hitbox center position to be based on size of the hitbox instead of ground point.
 - Add utility to find transform in scene
+
 ## Version 0.3.3 (August 19, 2021)
+
 - Fixed gizmos for Previewer
 - Improved process of finding hitbox position.
+
 ## Version 0.3.2 (August 17, 2021)
+
 - Add Visible Targets to Json
 - Add Layer Mask for export settings
+
 ## Version 0.3.1 (August 17, 2021)
+
 #### Fixes
+
 - Change output format jpg from jpeg and lower case the format in JSON
 - Auto-generate id for the first item in the list
 - Update image output file name
+
 #### Features
+
 - Add dropdown for selecting Target ID for `Select Object` action
 - Add button to regenerate Action ID
 - Add tabs for Hotspots and Interactables along with some utilities to work with the list
 - Add Utility for Transform
 - Add Utility for Hitbox
+
 ## Version 0.3.0 (August 14, 2021)
+
 #### New export workflow
+
 - New design for data model
 - New design for Editor GUI
 - Optimized Editor Drawer
 - Added Treasured Data Previewer with modification tool
+
 ## Version 0.2.0 (August 9, 2021)
+
 #### minor refactoring
+
 ## Version 0.1.0 (August 6, 2021)
+
 #### initial development
