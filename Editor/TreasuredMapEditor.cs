@@ -143,6 +143,8 @@ namespace Treasured.UnitySdk.Editor
         {
             map = target as TreasuredMap;
 
+            map.transform.hideFlags = HideFlags.None; // should be removed once merge is done
+
             GetFoldoutGroupMethods();
             _interactableLayer = serializedObject.FindProperty(nameof(_interactableLayer));
 
