@@ -8,6 +8,15 @@ using UnityEngine.Rendering;
 
 namespace Treasured.UnitySdk
 {
+    [Flags]
+    public enum ExportOptions
+    {
+        JSON = 1 << 0,
+        PanoramicImages = 1 << 1,
+        //ObjectIds = 1 << 2,
+        All = JSON | PanoramicImages //| ObjectIds
+    }
+
     internal class TreasuredMapExporter : IDisposable
     {
         /// <summary>
@@ -54,7 +63,7 @@ namespace Treasured.UnitySdk
             this.showInExplorer = showInExplorer;
         }
 
-        public void ValidateOutputDirectory()
+        private void ValidateOutputDirectory()
         {
             if (target == null)
             {
@@ -74,15 +83,7 @@ namespace Treasured.UnitySdk
             }
         }
 
-        public void OpenOutputDirectory()
-        {
-            if (showInExplorer)
-            {
-                Application.OpenURL(outputDirectory.FullName);
-            }
-        }
-
-        public void ExportJson()
+        private void ExportJson()
         {
             ValidateOutputDirectory();
             foreach (var hotspot in target.Hotspots)
@@ -94,7 +95,7 @@ namespace Treasured.UnitySdk
             File.WriteAllText(jsonPath, json);
         }
 
-        public void Export360Images()
+        private void ExportPanoramicImages()
         {
             var hotspots = target.Hotspots;
             if (hotspots == null || hotspots.Length == 0)
@@ -180,6 +181,38 @@ namespace Treasured.UnitySdk
             }
         }
 
+        private void ExportObjectIds()
+        {
+            //    // Convert object ids from color string -> id to id -> Color
+            //    Dictionary<string, Color> objectIds = map.ObjectIds.ToDictionary(x => x.Value, (x) =>
+            //    {
+            //        ColorUtility.TryParseHtmlString(x.Key, out Color color);
+            //        return color;
+            //    });
+        }
+
+        public void Export(ExportOptions options)
+        {
+            if (options.HasFlag(ExportOptions.JSON))
+            {
+                ExportJson();
+            }
+            if (options.HasFlag(ExportOptions.PanoramicImages))
+            {
+                ExportPanoramicImages();
+            }
+            //if (options.HasFlag(ExportOptions.ObjectIds))
+            //{
+            //    ExportObjectIds();
+            //}
+            if (showInExplorer && outputDirectory != null)
+            {
+                Application.OpenURL(outputDirectory.FullName);
+            }
+        }
+
+        
+
         private Camera ValidateCamera()
         {
             Camera camera = Camera.main;
@@ -234,16 +267,6 @@ namespace Treasured.UnitySdk
                 GameObject.DestroyImmediate(equirectangularConverter);
                 equirectangularConverter = null;
             }
-        }
-
-        private void ExportObjectIds()
-        {
-            //    // Convert object ids from color string -> id to id -> Color
-            //    Dictionary<string, Color> objectIds = map.ObjectIds.ToDictionary(x => x.Value, (x) =>
-            //    {
-            //        ColorUtility.TryParseHtmlString(x.Key, out Color color);
-            //        return color;
-            //    });
         }
     }
 }

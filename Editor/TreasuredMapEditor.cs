@@ -309,22 +309,13 @@ namespace Treasured.UnitySdk.Editor
                 if (GUILayout.Button(new GUIContent("Export")))
                 {
                     GenericMenu menu = new GenericMenu();
-                    menu.AddItem(new GUIContent("All"), false, () =>
+                    foreach (var option in Enum.GetValues(typeof(ExportOptions)))
                     {
-                        exporter.Export360Images();
-                        exporter.ExportJson();
-                        exporter.OpenOutputDirectory();
-                    });
-                    menu.AddItem(new GUIContent("JSON"), false, () =>
-                    {
-                        exporter.ExportJson();
-                        exporter.OpenOutputDirectory();
-                    });
-                    menu.AddItem(new GUIContent("360 Images"), false, () =>
-                    {
-                        exporter.Export360Images();
-                        exporter.OpenOutputDirectory();
-                    });
+                        menu.AddItem(new GUIContent(ObjectNames.NicifyVariableName(option.ToString())), false, () =>
+                        {
+                            exporter.Export((ExportOptions)option);
+                        });
+                    }
                     menu.ShowAsContext();
                 }
             }

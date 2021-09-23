@@ -15,7 +15,6 @@ namespace Treasured.UnitySdk
 
         public string Src { get => _src; set => _src = value; }
 
-        [JsonProperty("displayMode")]
         public EmbedPosition Position { get => _position; set => _position = value; }
     }
 }
