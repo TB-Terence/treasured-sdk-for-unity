@@ -31,6 +31,9 @@ namespace Treasured.UnitySdk
                 SerializedProperty oldId = data.FindPropertyRelative("_id");
                 SerializedProperty newId = obj.FindProperty("_id");
 
+
+                obj.FindProperty("_description").stringValue = data.FindPropertyRelative("_description").stringValue;
+
                 MigrateAction(data.FindPropertyRelative("_onSelected"), obj.FindProperty("_onSelected"));
 
                 newId.stringValue = oldId.stringValue;
@@ -51,7 +54,7 @@ namespace Treasured.UnitySdk
                 obj.ApplyModifiedProperties();
             }
             serializedObject.ApplyModifiedProperties();
-            EditorUtility.DisplayDialog("Completed", "Upgrade completed, to ensure all data is moved over enable `Debug` view on the Inspector.", "Ok");
+            EditorUtility.DisplayDialog("Completed", "Upgrade completed.", "Ok");
         }
 
         static void MigrateAction(SerializedProperty oldOnSelected, SerializedProperty newOnSelected)
@@ -65,12 +68,6 @@ namespace Treasured.UnitySdk
                 SerializedProperty _type = oldElement.FindPropertyRelative("_type");
                 SerializedProperty _id = oldElement.FindPropertyRelative("_id");
 
-                //SerializedProperty _src;
-                //SerializedProperty _targetId;
-                //SerializedProperty _displayMode = DisplayMode.Right;
-                //SerializedProperty _content;
-                //SerializedProperty _style;
-                //SerializedProperty _volume = 100;
                 switch (_type.stringValue)
                 {
                     case "openLink":

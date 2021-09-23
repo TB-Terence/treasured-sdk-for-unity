@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Newtonsoft.Json;
+using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
@@ -14,6 +15,7 @@ namespace Treasured.UnitySdk
 
         public string Src { get => _src; set => _src = value; }
 
-        private EmbedPosition Position { get => _position; set => _position = value; }
+        [JsonProperty("displayMode")]
+        public EmbedPosition Position { get => _position; set => _position = value; }
     }
 }

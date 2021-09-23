@@ -281,6 +281,15 @@ namespace Treasured.UnitySdk.Editor
             exporter?.OnGUI();
         }
 
+        [FoldoutGroup("Upload", true)]
+        void OnUploadGUI()
+        {
+            if (GUILayout.Button("Upload"))
+            {
+                UploadWindow.ShowUploadWindow();
+            }
+        }
+
         void OnObjectList<T>(IList<T> objects, ref Vector2 scrollPosition, ref bool exportAll, ref GroupToggleState groupToggleState) where T : TreasuredObject
         {
             using (new EditorGUILayout.VerticalScope(Styles.BorderlessBox))

@@ -62,6 +62,13 @@ namespace Treasured.UnitySdk
         private Texture2D _cover;
         #endregion
 
+        #region Guide Tour
+        [SerializeField]
+        private bool _loop;
+
+        public bool Loop { get => _loop; set => _loop = value; }
+        #endregion
+
         #region Export Properties
         [SerializeField]
         private ImageFormat _format = ImageFormat.PNG;
@@ -70,13 +77,6 @@ namespace Treasured.UnitySdk
         [SerializeField]
         private ImageQuality _quality = ImageQuality.High;
         public ImageQuality Quality { get => _quality; set => _quality = value; }
-        #endregion
-
-        #region Guide Tour
-        [SerializeField]
-        private bool _loop;
-
-        public bool Loop { get => _loop; set => _loop = value; }
         #endregion
 
         #region Objects
@@ -99,6 +99,7 @@ namespace Treasured.UnitySdk
         #region Export Settings
         [SerializeField]
         private string _outputFolderName;
+        [JsonIgnore]
         public string OutputFolderName { get => _outputFolderName; set => _outputFolderName = value; }
         #endregion
     }
