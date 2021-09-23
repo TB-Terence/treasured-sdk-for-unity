@@ -34,10 +34,7 @@ namespace Treasured.UnitySdk
             serializedObject.Update();
             if (!id.hasMultipleDifferentValues)
             {
-                using (new EditorGUI.DisabledGroupScope(true))
-                {
-                    EditorGUILayout.PropertyField(id);
-                }
+                EditorGUILayout.PropertyField(id);
             }
             EditorGUILayout.PropertyField(description);
             if (targets.Length == 1)

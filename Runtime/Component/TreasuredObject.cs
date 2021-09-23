@@ -7,9 +7,10 @@ namespace Treasured.UnitySdk
 {
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
-    public abstract class TreasuredObject : MonoBehaviour, IDataComponent<TreasuredObjectData>
+    public abstract class TreasuredObject : MonoBehaviour
     {
         [SerializeField]
+        [GUID]
         private string _id = Guid.NewGuid().ToString();
 
         internal TreasuredMap _map; // Internal reference of the Map for this object, this will be set every time the object is selected.
@@ -51,10 +52,11 @@ namespace Treasured.UnitySdk
         {
             get
             {
+                var boxCollider = GetComponent<BoxCollider>();
                 return new Hitbox()
                 {
-                    Center = _boxCollider ? _boxCollider.bounds.center : transform.position, // the center on the web uses world space.
-                    Size = _boxCollider ? _boxCollider.size : Vector3.one
+                    Center = boxCollider ? boxCollider.bounds.center : transform.position, // the center on the web uses world space.
+                    Size = boxCollider ? boxCollider.size : Vector3.one
                 };
             }
         }
@@ -67,42 +69,8 @@ namespace Treasured.UnitySdk
 
         public IEnumerable<ActionBase> OnSelected => _onSelected;
 
-        [SerializeField]
-        [HideInInspector]
-        [Obsolete]
-        private BoxCollider _boxCollider;
-
-        [Obsolete]
         [JsonIgnore]
-        public BoxCollider BoxCollider
-        {
-            get
-            {
-                if(_boxCollider == null)
-                {
-                    if (TryGetComponent(out _boxCollider))
-                    {
-                        _boxCollider.isTrigger = true;
-                    }
-                }
-                return _boxCollider;
-            }
-        }
-
-        [JsonIgnore]
+        [Obsolete]
         public abstract TreasuredObjectData Data { get; }
-
-        protected virtual void OnEnable()
-        {
-            if (TryGetComponent(out _boxCollider))
-            {
-                _boxCollider.isTrigger = true;
-            }
-        }
-
-        void IDataComponent<TreasuredObjectData>.BindData(TreasuredObjectData data)
-        {
-
-        }
     }
 }

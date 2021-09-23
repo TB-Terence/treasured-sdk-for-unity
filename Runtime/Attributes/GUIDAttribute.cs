@@ -2,7 +2,7 @@
 
 namespace Treasured.UnitySdk
 {
-    public class UniqueIdAttribute : PropertyAttribute
+    internal class GUIDAttribute : PropertyAttribute
     {
 
     }

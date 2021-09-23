@@ -23,7 +23,7 @@ namespace Treasured.UnitySdk
     {
         [SerializeField]
         [HideInInspector]
-        [UniqueId]
+        [GUID]
         private string _id;
         [SerializeField]
         [StringSelector("openLink", "showText", "playAudio", "playVideo", "selectObject")]

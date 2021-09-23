@@ -56,6 +56,12 @@ namespace Treasured.UnitySdk.Editor
             public static readonly GUIContent snapAllToGround = EditorGUIUtility.TrTextContent("Snap All on Ground");
             public static readonly GUIContent selectAll = EditorGUIUtility.TrTextContent("Select All");
 
+            public static readonly Dictionary<Type, GUIContent> createNew = new Dictionary<Type, GUIContent>()
+            {
+                { typeof(Hotspot), EditorGUIUtility.TrTextContent("Create New", "Creaet new Hotspot", "Toolbar Plus") },
+                { typeof(Interactable), EditorGUIUtility.TrTextContent("Create New", "Create new Interactable", "Toolbar Plus") }
+            };
+
             private static GUIStyle tabButton;
             public static GUIStyle TabButton
             {
@@ -99,13 +105,9 @@ namespace Treasured.UnitySdk.Editor
             Mixed
         }
 
-        private SerializedProperty _interactableLayer;
-
-        #region Hotspot Management
-        #endregion
-
-        #region Version 0.5
         private TreasuredMapExporter exporter;
+
+        private SerializedProperty _id;
 
         private SerializedProperty _title;
         private SerializedProperty _description;
@@ -125,8 +127,6 @@ namespace Treasured.UnitySdk.Editor
 
         private int selectedObjectListIndex = 0;
 
-        //private TreasuredMapExporter exporter;
-
         private List<Hotspot> hotspots = new List<Hotspot>();
         private List<Interactable> interactables = new List<Interactable>();
 
@@ -137,16 +137,16 @@ namespace Treasured.UnitySdk.Editor
         private SerializedProperty _outputFolderName;
 
         private TreasuredMap map;
-    #endregion
 
-    private void OnEnable()
+        private void OnEnable()
         {
             map = target as TreasuredMap;
 
             map.transform.hideFlags = HideFlags.None; // should be removed once merge is done
 
             GetFoldoutGroupMethods();
-            _interactableLayer = serializedObject.FindProperty(nameof(_interactableLayer));
+
+            _id = serializedObject.FindProperty(nameof(_id));
 
             _title = serializedObject.FindProperty(nameof(_title));
             _description = serializedObject.FindProperty(nameof(_description));
@@ -201,7 +201,6 @@ namespace Treasured.UnitySdk.Editor
             {
                 return;
             }
-            Color previousColor = Handles.color;
             for (int i = 0; i < hotspots.Count; i++)
             {
                 Hotspot current = hotspots[i];
@@ -236,7 +235,6 @@ namespace Treasured.UnitySdk.Editor
                     Handles.ArrowHandleCap(0, currentCameraPosition, Quaternion.LookRotation(direction), 0.5f, EventType.Repaint);
                 }
             }
-            Handles.color = previousColor;
         }
 
         public override void OnInspectorGUI()
@@ -258,6 +256,13 @@ namespace Treasured.UnitySdk.Editor
                 }
                 EditorGUILayout.EndFoldoutHeaderGroup();
             }
+        }
+
+        [FoldoutGroup("Info")]
+        void OnInfoGUI()
+        {
+            EditorGUILayout.LabelField("Version", TreasuredMap.Version);
+            EditorGUILayout.PropertyField(_id);
         }
 
         [FoldoutGroup("Launch Page Settings")]
@@ -413,6 +418,34 @@ namespace Treasured.UnitySdk.Editor
 
                             }
                         }
+                    }
+                }
+                if (GUILayout.Button(Styles.createNew[typeof(T)]))
+                {
+                    var root = GetChild(map.transform, $"{typeof(T).Name}s");
+                    GameObject go = new GameObject(ObjectNames.GetUniqueName(objects.Select(x => x.name).ToArray(), typeof(T).Name));
+                    T obj = go.AddComponent<T>();
+                    BoxCollider boxCollider = go.AddComponent<BoxCollider>();
+                    boxCollider.size = Vector3.one;
+                    Camera camera = SceneView.lastActiveSceneView.camera;
+                    go.transform.SetParent(root);
+                    if (typeof(T) == typeof(Hotspot))
+                    {
+                        hotspots.Add(obj as Hotspot);
+                    }
+                    else if (typeof(T) == typeof(Interactable))
+                    {
+                        interactables.Add(obj as Interactable);
+                    }
+                    EditorGUIUtility.PingObject(go);
+                    if (Physics.Raycast(camera.transform.position, camera.transform.forward, out var hit))
+                    {
+                        go.transform.position = hit.point;
+                        boxCollider.center = new Vector3(0, boxCollider.size.y / 2, 0);
+                    }
+                    else
+                    {
+                        SceneView.lastActiveSceneView.LookAt(go.transform.position, camera.transform.rotation);
                     }
                 }
             }
@@ -590,13 +623,13 @@ namespace Treasured.UnitySdk.Editor
         [MenuItem("GameObject/Treasured/Create Hotspot", true)]
         static bool CanCreateHotspotFromContextMenu()
         {
-            return (Selection.activeObject as Hotspot)?.Map;
+            return Selection.activeGameObject?.GetComponentInParent<TreasuredMap>();
         }
 
         [MenuItem("GameObject/Treasured/Create Interactable", true, 49)]
         static bool CanCreateInteractableFromContextMenu()
         {
-            return (Selection.activeObject as Interactable)?.Map;
+            return Selection.activeGameObject?.GetComponentInParent<TreasuredMap>();
         }
         #endregion
     }

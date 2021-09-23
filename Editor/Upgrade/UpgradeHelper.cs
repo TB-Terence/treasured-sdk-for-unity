@@ -7,7 +7,7 @@ namespace Treasured.UnitySdk
     internal static class UpgradeHelper
     {
         [MenuItem("CONTEXT/TreasuredMap/Upgrade to Version 0.5.0.0")]
-        static void Upgrade(MenuCommand command)
+        public static void Upgrade(MenuCommand command)
         {
             TreasuredMap map = (TreasuredMap)command.context;
             if (map == null || map.Data == null)
@@ -54,7 +54,7 @@ namespace Treasured.UnitySdk
                 obj.ApplyModifiedProperties();
             }
             serializedObject.ApplyModifiedProperties();
-            EditorUtility.DisplayDialog("Completed", "Upgrade completed.", "Ok");
+            EditorUtility.DisplayDialog("Upgrade completed", "Upgrade from v0.4.0 to v0.5.0 completed. Please check the console to resolved SelectObjectAction target reference manually.", "Ok");
         }
 
         static void MigrateAction(SerializedProperty oldOnSelected, SerializedProperty newOnSelected)

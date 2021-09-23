@@ -8,19 +8,12 @@ namespace Treasured.UnitySdk
     [AddComponentMenu("Treasured/Treasured Map")]
     public sealed class TreasuredMap : MonoBehaviour
     {
-        #region Map Settings
-        [SerializeField]
-        [Obsolete]
-        private LayerMask _interactableLayer;
-        #endregion
-
         #region Map Data
         [SerializeField]
         [Obsolete]
         private TreasuredMapData _data = new TreasuredMapData();
         #endregion
 
-        [Obsolete]
         [JsonIgnore]
         public TreasuredMapData Data
         {
@@ -42,6 +35,7 @@ namespace Treasured.UnitySdk
         [JsonProperty]
         public static readonly string Version = typeof(TreasuredMap).Assembly.GetName().Version.ToString();
         [SerializeField]
+        [GUID]
         private string _id = Guid.NewGuid().ToString();
         public string Id { get => _id; }
         #endregion

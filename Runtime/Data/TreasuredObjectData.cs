@@ -12,7 +12,7 @@ namespace Treasured.UnitySdk
         /// The instance id of the object.
         /// </summary>
         [SerializeField]
-        [UniqueId]
+        [GUID]
         protected string _id;
         /// <summary>
         /// The description of the object.

@@ -1,4 +1,22 @@
-## Version 0.5.0.0 (September 23, 2021)
+## Version 0.5.1 (September 23, 2021)
+
+### Bug Fix
+
+- Fix GameObject context menu for creating TreasuredMap/Hotspot and Interactable.
+
+### Add
+
+- Add a regenerate guid button for ids.
+- Add Create New button for object management.
+- Add Camera Transform to JSON.
+- Add Camera Rotation Offset to Hotspot.
+- Add hotspot button to the object management.
+
+### Remove
+
+- Remove unused scripts
+
+## Version 0.5.0 (September 23, 2021)
 
 **_The system has changed internally and must be manually upgraded by click Upgrade to v0.5.0.0 from the Treasured Map component's context menu_**
 
@@ -7,6 +25,7 @@
 - Default output location is fixed to project root under a folder called `Treasured Data`. The output exhibit folder is customizable and will have the scene name as default.
 
 ### Change
+
 - The output path for image is changed to `Treasured Data/{folder name}/images/{hotspot id}/{quality}.{extension}`
 - `Target` for `SelectObjectAction` is replaced with object field. The assigned target must belong to the same map.
 - Replaced `displayMode` with `position` for `EmbedAction`

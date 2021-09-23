@@ -19,6 +19,7 @@ namespace Treasured.UnitySdk
         private SerializedProperty id;
         private SerializedProperty description;
         private SerializedProperty cameraPositionOffset;
+        private SerializedProperty cameraRotationOffset;
         private SerializedProperty onSelected;
 
         private TreasuredMap map;
@@ -30,6 +31,7 @@ namespace Treasured.UnitySdk
             id = serializedObject.FindProperty("_id");
             description = serializedObject.FindProperty("_description");
             cameraPositionOffset = serializedObject.FindProperty("_cameraPositionOffset");
+            cameraRotationOffset = serializedObject.FindProperty("_cameraRotationOffset");
             onSelected = serializedObject.FindProperty("_onSelected");
             list = new ActionBaseListDrawer(serializedObject, onSelected);
             SceneView.duringSceneGui -= OnSceneViewGUI;
@@ -51,13 +53,11 @@ namespace Treasured.UnitySdk
             serializedObject.Update();
             if (!id.hasMultipleDifferentValues)
             {
-                using (new EditorGUI.DisabledGroupScope(true))
-                {
-                    EditorGUILayout.PropertyField(id);
-                }
+                EditorGUILayout.PropertyField(id);
             }
             EditorGUILayout.PropertyField(description);
             EditorGUILayout.PropertyField(cameraPositionOffset);
+            EditorGUILayout.PropertyField(cameraRotationOffset);
             if (serializedObject.targetObjects.Length == 1)
             {
                 list.OnGUI();
@@ -83,36 +83,38 @@ namespace Treasured.UnitySdk
             }
             if (target is Hotspot hotspot)
             {
-                Vector3 cameraPosition = hotspot.transform.position + cameraPositionOffset.vector3Value;
+                TransformData cameraTransform = hotspot.CameraTransform;
+                var cameraRotation = Quaternion.Euler(cameraTransform.Rotation);
                 switch (Tools.current)
                 {
                     case Tool.Move:
                         EditorGUI.BeginChangeCheck();
-                        Vector3 newCameraPosition = Handles.PositionHandle(cameraPosition, hotspot.transform.rotation);
+                        Vector3 newCameraPosition = Handles.PositionHandle(cameraTransform.Position, cameraRotation);
                         if (EditorGUI.EndChangeCheck())
                         {
-                            Undo.RecordObject(target, "Move hotpsot camera position");
+                            Undo.RecordObject(target, "Edit hotpsot camera position offset");
                             cameraPositionOffset.vector3Value = newCameraPosition - hotspot.transform.position;
                             serializedObject.ApplyModifiedProperties();
                         }
                         break;
                     case Tool.Rotate:
                         EditorGUI.BeginChangeCheck();
-                        Quaternion newRotation = Handles.RotationHandle(hotspot.transform.rotation, hotspot.transform.position + cameraPositionOffset.vector3Value);
+                        Quaternion newRotation = Handles.RotationHandle(cameraRotation, cameraTransform.Position);
                         if (EditorGUI.EndChangeCheck())
                         {
-                            Undo.RecordObject(hotspot.transform, "Edit transform Rotation");
-                            hotspot.transform.eulerAngles = newRotation.eulerAngles;
+                            Undo.RecordObject(hotspot.transform, "Edit hotspot camera rotation offset");
+                            cameraRotationOffset.vector3Value = newRotation.eulerAngles - hotspot.transform.eulerAngles;
+                            serializedObject.ApplyModifiedProperties();
                         }
                         float size = HandleUtility.GetHandleSize(hotspot.transform.position);
                         Handles.color = Color.blue;
-                        Handles.ArrowHandleCap(0, cameraPosition, hotspot.transform.rotation, size, EventType.Repaint);
+                        Handles.ArrowHandleCap(0, cameraTransform.Position, cameraRotation, size, EventType.Repaint);
                         break;
                 }
                 Handles.color = Color.white;
-                Handles.DrawDottedLine(hotspot.transform.position, cameraPosition, 1);
+                Handles.DrawDottedLine(hotspot.transform.position, cameraTransform.Position, 1);
                 Handles.color = Color.red;
-                Handles.DrawWireCube(cameraPosition, cameraCubeSize);
+                Handles.DrawWireCube(cameraTransform.Position, cameraCubeSize);
             }
         }
     }

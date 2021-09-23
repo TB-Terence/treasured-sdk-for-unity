@@ -7,7 +7,7 @@ namespace Treasured.UnitySdk
     public abstract class EmbedAction : ActionBase
     {
         [SerializeField]
-        [TextArea(1, 3)]
+        [TextArea(3, 3)]
         private string _src;
 
         [SerializeField]

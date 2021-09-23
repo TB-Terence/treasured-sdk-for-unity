@@ -8,6 +8,7 @@ namespace Treasured.UnitySdk
     {
         [SerializeField]
         [HideInInspector]
+        [GUID]
         private string _id = Guid.NewGuid().ToString();
 
         public string Id { get => _id; }

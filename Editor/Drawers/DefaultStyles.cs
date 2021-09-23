@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk.Editor
 {
-    internal static class Styles
+    internal static class DefaultStyles
     {
         private static bool s_initialized;
 

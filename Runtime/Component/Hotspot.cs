@@ -6,36 +6,36 @@ using UnityEngine;
 namespace Treasured.UnitySdk
 {
     [AddComponentMenu("Treasured/Hotspot")]
-    public sealed class Hotspot : TreasuredObject, IDataComponent<HotspotData>
+    public sealed class Hotspot : TreasuredObject
     {
         [Obsolete]
         [SerializeField]
         private HotspotData _data = new HotspotData();
 
         [SerializeField]
-        private Vector3 _cameraPositionOffset = new Vector3(0, 1.5f, 0);
+        private Vector3 _cameraPositionOffset = new Vector3(0, 2, 0);
+        [SerializeField]
+        private Vector3 _cameraRotationOffset = new Vector3();
 
         [JsonIgnore]
         public Vector3 CameraPositionOffset { get => _cameraPositionOffset; set => _cameraPositionOffset = value; }
+        [JsonIgnore]
+        public Vector3 CameraRotationOffset { get => _cameraRotationOffset; set => _cameraRotationOffset = value; }
 
-        public override TransformData Transform
+        /// <summary>
+        /// Returns camera transform for the hotspot. (World Space)
+        /// </summary>
+        public TransformData CameraTransform
         {
             get
             {
                 return new TransformData()
                 {
                     Position = transform.position + _cameraPositionOffset,
-                    Rotation = transform.eulerAngles
+                    Rotation = transform.eulerAngles + _cameraRotationOffset
                 };
             }
         }
-
-        [JsonIgnore]
-        public TransformData CameraTransform => new TransformData()
-        {
-            Position = transform.position + _cameraPositionOffset,
-            Rotation = transform.eulerAngles
-        };
 
         public void SnapToGround()
         {
@@ -96,32 +96,6 @@ namespace Treasured.UnitySdk
             {
                 return _data;
             }
-        }
-
-        [Obsolete]
-        [JsonIgnore]
-        HotspotData IDataComponent<HotspotData>.Data => _data;
-
-        public void BindData(HotspotData data)
-        {
-            gameObject.name = data.Name;
-            gameObject.transform.position = data.Transform.Position;
-            gameObject.transform.eulerAngles = data.Transform.Rotation;
-            BoxCollider.center = data.Hitbox.Center - data.Transform.Position; // the Hitbox Center is in world position.
-            BoxCollider.size = data.Hitbox.Size;
-            _data = data;
-        }
-
-        private Hotspot() { }
-
-        protected override void OnEnable()
-        {
-            base.OnEnable();
-        }
-
-        void Reset()
-        {
-            _data?.Validate();
         }
     }
 }

@@ -135,8 +135,9 @@ namespace Treasured.UnitySdk
                 for (int index = 0; index < count; index++)
                 {
                     Hotspot current = hotspots[index];
-                    string progressTitle = $"Exporting {current.name} ({index + 1}/{count})";
-                    EditorUtility.DisplayProgressBar(progressTitle, $"Generating cubemap for {current.name}...", 0.33f);
+                    string progressTitle = $"Exporting ({index + 1}/{count})";
+                    string progressText = $"Generating data for {current.name}...";
+                    EditorUtility.DisplayProgressBar(progressTitle, progressText, 0.33f);
 
                     // Move the camera in the right position
                     camera.transform.SetPositionAndRotation(current.transform.position + current.CameraPositionOffset, Quaternion.identity);
@@ -147,7 +148,7 @@ namespace Treasured.UnitySdk
                     }
 
                     equirectangularConverter.SetFloat(paddingXId, camera.transform.eulerAngles.y / 360f);
-                    EditorUtility.DisplayProgressBar(progressTitle, "Converting...", 0.66f);
+                    EditorUtility.DisplayProgressBar(progressTitle, progressText, 0.66f);
                     Graphics.Blit(cubemapRT, equirectangularRT, equirectangularConverter);
 
                     RenderTexture.active = equirectangularRT;
@@ -156,7 +157,7 @@ namespace Treasured.UnitySdk
                     byte[] bytes = target.Format == ImageFormat.JPG ? outputTexture.EncodeToJPG() : outputTexture.EncodeToPNG();
                     if (bytes != null)
                     {
-                        EditorUtility.DisplayProgressBar(progressTitle, $"Saving image file...", 0.99f);
+                        EditorUtility.DisplayProgressBar(progressTitle, progressText, 0.99f);
                         var directory = CreateDirectory(DefaultOutputFolderPath, target.OutputFolderName, "images", current.Id);
                         string imagePath = Path.Combine(directory.FullName, $"{quality}.{extension}");
                         File.WriteAllBytes(imagePath, bytes);
