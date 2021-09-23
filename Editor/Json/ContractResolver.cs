@@ -39,7 +39,7 @@ namespace Treasured.UnitySdk
             }
             if (objectType.BaseType == typeof(Enum))
             {
-                contract.Converter = new StringEnumConverter(new CamelCaseNamingStrategy());
+                contract.Converter = new StringEnumConverter(new KebabCaseNamingStrategy());
             }
             return contract;
         }

@@ -68,7 +68,7 @@ namespace Treasured.UnitySdk
 
         public void CalculateVisibleTargets()
         {
-            VisibleTargets.Clear();
+            VisibleTargets = new List<string>();
             TreasuredMap map = GetComponentInParent<TreasuredMap>();
             if (!map)
             {
