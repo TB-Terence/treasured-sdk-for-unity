@@ -171,9 +171,6 @@ namespace Treasured.UnitySdk.Editor
 
                 exporter = new TreasuredMapExporter(serializedObject, map);
             }
-            
-            SceneView.duringSceneGui -= OnSceneViewGUI;
-            SceneView.duringSceneGui += OnSceneViewGUI;
         }
 
         private void GetFoldoutGroupMethods()
@@ -190,14 +187,10 @@ namespace Treasured.UnitySdk.Editor
             }
         }
 
-        private void OnDisable()
-        {
-            SceneView.duringSceneGui -= OnSceneViewGUI;
-        }
 
-        private void OnSceneViewGUI(SceneView view)
+        private void OnSceneGUI()
         {
-            if (view.size == 0.01f)
+            if (SceneView.lastActiveSceneView.size == 0.01f) // this happens when TreasuredObject is selected
             {
                 return;
             }
