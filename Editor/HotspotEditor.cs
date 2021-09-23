@@ -32,6 +32,13 @@ namespace Treasured.UnitySdk
             cameraPositionOffset = serializedObject.FindProperty("_cameraPositionOffset");
             onSelected = serializedObject.FindProperty("_onSelected");
             list = new ActionBaseListDrawer(serializedObject, onSelected);
+            SceneView.duringSceneGui -= OnSceneViewGUI;
+            SceneView.duringSceneGui += OnSceneViewGUI;
+        }
+
+        private void OnDisable()
+        {
+            SceneView.duringSceneGui -= OnSceneViewGUI;
         }
 
         public override void OnInspectorGUI()
@@ -68,7 +75,7 @@ namespace Treasured.UnitySdk
             }
         }
 
-        private void OnSceneGUI()
+        private void OnSceneViewGUI(SceneView view)
         {
             if (SceneView.lastActiveSceneView.size == 0.01f) // this happens when TreasuredObject is selected
             {
