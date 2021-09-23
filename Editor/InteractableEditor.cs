@@ -9,6 +9,7 @@ namespace Treasured.UnitySdk
     {
         private ActionBaseListDrawer list;
         private SerializedProperty id;
+        private SerializedProperty description;
         private SerializedProperty onSelected;
 
         private TreasuredMap map;
@@ -18,6 +19,7 @@ namespace Treasured.UnitySdk
             map = (target as Interactable).Map;
 
             id = serializedObject.FindProperty("_id");
+            description = serializedObject.FindProperty("_description");
             onSelected = serializedObject.FindProperty("_onSelected");
             list = new ActionBaseListDrawer(serializedObject, onSelected);
         }
@@ -37,6 +39,7 @@ namespace Treasured.UnitySdk
                     EditorGUILayout.PropertyField(id);
                 }
             }
+            EditorGUILayout.PropertyField(description);
             if (targets.Length == 1)
             {
                 list.OnGUI();

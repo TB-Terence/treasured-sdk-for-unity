@@ -80,7 +80,7 @@ namespace Treasured.UnitySdk
                         break;
                     case "playAudio":
                         newElement = newOnSelected.AppendManagedObject(typeof(PlayAudioAction));
-                        newElement.FindPropertyRelative("_volume").stringValue = oldElement.FindPropertyRelative("_volume").stringValue;
+                        newElement.FindPropertyRelative("_volume").intValue = oldElement.FindPropertyRelative("_volume").intValue;
                         break;
                     case "playVideo":
                         newElement = newOnSelected.AppendManagedObject(typeof(OpenLinkAction));

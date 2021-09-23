@@ -17,6 +17,7 @@ namespace Treasured.UnitySdk
 
         private ActionBaseListDrawer list;
         private SerializedProperty id;
+        private SerializedProperty description;
         private SerializedProperty cameraPositionOffset;
         private SerializedProperty onSelected;
 
@@ -27,6 +28,7 @@ namespace Treasured.UnitySdk
             map = (target as Hotspot).Map;
 
             id = serializedObject.FindProperty("_id");
+            description = serializedObject.FindProperty("_description");
             cameraPositionOffset = serializedObject.FindProperty("_cameraPositionOffset");
             onSelected = serializedObject.FindProperty("_onSelected");
             list = new ActionBaseListDrawer(serializedObject, onSelected);
@@ -54,6 +56,7 @@ namespace Treasured.UnitySdk
                     EditorGUILayout.PropertyField(id);
                 }
             }
+            EditorGUILayout.PropertyField(description);
             EditorGUILayout.PropertyField(cameraPositionOffset);
             if (serializedObject.targetObjects.Length == 1)
             {

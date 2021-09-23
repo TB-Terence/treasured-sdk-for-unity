@@ -30,6 +30,7 @@ namespace Treasured.UnitySdk
         public string Id { get => _id; }
 
         [SerializeField]
+        [TextArea(3, 3)]
         private string _description;
 
         public string Description { get => _description; set => _description = value; }
