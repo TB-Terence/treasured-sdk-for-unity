@@ -179,7 +179,7 @@ namespace Treasured.UnitySdk.Editor
 
         private void OnSceneViewGUI(SceneView view)
         {
-            if (SceneView.lastActiveSceneView.size <= 0.01f)
+            if (view.size == 0.01f)
             {
                 return;
             }
@@ -274,16 +274,13 @@ namespace Treasured.UnitySdk.Editor
                 OnObjectList(interactables, ref interactablesScrollPosition, ref exportAllInteractables, ref interactablesGroupToggleState);
             }
         }
+
         [FoldoutGroup("Export", true)]
         void OnExportGUI()
         {
             exporter?.OnGUI();
-            if (GUILayout.Button("Open Upload URL", GUILayout.Height(24f)))
-            {
-                Application.OpenURL("https://dev.world.treasured.ca/upload");
-            }
         }
-        
+
         void OnObjectList<T>(IList<T> objects, ref Vector2 scrollPosition, ref bool exportAll, ref GroupToggleState groupToggleState) where T : TreasuredObject
         {
             using (new EditorGUILayout.VerticalScope(Styles.BorderlessBox))
@@ -348,7 +345,7 @@ namespace Treasured.UnitySdk.Editor
                             //}
                             using (new EditorGUI.DisabledGroupScope(!current.gameObject.activeSelf))
                             {
-                                EditorGUILayout.LabelField(new GUIContent(current.gameObject.name, current.Id));
+                                EditorGUILayout.LabelField(new GUIContent(current.gameObject.name));
                             }
                             if (current.gameObject.activeSelf && EditorGUILayoutUtilities.CreateClickZone(Event.current, GUILayoutUtility.GetLastRect(), MouseCursor.Link, 0))
                             {
@@ -366,13 +363,6 @@ namespace Treasured.UnitySdk.Editor
                                 }
 
                             }
-                            //using (new EditorGUI.DisabledGroupScope(!current.gameObject.activeSelf))
-                            //{
-                            //    if (GUILayout.Button(Icons.menu, EditorStyles.label, GUILayout.Width(20), GUILayout.Height(20)))
-                            //    {
-                            //        ShowObjectMenu(current);
-                            //    };
-                            //}
                         }
                     }
                 }

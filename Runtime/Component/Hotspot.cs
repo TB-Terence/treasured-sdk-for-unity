@@ -27,13 +27,54 @@ namespace Treasured.UnitySdk
 
         public void SnapToGround()
         {
-            if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit))
+            // Temporarily disable self colliders
+            var colliders = GetComponents<Collider>();
+            Queue<bool> queue = new Queue<bool>();
+            foreach (var collider in colliders)
+            {
+                queue.Enqueue(collider.enabled);
+                collider.enabled = false;
+            }
+            if (Physics.Raycast(transform.position + _cameraPositionOffset, Vector3.down, out RaycastHit hit))
             {
                 transform.position = hit.point + new Vector3(0, 0.01f, 0);
+                if (TryGetComponent<BoxCollider>(out var collider))
+                {
+                    collider.center = new Vector3(0, collider.size.y / 2, 0);
+                }
+            }
+            foreach (var collider in colliders)
+            {
+                collider.enabled = queue.Dequeue();
             }
         }
 
-        public List<string> VisibleTargets { get; set; }
+        public List<string> VisibleTargets
+        {
+            get; private set;
+        }
+
+        public void CalculateVisibleTargets()
+        {
+            VisibleTargets.Clear();
+            TreasuredMap map = GetComponentInParent<TreasuredMap>();
+            if (!map)
+            {
+                return;
+            }
+            var objects = map.GetComponentsInChildren<TreasuredObject>();
+            foreach (var obj in objects)
+            {
+                if (obj.Id.Equals(this.Id))
+                {
+                    continue;
+                }
+                if (!Physics.Linecast(this.transform.position + _cameraPositionOffset, obj.transform.position, out RaycastHit hit) || hit.collider == obj.GetComponent<Collider>())
+                {
+                    VisibleTargets.Add(obj.Id);
+                }
+            }
+        }
 
         [JsonIgnore]
         [Obsolete]

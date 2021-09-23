@@ -63,6 +63,10 @@ namespace Treasured.UnitySdk
 
         void OnSceneViewGUI(SceneView view)
         {
+            if (SceneView.lastActiveSceneView.size == 0.01f)
+            {
+                return;
+            }
             if (target is Hotspot hotspot)
             {
                 Vector3 cameraPosition = hotspot.transform.position + cameraPositionOffset.vector3Value;
