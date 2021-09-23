@@ -62,6 +62,12 @@ namespace Treasured.UnitySdk.Editor
                 { typeof(Interactable), EditorGUIUtility.TrTextContent("Create New", "Create new Interactable", "Toolbar Plus") }
             };
 
+
+            public static readonly GUIStyle objectLabel = new GUIStyle("label")
+            {
+                fontStyle = FontStyle.Bold
+            };
+
             private static GUIStyle tabButton;
             public static GUIStyle TabButton
             {
@@ -341,7 +347,8 @@ namespace Treasured.UnitySdk.Editor
             {
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    EditorGUILayout.LabelField(new GUIContent("Index", typeof(T) == typeof(Hotspot) ? "The order of the Hotspot for the Guide Tour." : string.Empty), GUILayout.Width(64));
+                    EditorGUILayout.LabelField(new GUIContent("Index", typeof(T) == typeof(Hotspot) ? "The order of the Hotspot for the Guide Tour." : string.Empty), GUILayout.Width(40));
+                    EditorGUILayout.LabelField(new GUIContent("Name"), GUILayout.Width(64));
                     //EditorGUILayout.LabelField(new GUIContent("Export", "Enable if the object should be included in the output file."), GUILayout.Width(72));
                     GUILayout.FlexibleSpace();
                     if (GUILayout.Button(Icons.menu, EditorStyles.label, GUILayout.Width(18), GUILayout.Height(20)))
@@ -381,7 +388,7 @@ namespace Treasured.UnitySdk.Editor
                 //        EditorGUI.showMixedValue = false;
                 //    }
                 //}
-                using (var scope = new EditorGUILayout.ScrollViewScope(scrollPosition, GUILayout.Height(200)))
+                using (var scope = new EditorGUILayout.ScrollViewScope(scrollPosition, GUILayout.Height(300)))
                 {
                     scrollPosition = scope.scrollPosition;
                     for (int i = 0; i < objects.Count; i++)
@@ -397,13 +404,15 @@ namespace Treasured.UnitySdk.Editor
                             //{
                             //    current.gameObject.SetActive(active);
                             //}
-                            using (new EditorGUI.DisabledGroupScope(!current.gameObject.activeSelf))
+                            using (var hs = new EditorGUILayout.HorizontalScope())
                             {
-                                EditorGUILayout.LabelField(new GUIContent(current.gameObject.name));
+                                using (new EditorGUI.DisabledGroupScope(!current.gameObject.activeSelf))
+                                {
+                                    EditorGUILayout.LabelField(new GUIContent(current.gameObject.name), style: Styles.objectLabel);
+                                }
                             }
                             if (current.gameObject.activeSelf && EditorGUILayoutUtilities.CreateClickZone(Event.current, GUILayoutUtility.GetLastRect(), MouseCursor.Link, 0))
                             {
-                                Selection.activeGameObject = current.gameObject;
                                 if (current is Hotspot hotspot)
                                 {
                                     SceneView.lastActiveSceneView.LookAt(hotspot.transform.position + hotspot.CameraPositionOffset, hotspot.transform.rotation, 0.01f);
@@ -415,6 +424,7 @@ namespace Treasured.UnitySdk.Editor
                                     Vector3 cameraPosition = current.transform.position + current.transform.forward * 1;
                                     SceneView.lastActiveSceneView.LookAt(cameraPosition, Quaternion.LookRotation(targetPosition - cameraPosition), 1);
                                 }
+                                EditorGUIUtility.PingObject(current);
 
                             }
                         }
@@ -454,36 +464,11 @@ namespace Treasured.UnitySdk.Editor
         void ShowObjectsMenu<T>(IList<T> objects) where T : TreasuredObject
         {
             GenericMenu menu = new GenericMenu();
-            //if (typeof(T) == typeof(Hotspot))
-            //{
-            //    menu.AddItem(Styles.snapAllToGround, false, () =>
-            //    {
-            //        foreach (var hotspot in objects as IList<Hotspot>)
-            //        {
-            //            hotspot.SnapToGround();
-            //        }
-            //    });
-            //    menu.AddSeparator("");
-            //}
             menu.AddItem(Styles.selectAll, false, () =>
             {
                 Selection.objects = map.GetComponentsInChildren<T>().Select(x => x.gameObject).ToArray();
             });
             menu.ShowAsContext();
-        }
-
-        private class CustomMenuItem
-        {
-            public GUIContent content;
-            public bool on;
-            public GenericMenu.MenuFunction func;
-        }
-
-        private bool IsAllRequiredFieldFilled()
-        {
-            bool allFilled = !string.IsNullOrEmpty(_title.stringValue.Trim());
-            allFilled &= !string.IsNullOrEmpty(_description.stringValue.Trim());
-            return allFilled;
         }
 
         #region Context Menu
@@ -574,51 +559,6 @@ namespace Treasured.UnitySdk.Editor
             }
             return !Selection.activeGameObject.GetComponentInParent<TreasuredMap>();
         }
-
-        //[MenuItem("GameObject/Treasured/Create Map from Json", false, 49)]
-        //static void CreateMapFromJson()
-        //{
-        //    string jsonPath = EditorUtility.OpenFilePanel("Select Json", Utility.ProjectPath, "json");
-        //    if (!File.Exists(jsonPath))
-        //    {
-        //        return;
-        //    }
-        //    string json = File.ReadAllText(jsonPath);
-        //    try
-        //    {
-        //        TreasuredMapData data = JsonConvert.DeserializeObject<TreasuredMapData>(json);
-        //        GameObject mapGO = new GameObject("Treasured Map");
-        //        TreasuredMap map = mapGO.AddComponent<TreasuredMap>();
-        //        map.Populate(data);
-
-        //        GameObject hotspotRoot = new GameObject("Hotspots");
-        //        hotspotRoot.transform.SetParent(mapGO.transform);
-
-        //        GameObject interactableRoot = new GameObject("Interactables");
-        //        interactableRoot.transform.SetParent(mapGO.transform);
-
-        //        for (int i = 0; i < data.Hotspots.Count; i++)
-        //        {
-        //            CreateTreasuredObject<Hotspot>(hotspotRoot.transform).BindData(data.Hotspots[i]);
-        //        }
-
-        //        for (int i = 0; i < data.Interactables.Count; i++)
-        //        {
-        //            CreateTreasuredObject<Interactable>(interactableRoot.transform).BindData(data.Interactables[i]);
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        Debug.LogError(e.StackTrace);
-        //        throw e;
-        //    }
-        //}
-
-        //[MenuItem("GameObject/Treasured/Create Map from Json", true, 49)]
-        //static bool CanCreateMapFromJson()
-        //{
-        //    return Selection.activeGameObject == null;
-        //}
 
         [MenuItem("GameObject/Treasured/Create Hotspot", true)]
         static bool CanCreateHotspotFromContextMenu()
