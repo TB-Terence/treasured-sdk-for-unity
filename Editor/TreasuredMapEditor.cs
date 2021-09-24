@@ -1,434 +1,612 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace Treasured.UnitySdk.Editor
 {
     [CustomEditor(typeof(TreasuredMap))]
-    internal sealed partial class TreasuredMapEditor : TreasuredEditor<TreasuredMap>
+    internal class TreasuredMapEditor : UnityEditor.Editor
     {
-        private enum GroupToggleState
+        private static readonly string[] selectableObjectListNames = new string[] { "Hotspots", "Interactables" };
+        private static Vector3 cameraBoxSize = new Vector3(0.3f, 0.3f, 0.3f);
+
+        [AttributeUsage(AttributeTargets.Method)]
+        class FoldoutGroupAttribute : Attribute
+        {
+            public string Name { get; set; }
+
+            public bool DefaultState { get; set; }
+
+            public FoldoutGroupAttribute(string name)
+            {
+                Name = name;
+            }
+
+            public FoldoutGroupAttribute(string name, bool defaultState) : this(name)
+            {
+                DefaultState = defaultState;
+            }
+
+            public FoldoutGroupAttribute()
+            {
+            }
+        }
+
+        class FoldoutGroupState
+        {
+            public string name;
+            public bool show;
+
+            public FoldoutGroupState(string name, bool show)
+            {
+                this.name = name;
+                this.show = show;
+            }
+        }
+
+        static class Styles
+        {
+            public static readonly GUIContent alignView = EditorGUIUtility.TrTextContent("Align View");
+            public static readonly GUIContent snapAllToGround = EditorGUIUtility.TrTextContent("Snap All on Ground");
+            public static readonly GUIContent selectAll = EditorGUIUtility.TrTextContent("Select All");
+
+            public static readonly Dictionary<Type, GUIContent> createNew = new Dictionary<Type, GUIContent>()
+            {
+                { typeof(Hotspot), EditorGUIUtility.TrTextContent("Create New", "Creaet new Hotspot", "Toolbar Plus") },
+                { typeof(Interactable), EditorGUIUtility.TrTextContent("Create New", "Create new Interactable", "Toolbar Plus") }
+            };
+
+
+            public static readonly GUIStyle objectLabel = new GUIStyle("label")
+            {
+                fontStyle = FontStyle.Bold
+            };
+
+            private static GUIStyle tabButton;
+            public static GUIStyle TabButton
+            {
+                get
+                {
+                    if (tabButton == null)
+                    {
+                        tabButton = new GUIStyle(EditorStyles.toolbarButton)
+                        {
+                            margin = new RectOffset()
+                        };
+                    }
+                    return tabButton;
+                }
+            }
+
+            private static GUIStyle borderlessBox;
+            /// <summary>
+            /// Box without margin
+            /// </summary>
+            public static GUIStyle BorderlessBox
+            {
+                get
+                {
+                    if (borderlessBox == null)
+                    {
+                        borderlessBox = new GUIStyle("box")
+                        {
+                            margin = new RectOffset()
+                        };
+                    }
+                    return borderlessBox;
+                }
+            }
+        }
+
+        enum GroupToggleState
         {
             None,
             All,
             Mixed
         }
 
-        private bool _showMapSettings = true;
-        private SerializedProperty _interactableLayer;
-
-        private bool _showInfo = true;
-
-        private bool _showManagementTabs = true;
-        private string[] _objectManagementTabs = new string[2] { "Hotspot Management", "Interactable Management" };
-
-        private bool _showAll;
-        private List<Hotspot> _hotspots;
-        private bool _showHotspotList = true;
-        private bool _exportAllHotspots = true;
-        private GroupToggleState _hotspotsGroupToggleState = GroupToggleState.All;
-
-        private List<Interactable> _interactables;
-        private bool _showInteractableList = true;
-        private bool _exportAllInteractables = true;
-        private GroupToggleState _interactablesGroupToggleState = GroupToggleState.All;
-
-        private bool _showExportSettings = true;
+        private TreasuredMapExporter exporter;
 
         private SerializedProperty _id;
+
         private SerializedProperty _title;
         private SerializedProperty _description;
-        private SerializedProperty _loop;
 
-        private TreasuredObject _currentEditingObject = null;
-        private int _selectedObjectTab;
-
-        #region Hotspot Management
-        private float _hotspotGroundOffset = 2;
-        #endregion
-
-        #region Export Settings
         private SerializedProperty _format;
         private SerializedProperty _quality;
-        private SerializedProperty _outputDirectory;
-        private bool _showInExplorer = true;
-        #endregion
 
-        protected override void Init()
+        private SerializedProperty _loop;
+
+        private bool exportAllHotspots = true;
+        private GroupToggleState hotspotsGroupToggleState = GroupToggleState.All;
+        private Vector2 hotspotsScrollPosition;
+
+        private bool exportAllInteractables = true;
+        private GroupToggleState interactablesGroupToggleState = GroupToggleState.All;
+        private Vector2 interactablesScrollPosition;
+
+        private int selectedObjectListIndex = 0;
+
+        private List<Hotspot> hotspots = new List<Hotspot>();
+        private List<Interactable> interactables = new List<Interactable>();
+
+        private Dictionary<MethodInfo, FoldoutGroupState> foldoutGroupGUI = new Dictionary<MethodInfo, FoldoutGroupState>();
+
+        private bool canExport = true;
+
+        private SerializedProperty _outputFolderName;
+
+        private TreasuredMap map;
+
+        private void OnEnable()
         {
-            TreasuredMapEditorUtility.RefreshIds(Target);
-            Target.transform.hideFlags = HideFlags.HideInInspector;
-            _hotspots = Target.gameObject.GetComponentsInChildren<Hotspot>(true).ToList();
-            _interactables = Target.gameObject.GetComponentsInChildren<Interactable>(true).ToList();
-            Target.Data.GenerateHotspots(_hotspots);
-            Target.Data.GenerateInteractables(_interactables);
-            Target.Data.Validate();
-            InitSerializedProperty();
-            Tools.hidden = true;
-            _sceneName = SceneManager.GetActiveScene().name;
+            map = target as TreasuredMap;
+
+            map.transform.hideFlags = HideFlags.None; // should be removed once merge is done
+
+            GetFoldoutGroupMethods();
+
+            _id = serializedObject.FindProperty(nameof(_id));
+
+            _title = serializedObject.FindProperty(nameof(_title));
+            _description = serializedObject.FindProperty(nameof(_description));
+
+            _loop = serializedObject.FindProperty(nameof(_loop));
+
+            _format = serializedObject.FindProperty(nameof(_format));
+            _quality = serializedObject.FindProperty(nameof(_quality));
+
+
+            _outputFolderName = serializedObject.FindProperty(nameof(_outputFolderName));
+            if (string.IsNullOrEmpty(_outputFolderName.stringValue))
+            {
+                _outputFolderName.stringValue = EditorSceneManager.GetActiveScene().name;
+                serializedObject.ApplyModifiedProperties();
+            }
+
+            if (map)
+            {
+                hotspots = map.gameObject.GetComponentsInChildren<Hotspot>().ToList();
+                interactables = map.gameObject.GetComponentsInChildren<Interactable>().ToList();
+
+                exporter = new TreasuredMapExporter(serializedObject, map);
+            }
+
+            foreach (var hotspot in hotspots)
+            {
+                if (hotspot.gameObject.GetIcon() == null)
+                {
+                    hotspot.gameObject.SetLabelIcon(6);
+                }
+            }
+
+            SceneView.duringSceneGui -= OnSceneViewGUI;
+            SceneView.duringSceneGui += OnSceneViewGUI;
         }
 
         private void OnDisable()
         {
-            if (Target)
-            {
-                Target.transform.hideFlags = HideFlags.None;
-            }
-            Tools.hidden = false;
+            SceneView.duringSceneGui -= OnSceneViewGUI;
         }
 
-        private void InitSerializedProperty()
+        private void GetFoldoutGroupMethods()
         {
-            _interactableLayer = serializedObject.FindProperty(nameof(_interactableLayer));
-            _id = serializedObject.FindProperty($"_data.{nameof(_id)}");
-            _title = serializedObject.FindProperty($"_data.{nameof(_title)}");
-            _description = serializedObject.FindProperty($"_data.{nameof(_description)}");
-            _loop = serializedObject.FindProperty($"_data.{nameof(_loop)}");
-            _format = serializedObject.FindProperty($"_data.{nameof(_format)}");
-            _quality = serializedObject.FindProperty($"_data.{nameof(_quality)}");
-            _outputDirectory = serializedObject.FindProperty(nameof(_outputDirectory));
+            foldoutGroupGUI.Clear();
+            var methods = typeof(TreasuredMapEditor).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static).Where(x => x.GetParameters().Length == 0);
+            foreach (var method in methods)
+            {
+                var attribute = method.GetCustomAttribute<FoldoutGroupAttribute>();
+                if (attribute != null)
+                {
+                    foldoutGroupGUI[method] = new FoldoutGroupState(attribute.Name, attribute.DefaultState);
+                }
+            }
         }
 
+
+        private void OnSceneViewGUI(SceneView view)
+        {
+            if (SceneView.lastActiveSceneView.size == 0.01f) // this happens when TreasuredObject is selected
+            {
+                return;
+            }
+            for (int i = 0; i < hotspots.Count; i++)
+            {
+                Hotspot current = hotspots[i];
+                if (!current.gameObject.activeSelf)
+                {
+                    continue;
+                }
+                Hotspot next = GetNextActiveHotspot(i, hotspots);
+
+                Vector3 currentCameraPosition = current.transform.position + current.CameraPositionOffset;
+
+                if (Selection.activeGameObject != current.gameObject)
+                {
+                    Handles.color = Color.white;
+                    Handles.DrawDottedLine(current.transform.position, currentCameraPosition, 5);
+
+                    Handles.color = Color.red;
+                    Handles.DrawWireCube(currentCameraPosition, cameraBoxSize);
+
+                    // Show facing direction
+                    Handles.color = Color.blue;
+                    Handles.ArrowHandleCap(0, currentCameraPosition, current.gameObject.transform.rotation, 0.5f, EventType.Repaint);
+                }
+
+                if (!_loop.boolValue && i == hotspots.Count - 1)
+                {
+                    continue;
+                }
+                if (!next)
+                {
+                    continue;
+                }
+                Handles.color = Color.white;
+                Handles.DrawLine(current.transform.position, next.transform.position);
+                Vector3 direction = next.transform.position - current.transform.position;
+                if (direction != Vector3.zero)
+                {
+                    Handles.color = Color.green;
+                    Handles.ArrowHandleCap(0, current.transform.position, Quaternion.LookRotation(direction), 0.5f, EventType.Repaint);
+                }
+            }
+        }
 
         public override void OnInspectorGUI()
         {
-            Styles.Init();
             serializedObject.Update();
-            using (new EditorGUILayout.VerticalScope())
-            {
-                OnFoldoutGroupGUI(ref _showMapSettings, new GUIContent("Map Settings"), OnDrawMapSettings);
-                OnFoldoutGroupGUI(ref _showInfo, new GUIContent("Info"), OnDrawInfo);
-                OnFoldoutGroupGUI(ref _showManagementTabs, new GUIContent("Object Management"), OnDrawObjectManagement);
-                OnFoldoutGroupGUI(ref _showExportSettings, new GUIContent("Export Settings"), OnDrawExportSettings);
-                OnFooter();
-            }
+            OnFoldoutGroupGUI();
             serializedObject.ApplyModifiedProperties();
         }
 
-        private void OnFooter()
+        void OnFoldoutGroupGUI()
         {
-            if (GUILayout.Button("Open Upload URL", GUILayout.Height(24f)))
+            foreach (var guiMethod in foldoutGroupGUI)
             {
-                Application.OpenURL("https://dev.world.treasured.ca/upload");
+                var state = foldoutGroupGUI[guiMethod.Key];
+                state.show = EditorGUILayout.BeginFoldoutHeaderGroup(state.show, state.name);
+                if (state.show)
+                {
+                    guiMethod.Key.Invoke(this, null);
+                }
+                EditorGUILayout.EndFoldoutHeaderGroup();
             }
         }
 
-        private void OnDrawObjectManagement()
+        [FoldoutGroup("Info")]
+        void OnInfoGUI()
+        {
+            EditorGUILayout.LabelField("Version", TreasuredMap.Version);
+            EditorGUILayout.PropertyField(_id);
+        }
+
+        [FoldoutGroup("Launch Page Settings")]
+        void OnLaunchPageSettingsGUI()
+        {
+            EditorGUILayoutUtilities.RequiredPropertyField(_title);
+            EditorGUILayoutUtilities.RequiredPropertyField(_description);
+            //EditorGUILayout.PropertyField(cover);
+            //if (cover.objectReferenceValue is Texture2D preview)
+            //{
+            //    Rect previewRect = EditorGUILayout.GetControlRect(false, height: 128);
+            //    EditorGUI.DrawPreviewTexture(previewRect, preview, null, ScaleMode.ScaleToFit);
+            //}
+        }
+
+        [FoldoutGroup("Guide Tour Settings")]
+        void OnGuideTourSettingsGUI()
+        {
+            EditorGUILayout.PropertyField(_loop);
+        }
+
+        [FoldoutGroup("Object Management", true)]
+        void OnObjectManagementGUI()
+        {
+            selectedObjectListIndex = GUILayout.SelectionGrid(selectedObjectListIndex, selectableObjectListNames, selectableObjectListNames.Length, Styles.TabButton);
+            if (selectedObjectListIndex == 0)
+            {
+                OnObjectList(hotspots, ref hotspotsScrollPosition, ref exportAllHotspots, ref hotspotsGroupToggleState);
+            }
+            else if (selectedObjectListIndex == 1)
+            {
+                OnObjectList(interactables, ref interactablesScrollPosition, ref exportAllInteractables, ref interactablesGroupToggleState);
+            }
+        }
+
+        [FoldoutGroup("Export", true)]
+        void OnExportGUI()
         {
             EditorGUI.BeginChangeCheck();
-            _showAll = EditorGUILayout.Toggle(new GUIContent("Show Transform Tool for All", "Show transform tool for Hotspots and Interactables if enabled, otherwise only show from selected tab."), _showAll);
-            using (new EditorGUILayout.HorizontalScope(Styles.TabBar))
+            string newOutputFolderName = EditorGUILayout.TextField(new GUIContent("Output Folder Name"), _outputFolderName.stringValue);
+            if (EditorGUI.EndChangeCheck() && !string.IsNullOrEmpty(newOutputFolderName))
             {
-                _selectedObjectTab = GUILayout.SelectionGrid(_selectedObjectTab, _objectManagementTabs, _objectManagementTabs.Length, Styles.TabButton);
+                _outputFolderName.stringValue = newOutputFolderName;
             }
-            if (EditorGUI.EndChangeCheck())
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_format"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_quality"));
+            using (new EditorGUI.DisabledGroupScope(!canExport))
             {
-                SceneView.RepaintAll();
-            }
-            using (new EditorGUILayout.VerticalScope(Styles.TabPage))
-            {
-                if (_selectedObjectTab == 0)
-                {
-                    DrawHotspotManagement();
-                }
-                else
-                {
-                    DrawInteractableManagment();
-                }
-            }
-        }
-
-        private void OnFoldoutGroupGUI(ref bool foldout, GUIContent label, Action action)
-        {
-            foldout = EditorGUILayout.BeginFoldoutHeaderGroup(foldout, label);
-            EditorGUI.indentLevel++;
-            if (foldout)
-            {
-                using (new EditorGUILayout.VerticalScope())
-                {
-                    action.Invoke();
-                }
-            }
-            EditorGUI.indentLevel--;
-            EditorGUILayout.EndFoldoutHeaderGroup();
-        }
-
-        private void OnDrawMapSettings()
-        {
-            EditorGUILayout.PropertyField(_interactableLayer);
-        }
-
-        private void OnDrawInfo()
-        {
-            EditorGUILayout.PropertyField(_id);
-            CustomEditorGUILayout.PropertyField(_title, string.IsNullOrEmpty(_title.stringValue.Trim()));
-            CustomEditorGUILayout.PropertyField(_description, string.IsNullOrEmpty(_description.stringValue.Trim()));
-        }
-
-        private void DrawHotspotManagement()
-        {
-            DrawObjectManagementMenu<Hotspot, HotspotData>(_hotspots);
-            EditorGUILayout.PropertyField(_loop);
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                _hotspotGroundOffset = EditorGUILayout.Slider(new GUIContent("Ground offset for all", "Offset all Hotspots off the ground by this amount."), _hotspotGroundOffset, 0, 100);
-                if (GUILayout.Button("Overwrite", GUILayout.Width(72)))
-                {
-                    Undo.RegisterFullObjectHierarchyUndo(Target.gameObject, "Overwrite ground offset for all");
-                    foreach (var hotspot in _hotspots)
-                    {
-                        if (hotspot.FindGroundPoint(100, ~0, out Vector3 ground))
-                        {
-                            hotspot.transform.position = ground + new Vector3(0, _hotspotGroundOffset, 0);
-                            hotspot.OffsetHitbox();
-                        }
-                    }
-                }
-            }
-            DrawTObjectList<Hotspot, HotspotData>(_hotspots, "Hotspots", ref _showHotspotList, ref _exportAllHotspots, ref _hotspotsGroupToggleState);
-        }
-
-        private class CustomMenuItem
-        {
-            public GUIContent content;
-            public bool on;
-            public GenericMenu.MenuFunction func;
-        }
-
-        private void DrawInteractableManagment()
-        {
-            DrawObjectManagementMenu<Interactable, InteractableData>(_interactables, new CustomMenuItem()
-            {
-                content = new GUIContent("Reset Hitbox center for all Interactables"),
-                on = false,
-                func = () =>
-                {
-                    Undo.RecordObjects(_interactables.Select(x => x.BoxCollider).ToArray(), "Reset Hitbox center for all Interactables");
-                    for (int i = 0; i < _interactables.Count; i++)
-                    {
-                        _interactables[i].BoxCollider.center = Vector3.zero;
-                    }
-                }
-            });
-            DrawTObjectList<Interactable, InteractableData>(_interactables, "Interactables", ref _showInteractableList, ref _exportAllInteractables, ref _interactablesGroupToggleState, 3);
-        }
-
-        private void DrawObjectManagementMenu<T, D>(IList<T> objects, params CustomMenuItem[] menuItems) where T : TreasuredObject, IDataComponent<D> where D : TreasuredObjectData
-        {
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                GUILayout.FlexibleSpace();
-                if (GUILayout.Button(EditorGUIUtility.TrIconContent("_Menu"), EditorStyles.label))
+                if (GUILayout.Button(new GUIContent("Export")))
                 {
                     GenericMenu menu = new GenericMenu();
-                    menu.AddItem(new GUIContent($"Regenerate Ids for {(_selectedObjectTab == 0 ? "Hotspots" : "Interactables")}"), false, () =>
+                    foreach (var option in Enum.GetValues(typeof(ExportOptions)))
                     {
-                        if (EditorUtility.DisplayDialog("Warning", $"This function resets id for all {(_selectedObjectTab == 0 ? "Hotspots" : "Interactables")}. Currently target id of the Select Object action will not be update automatically and you have to manually reset it. Do you still want to proceed?", "Yes", "Cancel"))
+                        menu.AddItem(new GUIContent(ObjectNames.NicifyVariableName(option.ToString())), false, () =>
                         {
-                            foreach (var obj in objects)
-                            {
-                                SerializedObject o = new SerializedObject(obj);
-                                SerializedProperty id = o.FindProperty("_data._id");
-                                id.stringValue = Guid.NewGuid().ToString();
-                                o.ApplyModifiedProperties();
-                            }
-                        }
-                    });
-                    foreach (var menuItem in menuItems)
-                    {
-                        menu.AddItem(menuItem.content, menuItem.on, menuItem.func);
+                            exporter.Export((ExportOptions)option);
+                        });
                     }
                     menu.ShowAsContext();
                 }
             }
         }
 
-        private void DrawTObjectList<T, D>(IList<T> objects, string foldoutName, ref bool foldout, ref bool exportAll, ref GroupToggleState groupToggleState, float distance = 0) where T : TreasuredObject, IDataComponent<D> where D : TreasuredObjectData
+        [FoldoutGroup("Upload", true)]
+        void OnUploadGUI()
         {
-            if (objects == null)
+            if (GUILayout.Button("Upload"))
             {
-                return;
+                UploadWindow.ShowUploadWindow();
             }
-            using (new EditorGUILayout.VerticalScope())
+        }
+
+        void OnObjectList<T>(IList<T> objects, ref Vector2 scrollPosition, ref bool exportAll, ref GroupToggleState groupToggleState) where T : TreasuredObject
+        {
+            using (new EditorGUILayout.VerticalScope(Styles.BorderlessBox))
             {
-                EditorGUI.indentLevel++;
-                foldout = EditorGUILayout.Foldout(foldout, new GUIContent($"{foldoutName} ({objects.Count})"), true);
-                if (foldout)
+                using (new EditorGUILayout.HorizontalScope())
                 {
-                    using (new EditorGUILayout.HorizontalScope())
+                    EditorGUILayout.LabelField(new GUIContent("Index", typeof(T) == typeof(Hotspot) ? "The order of the Hotspot for the Guide Tour." : string.Empty), GUILayout.Width(40));
+                    EditorGUILayout.LabelField(new GUIContent("Name"), GUILayout.Width(64));
+                    //EditorGUILayout.LabelField(new GUIContent("Export", "Enable if the object should be included in the output file."), GUILayout.Width(72));
+                    GUILayout.FlexibleSpace();
+                    if (GUILayout.Button(Icons.menu, EditorStyles.label, GUILayout.Width(18), GUILayout.Height(20)))
                     {
-                        EditorGUILayout.LabelField(new GUIContent("Index", "The order of the Hotspot for the Guide Tour."), GUILayout.Width(64));
-                        EditorGUILayout.LabelField(new GUIContent("Export", "Enable if the object should be included in the output file."), GUILayout.Width(72));
-                        if (objects.Count > 1)
-                        {
-                            GUILayout.FlexibleSpace();
-                            if (GUILayout.Button(EditorGUIUtility.TrIconContent("Transform Icon", "Edit All Transform"), EditorStyles.label, GUILayout.Width(20), GUILayout.Height(20)))
-                            {
-                                _currentEditingObject = null;
-                                SceneView.RepaintAll();
-                            }
-                        }
-                    }
-                    if (objects.Count > 1)
-                    {
-                        using (new EditorGUILayout.HorizontalScope())
-                        {
-                            if (objects.All(x => !x.gameObject.activeSelf))
-                            {
-                                exportAll = false;
-                                groupToggleState = GroupToggleState.None;
-                            }
-                            else if (objects.Any(x => !x.gameObject.activeSelf))
-                            {
-                                groupToggleState = GroupToggleState.Mixed;
-                            }
-                            else
-                            {
-                                exportAll = true;
-                                groupToggleState = GroupToggleState.All;
-                            }
-                            EditorGUI.showMixedValue = groupToggleState == GroupToggleState.Mixed;
-                            GUILayout.Space(70);
-                            EditorGUI.BeginChangeCheck();
-                            exportAll = EditorGUILayout.ToggleLeft(GUIContent.none, exportAll);
-                            if (EditorGUI.EndChangeCheck())
-                            {
-                                foreach (var obj in objects)
-                                {
-                                    obj.gameObject.SetActive(exportAll);
-                                }
-                            }
-                            EditorGUI.showMixedValue = false;
-                        }
-                    }
+                        ShowObjectsMenu(objects);
+                    };
+                }
+                //if (objects.Count > 1)
+                //{
+                //    using (new EditorGUILayout.HorizontalScope())
+                //    {
+                //        if (objects.All(x => !x.gameObject.activeSelf))
+                //        {
+                //            exportAll = false;
+                //            groupToggleState = GroupToggleState.None;
+                //        }
+                //        else if (objects.Any(x => !x.gameObject.activeSelf))
+                //        {
+                //            groupToggleState = GroupToggleState.Mixed;
+                //        }
+                //        else
+                //        {
+                //            exportAll = true;
+                //            groupToggleState = GroupToggleState.All;
+                //        }
+                //        EditorGUI.showMixedValue = groupToggleState == GroupToggleState.Mixed;
+                //        GUILayout.Space(70);
+                //        EditorGUI.BeginChangeCheck();
+                //        exportAll = EditorGUILayout.ToggleLeft(GUIContent.none, exportAll);
+                //        if (EditorGUI.EndChangeCheck())
+                //        {
+                //            foreach (var obj in objects)
+                //            {
+                //                obj.gameObject.SetActive(exportAll);
+                //            }
+                //        }
+                //        EditorGUI.showMixedValue = false;
+                //    }
+                //}
+                using (var scope = new EditorGUILayout.ScrollViewScope(scrollPosition, GUILayout.Height(300)))
+                {
+                    scrollPosition = scope.scrollPosition;
                     for (int i = 0; i < objects.Count; i++)
                     {
                         using (new EditorGUILayout.HorizontalScope())
                         {
                             T current = objects[i];
-                            EditorGUILayout.LabelField($"{i + 1}", Styles.IndexLabel, GUILayout.Width(64));
-                            EditorGUI.BeginChangeCheck();
-                            bool active = EditorGUILayout.Toggle(GUIContent.none, current.gameObject.activeSelf, GUILayout.Width(20));
-                            if (EditorGUI.EndChangeCheck())
+                            // TODO: width 40 only show up to 10000
+                            EditorGUILayout.LabelField($"{i + 1}", GUILayout.Width(40));
+                            //EditorGUI.BeginChangeCheck();
+                            //bool active = EditorGUILayout.Toggle(GUIContent.none, current.gameObject.activeSelf, GUILayout.Width(20));
+                            //if (EditorGUI.EndChangeCheck())
+                            //{
+                            //    current.gameObject.SetActive(active);
+                            //}
+                            using (var hs = new EditorGUILayout.HorizontalScope())
                             {
-                                current.gameObject.SetActive(active);
-                            }
-                            EditorGUILayout.LabelField(new GUIContent(current.gameObject.name, current.Data.Id));
-                            if (GUILayout.Button(EditorGUIUtility.TrIconContent("Transform Icon", "Edit Transform"), EditorStyles.label, GUILayout.Width(20), GUILayout.Height(20)))
-                            {
-                                _currentEditingObject = current;
-                                SceneView.RepaintAll();
-                            }
-                            using (new EditorGUI.DisabledGroupScope(!current.gameObject.activeSelf))
-                            {
-                                if (GUILayout.Button(EditorGUIUtility.TrIconContent("SceneViewCamera", "Move scene view to target"), EditorStyles.label, GUILayout.Width(20), GUILayout.Height(20)))
+                                using (new EditorGUI.DisabledGroupScope(!current.gameObject.activeSelf))
                                 {
-                                    current.transform.MoveSceneView(distance);
-                                    _showPreview = false;
+                                    EditorGUILayout.LabelField(new GUIContent(current.gameObject.name), style: Styles.objectLabel);
                                 }
                             }
-                            if (GUILayout.Button(EditorGUIUtility.TrIconContent("Search Icon", "Ping Game Object in Scene"), EditorStyles.label, GUILayout.Width(20), GUILayout.Height(20)))
+                            if (current.gameObject.activeSelf && EditorGUILayoutUtilities.CreateClickZone(Event.current, GUILayoutUtility.GetLastRect(), MouseCursor.Link, 0))
                             {
-                                EditorGUIUtility.PingObject(current.gameObject);
+                                if (current is Hotspot hotspot)
+                                {
+                                    SceneView.lastActiveSceneView.LookAt(hotspot.transform.position + hotspot.CameraPositionOffset, hotspot.transform.rotation, 0.01f);
+                                }
+                                else
+                                {
+                                    // Always oppsite to the transform.forward
+                                    Vector3 targetPosition = current.transform.position;
+                                    Vector3 cameraPosition = current.transform.position + current.transform.forward * 1;
+                                    SceneView.lastActiveSceneView.LookAt(cameraPosition, Quaternion.LookRotation(targetPosition - cameraPosition), 1);
+                                }
+                                EditorGUIUtility.PingObject(current);
+
                             }
-#if UNITY_2020_1_OR_NEWER // PropertyEditor only exists in 2020_1 or above https://github.com/Unity-Technologies/UnityCsReference/blob/2020.1/Editor/Mono/Inspector/PropertyEditor.cs
-                            if (GUILayout.Button(EditorGUIUtility.TrIconContent("UnityEditor.InspectorWindow", "Open Editor Window"), EditorStyles.label, GUILayout.Width(20), GUILayout.Height(20)))
-                            {
-                                ReflectionUtility.OpenPropertyEditor(current);
-                            }
-#endif
                         }
                     }
                 }
-                EditorGUI.indentLevel--;
-                EditorGUILayout.Space(16);
-                if (GUILayout.Button(new GUIContent($"Create new {(_selectedObjectTab == 0 ? "Hotspot" : "Interactable")}")))
+                if (GUILayout.Button(Styles.createNew[typeof(T)]))
                 {
-                    if (_selectedObjectTab == 0)
+                    var root = GetChildOrCreateNew(map.transform, $"{typeof(T).Name}s");
+                    GameObject go = new GameObject(ObjectNames.GetUniqueName(objects.Select(x => x.name).ToArray(), typeof(T).Name));
+                    T obj = go.AddComponent<T>();
+                    BoxCollider boxCollider = go.AddComponent<BoxCollider>();
+                    boxCollider.size = Vector3.one;
+                    Camera camera = SceneView.lastActiveSceneView.camera;
+                    go.transform.SetParent(root);
+                    if (typeof(T) == typeof(Hotspot))
                     {
-                        Transform root = GetChild(Target.transform, "Hotspots");
-                        Hotspot hotspot = CreateTreasuredObject<Hotspot>(root);
-                        hotspot.gameObject.name = $"Hotspot {_hotspots.Count + 1}";
-                        _hotspots.Add(hotspot);
-                        if(_currentEditingObject != null)
-                        {
-                            hotspot.transform.position = _currentEditingObject.gameObject.transform.position;
-                            _currentEditingObject = hotspot;
-                        }
+                        hotspots.Add(obj as Hotspot);
+                    }
+                    else if (typeof(T) == typeof(Interactable))
+                    {
+                        interactables.Add(obj as Interactable);
+                    }
+                    EditorGUIUtility.PingObject(go);
+                    if (Physics.Raycast(camera.transform.position, camera.transform.forward, out var hit))
+                    {
+                        go.transform.position = hit.point;
+                        boxCollider.center = new Vector3(0, boxCollider.size.y / 2, 0);
                     }
                     else
                     {
-                        Transform root = GetChild(Target.transform, "Interactables");
-                        Interactable interactable = CreateTreasuredObject<Interactable>(root);
-                        interactable.gameObject.name = $"Interactable {_interactables.Count + 1}";
-                        _interactables.Add(interactable);
-                        if (_currentEditingObject != null)
-                        {
-                            interactable.transform.position = _currentEditingObject.gameObject.transform.position;
-                            _currentEditingObject = interactable;
-                        }
+                        SceneView.lastActiveSceneView.LookAt(go.transform.position, camera.transform.rotation);
                     }
                 }
             }
         }
 
-        private void OnDrawExportSettings()
+        void ShowObjectsMenu<T>(IList<T> objects) where T : TreasuredObject
         {
-            EditorGUILayout.PropertyField(_format);
-            EditorGUILayout.PropertyField(_quality);
-            CustomEditorGUILayout.FolderField(_outputDirectory, new GUIContent("Output Directory", "The root folder for the outputs which is relative to the Project path."), $"/{_sceneName}");
-            _showInExplorer = EditorGUILayout.Toggle(new GUIContent("Show In Explorer", "Opens the output directory once the exporting is done if enabled."), _showInExplorer);
-            using (new EditorGUILayout.HorizontalScope())
+            GenericMenu menu = new GenericMenu();
+            menu.AddItem(Styles.selectAll, false, () =>
             {
-                using (new EditorGUI.DisabledGroupScope(_hotspots.Count == 0))
+                Selection.objects = map.GetComponentsInChildren<T>().Select(x => x.gameObject).ToArray();
+            });
+            menu.ShowAsContext();
+        }
+
+        private Hotspot GetNextActiveHotspot(int currentIndex, IList<Hotspot> list)
+        {
+            int index = currentIndex;
+            Hotspot current = list[index];
+            Hotspot next = list[(index + 1) % list.Count];
+            while (next != current)
+            {
+                if (index == list.Count - 1 && !map.Loop)
                 {
-                    if (GUILayout.Button("Export Panoramic Images", GUILayout.Height(24)))
-                    {
-                        string outputDirectory = GetAbosluteOutputDirectory(_sceneName);
-                        Directory.CreateDirectory(outputDirectory);
-                        ExportPanoramicImages(outputDirectory);
-                        if (_showInExplorer)
-                        {
-                            Application.OpenURL(outputDirectory);
-                        }
-                    }
+                    return null;
                 }
-                using (new EditorGUI.DisabledGroupScope(!IsAllRequiredFieldFilled()))
+                if (next.gameObject.activeSelf)
                 {
-                    if (GUILayout.Button("Export Json", GUILayout.Height(24)))
-                    {
-                        string outputDirectory = GetAbosluteOutputDirectory(_sceneName);
-                        Directory.CreateDirectory(outputDirectory);
-                        ExportJson(outputDirectory);
-                        if (_showInExplorer)
-                        {
-                            Application.OpenURL(outputDirectory);
-                        }
-                    }
-                    if (GUILayout.Button("Export All", GUILayout.Height(24)))
-                    {
-                        string outputDirectory = GetAbosluteOutputDirectory(_sceneName);
-                        Directory.CreateDirectory(outputDirectory);
-                        ExportAll(outputDirectory);
-                        if (_showInExplorer)
-                        {
-                            Application.OpenURL(outputDirectory);
-                        }
-                    }
+                    return next;
                 }
+                next = list[++index % list.Count];
+            }
+            return null;
+        }
+
+        #region Context Menu
+        /// <summary>
+        /// Get the child with the name. Create a new game object if child not found.
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        static Transform GetChildOrCreateNew(Transform parent, string name)
+        {
+            Transform child = parent.Find(name);
+            if (child == null)
+            {
+                child = new GameObject(name).transform;
+                child.SetParent(parent);
+            }
+            return child;
+        }
+
+        static T CreateTreasuredObject<T>(Transform parent) where T : TreasuredObject
+        {
+            GameObject go = new GameObject();
+            go.transform.SetParent(parent);
+            return go.AddComponent<T>();
+        }
+
+        [MenuItem("GameObject/Treasured/Create Interactable", false, 49)]
+        static void CreateInteractableFromContextMenu()
+        {
+            TreasuredMap map = Selection.activeGameObject.GetComponentInParent<TreasuredMap>();
+            Transform root = map.transform;
+            Transform interactableRoot = root.Find("Interactables");
+            if (interactableRoot == null)
+            {
+                interactableRoot = new GameObject("Interactables").transform;
+                interactableRoot.SetParent(root);
+            }
+            GameObject interactable = new GameObject("New Interacatble", typeof(Interactable));
+            if (Selection.activeGameObject.transform == root)
+            {
+                interactable.transform.SetParent(interactableRoot);
+            }
+            else
+            {
+                interactable.transform.SetParent(Selection.activeGameObject.transform);
             }
         }
 
-        private bool IsAllRequiredFieldFilled()
+        [MenuItem("GameObject/Treasured/Create Hotspot", false, 49)]
+        static void CreateHotspotFromContextMenu()
         {
-            bool allFilled = !string.IsNullOrEmpty(_title.stringValue.Trim());
-            allFilled &= !string.IsNullOrEmpty(_description.stringValue.Trim());
-            allFilled &= !string.IsNullOrEmpty(_outputDirectory.stringValue);
-            return allFilled;
+            TreasuredMap map = Selection.activeGameObject.GetComponentInParent<TreasuredMap>();
+            Transform root = map.transform;
+            Transform hotspotRoot = root.Find("Hotspots");
+            if (hotspotRoot == null)
+            {
+                hotspotRoot = new GameObject("Hotspots").transform;
+                hotspotRoot.SetParent(root);
+            }
+            GameObject hotspot = new GameObject("New Hotspot", typeof(Hotspot));
+            if (Selection.activeGameObject.transform == root)
+            {
+                hotspot.transform.SetParent(hotspotRoot);
+            }
+            else
+            {
+                hotspot.transform.SetParent(Selection.activeGameObject.transform);
+            }
         }
+
+        [MenuItem("GameObject/Treasured/Create Empty Map", false, 49)]
+        static void CreateEmptyMap()
+        {
+            GameObject map = new GameObject("Treasured Map", typeof(TreasuredMap));
+            if (Selection.activeGameObject)
+            {
+                map.transform.SetParent(Selection.activeGameObject.transform);
+            }
+        }
+
+        [MenuItem("GameObject/Treasured/Create Empty Map", true, 49)]
+        static bool CanCreateEmptyMap()
+        {
+            if (Selection.activeGameObject == null)
+            {
+                return true;
+            }
+            return !Selection.activeGameObject.GetComponentInParent<TreasuredMap>();
+        }
+
+        [MenuItem("GameObject/Treasured/Create Hotspot", true)]
+        static bool CanCreateHotspotFromContextMenu()
+        {
+            return Selection.activeGameObject?.GetComponentInParent<TreasuredMap>();
+        }
+
+        [MenuItem("GameObject/Treasured/Create Interactable", true, 49)]
+        static bool CanCreateInteractableFromContextMenu()
+        {
+            return Selection.activeGameObject?.GetComponentInParent<TreasuredMap>();
+        }
+        #endregion
     }
 }

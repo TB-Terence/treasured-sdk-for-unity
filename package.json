@@ -1,9 +1,9 @@
 {
-  "name": "com.treasured.toolkit",
-  "version": "0.4.1",
-  "displayName": "Treasured Toolkit for Unity",
+  "name": "com.treasured.unitysdk",
+  "version": "0.5.2",
+  "displayName": "Treasured SDK for Unity",
   "description": "This package provides tools for creating and exporting files used by the Treasured website.",
-  "unity": "2020.1",
+  "unity": "2020.3",
   "keywords": [
     "Treasured",
     "Story",

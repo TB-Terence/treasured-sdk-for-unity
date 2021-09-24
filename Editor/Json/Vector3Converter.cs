@@ -3,7 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using UnityEngine;
 
-namespace Treasured.UnitySdk.Editor
+namespace Treasured.UnitySdk
 {
     internal class Vector3Converter : JsonConverter
     {

@@ -1,65 +1,120 @@
-﻿using UnityEditor;
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEditor;
 
-namespace Treasured.UnitySdk.Editor
+namespace Treasured.UnitySdk
 {
     [CustomEditor(typeof(Hotspot))]
-    internal class HotspotEditor : TreasuredObjectEditor<Hotspot, HotspotData>
+    [CanEditMultipleObjects]
+    internal class HotspotEditor : UnityEditor.Editor
     {
-        protected override void Init()
+        internal static class Styles
         {
-            base.Init();
+            public static readonly GUIContent snapToGround = EditorGUIUtility.TrTextContent("Snap on Ground", "Snap the object slightly above the ground from camera position. This also snap the first box collider to the ground based on the size.");
+            public static readonly GUIContent missingMapComponent = EditorGUIUtility.TrTextContent("Missing Treasured Map Component in parent.", "", "Warning");
+        }
+
+        private static readonly Vector3 cameraCubeSize = Vector3.one * 0.3f;
+
+        private ActionBaseListDrawer list;
+        private SerializedProperty id;
+        private SerializedProperty description;
+        private SerializedProperty cameraPositionOffset;
+        private SerializedProperty cameraRotationOffset;
+        private SerializedProperty onSelected;
+
+        private TreasuredMap map;
+
+        private void OnEnable()
+        {
+            map = (target as Hotspot).Map;
+
+            id = serializedObject.FindProperty("_id");
+            description = serializedObject.FindProperty("_description");
+            cameraPositionOffset = serializedObject.FindProperty("_cameraPositionOffset");
+            cameraRotationOffset = serializedObject.FindProperty("_cameraRotationOffset");
+            onSelected = serializedObject.FindProperty("_onSelected");
+            list = new ActionBaseListDrawer(serializedObject, onSelected);
+            SceneView.duringSceneGui -= OnSceneViewGUI;
+            SceneView.duringSceneGui += OnSceneViewGUI;
         }
 
         private void OnDisable()
         {
-            if (Target)
-            {
-                Target.transform.hideFlags = HideFlags.None;
-            }
-            Tools.hidden = false; // show the transform tools for other game object
-        }
-
-        private void DrawNameField()
-        {
-            Target.gameObject.name = EditorGUILayout.TextField("Name", Target.gameObject.name);
+            SceneView.duringSceneGui -= OnSceneViewGUI;
         }
 
         public override void OnInspectorGUI()
         {
-            base.OnInspectorGUI();
-            using (new GUILayout.VerticalScope())
+            if (map == null)
             {
-                using (new GUILayout.HorizontalScope())
+                EditorGUILayout.LabelField(Styles.missingMapComponent);
+                return;
+            }
+            serializedObject.Update();
+            if (!id.hasMultipleDifferentValues)
+            {
+                EditorGUILayout.PropertyField(id);
+            }
+            EditorGUILayout.PropertyField(description);
+            EditorGUILayout.PropertyField(cameraPositionOffset);
+            EditorGUILayout.PropertyField(cameraRotationOffset);
+            if (serializedObject.targetObjects.Length == 1)
+            {
+                list.OnGUI();
+            }
+            serializedObject.ApplyModifiedProperties();
+            if (GUILayout.Button("Snap to Ground"))
+            {
+                foreach (var target in serializedObject.targetObjects)
                 {
-                    if (GUILayout.Button(new GUIContent("Place Hitbox on ground", "Put the Hitbox on the ground by doing a Raycast. The maximum distance for the Raycast is 100."), GUILayout.Height(24)))
+                    if (target is Hotspot hotspot)
                     {
-                        Undo.RecordObject(Target.BoxCollider, "Offset Hitbox position");
-                        Target.OffsetHitbox();
+                        hotspot.SnapToGround();
                     }
                 }
             }
         }
 
-        protected override void OnSceneGUI()
+        private void OnSceneViewGUI(SceneView view)
         {
-            base.OnSceneGUI();
-            Handles.color = Color.red;
-            Handles.DrawWireCube(Target.transform.position, Vector3.one * 0.3f);
-
-            if (Tools.current == Tool.Scale || Tools.current == Tool.Transform || Tools.current == Tool.Rect)
+            if (SceneView.lastActiveSceneView.size == 0.01f) // this happens when TreasuredObject is selected
             {
-                Tools.hidden = true;
+                return;
             }
-            else
+            if (target is Hotspot hotspot)
             {
-                Tools.hidden = false;
-            }
-            if (Tools.current == Tool.Rotate)
-            {
-                float size = HandleUtility.GetHandleSize(Target.transform.position);
-                Handles.color = Color.blue;
-                Handles.ArrowHandleCap(0, Target.transform.position + Target.transform.forward * size, Target.transform.rotation, size, EventType.Repaint);
+                TransformData cameraTransform = hotspot.CameraTransform;
+                var cameraRotation = Quaternion.Euler(cameraTransform.Rotation);
+                switch (Tools.current)
+                {
+                    case Tool.Move:
+                        EditorGUI.BeginChangeCheck();
+                        Vector3 newCameraPosition = Handles.PositionHandle(cameraTransform.Position, cameraRotation);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            Undo.RecordObject(target, "Edit hotpsot camera position offset");
+                            cameraPositionOffset.vector3Value = newCameraPosition - hotspot.transform.position;
+                            serializedObject.ApplyModifiedProperties();
+                        }
+                        break;
+                    case Tool.Rotate:
+                        EditorGUI.BeginChangeCheck();
+                        Quaternion newRotation = Handles.RotationHandle(cameraRotation, cameraTransform.Position);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            Undo.RecordObject(hotspot.transform, "Edit hotspot camera rotation offset");
+                            cameraRotationOffset.vector3Value = newRotation.eulerAngles - hotspot.transform.eulerAngles;
+                            serializedObject.ApplyModifiedProperties();
+                        }
+                        float size = HandleUtility.GetHandleSize(hotspot.transform.position);
+                        Handles.color = Color.blue;
+                        Handles.ArrowHandleCap(0, cameraTransform.Position, cameraRotation, size, EventType.Repaint);
+                        break;
+                }
+                Handles.color = Color.white;
+                Handles.DrawDottedLine(hotspot.transform.position, cameraTransform.Position, 5);
+                Handles.color = Color.red;
+                Handles.DrawWireCube(cameraTransform.Position, cameraCubeSize);
             }
         }
     }

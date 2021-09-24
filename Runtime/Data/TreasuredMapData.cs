@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using Treasured.SDK;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
@@ -15,7 +14,7 @@ namespace Treasured.UnitySdk
         /// The unique identifier of the map.
         /// </summary>
         [SerializeField]
-        [UniqueId]
+        [GUID]
         private string _id = Guid.NewGuid().ToString();
 
         /// <summary>
@@ -67,54 +66,6 @@ namespace Treasured.UnitySdk
 
         internal TreasuredMapData() { }
 
-        public void GenerateHotspots(IEnumerable<Hotspot> hotspots)
-        {
-            _hotspots.Clear();
-            foreach (var hotspot in hotspots)
-            {
-                if (!hotspot.gameObject.activeSelf)
-                {
-                    continue;
-                }
-                hotspot.Data.Name = hotspot.name;
-                hotspot.Data.Transform = hotspot.transform;
-                hotspot.Data.Hitbox = hotspot.BoxCollider;
-                hotspot.Data.Validate();
-                _hotspots.Add((HotspotData)hotspot.Data);
-            }
-        }
 
-        public void GenerateInteractables(IEnumerable<Interactable> interactables)
-        {
-            Interactables.Clear();
-            foreach (var interactable in interactables)
-            {
-                if (!interactable.gameObject.activeSelf)
-                {
-                    continue;
-                }
-                interactable.Data.Name = interactable.name;
-                interactable.Data.Transform = interactable.transform;
-                interactable.Data.Hitbox = interactable.BoxCollider;
-                interactable.Data.Validate();
-                Interactables.Add((InteractableData)interactable.Data);
-            }
-        }
-
-        public void Validate()
-        {
-            if (string.IsNullOrEmpty(_id))
-            {
-                _id = Guid.NewGuid().ToString();
-            }
-            foreach (var hotspot in _hotspots)
-            {
-                hotspot.Validate();
-            }
-            foreach (var interactable in _interactables)
-            {
-                interactable.Validate();
-            }
-        }
     }
 }

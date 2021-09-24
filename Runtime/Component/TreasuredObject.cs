@@ -1,70 +1,76 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
-    [RequireComponent(typeof(BoxCollider))]
-    public abstract class TreasuredObject : MonoBehaviour, IDataComponent<TreasuredObjectData>
+    public abstract class TreasuredObject : MonoBehaviour
     {
         [SerializeField]
-        [HideInInspector]
-        private BoxCollider _boxCollider;
+        [GUID]
+        private string _id = Guid.NewGuid().ToString();
 
-        public BoxCollider BoxCollider
+        internal TreasuredMap _map; // Internal reference of the Map for this object, this will be set every time the object is selected.
+
+        [JsonIgnore]
+        public TreasuredMap Map
         {
             get
             {
-                if(_boxCollider == null)
+                if (_map == null)
                 {
-                    if (TryGetComponent(out _boxCollider))
-                    {
-                        _boxCollider.isTrigger = true;
-                    }
+                    _map = GetComponentInParent<TreasuredMap>();
                 }
-                return _boxCollider;
+                return _map;
             }
         }
 
+        public string Id { get => _id; }
+
+        [SerializeField]
+        [TextArea(3, 3)]
+        private string _description;
+
+        public string Description { get => _description; set => _description = value; }
+
+        public virtual TransformData Transform
+        {
+            get
+            {
+                return new TransformData()
+                {
+                    Position = transform.position,
+                    Rotation = transform.eulerAngles
+                };
+            }
+        }
+
+        public Hitbox Hitbox
+        {
+            get
+            {
+                var boxCollider = GetComponent<BoxCollider>();
+                return new Hitbox()
+                {
+                    Center = boxCollider ? boxCollider.bounds.center : transform.position, // the center on the web uses world space.
+                    Size = boxCollider ? boxCollider.size : Vector3.one
+                };
+            }
+        }
+
+        /// <summary>
+        /// Action to perform when the object in selected.
+        /// </summary>
+        [SerializeReference]
+        private List<ActionBase> _onSelected = new List<ActionBase>();
+
+        public IEnumerable<ActionBase> OnSelected => _onSelected;
+
+        [JsonIgnore]
+        [Obsolete]
         public abstract TreasuredObjectData Data { get; }
-
-        protected virtual void OnEnable()
-        {
-            if (TryGetComponent(out _boxCollider))
-            {
-                _boxCollider.isTrigger = true;
-            }
-        }
-
-        public bool FindGroundPoint(float distance, int layerMask, out Vector3 point)
-        {
-            if (BoxCollider)
-            {
-                if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit, distance, layerMask, QueryTriggerInteraction.Ignore))
-                {
-                    point = hit.point;
-                    return true;
-                }
-            }
-            point = Vector3.zero;
-            return false;
-        }
-
-        public void OffsetHitbox(float distance = 100)
-        {
-            if (BoxCollider)
-            {
-                if (FindGroundPoint(distance, ~0, out Vector3 point))
-                {
-                    BoxCollider.center = point - transform.position + new Vector3(0, BoxCollider.size.y / 2, 0);       
-                }
-            }
-        }
-
-        void IDataComponent<TreasuredObjectData>.BindData(TreasuredObjectData data)
-        {
-
-        }
     }
 }
