@@ -172,11 +172,20 @@ namespace Treasured.UnitySdk.Editor
 
             if (map)
             {
-                hotspots = map.gameObject.GetComponentsInChildren<Hotspot>(true).ToList();
-                interactables = map.gameObject.GetComponentsInChildren<Interactable>(true).ToList();
+                hotspots = map.gameObject.GetComponentsInChildren<Hotspot>().ToList();
+                interactables = map.gameObject.GetComponentsInChildren<Interactable>().ToList();
 
                 exporter = new TreasuredMapExporter(serializedObject, map);
             }
+
+            foreach (var hotspot in hotspots)
+            {
+                if (hotspot.gameObject.GetIcon() == null)
+                {
+                    hotspot.gameObject.SetLabelIcon(6);
+                }
+            }
+
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
         }
@@ -210,35 +219,42 @@ namespace Treasured.UnitySdk.Editor
             for (int i = 0; i < hotspots.Count; i++)
             {
                 Hotspot current = hotspots[i];
-                Hotspot next = hotspots[(i + 1) % hotspots.Count];
+                if (!current.gameObject.activeSelf)
+                {
+                    continue;
+                }
+                Hotspot next = GetNextActiveHotspot(i, hotspots);
 
                 Vector3 currentCameraPosition = current.transform.position + current.CameraPositionOffset;
-                Vector3 nextCameraPosition = next.transform.position + next.CameraPositionOffset;
 
                 if (Selection.activeGameObject != current.gameObject)
                 {
                     Handles.color = Color.white;
-                    Handles.Label(currentCameraPosition, current.name);
+                    Handles.DrawDottedLine(current.transform.position, currentCameraPosition, 5);
+
+                    Handles.color = Color.red;
+                    Handles.DrawWireCube(currentCameraPosition, cameraBoxSize);
 
                     // Show facing direction
                     Handles.color = Color.blue;
                     Handles.ArrowHandleCap(0, currentCameraPosition, current.gameObject.transform.rotation, 0.5f, EventType.Repaint);
-
-                    Handles.color = Color.red;
-                    Handles.DrawWireCube(currentCameraPosition, cameraBoxSize);
                 }
 
                 if (!_loop.boolValue && i == hotspots.Count - 1)
                 {
                     continue;
                 }
+                if (!next)
+                {
+                    continue;
+                }
                 Handles.color = Color.white;
-                Handles.DrawLine(currentCameraPosition, nextCameraPosition);
-                Vector3 direction = nextCameraPosition - currentCameraPosition;
+                Handles.DrawLine(current.transform.position, next.transform.position);
+                Vector3 direction = next.transform.position - current.transform.position;
                 if (direction != Vector3.zero)
                 {
                     Handles.color = Color.green;
-                    Handles.ArrowHandleCap(0, currentCameraPosition, Quaternion.LookRotation(direction), 0.5f, EventType.Repaint);
+                    Handles.ArrowHandleCap(0, current.transform.position, Quaternion.LookRotation(direction), 0.5f, EventType.Repaint);
                 }
             }
         }
@@ -432,7 +448,7 @@ namespace Treasured.UnitySdk.Editor
                 }
                 if (GUILayout.Button(Styles.createNew[typeof(T)]))
                 {
-                    var root = GetChild(map.transform, $"{typeof(T).Name}s");
+                    var root = GetChildOrCreateNew(map.transform, $"{typeof(T).Name}s");
                     GameObject go = new GameObject(ObjectNames.GetUniqueName(objects.Select(x => x.name).ToArray(), typeof(T).Name));
                     T obj = go.AddComponent<T>();
                     BoxCollider boxCollider = go.AddComponent<BoxCollider>();
@@ -471,6 +487,26 @@ namespace Treasured.UnitySdk.Editor
             menu.ShowAsContext();
         }
 
+        private Hotspot GetNextActiveHotspot(int currentIndex, IList<Hotspot> list)
+        {
+            int index = currentIndex;
+            Hotspot current = list[index];
+            Hotspot next = list[(index + 1) % list.Count];
+            while (next != current)
+            {
+                if (index == list.Count - 1 && !map.Loop)
+                {
+                    return null;
+                }
+                if (next.gameObject.activeSelf)
+                {
+                    return next;
+                }
+                next = list[++index % list.Count];
+            }
+            return null;
+        }
+
         #region Context Menu
         /// <summary>
         /// Get the child with the name. Create a new game object if child not found.
@@ -478,7 +514,7 @@ namespace Treasured.UnitySdk.Editor
         /// <param name="parent"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        static Transform GetChild(Transform parent, string name)
+        static Transform GetChildOrCreateNew(Transform parent, string name)
         {
             Transform child = parent.Find(name);
             if (child == null)

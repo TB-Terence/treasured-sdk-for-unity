@@ -112,7 +112,7 @@ namespace Treasured.UnitySdk
                         break;
                 }
                 Handles.color = Color.white;
-                Handles.DrawDottedLine(hotspot.transform.position, cameraTransform.Position, 1);
+                Handles.DrawDottedLine(hotspot.transform.position, cameraTransform.Position, 5);
                 Handles.color = Color.red;
                 Handles.DrawWireCube(cameraTransform.Position, cameraCubeSize);
             }
