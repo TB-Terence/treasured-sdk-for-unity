@@ -85,6 +85,7 @@ namespace Treasured.UnitySdk
 
         private void ExportJson()
         {
+            JsonValidator.ValidateMap(target);
             ValidateOutputDirectory();
             foreach (var hotspot in target.Hotspots)
             {
@@ -194,25 +195,34 @@ namespace Treasured.UnitySdk
 
         public void Export(ExportOptions options)
         {
-            if (options.HasFlag(ExportOptions.JSON))
+            try
             {
-                ExportJson();
+                if (options.HasFlag(ExportOptions.JSON))
+                {
+                    ExportJson();
+                }
+                if (options.HasFlag(ExportOptions.PanoramicImages))
+                {
+                    ExportPanoramicImages();
+                }
+                //if (options.HasFlag(ExportOptions.ObjectIds))
+                //{
+                //    ExportObjectIds();
+                //}
+                if (showInExplorer && outputDirectory != null)
+                {
+                    Application.OpenURL(outputDirectory.FullName);
+                }
             }
-            if (options.HasFlag(ExportOptions.PanoramicImages))
+            catch (TargetNotAssignedException e)
             {
-                ExportPanoramicImages();
+                Debug.LogError(e.Message, e.Object);
             }
-            //if (options.HasFlag(ExportOptions.ObjectIds))
-            //{
-            //    ExportObjectIds();
-            //}
-            if (showInExplorer && outputDirectory != null)
+            catch (MissingFieldException e)
             {
-                Application.OpenURL(outputDirectory.FullName);
+                Debug.LogError(e.Message);
             }
         }
-
-        
 
         private Camera ValidateCamera()
         {

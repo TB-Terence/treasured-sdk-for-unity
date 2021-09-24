@@ -1,3 +1,8 @@
+## Version 0.5.2 (September 24, 2021)
+
+- Add `title` and `description` validation
+- Add `target` for Select-Object action validation
+
 ## Version 0.5.1 (September 23, 2021)
 
 ### Bug Fix

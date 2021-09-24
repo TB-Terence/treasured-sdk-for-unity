@@ -1,25 +1,20 @@
-﻿using UnityEngine;
+﻿using Newtonsoft.Json;
+using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
     public class SelectObjectAction : ActionBase
     {
         [SerializeField]
-        private TreasuredObject target;
+        private TreasuredObject _target;
+
+        [JsonIgnore]
+        public TreasuredObject Target => _target;
 
         /// <summary>
         /// Id of the object to select.
         /// </summary>
-        public string TargetId
-        {
-            get
-            {
-                if (target == null)
-                {
-                    return string.Empty;
-                }
-                return target.Id;
-            }
-        }
+        [JsonProperty]
+        private string targetId => _target ? _target.Id : string.Empty;
     }
 }

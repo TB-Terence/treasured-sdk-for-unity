@@ -15,7 +15,7 @@ namespace Treasured.UnitySdk.Editor
 
             if (property.isExpanded)
             {
-                SerializedProperty target = property.FindPropertyRelative("target");
+                SerializedProperty target = property.FindPropertyRelative("_target");
                 EditorGUI.indentLevel++;
                 position.y += 20;
                 EditorGUI.BeginChangeCheck();
