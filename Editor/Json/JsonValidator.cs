@@ -22,9 +22,9 @@
         {
             foreach (var action in obj.OnSelected)
             {
-                if (action is SelectObjectAction soa && soa.Target == null)
+                if (action is SelectObjectAction soa && (soa.Target == null || (soa.Target != null && !soa.Target.gameObject.activeSelf)))
                 {
-                    throw new TargetNotAssignedException($"The target field for Select-Object action is not assigned for {obj.name}.", obj);
+                    throw new TargetNotAssignedException($"The target for Select-Object action is inactive OR is not assigned for {obj.name}.", obj);
                 }
             }
         }
