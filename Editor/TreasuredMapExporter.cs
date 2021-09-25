@@ -89,7 +89,7 @@ namespace Treasured.UnitySdk
             ValidateOutputDirectory();
             foreach (var hotspot in target.Hotspots)
             {
-                hotspot.CalculateVisibleTargets();
+                hotspot.ComputeVisibleTargets();
             }
             string jsonPath = Path.Combine(outputDirectory.FullName, "data.json");
             string json = JsonConvert.SerializeObject(target, Formatting.Indented, JsonSettings);
