@@ -17,6 +17,7 @@ namespace Treasured.UnitySdk
         {
             "version",
             "id",
+            "objectId",
             "name",
             "type"
         };
@@ -41,6 +42,10 @@ namespace Treasured.UnitySdk
             {
                 contract.Converter = new StringEnumConverter(new KebabCaseNamingStrategy());
             }
+            if (objectType == typeof(Color))
+            {
+                contract.Converter = new HexColorConverter();
+            }
             return contract;
         }
 
@@ -59,16 +64,6 @@ namespace Treasured.UnitySdk
         {
             JsonProperty property = base.CreateProperty(member, memberSerialization);
             property.Order = GetOrder(property); // Manually assign the order since we can't add JsonProperty(order) to the `name` field of UnityEngine.Object
-            //Debug.LogError(property.PropertyName + " " + member.ReflectedType);
-            //property.ShouldSerialize = (instance) =>
-            //{
-            //    if (property.PropertyName.Equals("name"))
-            //    {
-                
-            //        return typeof(TreasuredObject).IsAssignableFrom(member.ReflectedType);
-            //    }
-            //    return !property.DeclaringType.IsAssignableFrom(typeof(MonoBehaviour));
-            //};
             return property;
         }
 

@@ -144,6 +144,8 @@ namespace Treasured.UnitySdk.Editor
 
         private TreasuredMap map;
 
+        private TreasuredObject editingTarget;
+
         private void OnEnable()
         {
             map = target as TreasuredMap;
@@ -212,6 +214,58 @@ namespace Treasured.UnitySdk.Editor
 
         private void OnSceneViewGUI(SceneView view)
         {
+            if (editingTarget)
+            {
+                if (editingTarget is Hotspot hotspot)
+                {
+                    TransformData cameraTransform = hotspot.CameraTransform;
+                    var cameraRotation = Quaternion.Euler(cameraTransform.Rotation);
+                    switch (Tools.current)
+                    {
+                        case Tool.Move:
+                            EditorGUI.BeginChangeCheck();
+                            Vector3 newCameraPosition = Handles.PositionHandle(cameraTransform.Position, cameraRotation);
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                Undo.RecordObject(editingTarget, "Undo move camera position offset");
+                                hotspot.CameraPositionOffset = newCameraPosition - hotspot.transform.position;
+                            }
+                            break;
+                        case Tool.Rotate:
+                            EditorGUI.BeginChangeCheck();
+                            Quaternion newRotation = Handles.RotationHandle(cameraRotation, cameraTransform.Position);
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                Undo.RecordObject(editingTarget.transform, "Undo move camera rotation offset");
+                                hotspot.CameraRotationOffset = newRotation.eulerAngles - hotspot.transform.eulerAngles;
+                            }
+                            float size = HandleUtility.GetHandleSize(hotspot.transform.position);
+                            Handles.color = Color.blue;
+                            Handles.ArrowHandleCap(0, cameraTransform.Position, cameraRotation, size, EventType.Repaint);
+                            break;
+                    }
+                }
+                if (Tools.current == Tool.Move)
+                {
+                    EditorGUI.BeginChangeCheck();
+                    Vector3 newPosition = Handles.PositionHandle(editingTarget.transform.position, editingTarget.transform.rotation);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        Undo.RecordObject(editingTarget.transform, "Move move");
+                        editingTarget.transform.position = newPosition;
+                    }
+                }
+                else if(Tools.current == Tool.Rotate)
+                {
+                    EditorGUI.BeginChangeCheck();
+                    Quaternion newRotation = Handles.RotationHandle(editingTarget.transform.rotation, editingTarget.transform.position);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        Undo.RecordObject(editingTarget.transform, "Undo rotate");
+                        editingTarget.transform.rotation = newRotation;
+                    }
+                }
+            }
             if (SceneView.lastActiveSceneView.size == 0.01f) // this happens when TreasuredObject is selected
             {
                 return;
@@ -333,7 +387,7 @@ namespace Treasured.UnitySdk.Editor
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_quality"));
             using (new EditorGUI.DisabledGroupScope(!canExport))
             {
-                if (GUILayout.Button(new GUIContent("Export")))
+                if (GUILayout.Button(new GUIContent("Export"), GUILayout.Height(24)))
                 {
                     GenericMenu menu = new GenericMenu();
                     foreach (var option in Enum.GetValues(typeof(ExportOptions)))
@@ -351,7 +405,7 @@ namespace Treasured.UnitySdk.Editor
         [FoldoutGroup("Upload", true)]
         void OnUploadGUI()
         {
-            if (GUILayout.Button("Upload"))
+            if (GUILayout.Button("Upload", GUILayout.Height(24)))
             {
                 UploadWindow.ShowUploadWindow();
             }
@@ -473,6 +527,7 @@ namespace Treasured.UnitySdk.Editor
                     {
                         SceneView.lastActiveSceneView.LookAt(go.transform.position, camera.transform.rotation);
                     }
+                    editingTarget = obj;
                 }
             }
         }

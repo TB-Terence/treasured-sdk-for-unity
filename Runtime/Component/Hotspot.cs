@@ -66,7 +66,7 @@ namespace Treasured.UnitySdk
             get; private set;
         }
 
-        public void CalculateVisibleTargets()
+        public void ComputeVisibleTargets()
         {
             VisibleTargets = new List<string>();
             TreasuredMap map = GetComponentInParent<TreasuredMap>();
