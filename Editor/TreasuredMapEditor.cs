@@ -56,6 +56,8 @@ namespace Treasured.UnitySdk.Editor
             public static readonly GUIContent snapAllToGround = EditorGUIUtility.TrTextContent("Snap All on Ground");
             public static readonly GUIContent selectAll = EditorGUIUtility.TrTextContent("Select All");
 
+            public static readonly GUIContent folderOpened = EditorGUIUtility.TrIconContent("FolderOpened Icon", "Show in Explorer");
+
             public static readonly Dictionary<Type, GUIContent> createNew = new Dictionary<Type, GUIContent>()
             {
                 { typeof(Hotspot), EditorGUIUtility.TrTextContent("Create New", "Creaet new Hotspot", "Toolbar Plus") },
@@ -118,11 +120,6 @@ namespace Treasured.UnitySdk.Editor
         private SerializedProperty _title;
         private SerializedProperty _description;
 
-        private SerializedProperty _format;
-        private SerializedProperty _quality;
-
-        private SerializedProperty _loop;
-
         private bool exportAllHotspots = true;
         private GroupToggleState hotspotsGroupToggleState = GroupToggleState.All;
         private Vector2 hotspotsScrollPosition;
@@ -158,11 +155,6 @@ namespace Treasured.UnitySdk.Editor
 
             _title = serializedObject.FindProperty(nameof(_title));
             _description = serializedObject.FindProperty(nameof(_description));
-
-            _loop = serializedObject.FindProperty(nameof(_loop));
-
-            _format = serializedObject.FindProperty(nameof(_format));
-            _quality = serializedObject.FindProperty(nameof(_quality));
 
 
             _outputFolderName = serializedObject.FindProperty(nameof(_outputFolderName));
@@ -294,7 +286,7 @@ namespace Treasured.UnitySdk.Editor
                     Handles.ArrowHandleCap(0, currentCameraPosition, current.gameObject.transform.rotation, 0.5f, EventType.Repaint);
                 }
 
-                if (!_loop.boolValue && i == hotspots.Count - 1)
+                if (!map.Loop && i == hotspots.Count - 1)
                 {
                     continue;
                 }
@@ -357,12 +349,24 @@ namespace Treasured.UnitySdk.Editor
         [FoldoutGroup("Guide Tour Settings")]
         void OnGuideTourSettingsGUI()
         {
-            EditorGUILayout.PropertyField(_loop);
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_loop"));
         }
+
+        private int layer;
 
         [FoldoutGroup("Object Management", true)]
         void OnObjectManagementGUI()
         {
+            SerializedProperty interactableLayer = serializedObject.FindProperty("_interactableLayer");
+            EditorGUI.BeginChangeCheck();
+            interactableLayer.intValue = EditorGUILayout.LayerField(new GUIContent("Interactable Layer"), interactableLayer.intValue);
+            if (EditorGUI.EndChangeCheck())
+            {
+                foreach (var renderer in map.GetComponentsInChildren<Renderer>())
+                {
+                    renderer.gameObject.layer = interactableLayer.intValue;
+                }
+            }
             selectedObjectListIndex = GUILayout.SelectionGrid(selectedObjectListIndex, selectableObjectListNames, selectableObjectListNames.Length, Styles.TabButton);
             if (selectedObjectListIndex == 0)
             {
@@ -377,11 +381,18 @@ namespace Treasured.UnitySdk.Editor
         [FoldoutGroup("Export", true)]
         void OnExportGUI()
         {
-            EditorGUI.BeginChangeCheck();
-            string newOutputFolderName = EditorGUILayout.TextField(new GUIContent("Output Folder Name"), _outputFolderName.stringValue);
-            if (EditorGUI.EndChangeCheck() && !string.IsNullOrEmpty(newOutputFolderName))
+            using (new EditorGUILayout.HorizontalScope())
             {
-                _outputFolderName.stringValue = newOutputFolderName;
+                EditorGUI.BeginChangeCheck();
+                string newOutputFolderName = EditorGUILayout.TextField(new GUIContent("Output Folder Name"), _outputFolderName.stringValue);
+                if (EditorGUI.EndChangeCheck() && !string.IsNullOrWhiteSpace(newOutputFolderName))
+                {
+                    _outputFolderName.stringValue = newOutputFolderName;
+                }
+                if (GUILayout.Button(Styles.folderOpened, EditorStyles.label, GUILayout.Width(20), GUILayout.Height(18)))
+                {
+                    Application.OpenURL(TreasuredMapExporter.DefaultOutputFolderPath);
+                }
             }
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_format"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_quality"));

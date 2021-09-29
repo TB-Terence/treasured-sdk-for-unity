@@ -31,9 +31,21 @@ namespace Treasured.UnitySdk
             }
         }
 
-        #region Map properties
+        #region JSON properties
         [JsonProperty]
         public static readonly string Version = typeof(TreasuredMap).Assembly.GetName().Version.ToString();
+        [JsonProperty]
+        private DateTime created
+        {
+            get
+            {
+                return DateTime.Now;
+            }
+        }
+        #endregion
+
+        #region Map properties
+        
         [SerializeField]
         [GUID]
         private string _id = Guid.NewGuid().ToString();
@@ -95,6 +107,9 @@ namespace Treasured.UnitySdk
         private string _outputFolderName;
         [JsonIgnore]
         public string OutputFolderName { get => _outputFolderName; set => _outputFolderName = value; }
+
+        [SerializeField]
+        private int _interactableLayer; // game object can only have one layer thus using int instead of LayerMask
         #endregion
     }
 }

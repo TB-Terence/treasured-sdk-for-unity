@@ -1,3 +1,13 @@
+## Version 0.5.3 (September 28, 2021)
+
+### Add
+
+- Add `created` time in the JSON file
+
+### New features
+
+- Add functionality to export Object Ids. Make sure to setup `Interactable Layer` for all interactables in the Object Management group
+
 ## Version 0.5.2 (September 24, 2021)
 
 - Add `title` and `description` validation
