@@ -3,6 +3,7 @@
     public enum ImageFormat
     {
         JPG,
-        PNG
+        PNG,
+        WEBP
     }
 }

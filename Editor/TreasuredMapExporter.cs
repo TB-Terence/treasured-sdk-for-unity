@@ -161,7 +161,15 @@ namespace Treasured.UnitySdk
                         EditorUtility.DisplayProgressBar(progressTitle, progressText, 0.99f);
                         var directory = CreateDirectory(DefaultOutputFolderPath, target.OutputFolderName, "images", current.Id);
                         string imagePath = Path.Combine(directory.FullName, $"{quality}.{extension}");
-                        File.WriteAllBytes(imagePath, bytes);
+
+                        if (target.Format == ImageFormat.WEBP)
+                        {
+                            ImageEncoder.EncodeToWEBP(bytes, imagePath, 100);
+                        }
+                        else
+                        {
+                            File.WriteAllBytes(imagePath, bytes);
+                        }
                     }
                 }
             }
