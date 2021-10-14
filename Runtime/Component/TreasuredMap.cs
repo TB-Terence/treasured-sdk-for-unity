@@ -8,34 +8,11 @@ namespace Treasured.UnitySdk
     [AddComponentMenu("Treasured/Treasured Map")]
     public sealed class TreasuredMap : MonoBehaviour
     {
-        #region Map Data
-        [SerializeField]
-        [Obsolete]
-        private TreasuredMapData _data = new TreasuredMapData();
-        #endregion
-
-        [JsonIgnore]
-        public TreasuredMapData Data
-        {
-            get
-            {
-                if (_data == null)
-                {
-                    _data = new TreasuredMapData();
-                }
-                return _data;
-            }
-            set
-            {
-                _data = value;
-            }
-        }
-
         #region JSON properties
         [JsonProperty]
         public static readonly string Version = typeof(TreasuredMap).Assembly.GetName().Version.ToString();
-        [JsonProperty]
-        private DateTime created
+        [JsonProperty("created")]
+        private DateTime Created
         {
             get
             {
@@ -77,7 +54,7 @@ namespace Treasured.UnitySdk
 
         #region Export Properties
         [SerializeField]
-        private ImageFormat _format = ImageFormat.PNG;
+        private ImageFormat _format = ImageFormat.WEBP;
         public ImageFormat Format { get => _format; set => _format = value; }
 
         [SerializeField]

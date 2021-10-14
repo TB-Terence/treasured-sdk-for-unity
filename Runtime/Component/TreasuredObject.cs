@@ -57,21 +57,20 @@ namespace Treasured.UnitySdk
             }
         }
 
-        /// <summary>
-        /// Action to perform when the object in selected.
-        /// </summary>
         [SerializeReference]
+        [Obsolete]
         private List<ActionBase> _onSelected = new List<ActionBase>();
 
+        /// <summary>
+        /// Group of action to perform when the object is selected.
+        /// </summary>
         [SerializeReference]
         private List<ActionGroup> _actionGroups = new List<ActionGroup>();
 
-        public IEnumerable<ActionBase> OnSelected => _onSelected;
-        public List<ActionGroup> ActionGroups => _actionGroups;
-
         [JsonIgnore]
         [Obsolete]
-        public abstract TreasuredObjectData Data { get; }
+        public IEnumerable<ActionBase> OnSelected => _onSelected; // TODO: Remove this
+        public List<ActionGroup> ActionGroups => _actionGroups;
 
         //public Color ObjectId
         //{

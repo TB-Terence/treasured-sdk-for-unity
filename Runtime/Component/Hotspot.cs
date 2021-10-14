@@ -8,10 +8,6 @@ namespace Treasured.UnitySdk
     [AddComponentMenu("Treasured/Hotspot")]
     public sealed class Hotspot : TreasuredObject
     {
-        [Obsolete]
-        [SerializeField]
-        private HotspotData _data = new HotspotData();
-
         [SerializeField]
         private Vector3 _cameraPositionOffset = new Vector3(0, 2, 0);
         [SerializeField]
@@ -95,16 +91,6 @@ namespace Treasured.UnitySdk
                 {
                     VisibleTargets.Add(obj.Id);
                 }
-            }
-        }
-
-        [JsonIgnore]
-        [Obsolete]
-        public override TreasuredObjectData Data
-        {
-            get
-            {
-                return _data;
             }
         }
 
