@@ -15,12 +15,12 @@ namespace Treasured.UnitySdk
 
         private static readonly Vector3 cameraCubeSize = Vector3.one * 0.3f;
 
-        private ActionBaseListDrawer list;
+        private ActionGroupListDrawer list;
         private SerializedProperty id;
         private SerializedProperty description;
         private SerializedProperty cameraPositionOffset;
         private SerializedProperty cameraRotationOffset;
-        private SerializedProperty onSelected;
+        private SerializedProperty actionGroup;
 
         private TreasuredMap map;
 
@@ -32,8 +32,8 @@ namespace Treasured.UnitySdk
             description = serializedObject.FindProperty("_description");
             cameraPositionOffset = serializedObject.FindProperty("_cameraPositionOffset");
             cameraRotationOffset = serializedObject.FindProperty("_cameraRotationOffset");
-            onSelected = serializedObject.FindProperty("_onSelected");
-            list = new ActionBaseListDrawer(serializedObject, onSelected);
+            actionGroup = serializedObject.FindProperty("_actionGroups");
+            list = new ActionGroupListDrawer(serializedObject, actionGroup);
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
         }

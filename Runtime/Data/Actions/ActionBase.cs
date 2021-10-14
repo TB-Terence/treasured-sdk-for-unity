@@ -13,6 +13,12 @@ namespace Treasured.UnitySdk
 
         public string Id { get => _id; }
 
+        [SerializeField]
+        [Tooltip("Action executing order. When two actions has the same priority, both will be executed at the same time.")]
+        private int _priority;
+
+        public int Priority => _priority;
+
         public string Type {
             get
             {

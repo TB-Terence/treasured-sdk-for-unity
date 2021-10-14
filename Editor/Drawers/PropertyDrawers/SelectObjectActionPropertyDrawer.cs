@@ -15,11 +15,14 @@ namespace Treasured.UnitySdk.Editor
 
             if (property.isExpanded)
             {
-                SerializedProperty target = property.FindPropertyRelative("_target");
+                SerializedProperty targetProp = property.FindPropertyRelative("_target");
                 EditorGUI.indentLevel++;
                 position.y += 20;
+                SerializedProperty priorityProp = property.FindPropertyRelative("_priority");
+                EditorGUI.PropertyField(position, priorityProp);
+                position.y += 20;
                 EditorGUI.BeginChangeCheck();
-                var newObject = EditorGUI.ObjectField(position, new GUIContent("Target"), target.objectReferenceValue, typeof(TreasuredObject), true);
+                var newObject = EditorGUI.ObjectField(position, new GUIContent("Target"), targetProp.objectReferenceValue, typeof(TreasuredObject), true);
                 if (EditorGUI.EndChangeCheck())
                 {
                     if (newObject is TreasuredObject obj && obj.gameObject.scene != null)
@@ -36,7 +39,7 @@ namespace Treasured.UnitySdk.Editor
                                 TreasuredMap map2 = obj.Map;
                                 if (map1.Equals(map2))
                                 {
-                                    target.objectReferenceValue = newObject;
+                                    targetProp.objectReferenceValue = newObject;
                                 }
                                 else
                                 {
@@ -53,7 +56,7 @@ namespace Treasured.UnitySdk.Editor
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            return property.isExpanded ? 40 : 20;
+            return property.isExpanded ? 60 : 20;
         }
     }
 }

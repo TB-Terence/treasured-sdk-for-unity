@@ -28,24 +28,42 @@ namespace Treasured.UnitySdk
             newElement = AppendLast(arrayProperty);
             scriptableObject = null;
             // TODO: Cache this maybe?
-            FieldInfo fieldInfo = arrayProperty.serializedObject.targetObject.GetType().GetField(arrayProperty.propertyPath, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            Type type = arrayProperty.serializedObject.targetObject.GetType();
+            FieldInfo fieldInfo = null;
+            while (type != null) // search in base class
+            {
+                fieldInfo = type.GetField(arrayProperty.propertyPath, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+                if (fieldInfo != null)
+                {
+                    break;
+                }
+                type = type.BaseType;
+            }
             Type arrayType = fieldInfo.GetValue(arrayProperty.serializedObject.targetObject).GetType();
             if (arrayType.IsGenericType && arrayType.GenericTypeArguments.Length == 1)
             {
                 Type elementType = arrayType.GenericTypeArguments[0];
-                string mainAssetPath = AssetDatabase.GetAssetPath(arrayProperty.serializedObject.targetObject);
-                if (EditorUtility.IsPersistent(arrayProperty.serializedObject.targetObject))
+                if (typeof(MonoBehaviour).IsAssignableFrom(arrayProperty.serializedObject.targetObject.GetType()))
                 {
-                    scriptableObject = ScriptableObject.CreateInstance(elementType);
-                    scriptableObject.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector;
-                    string[] names = AssetDatabase.LoadAllAssetsAtPath(mainAssetPath).Where(x => x.GetType() == elementType).Select(x => x.name).ToArray();
-                    scriptableObject.name = ObjectNames.GetUniqueName(names, elementType.Name);
-                    AssetDatabase.AddObjectToAsset(scriptableObject, mainAssetPath);
-                    AssetDatabase.SaveAssets();
-                    newElement.objectReferenceValue = scriptableObject;
-                    arrayProperty.serializedObject.ApplyModifiedProperties();
-                    return true;
+                    newElement.objectReferenceValue = ScriptableObject.CreateInstance(elementType);
                 }
+                else
+                {
+                    string mainAssetPath = AssetDatabase.GetAssetPath(arrayProperty.serializedObject.targetObject);
+                    if (EditorUtility.IsPersistent(arrayProperty.serializedObject.targetObject))
+                    {
+                        scriptableObject = ScriptableObject.CreateInstance(elementType);
+                        scriptableObject.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector;
+                        string[] names = AssetDatabase.LoadAllAssetsAtPath(mainAssetPath).Where(x => x.GetType() == elementType).Select(x => x.name).ToArray();
+                        scriptableObject.name = ObjectNames.GetUniqueName(names, elementType.Name);
+                        AssetDatabase.AddObjectToAsset(scriptableObject, mainAssetPath);
+                        AssetDatabase.SaveAssets();
+                        newElement.objectReferenceValue = scriptableObject;
+                        arrayProperty.serializedObject.ApplyModifiedProperties();
+                        return true;
+                    }
+                }
+                
             }
             return false;
         }

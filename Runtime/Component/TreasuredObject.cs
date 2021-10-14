@@ -67,7 +67,11 @@ namespace Treasured.UnitySdk
         [SerializeReference]
         private List<ActionBase> _onSelected = new List<ActionBase>();
 
+        [SerializeReference]
+        private List<ActionGroup> _actionGroups = new List<ActionGroup>();
+
         public IEnumerable<ActionBase> OnSelected => _onSelected;
+        public IEnumerable<ActionGroup> ActionGroups => _actionGroups;
 
         [JsonIgnore]
         [Obsolete]

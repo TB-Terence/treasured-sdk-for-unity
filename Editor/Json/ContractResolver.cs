@@ -57,6 +57,10 @@ namespace Treasured.UnitySdk
                 // filter out `name` field if type is subclass of TreasuredObject OR if DeclaringType of the property is subclass of MonoBehaviour
                 properties = properties.Where(x => (x.PropertyName.Equals("name") && type.IsSubclassOf(typeof(TreasuredObject))) || x.DeclaringType.IsSubclassOf(typeof(MonoBehaviour))).ToList();
             }
+            else if (type == typeof(ActionGroup))
+            {
+                properties = properties.Where(x => !x.PropertyName.Equals("name") && !x.PropertyName.Equals("hideFlags")).ToList();
+            }
             return properties;
         }
 
