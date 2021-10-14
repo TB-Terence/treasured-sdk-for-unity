@@ -17,23 +17,26 @@ namespace Treasured.UnitySdk
         [SerializeField]
         private Vector3 _cameraRotationOffset = new Vector3();
 
+        [SerializeField]
+        private Transform _cameraTransform;
+
         [JsonIgnore]
         public Vector3 CameraPositionOffset { get => _cameraPositionOffset; set => _cameraPositionOffset = value; }
         [JsonIgnore]
         public Vector3 CameraRotationOffset { get => _cameraRotationOffset; set => _cameraRotationOffset = value; }
 
         /// <summary>
-        /// Returns camera transform for the hotspot. (World Space)
+        /// Returns camera transform for the hotspot.
         /// </summary>
-        public TransformData CameraTransform
+        public Transform CameraTransform
         {
             get
             {
-                return new TransformData()
-                {
-                    Position = transform.position + _cameraPositionOffset,
-                    Rotation = transform.eulerAngles + _cameraRotationOffset
-                };
+                return _cameraTransform;
+            }
+            set
+            {
+                _cameraTransform = value;
             }
         }
 

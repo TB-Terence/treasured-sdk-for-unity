@@ -180,15 +180,15 @@ namespace Treasured.UnitySdk.Editor
                     }
                 }
 
-                MigrateActions(hotspots);
-                MigrateActions(interactables);
+                Migrate(hotspots);
+                Migrate(interactables);
             }
 
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
         }
 
-        private void MigrateActions<T>(List<T> objects) where T : TreasuredObject
+        private void Migrate<T>(List<T> objects) where T : TreasuredObject
         {
             foreach (var to in objects)
             {
@@ -200,6 +200,17 @@ namespace Treasured.UnitySdk.Editor
                     foreach (var action in actionList)
                     {
                         group.Actions.Add(action);
+                    }
+                }
+                if (to is Hotspot hotspot)
+                {
+                    if (hotspot.CameraTransform == null)
+                    {
+                        GameObject camera = new GameObject("Camera");
+                        camera.transform.SetParent(hotspot.gameObject.transform);
+                        camera.transform.localPosition = hotspot.CameraPositionOffset;
+                        camera.transform.localRotation = Quaternion.Euler(hotspot.CameraRotationOffset);
+                        hotspot.CameraTransform = camera.transform;
                     }
                 }
             }

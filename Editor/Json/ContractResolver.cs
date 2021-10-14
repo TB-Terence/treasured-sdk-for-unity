@@ -46,6 +46,10 @@ namespace Treasured.UnitySdk
             {
                 contract.Converter = new HexColorConverter();
             }
+            if (objectType == typeof(Transform))
+            {
+                contract.Converter = new TransformConverter();
+            }
             return contract;
         }
 
