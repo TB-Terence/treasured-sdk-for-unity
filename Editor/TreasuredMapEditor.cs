@@ -206,7 +206,7 @@ namespace Treasured.UnitySdk.Editor
                 {
                     if (hotspot.CameraTransform == null)
                     {
-                        hotspot.AssignCameraTransform();
+                        hotspot.GroupHotspot();
                     }
                 }
             }
@@ -299,19 +299,20 @@ namespace Treasured.UnitySdk.Editor
                 }
                 Hotspot next = GetNextActiveHotspot(i, hotspots);
 
-                Vector3 currentCameraPosition = current.transform.position + current.CameraPositionOffset;
+                Transform hitboxTransform = current.Transform;
+                Transform cameraTransform = current.CameraTransform;
 
                 if (Selection.activeGameObject != current.gameObject)
                 {
                     Handles.color = Color.white;
-                    Handles.DrawDottedLine(current.transform.position, currentCameraPosition, 5);
+                    Handles.DrawDottedLine(hitboxTransform.position, cameraTransform.position, 5);
 
                     Handles.color = Color.red;
-                    Handles.DrawWireCube(currentCameraPosition, cameraBoxSize);
+                    Handles.DrawWireCube(cameraTransform.position, cameraBoxSize);
 
                     // Show facing direction
                     Handles.color = Color.blue;
-                    Handles.ArrowHandleCap(0, currentCameraPosition, current.gameObject.transform.rotation, 0.5f, EventType.Repaint);
+                    Handles.ArrowHandleCap(0, cameraTransform.position, cameraTransform.rotation, 0.5f, EventType.Repaint);
                 }
 
                 if (!map.Loop && i == hotspots.Count - 1)
@@ -323,12 +324,12 @@ namespace Treasured.UnitySdk.Editor
                     continue;
                 }
                 Handles.color = Color.white;
-                Handles.DrawLine(current.transform.position, next.transform.position);
-                Vector3 direction = next.transform.position - current.transform.position;
+                Handles.DrawLine(hitboxTransform.position, next.Transform.position);
+                Vector3 direction = next.Transform.position - hitboxTransform.position;
                 if (direction != Vector3.zero)
                 {
                     Handles.color = Color.green;
-                    Handles.ArrowHandleCap(0, current.transform.position, Quaternion.LookRotation(direction), 0.5f, EventType.Repaint);
+                    Handles.ArrowHandleCap(0, hitboxTransform.position, Quaternion.LookRotation(direction), 0.5f, EventType.Repaint);
                 }
             }
         }
@@ -523,13 +524,13 @@ namespace Treasured.UnitySdk.Editor
                             {
                                 if (current is Hotspot hotspot)
                                 {
-                                    SceneView.lastActiveSceneView.LookAt(hotspot.transform.position + hotspot.CameraPositionOffset, hotspot.transform.rotation, 0.01f);
+                                    SceneView.lastActiveSceneView.LookAt(hotspot.CameraTransform.position, hotspot.CameraTransform.rotation, 0.01f);
                                 }
                                 else
                                 {
                                     // Always oppsite to the transform.forward
-                                    Vector3 targetPosition = current.transform.position;
-                                    Vector3 cameraPosition = current.transform.position + current.transform.forward * 1;
+                                    Vector3 targetPosition = current.Transform.position;
+                                    Vector3 cameraPosition = current.Transform.position + current.Transform.forward * 1;
                                     SceneView.lastActiveSceneView.LookAt(cameraPosition, Quaternion.LookRotation(targetPosition - cameraPosition), 1);
                                 }
                                 EditorGUIUtility.PingObject(current);

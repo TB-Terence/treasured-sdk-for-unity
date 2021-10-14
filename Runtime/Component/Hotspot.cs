@@ -18,12 +18,19 @@ namespace Treasured.UnitySdk
         private Vector3 _cameraRotationOffset = new Vector3();
 
         [SerializeField]
+        private Transform _hitboxTransform;
+        [SerializeField]
         private Transform _cameraTransform;
 
         [JsonIgnore]
         public Vector3 CameraPositionOffset { get => _cameraPositionOffset; set => _cameraPositionOffset = value; }
         [JsonIgnore]
         public Vector3 CameraRotationOffset { get => _cameraRotationOffset; set => _cameraRotationOffset = value; }
+
+        public override Transform Transform
+        {
+            get => _hitboxTransform;
+        }
 
         /// <summary>
         /// Returns camera transform for the hotspot.
@@ -101,13 +108,28 @@ namespace Treasured.UnitySdk
             }
         }
 
-        internal void AssignCameraTransform()
+#if UNITY_EDITOR
+        internal void GroupHotspot()
         {
-            GameObject camera = new GameObject("Camera");
-            camera.transform.SetParent(transform);
-            camera.transform.localPosition = CameraPositionOffset;
-            camera.transform.localRotation = Quaternion.Euler(CameraRotationOffset);
-            _cameraTransform = camera.transform;
+            if (_hitboxTransform == null)
+            {
+                _hitboxTransform = gameObject.FindOrCreateChild("Hitbox");
+                
+                _hitboxTransform.localPosition = this.transform.localPosition;
+                _hitboxTransform.localRotation = this.transform.localRotation;
+                this.transform.position = Vector3.zero;
+                this.transform.rotation = Quaternion.identity;
+            }
+
+            if (_cameraTransform == null)
+            {
+                _cameraTransform = gameObject.FindOrCreateChild("Camera");
+                _cameraTransform.localPosition = _hitboxTransform.localPosition + CameraPositionOffset;
+                _cameraTransform.localRotation = Quaternion.Euler(_hitboxTransform.localEulerAngles + CameraRotationOffset);
+            }
+
+            UnityEditor.EditorUtility.SetDirty(gameObject);
         }
+#endif
     }
 }

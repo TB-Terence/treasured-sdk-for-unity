@@ -36,15 +36,11 @@ namespace Treasured.UnitySdk
 
         public string Description { get => _description; set => _description = value; }
 
-        public virtual TransformData Transform
+        public virtual Transform Transform
         {
             get
             {
-                return new TransformData()
-                {
-                    Position = transform.position,
-                    Rotation = transform.eulerAngles
-                };
+                return gameObject.transform;
             }
         }
 
