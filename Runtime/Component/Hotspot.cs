@@ -100,5 +100,14 @@ namespace Treasured.UnitySdk
                 return _data;
             }
         }
+
+        internal void AssignCameraTransform()
+        {
+            GameObject camera = new GameObject("Camera");
+            camera.transform.SetParent(transform);
+            camera.transform.localPosition = CameraPositionOffset;
+            camera.transform.localRotation = Quaternion.Euler(CameraRotationOffset);
+            _cameraTransform = camera.transform;
+        }
     }
 }

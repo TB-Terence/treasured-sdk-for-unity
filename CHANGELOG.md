@@ -1,11 +1,11 @@
-## Version 0.5.4 (October 13, 2021)
+## Version 0.6.0 (October 14, 2021)
 
 ### Add
 
 - Add Image Processor plugin
 - Add WebP format for Panoramic Images to reduce file size
 - Add Mask Image output to export use for highlighting
-- Add priority to `Action` to group actions
+- Add Action Group to Treasured Object
 
 ## Version 0.5.3 (September 28, 2021)
 

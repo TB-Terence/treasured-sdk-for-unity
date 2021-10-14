@@ -20,6 +20,10 @@
 
         public static void ValidateObject(TreasuredObject obj)
         {
+            if (obj is Hotspot hotspot && hotspot.CameraTransform == null)
+            {
+                throw new TargetNotAssignedException($"Camera Transform is not assigned for {obj.name}.", obj);
+            }
             foreach (var action in obj.OnSelected)
             {
                 if (action is SelectObjectAction soa && (soa.Target == null || (soa.Target != null && !soa.Target.gameObject.activeSelf)))

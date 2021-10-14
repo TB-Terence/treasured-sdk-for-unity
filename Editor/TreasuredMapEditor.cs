@@ -206,11 +206,7 @@ namespace Treasured.UnitySdk.Editor
                 {
                     if (hotspot.CameraTransform == null)
                     {
-                        GameObject camera = new GameObject("Camera");
-                        camera.transform.SetParent(hotspot.gameObject.transform);
-                        camera.transform.localPosition = hotspot.CameraPositionOffset;
-                        camera.transform.localRotation = Quaternion.Euler(hotspot.CameraRotationOffset);
-                        hotspot.CameraTransform = camera.transform;
+                        hotspot.AssignCameraTransform();
                     }
                 }
             }
@@ -361,7 +357,6 @@ namespace Treasured.UnitySdk.Editor
         [FoldoutGroup("Info")]
         void OnInfoGUI()
         {
-            EditorGUILayout.LabelField("Version", TreasuredMap.Version);
             EditorGUILayout.PropertyField(_id);
         }
 

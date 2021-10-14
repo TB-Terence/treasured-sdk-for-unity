@@ -9,7 +9,7 @@ namespace Treasured.UnitySdk
     {
         internal static class Styles
         {
-            public static readonly GUIContent snapToGround = EditorGUIUtility.TrTextContent("Snap on Ground", "Snap the object slightly above the ground from camera position. This also snap the first box collider to the ground based on the size.");
+            public static readonly GUIContent snapToGround = EditorGUIUtility.TrTextContent("Snap on ground", "Snap the object slightly above the ground from camera position. This also snap the first box collider to the ground based on the size.");
             public static readonly GUIContent missingMapComponent = EditorGUIUtility.TrTextContent("Missing Treasured Map Component in parent.", "", "Warning");
         }
 
@@ -26,12 +26,18 @@ namespace Treasured.UnitySdk
         private void OnEnable()
         {
             map = (target as Hotspot).Map;
-
             id = serializedObject.FindProperty("_id");
             description = serializedObject.FindProperty("_description");
             cameraTransform = serializedObject.FindProperty("_cameraTransform");
             actionGroup = serializedObject.FindProperty("_actionGroups");
-            list = new ActionGroupListDrawer(serializedObject, actionGroup);
+            if(serializedObject.targetObjects.Length == 1)
+            {
+                list = new ActionGroupListDrawer(serializedObject, actionGroup);
+            }
+            if (target is Hotspot hotspot && (hotspot.CameraTransform == null || hotspot.CameraTransform.parent != hotspot.transform))
+            {
+                hotspot.AssignCameraTransform();
+            }
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
         }
@@ -49,18 +55,14 @@ namespace Treasured.UnitySdk
                 return;
             }
             serializedObject.Update();
-            if (!id.hasMultipleDifferentValues)
-            {
-                EditorGUILayout.PropertyField(id);
-            }
-            EditorGUILayout.PropertyField(description);
-            EditorGUILayout.PropertyField(cameraTransform);
             if (serializedObject.targetObjects.Length == 1)
             {
-                list.OnGUI();
+                EditorGUILayout.PropertyField(id);
+                EditorGUILayout.PropertyField(description);
+                EditorGUILayout.PropertyField(cameraTransform);
+                list?.OnGUI();
             }
-            serializedObject.ApplyModifiedProperties();
-            if (GUILayout.Button("Snap to Ground", GUILayout.Height(24)))
+            if (GUILayout.Button(Styles.snapToGround, GUILayout.Height(24)))
             {
                 foreach (var target in serializedObject.targetObjects)
                 {
@@ -70,6 +72,8 @@ namespace Treasured.UnitySdk
                     }
                 }
             }
+
+            serializedObject.ApplyModifiedProperties();
         }
 
         private void OnSceneViewGUI(SceneView view)
@@ -78,13 +82,12 @@ namespace Treasured.UnitySdk
             {
                 return;
             }
-            if (target is Hotspot hotspot)
+            if (target is Hotspot hotspot && hotspot.CameraTransform != null)
             {
-                TransformData cameraTransform = hotspot.CameraTransform;
                 Handles.color = Color.white;
-                Handles.DrawDottedLine(hotspot.transform.position, cameraTransform.Position, 5);
+                Handles.DrawDottedLine(hotspot.transform.position, hotspot.CameraTransform.position, 5);
                 Handles.color = Color.red;
-                Handles.DrawWireCube(cameraTransform.Position, cameraCubeSize);
+                Handles.DrawWireCube(hotspot.CameraTransform.position, cameraCubeSize);
             }
         }
     }
