@@ -28,6 +28,7 @@ namespace Treasured.UnitySdk
         public const string DefaultOutputFolder = "Treasured Data/";
         public static readonly string DefaultOutputFolderPath = $"{Directory.GetCurrentDirectory()}/{DefaultOutputFolder}";
 
+        private static readonly int[] builtInLayers = new int[] { 0, 1, 2, 4, 5 };
         static class Styles
         {
             public static readonly GUIContent folderOpened = EditorGUIUtility.TrIconContent("FolderOpened Icon", "Show in Explorer");
@@ -62,6 +63,7 @@ namespace Treasured.UnitySdk
         private Material _equirectangularConverter;
 
         private SerializedProperty _outputFolderName;
+        private SerializedProperty _interactableLayer;
 
 
         public TreasuredMapExporter(SerializedObject serializedObject, TreasuredMap map)
@@ -203,6 +205,11 @@ namespace Treasured.UnitySdk
 
         private void ExportMask()
         {
+            if (builtInLayers.Contains(_serializedObject.FindProperty(nameof(_interactableLayer)).intValue))
+            {
+                Debug.LogError("Can not use a built-in layer as the Interactable Layer.");
+                return;
+            }
             ValidateOutputDirectory();
 
             TreasuredObject[] objects = _target.GetComponentsInChildren<TreasuredObject>();
@@ -238,7 +245,7 @@ namespace Treasured.UnitySdk
             {
                 GameObject tempGO = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
                 tempGO.hideFlags = HideFlags.HideAndDontSave;
-                tempGO.transform.SetParent(hotspot.transform);
+                tempGO.transform.SetParent(hotspot.Transform);
                 tempGO.transform.localScale = new Vector3(0.5f, 0.01f, 0.5f);
                 tempGO.transform.localPosition = Vector3.zero;
                 tempGO.layer = interactableLayer;
