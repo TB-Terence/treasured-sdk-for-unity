@@ -37,7 +37,7 @@ namespace Treasured.UnitySdk
             {
                 list = new ActionGroupListDrawer(serializedObject, actionGroup);
             }
-            (target as Hotspot).GroupHotspot();
+            (target as Hotspot).CreateTransformGroup();
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
             Tools.hidden = true;

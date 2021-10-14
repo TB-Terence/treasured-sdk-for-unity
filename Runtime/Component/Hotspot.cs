@@ -95,7 +95,7 @@ namespace Treasured.UnitySdk
         }
 
 #if UNITY_EDITOR
-        internal void GroupHotspot()
+        internal void CreateTransformGroup()
         {
             if (_hitboxTransform == null)
             {

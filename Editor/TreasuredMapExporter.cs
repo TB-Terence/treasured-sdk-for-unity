@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
@@ -27,6 +28,11 @@ namespace Treasured.UnitySdk
         public const string DefaultOutputFolder = "Treasured Data/";
         public static readonly string DefaultOutputFolderPath = $"{Directory.GetCurrentDirectory()}/{DefaultOutputFolder}";
 
+        static class Styles
+        {
+            public static readonly GUIContent folderOpened = EditorGUIUtility.TrIconContent("FolderOpened Icon", "Show in Explorer");
+        }
+
         #region Json
         public static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings()
         {
@@ -42,39 +48,48 @@ namespace Treasured.UnitySdk
         private static int colorId;
         #endregion
 
-        public TreasuredMap target;
-        public SerializedObject serializedObject;
+        private TreasuredMap _target;
+        private SerializedObject _serializedObject;
 
-        private DirectoryInfo outputDirectory;
+        private DirectoryInfo _outputDirectory;
 
 
-        private int paddingXId;
+        private int _paddingXId;
 
-        private RenderTexture cubemapRT;
-        private RenderTexture equirectangularRT;
-        private Texture2D outputTexture;
-        private Material equirectangularConverter;
+        private RenderTexture _cubemapRT;
+        private RenderTexture _equirectangularRT;
+        private Texture2D _outputTexture;
+        private Material _equirectangularConverter;
+
+        private SerializedProperty _outputFolderName;
 
 
         public TreasuredMapExporter(SerializedObject serializedObject, TreasuredMap map)
         {
-            this.target = map;
-            this.serializedObject = serializedObject;
+            this._target = map;
+            this._serializedObject = serializedObject;
+
+            this._outputFolderName = serializedObject.FindProperty(nameof(_outputFolderName));
+            if (string.IsNullOrEmpty(_outputFolderName.stringValue))
+            {
+                _outputFolderName.stringValue = EditorSceneManager.GetActiveScene().name;
+                serializedObject.ApplyModifiedProperties();
+            }
         }
 
         private void ValidateOutputDirectory()
         {
-            if (target == null)
+            if (_target == null)
             {
                 throw new NullReferenceException("Map is not assigned for exporter.");
             }
             try
             {
-                outputDirectory = Directory.CreateDirectory($"{DefaultOutputFolderPath}/{target.OutputFolderName}");
+                _outputDirectory = Directory.CreateDirectory($"{DefaultOutputFolderPath}/{_target.OutputFolderName}");
             }
             catch (Exception ex) when (ex is IOException || ex is ArgumentException)
             {
-                throw new ArgumentException($"Invalid folder name : {target.OutputFolderName}");
+                throw new ArgumentException($"Invalid folder name : {_target.OutputFolderName}");
             }
             catch
             {
@@ -84,20 +99,20 @@ namespace Treasured.UnitySdk
 
         private void ExportJson()
         {
-            JsonValidator.ValidateMap(target);
+            JsonValidator.ValidateMap(_target);
             ValidateOutputDirectory();
-            foreach (var hotspot in target.Hotspots)
+            foreach (var hotspot in _target.Hotspots)
             {
                 hotspot.ComputeVisibleTargets();
             }
-            string jsonPath = Path.Combine(outputDirectory.FullName, "data.json");
-            string json = JsonConvert.SerializeObject(target, Formatting.Indented, JsonSettings);
+            string jsonPath = Path.Combine(_outputDirectory.FullName, "data.json");
+            string json = JsonConvert.SerializeObject(_target, Formatting.Indented, JsonSettings);
             File.WriteAllText(jsonPath, json);
         }
 
         private void ExportPanoramicImages()
         {
-            var hotspots = target.Hotspots;
+            var hotspots = _target.Hotspots;
             if (hotspots == null || hotspots.Length == 0)
             {
                 throw new InvalidOperationException("No active hotspots.");
@@ -112,30 +127,30 @@ namespace Treasured.UnitySdk
             RenderTexture activeRT = RenderTexture.active;
             #endregion
 
-            string fileName = target.Quality.ToString().ToLower();
+            string fileName = _target.Quality.ToString().ToLower();
 
-            string extension = target.Format.ToString().ToLower();
+            string extension = _target.Format.ToString().ToLower();
 
-            int cubeMapSize = Mathf.Min(Mathf.NextPowerOfTwo((int)target.Quality), 8192);
+            int cubeMapSize = Mathf.Min(Mathf.NextPowerOfTwo((int)_target.Quality), 8192);
 
             int count = hotspots.Length;
 
             InitializeShader();
 
             // Create textures
-            if (cubemapRT == null)
+            if (_cubemapRT == null)
             {
-                cubemapRT = RenderTexture.GetTemporary(cubeMapSize, cubeMapSize, 0);
-                cubemapRT.dimension = TextureDimension.Cube;
-                cubemapRT.useMipMap = false;
+                _cubemapRT = RenderTexture.GetTemporary(cubeMapSize, cubeMapSize, 0);
+                _cubemapRT.dimension = TextureDimension.Cube;
+                _cubemapRT.useMipMap = false;
             }
-            if (equirectangularRT == null)
+            if (_equirectangularRT == null)
             {
-                equirectangularRT = RenderTexture.GetTemporary(cubeMapSize, cubeMapSize / 2, 0);
-                equirectangularRT.dimension = TextureDimension.Tex2D;
-                equirectangularRT.useMipMap = false;
+                _equirectangularRT = RenderTexture.GetTemporary(cubeMapSize, cubeMapSize / 2, 0);
+                _equirectangularRT.dimension = TextureDimension.Tex2D;
+                _equirectangularRT.useMipMap = false;
             }
-            outputTexture = new Texture2D(equirectangularRT.width, equirectangularRT.height, TextureFormat.RGB24, false);
+            _outputTexture = new Texture2D(_equirectangularRT.width, _equirectangularRT.height, TextureFormat.RGB24, false);
 
             try
             {
@@ -149,33 +164,25 @@ namespace Treasured.UnitySdk
                     // Move the camera in the right position
                     camera.transform.SetPositionAndRotation(current.transform.position + current.CameraPositionOffset, Quaternion.identity);
 
-                    if (!camera.RenderToCubemap(cubemapRT, 63))
+                    if (!camera.RenderToCubemap(_cubemapRT, 63))
                     {
                         throw new NotSupportedException("Rendering to cubemap is not supported on device/platform!");
                     }
 
-                    equirectangularConverter.SetFloat(paddingXId, camera.transform.eulerAngles.y / 360f);
+                    _equirectangularConverter.SetFloat(_paddingXId, camera.transform.eulerAngles.y / 360f);
                     EditorUtility.DisplayProgressBar(progressTitle, progressText, 0.66f);
-                    Graphics.Blit(cubemapRT, equirectangularRT, equirectangularConverter);
+                    Graphics.Blit(_cubemapRT, _equirectangularRT, _equirectangularConverter);
 
-                    RenderTexture.active = equirectangularRT;
-                    outputTexture.ReadPixels(new Rect(0, 0, equirectangularRT.width, equirectangularRT.height), 0, 0, false);
+                    RenderTexture.active = _equirectangularRT;
+                    _outputTexture.ReadPixels(new Rect(0, 0, _equirectangularRT.width, _equirectangularRT.height), 0, 0, false);
 
-                    byte[] bytes = target.Format == ImageFormat.JPG ? outputTexture.EncodeToJPG() : outputTexture.EncodeToPNG();
+                    byte[] bytes = _target.Format == ImageFormat.JPG ? _outputTexture.EncodeToJPG() : _outputTexture.EncodeToPNG();
                     if (bytes != null)
                     {
                         EditorUtility.DisplayProgressBar(progressTitle, progressText, 0.99f);
-                        var directory = CreateDirectory(DefaultOutputFolderPath, target.OutputFolderName, "images", current.Id);
+                        var directory = CreateDirectory(DefaultOutputFolderPath, _target.OutputFolderName, "images", current.Id);
                         string imagePath = Path.Combine(directory.FullName, $"{fileName}.{extension}");
-
-                        if (target.Format == ImageFormat.WEBP)
-                        {
-                            ImageEncoder.EncodeToWEBP(bytes, imagePath, 100);
-                        }
-                        else
-                        {
-                            File.WriteAllBytes(imagePath, bytes);
-                        }
+                        SaveImage(bytes, imagePath);
                     }
                 }
             }
@@ -198,13 +205,13 @@ namespace Treasured.UnitySdk
         {
             ValidateOutputDirectory();
 
-            TreasuredObject[] objects = target.GetComponentsInChildren<TreasuredObject>();
+            TreasuredObject[] objects = _target.GetComponentsInChildren<TreasuredObject>();
             //Color[] objectIds = objects.Select(x => x.ObjectId).ToArray();
-            Color maskColor = target.MaskColor;
+            Color maskColor = _target.MaskColor;
             Color backgroundColor = Color.black;
             Dictionary<Renderer, Material> defaultMaterials = new Dictionary<Renderer, Material>();
             Dictionary<Renderer, int> defaultLayers = new Dictionary<Renderer, int>(); // doesn't seem necessary but it will prevent breaking existing objects.
-            int interactableLayer = serializedObject.FindProperty("_interactableLayer").intValue; // single layer
+            int interactableLayer = _serializedObject.FindProperty("_interactableLayer").intValue; // single layer
 
             RenderTexture activeRT = RenderTexture.active;
 
@@ -227,7 +234,7 @@ namespace Treasured.UnitySdk
 
             // Create tempory hotspot object
             List<GameObject> tempObjects = new List<GameObject>();
-            foreach (var hotspot in target.Hotspots)
+            foreach (var hotspot in _target.Hotspots)
             {
                 GameObject tempGO = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
                 tempGO.hideFlags = HideFlags.HideAndDontSave;
@@ -267,33 +274,33 @@ namespace Treasured.UnitySdk
                     }
                 }
 
-                var hotspots = target.Hotspots;
+                var hotspots = _target.Hotspots;
                 if (hotspots == null || hotspots.Length == 0)
                 {
                     throw new InvalidOperationException("No active hotspots.");
                 }
                 ValidateOutputDirectory();
 
-                string extension = target.Format.ToString().ToLower();
+                string extension = _target.Format.ToString().ToLower();
 
-                int cubeMapSize = Mathf.Min(Mathf.NextPowerOfTwo((int)target.Quality), 8192);
+                int cubeMapSize = Mathf.Min(Mathf.NextPowerOfTwo((int)_target.Quality), 8192);
 
                 int count = hotspots.Length;
 
                 // Create textures
-                if(cubemapRT == null)
+                if(_cubemapRT == null)
                 {
-                    cubemapRT = RenderTexture.GetTemporary(cubeMapSize, cubeMapSize, 0);
-                    cubemapRT.dimension = TextureDimension.Cube;
-                    cubemapRT.useMipMap = false;
+                    _cubemapRT = RenderTexture.GetTemporary(cubeMapSize, cubeMapSize, 0);
+                    _cubemapRT.dimension = TextureDimension.Cube;
+                    _cubemapRT.useMipMap = false;
                 }
-                if (equirectangularRT == null)
+                if (_equirectangularRT == null)
                 {
-                    equirectangularRT = RenderTexture.GetTemporary(cubeMapSize, cubeMapSize / 2, 0);
-                    equirectangularRT.dimension = TextureDimension.Tex2D;
-                    equirectangularRT.useMipMap = false;
+                    _equirectangularRT = RenderTexture.GetTemporary(cubeMapSize, cubeMapSize / 2, 0);
+                    _equirectangularRT.dimension = TextureDimension.Tex2D;
+                    _equirectangularRT.useMipMap = false;
                 }
-                outputTexture = new Texture2D(equirectangularRT.width, equirectangularRT.height, TextureFormat.RGB24, false);
+                _outputTexture = new Texture2D(_equirectangularRT.width, _equirectangularRT.height, TextureFormat.RGB24, false);
 
                 for (int index = 0; index < count; index++)
                 {
@@ -305,25 +312,25 @@ namespace Treasured.UnitySdk
                     // Move the camera in the right position
                     camera.transform.SetPositionAndRotation(current.transform.position + current.CameraPositionOffset, Quaternion.identity);
 
-                    if (!camera.RenderToCubemap(cubemapRT, 63))
+                    if (!camera.RenderToCubemap(_cubemapRT, 63))
                     {
                         throw new NotSupportedException("Rendering to cubemap is not supported on device/platform!");
                     }
 
-                    equirectangularConverter.SetFloat(paddingXId, camera.transform.eulerAngles.y / 360f);
+                    _equirectangularConverter.SetFloat(_paddingXId, camera.transform.eulerAngles.y / 360f);
                     EditorUtility.DisplayProgressBar(progressTitle, progressText, 0.66f);
-                    Graphics.Blit(cubemapRT, equirectangularRT, equirectangularConverter);
+                    Graphics.Blit(_cubemapRT, _equirectangularRT, _equirectangularConverter);
 
-                    RenderTexture.active = equirectangularRT;
-                    outputTexture.ReadPixels(new Rect(0, 0, equirectangularRT.width, equirectangularRT.height), 0, 0, false);
+                    RenderTexture.active = _equirectangularRT;
+                    _outputTexture.ReadPixels(new Rect(0, 0, _equirectangularRT.width, _equirectangularRT.height), 0, 0, false);
 
-                    byte[] bytes = outputTexture.EncodeToPNG(); // object id outputs will be fixed to PNG only due to loss in JPG
+                    byte[] bytes = _outputTexture.EncodeToPNG(); // object id outputs will be fixed to PNG only due to loss in JPG
                     if (bytes != null)
                     {
                         EditorUtility.DisplayProgressBar(progressTitle, progressText, 0.99f);
-                        var directory = CreateDirectory(DefaultOutputFolderPath, target.OutputFolderName, "images", current.Id);
-                        string imagePath = Path.Combine(directory.FullName, $"mask.png");
-                        File.WriteAllBytes(imagePath, bytes);
+                        var directory = CreateDirectory(DefaultOutputFolderPath, _target.OutputFolderName, "images", current.Id);
+                        string imagePath = Path.Combine(directory.FullName, $"mask.{extension}");
+                        SaveImage(bytes, imagePath);
                     }
                 }
             }
@@ -354,6 +361,18 @@ namespace Treasured.UnitySdk
                     GameObject.DestroyImmediate(cameraGO);
                     cameraGO = null;
                 }
+            }
+        }
+
+        private void SaveImage(byte[] bytes, string path)
+        {
+            if (_target.Format == ImageFormat.WEBP)
+            {
+                ImageEncoder.EncodeToWEBP(bytes, path, 100);
+            }
+            else
+            {
+                File.WriteAllBytes(path, bytes);
             }
         }
 
@@ -389,6 +408,37 @@ namespace Treasured.UnitySdk
             }
         }
 
+        internal void OnGUI()
+        {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUI.BeginChangeCheck();
+                string newOutputFolderName = EditorGUILayout.TextField(new GUIContent("Output Folder Name"), _outputFolderName.stringValue);
+                if (EditorGUI.EndChangeCheck() && !string.IsNullOrWhiteSpace(newOutputFolderName))
+                {
+                    _outputFolderName.stringValue = newOutputFolderName;
+                }
+                if (GUILayout.Button(Styles.folderOpened, EditorStyles.label, GUILayout.Width(20), GUILayout.Height(18)))
+                {
+                    Application.OpenURL(TreasuredMapExporter.DefaultOutputFolderPath);
+                }
+            }
+            EditorGUILayout.PropertyField(_serializedObject.FindProperty("_format"));
+            EditorGUILayout.PropertyField(_serializedObject.FindProperty("_quality"));
+            if (GUILayout.Button(new GUIContent("Export"), GUILayout.Height(24)))
+            {
+                GenericMenu menu = new GenericMenu();
+                foreach (var option in Enum.GetValues(typeof(ExportOptions)))
+                {
+                    menu.AddItem(new GUIContent(ObjectNames.NicifyVariableName(option.ToString())), false, () =>
+                    {
+                        Export((ExportOptions)option);
+                    });
+                }
+                menu.ShowAsContext();
+            }
+        }
+
         private Camera ValidateCamera()
         {
             Camera camera = Camera.main;
@@ -406,38 +456,38 @@ namespace Treasured.UnitySdk
 
         private void InitializeShader()
         {
-            if (equirectangularConverter == null)
+            if (_equirectangularConverter == null)
             {
-                equirectangularConverter = new Material(Shader.Find("Hidden/I360CubemapToEquirectangular"));
-                paddingXId = Shader.PropertyToID("_PaddingX");
+                _equirectangularConverter = new Material(Shader.Find("Hidden/I360CubemapToEquirectangular"));
+                _paddingXId = Shader.PropertyToID("_PaddingX");
             }
             
         }
 
         public void Dispose()
         {
-            if (cubemapRT != null)
+            if (_cubemapRT != null)
             {
-                RenderTexture.ReleaseTemporary(cubemapRT);
-                cubemapRT = null;
+                RenderTexture.ReleaseTemporary(_cubemapRT);
+                _cubemapRT = null;
             }
 
-            if (equirectangularRT != null)
+            if (_equirectangularRT != null)
             {
-                RenderTexture.ReleaseTemporary(equirectangularRT);
-                equirectangularRT = null;
+                RenderTexture.ReleaseTemporary(_equirectangularRT);
+                _equirectangularRT = null;
             }
 
-            if (outputTexture != null)
+            if (_outputTexture != null)
             {
-                GameObject.DestroyImmediate(outputTexture);
-                outputTexture = null;
+                GameObject.DestroyImmediate(_outputTexture);
+                _outputTexture = null;
             }
 
-            if (equirectangularConverter != null)
+            if (_equirectangularConverter != null)
             {
-                GameObject.DestroyImmediate(equirectangularConverter);
-                equirectangularConverter = null;
+                GameObject.DestroyImmediate(_equirectangularConverter);
+                _equirectangularConverter = null;
             }
 
             if (objectIdConverter != null)

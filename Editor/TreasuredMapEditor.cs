@@ -1,11 +1,8 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace Treasured.UnitySdk.Editor
@@ -55,8 +52,6 @@ namespace Treasured.UnitySdk.Editor
             public static readonly GUIContent alignView = EditorGUIUtility.TrTextContent("Align View");
             public static readonly GUIContent snapAllToGround = EditorGUIUtility.TrTextContent("Snap All on Ground");
             public static readonly GUIContent selectAll = EditorGUIUtility.TrTextContent("Select All");
-
-            public static readonly GUIContent folderOpened = EditorGUIUtility.TrIconContent("FolderOpened Icon", "Show in Explorer");
 
             public static readonly Dictionary<Type, GUIContent> createNew = new Dictionary<Type, GUIContent>()
             {
@@ -135,10 +130,6 @@ namespace Treasured.UnitySdk.Editor
 
         private Dictionary<MethodInfo, FoldoutGroupState> foldoutGroupGUI = new Dictionary<MethodInfo, FoldoutGroupState>();
 
-        private bool canExport = true;
-
-        private SerializedProperty _outputFolderName;
-
         private TreasuredMap map;
 
         private TreasuredObject editingTarget;
@@ -155,14 +146,6 @@ namespace Treasured.UnitySdk.Editor
 
             _title = serializedObject.FindProperty(nameof(_title));
             _description = serializedObject.FindProperty(nameof(_description));
-
-
-            _outputFolderName = serializedObject.FindProperty(nameof(_outputFolderName));
-            if (string.IsNullOrEmpty(_outputFolderName.stringValue))
-            {
-                _outputFolderName.stringValue = EditorSceneManager.GetActiveScene().name;
-                serializedObject.ApplyModifiedProperties();
-            }
 
             if (map)
             {
@@ -206,7 +189,7 @@ namespace Treasured.UnitySdk.Editor
                 {
                     if (hotspot.CameraTransform == null)
                     {
-                        hotspot.GroupHotspot();
+                        hotspot.CreateTransformGroup();
                     }
                 }
             }
@@ -234,58 +217,6 @@ namespace Treasured.UnitySdk.Editor
 
         private void OnSceneViewGUI(SceneView view)
         {
-            if (editingTarget)
-            {
-                if (editingTarget is Hotspot hotspot)
-                {
-                    TransformData cameraTransform = hotspot.CameraTransform;
-                    var cameraRotation = Quaternion.Euler(cameraTransform.Rotation);
-                    switch (Tools.current)
-                    {
-                        case Tool.Move:
-                            EditorGUI.BeginChangeCheck();
-                            Vector3 newCameraPosition = Handles.PositionHandle(cameraTransform.Position, cameraRotation);
-                            if (EditorGUI.EndChangeCheck())
-                            {
-                                Undo.RecordObject(editingTarget, "Undo move camera position offset");
-                                hotspot.CameraPositionOffset = newCameraPosition - hotspot.transform.position;
-                            }
-                            break;
-                        case Tool.Rotate:
-                            EditorGUI.BeginChangeCheck();
-                            Quaternion newRotation = Handles.RotationHandle(cameraRotation, cameraTransform.Position);
-                            if (EditorGUI.EndChangeCheck())
-                            {
-                                Undo.RecordObject(editingTarget.transform, "Undo move camera rotation offset");
-                                hotspot.CameraRotationOffset = newRotation.eulerAngles - hotspot.transform.eulerAngles;
-                            }
-                            float size = HandleUtility.GetHandleSize(hotspot.transform.position);
-                            Handles.color = Color.blue;
-                            Handles.ArrowHandleCap(0, cameraTransform.Position, cameraRotation, size, EventType.Repaint);
-                            break;
-                    }
-                }
-                if (Tools.current == Tool.Move)
-                {
-                    EditorGUI.BeginChangeCheck();
-                    Vector3 newPosition = Handles.PositionHandle(editingTarget.transform.position, editingTarget.transform.rotation);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        Undo.RecordObject(editingTarget.transform, "Move move");
-                        editingTarget.transform.position = newPosition;
-                    }
-                }
-                else if(Tools.current == Tool.Rotate)
-                {
-                    EditorGUI.BeginChangeCheck();
-                    Quaternion newRotation = Handles.RotationHandle(editingTarget.transform.rotation, editingTarget.transform.position);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        Undo.RecordObject(editingTarget.transform, "Undo rotate");
-                        editingTarget.transform.rotation = newRotation;
-                    }
-                }
-            }
             if (SceneView.lastActiveSceneView.size == 0.01f) // this happens when TreasuredObject is selected
             {
                 return;
@@ -409,36 +340,7 @@ namespace Treasured.UnitySdk.Editor
         [FoldoutGroup("Export", true)]
         void OnExportGUI()
         {
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                EditorGUI.BeginChangeCheck();
-                string newOutputFolderName = EditorGUILayout.TextField(new GUIContent("Output Folder Name"), _outputFolderName.stringValue);
-                if (EditorGUI.EndChangeCheck() && !string.IsNullOrWhiteSpace(newOutputFolderName))
-                {
-                    _outputFolderName.stringValue = newOutputFolderName;
-                }
-                if (GUILayout.Button(Styles.folderOpened, EditorStyles.label, GUILayout.Width(20), GUILayout.Height(18)))
-                {
-                    Application.OpenURL(TreasuredMapExporter.DefaultOutputFolderPath);
-                }
-            }
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("_format"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("_quality"));
-            using (new EditorGUI.DisabledGroupScope(!canExport))
-            {
-                if (GUILayout.Button(new GUIContent("Export"), GUILayout.Height(24)))
-                {
-                    GenericMenu menu = new GenericMenu();
-                    foreach (var option in Enum.GetValues(typeof(ExportOptions)))
-                    {
-                        menu.AddItem(new GUIContent(ObjectNames.NicifyVariableName(option.ToString())), false, () =>
-                        {
-                            exporter.Export((ExportOptions)option);
-                        });
-                    }
-                    menu.ShowAsContext();
-                }
-            }
+            exporter?.OnGUI();
         }
 
         [FoldoutGroup("Upload", true)]
@@ -541,11 +443,11 @@ namespace Treasured.UnitySdk.Editor
                 }
                 if (GUILayout.Button(Styles.createNew[typeof(T)]))
                 {
-                    var root = GetChildOrCreateNew(map.transform, $"{typeof(T).Name}s");
+                    var root = map.gameObject.FindOrCreateChild($"{typeof(T).Name}s");
                     GameObject go = new GameObject(ObjectNames.GetUniqueName(objects.Select(x => x.name).ToArray(), typeof(T).Name));
                     T obj = go.AddComponent<T>();
-                    BoxCollider boxCollider = go.AddComponent<BoxCollider>();
-                    boxCollider.size = Vector3.one;
+                    //BoxCollider boxCollider = go.AddComponent<BoxCollider>();
+                    //boxCollider.size = Vector3.one;
                     Camera camera = SceneView.lastActiveSceneView.camera;
                     go.transform.SetParent(root);
                     if (typeof(T) == typeof(Hotspot))
@@ -559,8 +461,18 @@ namespace Treasured.UnitySdk.Editor
                     EditorGUIUtility.PingObject(go);
                     if (Physics.Raycast(camera.transform.position, camera.transform.forward, out var hit))
                     {
-                        go.transform.position = hit.point;
-                        boxCollider.center = new Vector3(0, boxCollider.size.y / 2, 0);
+                        if (obj is Hotspot hotspot)
+                        {
+                            hotspot.CreateTransformGroup();
+                            hotspot.Transform.position = hit.point;
+                            hotspot.CameraTransform.position = hit.point;
+                            hotspot.CameraTransform.localRotation = Quaternion.identity;
+                        }
+                        else
+                        {
+                            go.transform.position = hit.point;
+                        }
+                        //boxCollider.center = new Vector3(0, boxCollider.size.y / 2, 0);
                     }
                     else
                     {
@@ -608,16 +520,6 @@ namespace Treasured.UnitySdk.Editor
         /// <param name="parent"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        static Transform GetChildOrCreateNew(Transform parent, string name)
-        {
-            Transform child = parent.Find(name);
-            if (child == null)
-            {
-                child = new GameObject(name).transform;
-                child.SetParent(parent);
-            }
-            return child;
-        }
 
         static T CreateTreasuredObject<T>(Transform parent) where T : TreasuredObject
         {
