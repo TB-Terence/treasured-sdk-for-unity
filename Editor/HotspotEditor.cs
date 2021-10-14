@@ -63,7 +63,7 @@ namespace Treasured.UnitySdk
                 list.OnGUI();
             }
             serializedObject.ApplyModifiedProperties();
-            if (GUILayout.Button("Snap to Ground"))
+            if (GUILayout.Button("Snap to Ground", GUILayout.Height(24)))
             {
                 foreach (var target in serializedObject.targetObjects)
                 {

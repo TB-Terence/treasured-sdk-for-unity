@@ -170,18 +170,39 @@ namespace Treasured.UnitySdk.Editor
                 interactables = map.gameObject.GetComponentsInChildren<Interactable>().ToList();
 
                 exporter = new TreasuredMapExporter(serializedObject, map);
-            }
 
-            foreach (var hotspot in hotspots)
-            {
-                if (hotspot.gameObject.GetIcon() == null)
+                // Set icon for hotspots
+                foreach (var hotspot in hotspots)
                 {
-                    hotspot.gameObject.SetLabelIcon(6);
+                    if (hotspot.gameObject.GetIcon() == null)
+                    {
+                        hotspot.gameObject.SetLabelIcon(6);
+                    }
                 }
+
+                MigrateActions(hotspots);
+                MigrateActions(interactables);
             }
 
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
+        }
+
+        private void MigrateActions<T>(List<T> objects) where T : TreasuredObject
+        {
+            foreach (var to in objects)
+            {
+                var actionList = to.OnSelected.ToList();
+                if (to.ActionGroups.Count == 0 && actionList.Count > 0)
+                {
+                    ActionGroup group = ScriptableObject.CreateInstance<ActionGroup>();
+                    to.ActionGroups.Add(group);
+                    foreach (var action in actionList)
+                    {
+                        group.Actions.Add(action);
+                    }
+                }
+            }
         }
 
         private void OnDisable()

@@ -71,7 +71,7 @@ namespace Treasured.UnitySdk
         private List<ActionGroup> _actionGroups = new List<ActionGroup>();
 
         public IEnumerable<ActionBase> OnSelected => _onSelected;
-        public IEnumerable<ActionGroup> ActionGroups => _actionGroups;
+        public List<ActionGroup> ActionGroups => _actionGroups;
 
         [JsonIgnore]
         [Obsolete]

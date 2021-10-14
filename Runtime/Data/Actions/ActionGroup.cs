@@ -10,6 +10,6 @@ namespace Treasured.UnitySdk
         [SerializeReference]
         private List<ActionBase> _actions = new List<ActionBase>();
 
-        public IEnumerable<ActionBase> Actions => _actions;
+        public List<ActionBase> Actions => _actions;
     }
 }

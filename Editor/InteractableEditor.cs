@@ -7,10 +7,10 @@ namespace Treasured.UnitySdk
     [CanEditMultipleObjects]
     internal class InteractableEditor : UnityEditor.Editor
     {
-        private ActionBaseListDrawer list;
+        private ActionGroupListDrawer list;
         private SerializedProperty id;
         private SerializedProperty description;
-        private SerializedProperty onSelected;
+        private SerializedProperty actionGroups;
 
         private TreasuredMap map;
 
@@ -20,8 +20,8 @@ namespace Treasured.UnitySdk
 
             id = serializedObject.FindProperty("_id");
             description = serializedObject.FindProperty("_description");
-            onSelected = serializedObject.FindProperty("_onSelected");
-            list = new ActionBaseListDrawer(serializedObject, onSelected);
+            actionGroups = serializedObject.FindProperty("_actionGroups");
+            list = new ActionGroupListDrawer(serializedObject, actionGroups);
         }
 
         public override void OnInspectorGUI()

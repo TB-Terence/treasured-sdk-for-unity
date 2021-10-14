@@ -24,14 +24,6 @@ namespace Treasured.UnitySdk
                 {
                     SerializedProperty element = elements.GetArrayElementAtIndex(index);
                     EditorGUI.indentLevel++;
-                    SerializedProperty priorityProp = element.FindPropertyRelative("_priority");
-                    EditorGUI.BeginChangeCheck();
-                    priorityProp.intValue = EditorGUI.IntField(new Rect(rect.xMax - 40, rect.y, 40, 20), priorityProp.intValue);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        SortList(elements);
-                        GUI.FocusControl(null);
-                    }
                     EditorGUI.PropertyField(rect, element, new GUIContent(ObjectNames.NicifyVariableName(element.managedReferenceFullTypename.Substring(element.managedReferenceFullTypename.LastIndexOf('.') + 1))), true);
                     EditorGUI.indentLevel--;
                 },
@@ -65,29 +57,6 @@ namespace Treasured.UnitySdk
         public void OnGUI()
         {
             reorderableList.DoLayoutList();
-        }
-
-        private void SortList(SerializedProperty elements)
-        {
-            SerializedProperty[] array = new SerializedProperty[elements.arraySize];
-            Dictionary<SerializedProperty, int> order = new Dictionary<SerializedProperty, int>();
-            for (int i = 0; i < elements.arraySize; i++)
-            {
-                array[i] = elements.GetArrayElementAtIndex(i);
-            }
-            SerializedProperty[] sortedArray = array.OrderBy((element) =>
-            {
-                return element.FindPropertyRelative("_priority").intValue;
-            }).ToArray();
-            for (int i = 0; i < sortedArray.Length; i++)
-            {
-                order[sortedArray[i]] = i;
-            } 
-            for (int i = 0; i < elements.arraySize; i++)
-            {
-                elements.MoveArrayElement(order[array[i]], i);
-            }
-            elements.serializedObject.ApplyModifiedProperties();
         }
     }
 }
