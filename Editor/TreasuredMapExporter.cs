@@ -209,7 +209,7 @@ namespace Treasured.UnitySdk
             RenderTexture activeRT = RenderTexture.active;
 
             var cameraGO = new GameObject("Panoramic Image Camera"); // creates a temporary camera with some default settings.
-            cameraGO.hideFlags = HideFlags.HideAndDontSave;
+            cameraGO.hideFlags = HideFlags.DontSave;
             var camera = cameraGO.AddComponent<Camera>();
             var cameraData = cameraGO.AddComponent<HDAdditionalCameraData>();
             if (cameraData == null)
@@ -231,9 +231,11 @@ namespace Treasured.UnitySdk
             {
                 GameObject tempGO = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
                 tempGO.hideFlags = HideFlags.HideAndDontSave;
-                tempGO.layer = interactableLayer;
+                tempGO.transform.SetParent(hotspot.transform);
                 tempGO.transform.localScale = new Vector3(0.5f, 0.01f, 0.5f);
-                tempGO.transform.SetParent(hotspot.gameObject.transform);
+                tempGO.transform.localPosition = Vector3.zero;
+                tempGO.layer = interactableLayer;
+                tempObjects.Add(tempGO);
             }
 
             try
@@ -258,6 +260,8 @@ namespace Treasured.UnitySdk
                         defaultMaterials[renderer] = renderer.sharedMaterial;
                         renderer.sharedMaterial = objectIdConverter;
                         renderer.GetPropertyBlock(mpb);
+                        renderer.shadowCastingMode = ShadowCastingMode.Off;
+                        renderer.lightProbeUsage = LightProbeUsage.Off;
                         mpb.SetColor("_IdColor", maskColor);
                         renderer.SetPropertyBlock(mpb);
                     }
