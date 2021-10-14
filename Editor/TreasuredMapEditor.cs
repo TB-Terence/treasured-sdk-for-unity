@@ -1,11 +1,8 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace Treasured.UnitySdk.Editor
@@ -118,11 +115,6 @@ namespace Treasured.UnitySdk.Editor
         private SerializedProperty _title;
         private SerializedProperty _description;
 
-        private SerializedProperty _format;
-        private SerializedProperty _quality;
-
-        private SerializedProperty _loop;
-
         private bool exportAllHotspots = true;
         private GroupToggleState hotspotsGroupToggleState = GroupToggleState.All;
         private Vector2 hotspotsScrollPosition;
@@ -137,10 +129,6 @@ namespace Treasured.UnitySdk.Editor
         private List<Interactable> interactables = new List<Interactable>();
 
         private Dictionary<MethodInfo, FoldoutGroupState> foldoutGroupGUI = new Dictionary<MethodInfo, FoldoutGroupState>();
-
-        private bool canExport = true;
-
-        private SerializedProperty _outputFolderName;
 
         private TreasuredMap map;
 
@@ -159,37 +147,52 @@ namespace Treasured.UnitySdk.Editor
             _title = serializedObject.FindProperty(nameof(_title));
             _description = serializedObject.FindProperty(nameof(_description));
 
-            _loop = serializedObject.FindProperty(nameof(_loop));
-
-            _format = serializedObject.FindProperty(nameof(_format));
-            _quality = serializedObject.FindProperty(nameof(_quality));
-
-
-            _outputFolderName = serializedObject.FindProperty(nameof(_outputFolderName));
-            if (string.IsNullOrEmpty(_outputFolderName.stringValue))
-            {
-                _outputFolderName.stringValue = EditorSceneManager.GetActiveScene().name;
-                serializedObject.ApplyModifiedProperties();
-            }
-
             if (map)
             {
                 hotspots = map.gameObject.GetComponentsInChildren<Hotspot>().ToList();
                 interactables = map.gameObject.GetComponentsInChildren<Interactable>().ToList();
 
                 exporter = new TreasuredMapExporter(serializedObject, map);
-            }
 
-            foreach (var hotspot in hotspots)
-            {
-                if (hotspot.gameObject.GetIcon() == null)
+                // Set icon for hotspots
+                foreach (var hotspot in hotspots)
                 {
-                    hotspot.gameObject.SetLabelIcon(6);
+                    if (hotspot.gameObject.GetIcon() == null)
+                    {
+                        hotspot.gameObject.SetLabelIcon(6);
+                    }
                 }
+
+                Migrate(hotspots);
+                Migrate(interactables);
             }
 
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
+        }
+
+        private void Migrate<T>(List<T> objects) where T : TreasuredObject
+        {
+            foreach (var to in objects)
+            {
+                var actionList = to.OnSelected.ToList();
+                if (to.ActionGroups.Count == 0 && actionList.Count > 0)
+                {
+                    ActionGroup group = ScriptableObject.CreateInstance<ActionGroup>();
+                    to.ActionGroups.Add(group);
+                    foreach (var action in actionList)
+                    {
+                        group.Actions.Add(action);
+                    }
+                }
+                if (to is Hotspot hotspot)
+                {
+                    if (hotspot.CameraTransform == null)
+                    {
+                        hotspot.CreateTransformGroup();
+                    }
+                }
+            }
         }
 
         private void OnDisable()
@@ -214,58 +217,6 @@ namespace Treasured.UnitySdk.Editor
 
         private void OnSceneViewGUI(SceneView view)
         {
-            if (editingTarget)
-            {
-                if (editingTarget is Hotspot hotspot)
-                {
-                    TransformData cameraTransform = hotspot.CameraTransform;
-                    var cameraRotation = Quaternion.Euler(cameraTransform.Rotation);
-                    switch (Tools.current)
-                    {
-                        case Tool.Move:
-                            EditorGUI.BeginChangeCheck();
-                            Vector3 newCameraPosition = Handles.PositionHandle(cameraTransform.Position, cameraRotation);
-                            if (EditorGUI.EndChangeCheck())
-                            {
-                                Undo.RecordObject(editingTarget, "Undo move camera position offset");
-                                hotspot.CameraPositionOffset = newCameraPosition - hotspot.transform.position;
-                            }
-                            break;
-                        case Tool.Rotate:
-                            EditorGUI.BeginChangeCheck();
-                            Quaternion newRotation = Handles.RotationHandle(cameraRotation, cameraTransform.Position);
-                            if (EditorGUI.EndChangeCheck())
-                            {
-                                Undo.RecordObject(editingTarget.transform, "Undo move camera rotation offset");
-                                hotspot.CameraRotationOffset = newRotation.eulerAngles - hotspot.transform.eulerAngles;
-                            }
-                            float size = HandleUtility.GetHandleSize(hotspot.transform.position);
-                            Handles.color = Color.blue;
-                            Handles.ArrowHandleCap(0, cameraTransform.Position, cameraRotation, size, EventType.Repaint);
-                            break;
-                    }
-                }
-                if (Tools.current == Tool.Move)
-                {
-                    EditorGUI.BeginChangeCheck();
-                    Vector3 newPosition = Handles.PositionHandle(editingTarget.transform.position, editingTarget.transform.rotation);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        Undo.RecordObject(editingTarget.transform, "Move move");
-                        editingTarget.transform.position = newPosition;
-                    }
-                }
-                else if(Tools.current == Tool.Rotate)
-                {
-                    EditorGUI.BeginChangeCheck();
-                    Quaternion newRotation = Handles.RotationHandle(editingTarget.transform.rotation, editingTarget.transform.position);
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        Undo.RecordObject(editingTarget.transform, "Undo rotate");
-                        editingTarget.transform.rotation = newRotation;
-                    }
-                }
-            }
             if (SceneView.lastActiveSceneView.size == 0.01f) // this happens when TreasuredObject is selected
             {
                 return;
@@ -279,22 +230,23 @@ namespace Treasured.UnitySdk.Editor
                 }
                 Hotspot next = GetNextActiveHotspot(i, hotspots);
 
-                Vector3 currentCameraPosition = current.transform.position + current.CameraPositionOffset;
+                Transform hitboxTransform = current.Transform;
+                Transform cameraTransform = current.CameraTransform;
 
                 if (Selection.activeGameObject != current.gameObject)
                 {
                     Handles.color = Color.white;
-                    Handles.DrawDottedLine(current.transform.position, currentCameraPosition, 5);
+                    Handles.DrawDottedLine(hitboxTransform.position, cameraTransform.position, 5);
 
                     Handles.color = Color.red;
-                    Handles.DrawWireCube(currentCameraPosition, cameraBoxSize);
+                    Handles.DrawWireCube(cameraTransform.position, cameraBoxSize);
 
                     // Show facing direction
                     Handles.color = Color.blue;
-                    Handles.ArrowHandleCap(0, currentCameraPosition, current.gameObject.transform.rotation, 0.5f, EventType.Repaint);
+                    Handles.ArrowHandleCap(0, cameraTransform.position, cameraTransform.rotation, 0.5f, EventType.Repaint);
                 }
 
-                if (!_loop.boolValue && i == hotspots.Count - 1)
+                if (!map.Loop && i == hotspots.Count - 1)
                 {
                     continue;
                 }
@@ -303,12 +255,12 @@ namespace Treasured.UnitySdk.Editor
                     continue;
                 }
                 Handles.color = Color.white;
-                Handles.DrawLine(current.transform.position, next.transform.position);
-                Vector3 direction = next.transform.position - current.transform.position;
+                Handles.DrawLine(hitboxTransform.position, next.Transform.position);
+                Vector3 direction = next.Transform.position - hitboxTransform.position;
                 if (direction != Vector3.zero)
                 {
                     Handles.color = Color.green;
-                    Handles.ArrowHandleCap(0, current.transform.position, Quaternion.LookRotation(direction), 0.5f, EventType.Repaint);
+                    Handles.ArrowHandleCap(0, hitboxTransform.position, Quaternion.LookRotation(direction), 0.5f, EventType.Repaint);
                 }
             }
         }
@@ -337,7 +289,6 @@ namespace Treasured.UnitySdk.Editor
         [FoldoutGroup("Info")]
         void OnInfoGUI()
         {
-            EditorGUILayout.LabelField("Version", TreasuredMap.Version);
             EditorGUILayout.PropertyField(_id);
         }
 
@@ -357,12 +308,24 @@ namespace Treasured.UnitySdk.Editor
         [FoldoutGroup("Guide Tour Settings")]
         void OnGuideTourSettingsGUI()
         {
-            EditorGUILayout.PropertyField(_loop);
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_loop"));
         }
+
+        private int layer;
 
         [FoldoutGroup("Object Management", true)]
         void OnObjectManagementGUI()
         {
+            SerializedProperty interactableLayer = serializedObject.FindProperty("_interactableLayer");
+            EditorGUI.BeginChangeCheck();
+            interactableLayer.intValue = EditorGUILayout.LayerField(new GUIContent("Interactable Layer"), interactableLayer.intValue);
+            if (EditorGUI.EndChangeCheck())
+            {
+                foreach (var renderer in map.GetComponentsInChildren<Renderer>())
+                {
+                    renderer.gameObject.layer = interactableLayer.intValue;
+                }
+            }
             selectedObjectListIndex = GUILayout.SelectionGrid(selectedObjectListIndex, selectableObjectListNames, selectableObjectListNames.Length, Styles.TabButton);
             if (selectedObjectListIndex == 0)
             {
@@ -377,29 +340,7 @@ namespace Treasured.UnitySdk.Editor
         [FoldoutGroup("Export", true)]
         void OnExportGUI()
         {
-            EditorGUI.BeginChangeCheck();
-            string newOutputFolderName = EditorGUILayout.TextField(new GUIContent("Output Folder Name"), _outputFolderName.stringValue);
-            if (EditorGUI.EndChangeCheck() && !string.IsNullOrEmpty(newOutputFolderName))
-            {
-                _outputFolderName.stringValue = newOutputFolderName;
-            }
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("_format"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("_quality"));
-            using (new EditorGUI.DisabledGroupScope(!canExport))
-            {
-                if (GUILayout.Button(new GUIContent("Export"), GUILayout.Height(24)))
-                {
-                    GenericMenu menu = new GenericMenu();
-                    foreach (var option in Enum.GetValues(typeof(ExportOptions)))
-                    {
-                        menu.AddItem(new GUIContent(ObjectNames.NicifyVariableName(option.ToString())), false, () =>
-                        {
-                            exporter.Export((ExportOptions)option);
-                        });
-                    }
-                    menu.ShowAsContext();
-                }
-            }
+            exporter?.OnGUI();
         }
 
         [FoldoutGroup("Upload", true)]
@@ -485,13 +426,13 @@ namespace Treasured.UnitySdk.Editor
                             {
                                 if (current is Hotspot hotspot)
                                 {
-                                    SceneView.lastActiveSceneView.LookAt(hotspot.transform.position + hotspot.CameraPositionOffset, hotspot.transform.rotation, 0.01f);
+                                    SceneView.lastActiveSceneView.LookAt(hotspot.CameraTransform.position, hotspot.CameraTransform.rotation, 0.01f);
                                 }
                                 else
                                 {
                                     // Always oppsite to the transform.forward
-                                    Vector3 targetPosition = current.transform.position;
-                                    Vector3 cameraPosition = current.transform.position + current.transform.forward * 1;
+                                    Vector3 targetPosition = current.Transform.position;
+                                    Vector3 cameraPosition = current.Transform.position + current.Transform.forward * 1;
                                     SceneView.lastActiveSceneView.LookAt(cameraPosition, Quaternion.LookRotation(targetPosition - cameraPosition), 1);
                                 }
                                 EditorGUIUtility.PingObject(current);
@@ -502,11 +443,11 @@ namespace Treasured.UnitySdk.Editor
                 }
                 if (GUILayout.Button(Styles.createNew[typeof(T)]))
                 {
-                    var root = GetChildOrCreateNew(map.transform, $"{typeof(T).Name}s");
+                    var root = map.gameObject.FindOrCreateChild($"{typeof(T).Name}s");
                     GameObject go = new GameObject(ObjectNames.GetUniqueName(objects.Select(x => x.name).ToArray(), typeof(T).Name));
                     T obj = go.AddComponent<T>();
-                    BoxCollider boxCollider = go.AddComponent<BoxCollider>();
-                    boxCollider.size = Vector3.one;
+                    //BoxCollider boxCollider = go.AddComponent<BoxCollider>();
+                    //boxCollider.size = Vector3.one;
                     Camera camera = SceneView.lastActiveSceneView.camera;
                     go.transform.SetParent(root);
                     if (typeof(T) == typeof(Hotspot))
@@ -520,8 +461,18 @@ namespace Treasured.UnitySdk.Editor
                     EditorGUIUtility.PingObject(go);
                     if (Physics.Raycast(camera.transform.position, camera.transform.forward, out var hit))
                     {
-                        go.transform.position = hit.point;
-                        boxCollider.center = new Vector3(0, boxCollider.size.y / 2, 0);
+                        if (obj is Hotspot hotspot)
+                        {
+                            hotspot.CreateTransformGroup();
+                            hotspot.Transform.position = hit.point;
+                            hotspot.CameraTransform.position = hit.point;
+                            hotspot.CameraTransform.localRotation = Quaternion.identity;
+                        }
+                        else
+                        {
+                            go.transform.position = hit.point;
+                        }
+                        //boxCollider.center = new Vector3(0, boxCollider.size.y / 2, 0);
                     }
                     else
                     {
@@ -569,16 +520,6 @@ namespace Treasured.UnitySdk.Editor
         /// <param name="parent"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        static Transform GetChildOrCreateNew(Transform parent, string name)
-        {
-            Transform child = parent.Find(name);
-            if (child == null)
-            {
-                child = new GameObject(name).transform;
-                child.SetParent(parent);
-            }
-            return child;
-        }
 
         static T CreateTreasuredObject<T>(Transform parent) where T : TreasuredObject
         {

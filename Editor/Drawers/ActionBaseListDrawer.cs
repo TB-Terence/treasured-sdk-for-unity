@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEditorInternal;
@@ -6,14 +7,15 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    public class ActionBaseListDrawer
+    internal class ActionBaseListDrawer
     {
-        private ReorderableList reorderableList;
+        internal ReorderableList reorderableList;
 
         public ActionBaseListDrawer(SerializedObject serializedObject, SerializedProperty elements)
         {
             reorderableList = new ReorderableList(serializedObject, elements)
             {
+                headerHeight = 0,
                 drawHeaderCallback = (Rect rect) =>
                 {
                     EditorGUI.LabelField(rect, "On Selected");
@@ -40,7 +42,7 @@ namespace Treasured.UnitySdk
                         menu.AddItem(new GUIContent(attribute != null ? $"{attribute.Path}/{name}" : name), false, () =>
                         {
                             SerializedProperty element = elements.AppendManagedObject(type);
-                            element.isExpanded = true;
+                            element.isExpanded = false;
                         });
                     }
                     menu.ShowAsContext();

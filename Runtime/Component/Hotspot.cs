@@ -8,32 +8,38 @@ namespace Treasured.UnitySdk
     [AddComponentMenu("Treasured/Hotspot")]
     public sealed class Hotspot : TreasuredObject
     {
-        [Obsolete]
-        [SerializeField]
-        private HotspotData _data = new HotspotData();
-
         [SerializeField]
         private Vector3 _cameraPositionOffset = new Vector3(0, 2, 0);
         [SerializeField]
         private Vector3 _cameraRotationOffset = new Vector3();
+
+        [SerializeField]
+        private Transform _hitboxTransform;
+        [SerializeField]
+        private Transform _cameraTransform;
 
         [JsonIgnore]
         public Vector3 CameraPositionOffset { get => _cameraPositionOffset; set => _cameraPositionOffset = value; }
         [JsonIgnore]
         public Vector3 CameraRotationOffset { get => _cameraRotationOffset; set => _cameraRotationOffset = value; }
 
+        public override Transform Transform
+        {
+            get => _hitboxTransform;
+        }
+
         /// <summary>
-        /// Returns camera transform for the hotspot. (World Space)
+        /// Returns camera transform for the hotspot.
         /// </summary>
-        public TransformData CameraTransform
+        public Transform CameraTransform
         {
             get
             {
-                return new TransformData()
-                {
-                    Position = transform.position + _cameraPositionOffset,
-                    Rotation = transform.eulerAngles + _cameraRotationOffset
-                };
+                return _cameraTransform;
+            }
+            set
+            {
+                _cameraTransform = value;
             }
         }
 
@@ -88,14 +94,28 @@ namespace Treasured.UnitySdk
             }
         }
 
-        [JsonIgnore]
-        [Obsolete]
-        public override TreasuredObjectData Data
+#if UNITY_EDITOR
+        internal void CreateTransformGroup()
         {
-            get
+            if (_hitboxTransform == null)
             {
-                return _data;
+                _hitboxTransform = gameObject.FindOrCreateChild("Hitbox");
+                
+                _hitboxTransform.localPosition = this.transform.localPosition;
+                _hitboxTransform.localRotation = this.transform.localRotation;
+                this.transform.position = Vector3.zero;
+                this.transform.rotation = Quaternion.identity;
             }
+
+            if (_cameraTransform == null)
+            {
+                _cameraTransform = gameObject.FindOrCreateChild("Camera");
+                _cameraTransform.localPosition = _hitboxTransform.localPosition + CameraPositionOffset;
+                _cameraTransform.localRotation = Quaternion.Euler(_hitboxTransform.localEulerAngles + CameraRotationOffset);
+            }
+
+            UnityEditor.EditorUtility.SetDirty(gameObject);
         }
+#endif
     }
 }

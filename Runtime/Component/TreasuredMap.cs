@@ -8,32 +8,21 @@ namespace Treasured.UnitySdk
     [AddComponentMenu("Treasured/Treasured Map")]
     public sealed class TreasuredMap : MonoBehaviour
     {
-        #region Map Data
-        [SerializeField]
-        [Obsolete]
-        private TreasuredMapData _data = new TreasuredMapData();
-        #endregion
-
-        [JsonIgnore]
-        public TreasuredMapData Data
+        #region JSON properties
+        [JsonProperty]
+        public static readonly string Version = typeof(TreasuredMap).Assembly.GetName().Version.ToString();
+        [JsonProperty("created")]
+        private DateTime Created
         {
             get
             {
-                if (_data == null)
-                {
-                    _data = new TreasuredMapData();
-                }
-                return _data;
-            }
-            set
-            {
-                _data = value;
+                return DateTime.Now;
             }
         }
+        #endregion
 
         #region Map properties
-        [JsonProperty]
-        public static readonly string Version = typeof(TreasuredMap).Assembly.GetName().Version.ToString();
+        
         [SerializeField]
         [GUID]
         private string _id = Guid.NewGuid().ToString();
@@ -65,12 +54,14 @@ namespace Treasured.UnitySdk
 
         #region Export Properties
         [SerializeField]
-        private ImageFormat _format = ImageFormat.PNG;
+        private ImageFormat _format = ImageFormat.WEBP;
         public ImageFormat Format { get => _format; set => _format = value; }
 
         [SerializeField]
         private ImageQuality _quality = ImageQuality.High;
         public ImageQuality Quality { get => _quality; set => _quality = value; }
+
+        public Color32 MaskColor => Color.white;
         #endregion
 
         #region Objects
@@ -95,6 +86,9 @@ namespace Treasured.UnitySdk
         private string _outputFolderName;
         [JsonIgnore]
         public string OutputFolderName { get => _outputFolderName; set => _outputFolderName = value; }
+
+        [SerializeField]
+        private int _interactableLayer; // game object can only have one layer thus using int instead of LayerMask
         #endregion
     }
 }

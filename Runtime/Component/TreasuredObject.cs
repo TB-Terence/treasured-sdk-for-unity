@@ -36,15 +36,11 @@ namespace Treasured.UnitySdk
 
         public string Description { get => _description; set => _description = value; }
 
-        public virtual TransformData Transform
+        public virtual Transform Transform
         {
             get
             {
-                return new TransformData()
-                {
-                    Position = transform.position,
-                    Rotation = transform.eulerAngles
-                };
+                return gameObject.transform;
             }
         }
 
@@ -61,16 +57,31 @@ namespace Treasured.UnitySdk
             }
         }
 
-        /// <summary>
-        /// Action to perform when the object in selected.
-        /// </summary>
         [SerializeReference]
+        [Obsolete]
         private List<ActionBase> _onSelected = new List<ActionBase>();
 
-        public IEnumerable<ActionBase> OnSelected => _onSelected;
+        /// <summary>
+        /// Group of action to perform when the object is selected.
+        /// </summary>
+        [SerializeReference]
+        private List<ActionGroup> _actionGroups = new List<ActionGroup>();
 
         [JsonIgnore]
         [Obsolete]
-        public abstract TreasuredObjectData Data { get; }
+        public IEnumerable<ActionBase> OnSelected => _onSelected; // TODO: Remove this
+        public List<ActionGroup> ActionGroups => _actionGroups;
+
+        //public Color ObjectId
+        //{
+        //    get
+        //    {
+        //        int seed = Id.GetHashCode();
+        //        System.Random rand = new System.Random(seed);
+        //        byte[] buffer = new byte[3];
+        //        rand.NextBytes(buffer);
+        //        return new Color32(buffer[0], buffer[1], buffer[2], 255); // ColorUtility.ToHtmlStringRGB internally uses Color32 and use Color causes some precision error in the final output
+        //    }
+        //}
     }
 }

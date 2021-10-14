@@ -1,3 +1,22 @@
+## Version 0.6.0 (October 14, 2021)
+
+### Add
+
+- Add Image Processor plugin
+- Add WebP format for Panoramic Images to reduce file size
+- Add Mask Image output to export use for highlighting
+- Add Action Group to Treasured Object
+
+## Version 0.5.3 (September 28, 2021)
+
+### Add
+
+- Add `created` time in the JSON file
+
+### New features
+
+- Add functionality to export Object Ids. Make sure to setup `Interactable Layer` for all interactables in the Object Management group
+
 ## Version 0.5.2 (September 24, 2021)
 
 - Add `title` and `description` validation
