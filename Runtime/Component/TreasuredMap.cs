@@ -83,6 +83,9 @@ namespace Treasured.UnitySdk
         [SerializeField]
         private ImageQuality _quality = ImageQuality.High;
         public ImageQuality Quality { get => _quality; set => _quality = value; }
+
+        [JsonProperty]
+        public Color32 MaskColor => Color.white;
         #endregion
 
         #region Objects

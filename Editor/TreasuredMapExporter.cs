@@ -15,8 +15,8 @@ namespace Treasured.UnitySdk
     {
         JSON = 1 << 0,
         PanoramicImages = 1 << 1,
-        ObjectIds = 1 << 2,
-        All = JSON | PanoramicImages | ObjectIds
+        Mask = 1 << 2,
+        All = JSON | PanoramicImages | Mask
     }
 
     internal class TreasuredMapExporter : IDisposable
@@ -194,12 +194,14 @@ namespace Treasured.UnitySdk
             }
         }
 
-        private void ExportObjectIds()
+        private void ExportMask()
         {
             ValidateOutputDirectory();
 
             TreasuredObject[] objects = target.GetComponentsInChildren<TreasuredObject>();
-            Color[] objectIds = objects.Select(x => x.ObjectId).ToArray();
+            //Color[] objectIds = objects.Select(x => x.ObjectId).ToArray();
+            Color maskColor = target.MaskColor;
+            Color backgroundColor = Color.black;
             Dictionary<Renderer, Material> defaultMaterials = new Dictionary<Renderer, Material>();
             Dictionary<Renderer, int> defaultLayers = new Dictionary<Renderer, int>(); // doesn't seem necessary but it will prevent breaking existing objects.
             int interactableLayer = serializedObject.FindProperty("_interactableLayer").intValue; // single layer
@@ -217,12 +219,23 @@ namespace Treasured.UnitySdk
             camera.cullingMask = 1 << interactableLayer;
 
             #region HDRP camera settings
-            cameraData.backgroundColorHDR = Color.black;
+            cameraData.backgroundColorHDR = backgroundColor;
             cameraData.clearColorMode = HDAdditionalCameraData.ClearColorMode.Color;
             cameraData.volumeLayerMask = 0; // ensure no volume effects will affect the object id color
             cameraData.probeLayerMask = 0; // ensure no probe effects will affect the object id color
-
             #endregion
+
+            // Create tempory hotspot object
+            List<GameObject> tempObjects = new List<GameObject>();
+            foreach (var hotspot in target.Hotspots)
+            {
+                GameObject tempGO = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                tempGO.hideFlags = HideFlags.HideAndDontSave;
+                tempGO.layer = interactableLayer;
+                tempGO.transform.localScale = new Vector3(0.5f, 0.01f, 0.5f);
+                tempGO.transform.SetParent(hotspot.gameObject.transform);
+            }
+
             try
             {
                 InitializeShader();
@@ -235,6 +248,7 @@ namespace Treasured.UnitySdk
                 // Set Object Color
                 for (int i = 0; i < objects.Length; i++)
                 {
+                    TreasuredObject obj = objects[i];
                     Renderer[] renderers = objects[i].GetComponentsInChildren<Renderer>();
                     MaterialPropertyBlock mpb = new MaterialPropertyBlock();
                     foreach (var renderer in renderers)
@@ -244,7 +258,7 @@ namespace Treasured.UnitySdk
                         defaultMaterials[renderer] = renderer.sharedMaterial;
                         renderer.sharedMaterial = objectIdConverter;
                         renderer.GetPropertyBlock(mpb);
-                        mpb.SetColor("_IdColor", objectIds[i]);
+                        mpb.SetColor("_IdColor", maskColor);
                         renderer.SetPropertyBlock(mpb);
                     }
                 }
@@ -280,7 +294,7 @@ namespace Treasured.UnitySdk
                 for (int index = 0; index < count; index++)
                 {
                     Hotspot current = hotspots[index];
-                    string progressTitle = $"Exporting Object Id ({index + 1}/{count})";
+                    string progressTitle = $"Exporting Mask ({index + 1}/{count})";
                     string progressText = $"Generating data for {current.name}...";
                     EditorUtility.DisplayProgressBar(progressTitle, progressText, 0.33f);
 
@@ -304,7 +318,7 @@ namespace Treasured.UnitySdk
                     {
                         EditorUtility.DisplayProgressBar(progressTitle, progressText, 0.99f);
                         var directory = CreateDirectory(DefaultOutputFolderPath, target.OutputFolderName, "images", current.Id);
-                        string imagePath = Path.Combine(directory.FullName, $"id.png");
+                        string imagePath = Path.Combine(directory.FullName, $"mask.png");
                         File.WriteAllBytes(imagePath, bytes);
                     }
                 }
@@ -320,6 +334,11 @@ namespace Treasured.UnitySdk
                 foreach (var kvp in defaultLayers)
                 {
                     kvp.Key.gameObject.layer = kvp.Value;
+                }
+
+                foreach (var tempObject in tempObjects)
+                {
+                    GameObject.DestroyImmediate(tempObject);
                 }
 
                 #region Restore settings
@@ -346,9 +365,9 @@ namespace Treasured.UnitySdk
                 {
                     ExportPanoramicImages();
                 }
-                if (options.HasFlag(ExportOptions.ObjectIds))
+                if (options.HasFlag(ExportOptions.Mask))
                 {
-                    ExportObjectIds();
+                    ExportMask();
                 }
             }
             catch (TargetNotAssignedException e)
