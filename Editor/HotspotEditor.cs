@@ -18,8 +18,8 @@ namespace Treasured.UnitySdk
         private ActionGroupListDrawer list;
         private SerializedProperty id;
         private SerializedProperty description;
-        private SerializedProperty hitboxTransform;
-        private SerializedProperty cameraTransform;
+        private SerializedProperty hitbox;
+        private SerializedProperty camera;
         private SerializedProperty actionGroup;
 
         private TreasuredMap map;
@@ -30,14 +30,14 @@ namespace Treasured.UnitySdk
             map = (target as Hotspot).Map;
             id = serializedObject.FindProperty("_id");
             description = serializedObject.FindProperty("_description");
-            hitboxTransform = serializedObject.FindProperty("_hitboxTransform");
-            cameraTransform = serializedObject.FindProperty("_cameraTransform");
+            hitbox = serializedObject.FindProperty("_hitbox");
+            camera = serializedObject.FindProperty("_camera");
             actionGroup = serializedObject.FindProperty("_actionGroups");
             if(serializedObject.targetObjects.Length == 1)
             {
                 list = new ActionGroupListDrawer(serializedObject, actionGroup);
             }
-            (target as Hotspot).CreateTransformGroup();
+            (target as Hotspot).CreateTransformGroupInternal();
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
             Tools.hidden = true;
@@ -61,11 +61,8 @@ namespace Treasured.UnitySdk
             {
                 EditorGUILayout.PropertyField(id);
                 EditorGUILayout.PropertyField(description);
-                using (new EditorGUI.DisabledGroupScope(true))
-                {
-                    EditorGUILayout.PropertyField(hitboxTransform);
-                    EditorGUILayout.PropertyField(cameraTransform);
-                }
+                EditorGUILayout.PropertyField(hitbox);
+                EditorGUILayout.PropertyField(camera);
                 list?.OnGUI();
             }
             if (GUILayout.Button(Styles.snapToGround, GUILayout.Height(24)))
@@ -87,10 +84,10 @@ namespace Treasured.UnitySdk
             {
                 return;
             }
-            if (target is Hotspot hotspot && hotspot.Transform != null && hotspot.CameraTransform != null)
+            if (target is Hotspot hotspot && hotspot.Hitbox != null && hotspot.Camera != null)
             {
-                Transform hitboxTransform = hotspot.Transform;
-                Transform cameraTransform = hotspot.CameraTransform;
+                Transform hitboxTransform = hotspot.Hitbox.transform;
+                Transform cameraTransform = hotspot.Camera.transform;
                 switch (Tools.current)
                 {
                     case Tool.Move:
@@ -130,9 +127,7 @@ namespace Treasured.UnitySdk
                         break;
                 }
                 Handles.color = Color.white;
-                Handles.DrawDottedLine(hotspot.Transform.position, hotspot.CameraTransform.position, 5);
-                Handles.color = Color.red;
-                Handles.DrawWireCube(hotspot.CameraTransform.position, cameraCubeSize);
+                Handles.DrawDottedLine(hotspot.Hitbox.transform.position, hotspot.Camera.transform.position, 5);
             }
         }
     }

@@ -33,15 +33,17 @@ namespace Treasured.UnitySdk
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            Vector3 vector3 = (Vector3)value;
-            writer.WriteStartObject();
-            writer.WritePropertyName("x");
-            writer.WriteValue(vector3.x);
-            writer.WritePropertyName("y");
-            writer.WriteValue(vector3.y);
-            writer.WritePropertyName("z");
-            writer.WriteValue(vector3.z);
-            writer.WriteEndObject();
+            if(value is Vector3 vector3)
+            {
+                writer.WriteStartObject();
+                writer.WritePropertyName(nameof(vector3.x));
+                writer.WriteValue(vector3.x);
+                writer.WritePropertyName(nameof(vector3.y));
+                writer.WriteValue(vector3.y);
+                writer.WritePropertyName(nameof(vector3.z));
+                writer.WriteValue(vector3.z);
+                writer.WriteEndObject();
+            }
         }
     }
 }

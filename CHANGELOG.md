@@ -1,3 +1,21 @@
+## Version 0.6.1 (October 17, 2021)
+
+### Fix
+
+- Fix hotspot image being on same location.
+
+### Add
+
+- Add HotspotCamera component.
+- Add Hitbox component.
+- JsonConverters for new components.
+
+### Changes
+
+- Change gizmos for TreasureObject. Hitbox will now display as transparent box. Camera will now display as frustum.
+- Update JSON to match the changes.
+- Downgrade JsonConverter to use non-generic converters.
+
 ## Version 0.6.0 (October 14, 2021)
 
 ### Add

@@ -164,7 +164,7 @@ namespace Treasured.UnitySdk
                     EditorUtility.DisplayProgressBar(progressTitle, progressText, 0.33f);
 
                     // Move the camera in the right position
-                    camera.transform.SetPositionAndRotation(current.transform.position + current.CameraPositionOffset, Quaternion.identity);
+                    camera.transform.SetPositionAndRotation(current.Camera.transform.position, Quaternion.identity);
 
                     if (!camera.RenderToCubemap(_cubemapRT, 63))
                     {
@@ -205,11 +205,6 @@ namespace Treasured.UnitySdk
 
         private void ExportMask()
         {
-            if (builtInLayers.Contains(_serializedObject.FindProperty(nameof(_interactableLayer)).intValue))
-            {
-                Debug.LogError("Can not use a built-in layer as the Interactable Layer.");
-                return;
-            }
             ValidateOutputDirectory();
 
             TreasuredObject[] objects = _target.GetComponentsInChildren<TreasuredObject>();
@@ -245,7 +240,7 @@ namespace Treasured.UnitySdk
             {
                 GameObject tempGO = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
                 tempGO.hideFlags = HideFlags.HideAndDontSave;
-                tempGO.transform.SetParent(hotspot.Transform);
+                tempGO.transform.SetParent(hotspot.Hitbox.transform);
                 tempGO.transform.localScale = new Vector3(0.5f, 0.01f, 0.5f);
                 tempGO.transform.localPosition = Vector3.zero;
                 tempGO.layer = interactableLayer;
@@ -317,7 +312,7 @@ namespace Treasured.UnitySdk
                     EditorUtility.DisplayProgressBar(progressTitle, progressText, 0.33f);
 
                     // Move the camera in the right position
-                    camera.transform.SetPositionAndRotation(current.transform.position + current.CameraPositionOffset, Quaternion.identity);
+                    camera.transform.SetPositionAndRotation(current.Camera.transform.position, Quaternion.identity);
 
                     if (!camera.RenderToCubemap(_cubemapRT, 63))
                     {
@@ -385,6 +380,11 @@ namespace Treasured.UnitySdk
 
         public void Export(ExportOptions options)
         {
+            if (builtInLayers.Contains(_serializedObject.FindProperty(nameof(_interactableLayer)).intValue))
+            {
+                Debug.LogError("Can not use a built-in layer as the Interactable Layer.");
+                return;
+            }
             try
             {
                 if (options.HasFlag(ExportOptions.JSON))

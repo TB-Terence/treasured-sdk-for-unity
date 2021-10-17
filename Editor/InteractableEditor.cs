@@ -10,6 +10,7 @@ namespace Treasured.UnitySdk
         private ActionGroupListDrawer list;
         private SerializedProperty id;
         private SerializedProperty description;
+        private SerializedProperty hitbox;
         private SerializedProperty actionGroups;
 
         private TreasuredMap map;
@@ -17,9 +18,11 @@ namespace Treasured.UnitySdk
         private void OnEnable()
         {
             map = (target as Interactable).Map;
+            (target as Interactable).CreateTransformGroupInternal();
 
             id = serializedObject.FindProperty("_id");
             description = serializedObject.FindProperty("_description");
+            hitbox = serializedObject.FindProperty("_hitbox");
             actionGroups = serializedObject.FindProperty("_actionGroups");
             list = new ActionGroupListDrawer(serializedObject, actionGroups);
         }
@@ -37,6 +40,7 @@ namespace Treasured.UnitySdk
                 EditorGUILayout.PropertyField(id);
             }
             EditorGUILayout.PropertyField(description);
+            EditorGUILayout.PropertyField(hitbox);
             if (targets.Length == 1)
             {
                 list.OnGUI();

@@ -185,13 +185,7 @@ namespace Treasured.UnitySdk.Editor
                         group.Actions.Add(action);
                     }
                 }
-                if (to is Hotspot hotspot)
-                {
-                    if (hotspot.CameraTransform == null)
-                    {
-                        hotspot.CreateTransformGroup();
-                    }
-                }
+                to.CreateTransformGroupInternal();
             }
         }
 
@@ -230,20 +224,13 @@ namespace Treasured.UnitySdk.Editor
                 }
                 Hotspot next = GetNextActiveHotspot(i, hotspots);
 
-                Transform hitboxTransform = current.Transform;
-                Transform cameraTransform = current.CameraTransform;
+                Transform hitboxTransform = current.Hitbox.transform;
+                Transform cameraTransform = current.Camera.transform;
 
                 if (Selection.activeGameObject != current.gameObject)
                 {
                     Handles.color = Color.white;
                     Handles.DrawDottedLine(hitboxTransform.position, cameraTransform.position, 5);
-
-                    Handles.color = Color.red;
-                    Handles.DrawWireCube(cameraTransform.position, cameraBoxSize);
-
-                    // Show facing direction
-                    Handles.color = Color.blue;
-                    Handles.ArrowHandleCap(0, cameraTransform.position, cameraTransform.rotation, 0.5f, EventType.Repaint);
                 }
 
                 if (!map.Loop && i == hotspots.Count - 1)
@@ -255,8 +242,8 @@ namespace Treasured.UnitySdk.Editor
                     continue;
                 }
                 Handles.color = Color.white;
-                Handles.DrawLine(hitboxTransform.position, next.Transform.position);
-                Vector3 direction = next.Transform.position - hitboxTransform.position;
+                Handles.DrawLine(hitboxTransform.position, next.Hitbox.transform.position);
+                Vector3 direction = next.Hitbox.transform.position - hitboxTransform.position;
                 if (direction != Vector3.zero)
                 {
                     Handles.color = Color.green;
@@ -426,13 +413,13 @@ namespace Treasured.UnitySdk.Editor
                             {
                                 if (current is Hotspot hotspot)
                                 {
-                                    SceneView.lastActiveSceneView.LookAt(hotspot.CameraTransform.position, hotspot.CameraTransform.rotation, 0.01f);
+                                    SceneView.lastActiveSceneView.LookAt(hotspot.Camera.transform.position, hotspot.Camera.transform.rotation, 0.01f);
                                 }
                                 else
                                 {
                                     // Always oppsite to the transform.forward
-                                    Vector3 targetPosition = current.Transform.position;
-                                    Vector3 cameraPosition = current.Transform.position + current.Transform.forward * 1;
+                                    Vector3 targetPosition = current.Hitbox.transform.position;
+                                    Vector3 cameraPosition = current.Hitbox.transform.position + current.Hitbox.transform.forward * 1;
                                     SceneView.lastActiveSceneView.LookAt(cameraPosition, Quaternion.LookRotation(targetPosition - cameraPosition), 1);
                                 }
                                 EditorGUIUtility.PingObject(current);
@@ -461,16 +448,12 @@ namespace Treasured.UnitySdk.Editor
                     EditorGUIUtility.PingObject(go);
                     if (Physics.Raycast(camera.transform.position, camera.transform.forward, out var hit))
                     {
+                        obj.CreateTransformGroupInternal();
+                        obj.Hitbox.transform.position = hit.point;
                         if (obj is Hotspot hotspot)
                         {
-                            hotspot.CreateTransformGroup();
-                            hotspot.Transform.position = hit.point;
-                            hotspot.CameraTransform.position = hit.point;
-                            hotspot.CameraTransform.localRotation = Quaternion.identity;
-                        }
-                        else
-                        {
-                            go.transform.position = hit.point;
+                            hotspot.Camera.transform.position = hit.point;
+                            hotspot.Camera.transform.localRotation = Quaternion.identity;
                         }
                         //boxCollider.center = new Vector3(0, boxCollider.size.y / 2, 0);
                     }

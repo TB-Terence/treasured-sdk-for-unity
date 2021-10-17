@@ -19,7 +19,10 @@ namespace Treasured.UnitySdk
             "id",
             "objectId",
             "name",
-            "type"
+            "type",
+            "description",
+            "hitbox",
+            "camera"
         };
 
         public ContractResolver()
@@ -42,9 +45,13 @@ namespace Treasured.UnitySdk
             {
                 contract.Converter = new StringEnumConverter(new KebabCaseNamingStrategy());
             }
-            if (objectType == typeof(Color))
+            if (objectType == typeof(HotspotCamera))
             {
-                contract.Converter = new HexColorConverter();
+                contract.Converter = new HotspotCameraConverter();
+            }
+            if (objectType == typeof(Hitbox))
+            {
+                contract.Converter = new HitboxConverter();
             }
             if (objectType == typeof(Transform))
             {

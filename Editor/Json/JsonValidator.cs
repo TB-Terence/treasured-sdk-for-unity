@@ -20,7 +20,7 @@
 
         public static void ValidateObject(TreasuredObject obj)
         {
-            if (obj is Hotspot hotspot && hotspot.CameraTransform == null)
+            if (obj is Hotspot hotspot && hotspot.Camera == null)
             {
                 throw new TargetNotAssignedException($"Camera Transform is not assigned for {obj.name}.", obj);
             }
