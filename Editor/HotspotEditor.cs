@@ -40,13 +40,11 @@ namespace Treasured.UnitySdk
             (target as Hotspot).CreateTransformGroupInternal();
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
-            Tools.hidden = true;
         }
 
         private void OnDisable()
         {
             SceneView.duringSceneGui -= OnSceneViewGUI;
-            Tools.hidden = false;
         }
 
         public override void OnInspectorGUI()
@@ -86,19 +84,10 @@ namespace Treasured.UnitySdk
             }
             if (target is Hotspot hotspot && hotspot.Hitbox != null && hotspot.Camera != null)
             {
-                Transform hitboxTransform = hotspot.Hitbox.transform;
                 Transform cameraTransform = hotspot.Camera.transform;
                 switch (Tools.current)
                 {
                     case Tool.Move:
-                        EditorGUI.BeginChangeCheck();
-                        Vector3 newHitboxPosition = Handles.PositionHandle(hitboxTransform.position, hitboxTransform.rotation);
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            Undo.RecordObject(hitboxTransform, "Move Hotspot Hitbox Position");
-                            hitboxTransform.position = newHitboxPosition;
-                        }
-                        EditorGUI.BeginChangeCheck();
                         Vector3 newCameraPosition = Handles.PositionHandle(cameraTransform.position, cameraTransform.rotation);
                         if (EditorGUI.EndChangeCheck())
                         {
@@ -107,14 +96,6 @@ namespace Treasured.UnitySdk
                         }
                         break;
                     case Tool.Rotate:
-                        EditorGUI.BeginChangeCheck();
-                        Quaternion newHitboxRotation = Handles.RotationHandle(hitboxTransform.rotation, hitboxTransform.position);
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            Undo.RecordObject(hitboxTransform, "Rotate Hotspot Hitbox");
-                            hitboxTransform.rotation = newHitboxRotation;
-                        }
-                        EditorGUI.BeginChangeCheck();
                         Quaternion newCameraRotation = Handles.RotationHandle(cameraTransform.rotation, cameraTransform.position);
                         if (EditorGUI.EndChangeCheck())
                         {

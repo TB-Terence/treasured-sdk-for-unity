@@ -11,7 +11,6 @@ namespace Treasured.UnitySdk.Editor
     internal class TreasuredMapEditor : UnityEditor.Editor
     {
         private static readonly string[] selectableObjectListNames = new string[] { "Hotspots", "Interactables" };
-        private static Vector3 cameraBoxSize = new Vector3(0.3f, 0.3f, 0.3f);
 
         [AttributeUsage(AttributeTargets.Method)]
         class FoldoutGroupAttribute : Attribute
