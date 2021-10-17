@@ -449,10 +449,10 @@ namespace Treasured.UnitySdk.Editor
                     if (Physics.Raycast(camera.transform.position, camera.transform.forward, out var hit))
                     {
                         obj.CreateTransformGroupInternal();
-                        obj.Hitbox.transform.position = hit.point;
+                        obj.transform.position = hit.point;
                         if (obj is Hotspot hotspot)
                         {
-                            hotspot.Camera.transform.position = hit.point;
+                            hotspot.Camera.transform.position = hit.point + new Vector3(0, 1.5f, 0);
                             hotspot.Camera.transform.localRotation = Quaternion.identity;
                         }
                         //boxCollider.center = new Vector3(0, boxCollider.size.y / 2, 0);
