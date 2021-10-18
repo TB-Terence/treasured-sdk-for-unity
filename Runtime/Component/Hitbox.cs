@@ -9,8 +9,15 @@ namespace Treasured.UnitySdk
 
         void OnDrawGizmosSelected()
         {
+            Color tempColor = Gizmos.color;
+            Matrix4x4 tempMatrix = Gizmos.matrix;
+            Gizmos.matrix = Matrix4x4.TRS(this.transform.position, this.transform.rotation, Vector3.one);
+
             Gizmos.color = boxColor;
-            Gizmos.DrawCube(transform.position, transform.localScale);
+            Gizmos.DrawCube(Vector3.zero, transform.localScale);
+
+            Gizmos.color = tempColor;
+            Gizmos.matrix = tempMatrix;
         }
 #endif
     }
