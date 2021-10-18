@@ -14,7 +14,7 @@ namespace Treasured.UnitySdk
             Matrix4x4 tempMatrix = Gizmos.matrix;
             Gizmos.matrix = Matrix4x4.TRS(this.transform.position, this.transform.rotation, Vector3.one);
 
-            Gizmos.color = Color.white;
+            Gizmos.color = TreasuredSDKSettings.Instance ? TreasuredSDKSettings.Instance.frustumColor : TreasuredSDKSettings.defaultFrustumColor;
             Gizmos.DrawFrustum(Vector3.zero, 10, 0, 0.5f, 5);
 
             Gizmos.color = tempColor;
