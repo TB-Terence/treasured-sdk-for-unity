@@ -103,10 +103,6 @@ namespace Treasured.UnitySdk
         {
             JsonValidator.ValidateMap(_target);
             ValidateOutputDirectory();
-            foreach (var hotspot in _target.Hotspots)
-            {
-                hotspot.ComputeVisibleTargets();
-            }
             string jsonPath = Path.Combine(_outputDirectory.FullName, "data.json");
             string json = JsonConvert.SerializeObject(_target, Formatting.Indented, JsonSettings);
             File.WriteAllText(jsonPath, json);
