@@ -65,6 +65,7 @@ namespace Treasured.UnitySdk
         private SerializedProperty _outputFolderName;
         private SerializedProperty _interactableLayer;
 
+        private ExportOptions exportOptions = ExportOptions.All;
 
         public TreasuredMapExporter(SerializedObject serializedObject, TreasuredMap map)
         {
@@ -428,18 +429,35 @@ namespace Treasured.UnitySdk
             }
             EditorGUILayout.PropertyField(_serializedObject.FindProperty("_format"));
             EditorGUILayout.PropertyField(_serializedObject.FindProperty("_quality"));
+            OnExportOptionsGUI();
             if (GUILayout.Button(new GUIContent("Export"), GUILayout.Height(24)))
             {
-                GenericMenu menu = new GenericMenu();
-                foreach (var option in Enum.GetValues(typeof(ExportOptions)))
-                {
-                    menu.AddItem(new GUIContent(ObjectNames.NicifyVariableName(option.ToString())), false, () =>
-                    {
-                        Export((ExportOptions)option);
-                    });
-                }
-                menu.ShowAsContext();
+                Export(exportOptions);
             }
+        }
+
+        private void OnExportOptionsGUI()
+        {
+            EditorGUILayout.LabelField("Export Options");
+            EditorGUI.indentLevel++;
+            foreach (ExportOptions option in Enum.GetValues(typeof(ExportOptions)))
+            {
+                bool hasFlag = exportOptions.HasFlag(option);
+                EditorGUI.BeginChangeCheck();
+                var enable = EditorGUILayout.Toggle(ObjectNames.NicifyVariableName(option.ToString()), hasFlag);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (!enable)
+                    {
+                        exportOptions &= ~option;
+                    }
+                    else
+                    {
+                        exportOptions |= option;
+                    }
+                }
+            }
+            EditorGUI.indentLevel--;
         }
 
         private Camera ValidateCamera()

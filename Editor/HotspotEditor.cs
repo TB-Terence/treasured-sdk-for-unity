@@ -26,7 +26,6 @@ namespace Treasured.UnitySdk
 
         private void OnEnable()
         {
-
             map = (target as Hotspot).Map;
             id = serializedObject.FindProperty("_id");
             description = serializedObject.FindProperty("_description");

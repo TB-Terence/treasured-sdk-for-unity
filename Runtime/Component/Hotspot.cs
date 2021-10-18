@@ -103,8 +103,9 @@ namespace Treasured.UnitySdk
                 return targets;
             }
         }
-            
-        // DO NOT REMOVE, called by Editor
+
+        #region Editor GUI Functions
+#if UNITY_EDITOR
         void OnSelectedInHierarchy()
         {
             if (_camera == null)
@@ -114,5 +115,12 @@ namespace Treasured.UnitySdk
                 _camera.transform.localRotation = Quaternion.Euler(Hitbox.transform.localEulerAngles + CameraRotationOffset);
             }
         }
+
+        void OnSceneViewFocus()
+        {
+            UnityEditor.SceneView.lastActiveSceneView.LookAt(Camera.transform.position, Camera.transform.rotation, 0.01f);
+        }
+#endif
+        #endregion
     }
 }
