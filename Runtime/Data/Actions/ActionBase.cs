@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
+    /// <summary>
+    /// Base class for action
+    /// </summary>
     [Serializable]
     public abstract class ActionBase
     {
@@ -13,6 +16,9 @@ namespace Treasured.UnitySdk
 
         public string Id { get => _id; }
 
+        /// <summary>
+        /// Actual type of the action in string format without Action suffix.
+        /// </summary>
         public string Type {
             get
             {

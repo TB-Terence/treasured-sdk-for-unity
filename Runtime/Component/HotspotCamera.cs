@@ -2,6 +2,9 @@
 
 namespace Treasured.UnitySdk
 {
+    /// <summary>
+    /// Camera for the hotspot. Contains additional camera data for each Hotspot.
+    /// </summary>
     public sealed class HotspotCamera : MonoBehaviour
     {
 #if UNITY_EDITOR

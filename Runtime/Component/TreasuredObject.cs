@@ -5,40 +5,46 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
+    /// <summary>
+    /// Base class for <see cref="Hotspot"/> and <see cref="Interactable"/>.
+    /// </summary>
     [ExecuteInEditMode]
     [DisallowMultipleComponent]
     public abstract class TreasuredObject : MonoBehaviour
     {
+        #region Backing fields
         [SerializeField]
         [GUID]
         private string _id = Guid.NewGuid().ToString();
-
-        internal TreasuredMap _map; // Internal reference of the Map for this object, this will be set every time the object is selected.
-
-        [JsonIgnore]
-        public TreasuredMap Map
-        {
-            get
-            {
-                if (_map == null)
-                {
-                    _map = GetComponentInParent<TreasuredMap>();
-                }
-                return _map;
-            }
-        }
-
-        public string Id { get => _id; }
 
         [SerializeField]
         [TextArea(3, 3)]
         private string _description;
 
-        public string Description { get => _description; set => _description = value; }
-
         [SerializeField]
         private Hitbox _hitbox;
 
+        [SerializeReference] // TODO: Remove this when upgrade is done.
+        [Obsolete]
+        private List<ActionBase> _onSelected = new List<ActionBase>();
+
+        [SerializeReference]
+        private List<ActionGroup> _actionGroups = new List<ActionGroup>();
+        #endregion
+
+        #region Properties
+        /// <summary>
+        /// Reference of the Map for this object.
+        /// </summary>
+        [JsonIgnore]
+        public TreasuredMap Map => GetComponentInParent<TreasuredMap>();
+
+        /// <summary>
+        /// Global unique identifier for the object.(Read Only)
+        /// </summary>
+        public string Id { get => _id; }
+
+        public string Description { get => _description; set => _description = value; }
         public Hitbox Hitbox
         {
             get
@@ -51,19 +57,13 @@ namespace Treasured.UnitySdk
             }
         }
 
-        [SerializeReference]
+        [JsonIgnore]
         [Obsolete]
-        private List<ActionBase> _onSelected = new List<ActionBase>();
+        public IEnumerable<ActionBase> OnSelected => _onSelected; // TODO: Remove this
 
         /// <summary>
         /// Group of action to perform when the object is selected.
         /// </summary>
-        [SerializeReference]
-        private List<ActionGroup> _actionGroups = new List<ActionGroup>();
-
-        [JsonIgnore]
-        [Obsolete]
-        public IEnumerable<ActionBase> OnSelected => _onSelected; // TODO: Remove this
         public List<ActionGroup> ActionGroups => _actionGroups;
 
         //public Color ObjectId
@@ -77,7 +77,10 @@ namespace Treasured.UnitySdk
         //        return new Color32(buffer[0], buffer[1], buffer[2], 255); // ColorUtility.ToHtmlStringRGB internally uses Color32 and use Color causes some precision error in the final output
         //    }
         //}
+        #endregion
 
+#if UNITY_EDITOR
+        // DO NOT REMOVE, called by Editor
         void OnSelectedInHierarchy()
         {
             if (Hitbox == null)
@@ -90,6 +93,15 @@ namespace Treasured.UnitySdk
                     Hitbox.transform.localScale = collider.size;
                 }
             }
+            if (Hitbox)
+            {
+                var renderer = GetComponentInChildren<Renderer>();
+                if (renderer && Hitbox.transform.eulerAngles == Vector3.zero)
+                {
+                    Hitbox.transform.eulerAngles = renderer.transform.eulerAngles;
+                }
+            }
         }
+#endif
     }
 }
