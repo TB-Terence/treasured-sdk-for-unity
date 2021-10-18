@@ -7,7 +7,27 @@ namespace Treasured.UnitySdk
 {
     internal class TreasuredSDKSettings : ScriptableObject
     {
-        public static TreasuredSDKSettings Instance { get; private set; }
+        private static TreasuredSDKSettings _instance;
+        public static TreasuredSDKSettings Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    string path = GetAbsolutePath();
+                    _instance = ScriptableObject.CreateInstance<TreasuredSDKSettings>();
+                    if (File.Exists(path))
+                    {
+                        string json = File.ReadAllText(path);
+                        JsonUtility.FromJsonOverwrite(json, _instance);
+                        return _instance;
+                    }
+                    string newJson = JsonUtility.ToJson(_instance, true);
+                    File.WriteAllText(path, newJson);
+                }
+                return _instance;
+            }
+        }
         public static readonly Color defaultFrustumColor = Color.white;
         public static readonly Color defaultHitboxColor = new Color(0, 1, 0, 0.2f);
         class Styles
@@ -19,24 +39,8 @@ namespace Treasured.UnitySdk
         public Color frustumColor = defaultFrustumColor;
         public Color hitboxColor = defaultHitboxColor;
 
-        static TreasuredSDKSettings GetOrCreateSettings()
-        {
-            string path = GetAbsolutePath();
-            var settings = ScriptableObject.CreateInstance<TreasuredSDKSettings>();
-            if (File.Exists(path))
-            {
-                string json = File.ReadAllText(path);
-                JsonUtility.FromJsonOverwrite(json, settings);
-                return settings;
-            }
-            string newJson = JsonUtility.ToJson(settings, true);
-            File.WriteAllText(path, newJson);
-            return settings;
-        }
-
         static SerializedObject GetSerializedSettings()
         {
-            Instance = GetOrCreateSettings();
             return new SerializedObject(Instance);
         }
 
@@ -58,7 +62,7 @@ namespace Treasured.UnitySdk
                     EditorGUILayout.PropertyField(settings.FindProperty(nameof(hitboxColor)));
                     if (scope.changed)
                     {
-                        Instance = (TreasuredSDKSettings)settings.targetObject;
+                        _instance = (TreasuredSDKSettings)settings.targetObject;
                         settings.ApplyModifiedProperties();
                     }
                 }
@@ -66,7 +70,7 @@ namespace Treasured.UnitySdk
             };
             provider.deactivateHandler = () =>
             {
-                Instance = (TreasuredSDKSettings)settings.targetObject;
+                _instance = (TreasuredSDKSettings)settings.targetObject;
                 string newJson = JsonUtility.ToJson(Instance, true);
                 File.WriteAllText(GetAbsolutePath(), newJson);
             };
