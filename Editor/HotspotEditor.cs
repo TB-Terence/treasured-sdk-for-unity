@@ -1,5 +1,5 @@
-﻿using UnityEngine;
-using UnityEditor;
+﻿using UnityEditor;
+using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
@@ -37,7 +37,7 @@ namespace Treasured.UnitySdk
             {
                 list = new ActionGroupListDrawer(serializedObject, actionGroup);
             }
-            (target as Hotspot).CreateTransformGroupInternal();
+            (target as Hotspot).TryInvokeMethods("OnSelectedInHierarchy");
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
         }

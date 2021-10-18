@@ -89,9 +89,8 @@ namespace Treasured.UnitySdk
             }
         }
 
-        protected override void CreateTransformGroup()
+        void OnSelectedInHierarchy()
         {
-            base.CreateTransformGroup();
             if (_camera == null)
             {
                 _camera = gameObject.FindOrCreateChild<HotspotCamera>("Camera");

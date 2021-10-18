@@ -78,15 +78,7 @@ namespace Treasured.UnitySdk
         //    }
         //}
 
-#if UNITY_EDITOR
-        internal void CreateTransformGroupInternal()
-        {
-            CreateTransformGroup();
-            UnityEditor.EditorUtility.SetDirty(gameObject);
-        }
-#endif
-
-        protected virtual void CreateTransformGroup()
+        void OnSelectedInHierarchy()
         {
             if (Hitbox == null)
             {

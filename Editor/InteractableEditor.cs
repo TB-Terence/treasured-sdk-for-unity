@@ -18,8 +18,7 @@ namespace Treasured.UnitySdk
         private void OnEnable()
         {
             map = (target as Interactable).Map;
-            (target as Interactable).CreateTransformGroupInternal();
-
+            (target as Interactable).TryInvokeMethods("OnSelectedInHierarchy");
             id = serializedObject.FindProperty("_id");
             description = serializedObject.FindProperty("_description");
             hitbox = serializedObject.FindProperty("_hitbox");

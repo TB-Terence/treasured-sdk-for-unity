@@ -184,7 +184,7 @@ namespace Treasured.UnitySdk.Editor
                         group.Actions.Add(action);
                     }
                 }
-                to.CreateTransformGroupInternal();
+                to.TryInvokeMethods("OnSelectedInHierarchy");
             }
         }
 
@@ -447,7 +447,7 @@ namespace Treasured.UnitySdk.Editor
                     EditorGUIUtility.PingObject(go);
                     if (Physics.Raycast(camera.transform.position, camera.transform.forward, out var hit))
                     {
-                        obj.CreateTransformGroupInternal();
+                        obj.TryInvokeMethods("OnSelectedInHierarchy");
                         obj.transform.position = hit.point;
                         if (obj is Hotspot hotspot)
                         {
