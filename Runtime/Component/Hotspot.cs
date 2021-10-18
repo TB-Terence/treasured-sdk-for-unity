@@ -5,24 +5,33 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
+    /// <summary>
+    /// Interactable object used to track the transform of the camera.
+    /// </summary>
     [AddComponentMenu("Treasured/Hotspot")]
     public sealed class Hotspot : TreasuredObject
     {
+        #region Backing fields
+        [Obsolete("Deprecated, use Hotspot.Camera to access the position instead.")]
         [SerializeField]
         private Vector3 _cameraPositionOffset = new Vector3(0, 2, 0);
+        [Obsolete("Deprecated, use Hotspot.Camera to access the rotation instead.")]
         [SerializeField]
         private Vector3 _cameraRotationOffset = new Vector3();
 
         [SerializeField]
         private HotspotCamera _camera;
 
+        #endregion
+
+        #region Properties
         [JsonIgnore]
         [Obsolete("Deprecated, Use Camera.transfom.position instead. Note that the position will be in world space instead of offset.")]
         public Vector3 CameraPositionOffset { get => _cameraPositionOffset; set => _cameraPositionOffset = value; }
         [JsonIgnore]
         [Obsolete("Deprecated, Use Camera.transfom.rotation instead. Note that the rotation will be in world space instead of offset.")]
         public Vector3 CameraRotationOffset { get => _cameraRotationOffset; set => _cameraRotationOffset = value; }
-
+        
         /// <summary>
         /// Returns camera transform for the hotspot.
         /// </summary>
@@ -37,8 +46,12 @@ namespace Treasured.UnitySdk
                 _camera = value;
             }
         }
+        #endregion
 
-        public void SnapToGround()
+        /// <summary>
+        /// Snap the hotspot to ground if it hits collider.
+        /// </summary>
+        internal void SnapToGround()
         {
             // Temporarily disable self colliders
             var colliders = GetComponents<Collider>();
@@ -62,33 +75,36 @@ namespace Treasured.UnitySdk
             }
         }
 
+        /// <summary>
+        /// A list of visible objects that this hotspot can see.
+        /// </summary>
         public List<string> VisibleTargets
         {
-            get; private set;
-        }
-
-        public void ComputeVisibleTargets()
-        {
-            VisibleTargets = new List<string>();
-            TreasuredMap map = GetComponentInParent<TreasuredMap>();
-            if (!map)
+            get
             {
-                return;
-            }
-            var objects = map.GetComponentsInChildren<TreasuredObject>();
-            foreach (var obj in objects)
-            {
-                if (obj.Id.Equals(this.Id))
+                var targets = new List<string>();
+                TreasuredMap map = GetComponentInParent<TreasuredMap>();
+                if (!map || !Camera)
                 {
-                    continue;
+                    return new List<string>();
                 }
-                if (!Physics.Linecast(this.transform.position + _cameraPositionOffset, obj.transform.position, out RaycastHit hit) || hit.collider == obj.GetComponent<Collider>())
+                var objects = map.GetComponentsInChildren<TreasuredObject>();
+                foreach (var obj in objects)
                 {
-                    VisibleTargets.Add(obj.Id);
+                    if (obj.Id.Equals(this.Id) || obj.Hitbox == null)
+                    {
+                        continue;
+                    }
+                    if (!Physics.Linecast(this.Camera.transform.position, obj.Hitbox.transform.position, out RaycastHit hit) || hit.collider == obj.GetComponent<Collider>())
+                    {
+                        targets.Add(obj.Id);
+                    }
                 }
+                return targets;
             }
         }
-
+            
+        // DO NOT REMOVE, called by Editor
         void OnSelectedInHierarchy()
         {
             if (_camera == null)

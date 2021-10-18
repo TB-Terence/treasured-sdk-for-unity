@@ -48,7 +48,9 @@ namespace Treasured.UnitySdk
                 drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
                 {
                     rect.y += 2; // padding-top
+                    groupDrawers[index].reorderableList.serializedProperty.serializedObject.Update();
                     groupDrawers[index].reorderableList.DoList(rect);
+                    groupDrawers[index].reorderableList.serializedProperty.serializedObject.ApplyModifiedProperties();
                 },
                 elementHeightCallback = (int index) =>
                 {

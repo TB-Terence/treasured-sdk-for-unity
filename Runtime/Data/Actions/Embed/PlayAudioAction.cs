@@ -2,6 +2,9 @@
 
 namespace Treasured.UnitySdk
 {
+    /// <summary>
+    /// Action that plays audio from a source.
+    /// </summary>
     public class PlayAudioAction : EmbedAction
     {
         [SerializeField]
