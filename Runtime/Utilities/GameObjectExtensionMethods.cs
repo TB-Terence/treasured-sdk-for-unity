@@ -16,5 +16,17 @@ namespace Treasured.UnitySdk
             }
             return transform;
         }
+
+        public static T FindOrCreateChild<T>(this GameObject gameObject, string name) where T : MonoBehaviour
+        {
+            T t = gameObject.GetComponentInChildren<T>();
+            if (t == null)
+            {
+                GameObject go = new GameObject(name);
+                t = go.AddComponent<T>();
+                go.transform.SetParent(gameObject.transform);
+            }
+            return t;
+        }
     }
 }

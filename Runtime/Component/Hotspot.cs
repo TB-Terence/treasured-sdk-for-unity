@@ -1,5 +1,5 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -14,32 +14,27 @@ namespace Treasured.UnitySdk
         private Vector3 _cameraRotationOffset = new Vector3();
 
         [SerializeField]
-        private Transform _hitboxTransform;
-        [SerializeField]
-        private Transform _cameraTransform;
+        private HotspotCamera _camera;
 
         [JsonIgnore]
+        [Obsolete("Deprecated, Use Camera.transfom.position instead. Note that the position will be in world space instead of offset.")]
         public Vector3 CameraPositionOffset { get => _cameraPositionOffset; set => _cameraPositionOffset = value; }
         [JsonIgnore]
+        [Obsolete("Deprecated, Use Camera.transfom.rotation instead. Note that the rotation will be in world space instead of offset.")]
         public Vector3 CameraRotationOffset { get => _cameraRotationOffset; set => _cameraRotationOffset = value; }
-
-        public override Transform Transform
-        {
-            get => _hitboxTransform;
-        }
 
         /// <summary>
         /// Returns camera transform for the hotspot.
         /// </summary>
-        public Transform CameraTransform
+        public HotspotCamera Camera
         {
             get
             {
-                return _cameraTransform;
+                return _camera;
             }
             set
             {
-                _cameraTransform = value;
+                _camera = value;
             }
         }
 
@@ -94,28 +89,14 @@ namespace Treasured.UnitySdk
             }
         }
 
-#if UNITY_EDITOR
-        internal void CreateTransformGroup()
+        void OnSelectedInHierarchy()
         {
-            if (_hitboxTransform == null)
+            if (_camera == null)
             {
-                _hitboxTransform = gameObject.FindOrCreateChild("Hitbox");
-                
-                _hitboxTransform.localPosition = this.transform.localPosition;
-                _hitboxTransform.localRotation = this.transform.localRotation;
-                this.transform.position = Vector3.zero;
-                this.transform.rotation = Quaternion.identity;
+                _camera = gameObject.FindOrCreateChild<HotspotCamera>("Camera");
+                _camera.transform.localPosition = Hitbox.transform.localPosition + CameraPositionOffset;
+                _camera.transform.localRotation = Quaternion.Euler(Hitbox.transform.localEulerAngles + CameraRotationOffset);
             }
-
-            if (_cameraTransform == null)
-            {
-                _cameraTransform = gameObject.FindOrCreateChild("Camera");
-                _cameraTransform.localPosition = _hitboxTransform.localPosition + CameraPositionOffset;
-                _cameraTransform.localRotation = Quaternion.Euler(_hitboxTransform.localEulerAngles + CameraRotationOffset);
-            }
-
-            UnityEditor.EditorUtility.SetDirty(gameObject);
         }
-#endif
     }
 }

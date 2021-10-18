@@ -36,24 +36,18 @@ namespace Treasured.UnitySdk
 
         public string Description { get => _description; set => _description = value; }
 
-        public virtual Transform Transform
-        {
-            get
-            {
-                return gameObject.transform;
-            }
-        }
+        [SerializeField]
+        private Hitbox _hitbox;
 
         public Hitbox Hitbox
         {
             get
             {
-                var boxCollider = GetComponent<BoxCollider>();
-                return new Hitbox()
-                {
-                    Center = boxCollider ? boxCollider.bounds.center : transform.position, // the center on the web uses world space.
-                    Size = boxCollider ? boxCollider.size : Vector3.one
-                };
+                return _hitbox;
+            }
+            set
+            {
+                _hitbox = value;
             }
         }
 
@@ -83,5 +77,19 @@ namespace Treasured.UnitySdk
         //        return new Color32(buffer[0], buffer[1], buffer[2], 255); // ColorUtility.ToHtmlStringRGB internally uses Color32 and use Color causes some precision error in the final output
         //    }
         //}
+
+        void OnSelectedInHierarchy()
+        {
+            if (Hitbox == null)
+            {
+                Hitbox = gameObject.FindOrCreateChild<Hitbox>("Hitbox");
+                Hitbox.transform.localPosition = Vector3.zero;
+                Hitbox.transform.localRotation = Quaternion.identity;
+                if (TryGetComponent<BoxCollider>(out var collider) && collider.isTrigger)
+                {
+                    Hitbox.transform.localScale = collider.size;
+                }
+            }
+        }
     }
 }

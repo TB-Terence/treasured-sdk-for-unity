@@ -1,5 +1,5 @@
-﻿using UnityEngine;
-using UnityEditor;
+﻿using UnityEditor;
+using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
@@ -18,8 +18,8 @@ namespace Treasured.UnitySdk
         private ActionGroupListDrawer list;
         private SerializedProperty id;
         private SerializedProperty description;
-        private SerializedProperty hitboxTransform;
-        private SerializedProperty cameraTransform;
+        private SerializedProperty hitbox;
+        private SerializedProperty camera;
         private SerializedProperty actionGroup;
 
         private TreasuredMap map;
@@ -30,23 +30,21 @@ namespace Treasured.UnitySdk
             map = (target as Hotspot).Map;
             id = serializedObject.FindProperty("_id");
             description = serializedObject.FindProperty("_description");
-            hitboxTransform = serializedObject.FindProperty("_hitboxTransform");
-            cameraTransform = serializedObject.FindProperty("_cameraTransform");
+            hitbox = serializedObject.FindProperty("_hitbox");
+            camera = serializedObject.FindProperty("_camera");
             actionGroup = serializedObject.FindProperty("_actionGroups");
             if(serializedObject.targetObjects.Length == 1)
             {
                 list = new ActionGroupListDrawer(serializedObject, actionGroup);
             }
-            (target as Hotspot).CreateTransformGroup();
+            (target as Hotspot).TryInvokeMethods("OnSelectedInHierarchy");
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
-            Tools.hidden = true;
         }
 
         private void OnDisable()
         {
             SceneView.duringSceneGui -= OnSceneViewGUI;
-            Tools.hidden = false;
         }
 
         public override void OnInspectorGUI()
@@ -61,11 +59,8 @@ namespace Treasured.UnitySdk
             {
                 EditorGUILayout.PropertyField(id);
                 EditorGUILayout.PropertyField(description);
-                using (new EditorGUI.DisabledGroupScope(true))
-                {
-                    EditorGUILayout.PropertyField(hitboxTransform);
-                    EditorGUILayout.PropertyField(cameraTransform);
-                }
+                EditorGUILayout.PropertyField(hitbox);
+                EditorGUILayout.PropertyField(camera);
                 list?.OnGUI();
             }
             if (GUILayout.Button(Styles.snapToGround, GUILayout.Height(24)))
@@ -87,21 +82,12 @@ namespace Treasured.UnitySdk
             {
                 return;
             }
-            if (target is Hotspot hotspot && hotspot.Transform != null && hotspot.CameraTransform != null)
+            if (target is Hotspot hotspot && hotspot.Hitbox != null && hotspot.Camera != null)
             {
-                Transform hitboxTransform = hotspot.Transform;
-                Transform cameraTransform = hotspot.CameraTransform;
+                Transform cameraTransform = hotspot.Camera.transform;
                 switch (Tools.current)
                 {
                     case Tool.Move:
-                        EditorGUI.BeginChangeCheck();
-                        Vector3 newHitboxPosition = Handles.PositionHandle(hitboxTransform.position, hitboxTransform.rotation);
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            Undo.RecordObject(hitboxTransform, "Move Hotspot Hitbox Position");
-                            hitboxTransform.position = newHitboxPosition;
-                        }
-                        EditorGUI.BeginChangeCheck();
                         Vector3 newCameraPosition = Handles.PositionHandle(cameraTransform.position, cameraTransform.rotation);
                         if (EditorGUI.EndChangeCheck())
                         {
@@ -110,14 +96,6 @@ namespace Treasured.UnitySdk
                         }
                         break;
                     case Tool.Rotate:
-                        EditorGUI.BeginChangeCheck();
-                        Quaternion newHitboxRotation = Handles.RotationHandle(hitboxTransform.rotation, hitboxTransform.position);
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            Undo.RecordObject(hitboxTransform, "Rotate Hotspot Hitbox");
-                            hitboxTransform.rotation = newHitboxRotation;
-                        }
-                        EditorGUI.BeginChangeCheck();
                         Quaternion newCameraRotation = Handles.RotationHandle(cameraTransform.rotation, cameraTransform.position);
                         if (EditorGUI.EndChangeCheck())
                         {
@@ -130,9 +108,7 @@ namespace Treasured.UnitySdk
                         break;
                 }
                 Handles.color = Color.white;
-                Handles.DrawDottedLine(hotspot.Transform.position, hotspot.CameraTransform.position, 5);
-                Handles.color = Color.red;
-                Handles.DrawWireCube(hotspot.CameraTransform.position, cameraCubeSize);
+                Handles.DrawDottedLine(hotspot.Hitbox.transform.position, hotspot.Camera.transform.position, 5);
             }
         }
     }
