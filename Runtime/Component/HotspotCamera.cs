@@ -7,7 +7,7 @@ namespace Treasured.UnitySdk
     /// </summary>
     public sealed class HotspotCamera : MonoBehaviour
     {
-        public void Capture(Camera camera, string path, ImageQuality imageQuality, ImageFormat imageFormat)
+        public void Capture(Camera camera, string directoryPath, string extension, ImageQuality imageQuality, ImageFormat imageFormat)
         {
             if (camera == null)
             {
@@ -19,22 +19,31 @@ namespace Treasured.UnitySdk
             camera.transform.position = transform.position;
             camera.transform.rotation = Quaternion.identity;
 
-            RenderTexture active = RenderTexture.active;
-            RenderTexture rt = RenderTexture.GetTemporary(size, size, 0);
-            rt.dimension = UnityEngine.Rendering.TextureDimension.Cube;
-            if (!camera.RenderToCubemap(rt, 63))
+        //    RenderTexture active = RenderTexture.active;
+        //    RenderTexture rt = RenderTexture.GetTemporary(size, size, 0);
+            Cubemap cubemap = new Cubemap(size, TextureFormat.ARGB32, false);
+           // rt.dimension = UnityEngine.Rendering.TextureDimension.Cube;
+            if (!camera.RenderToCubemap(cubemap))
             {
                 throw new System.NotSupportedException("Current graphic device/platform does not support RenderToCubemap.");
             }
-            RenderTexture.active = rt;
-            Texture2D texture = new Texture2D(rt.width, rt.height, TextureFormat.ARGB32, false);
-            texture.ReadPixels(new Rect(0, 0, texture.width, texture.height), 0, 0, false);
-            byte[] bytes = texture.EncodeToPNG();
-            if (bytes != null)
+            Texture2D texture = new Texture2D(cubemap.width, cubemap.height, TextureFormat.ARGB32, false);
+            for (int i = 0; i < 6; i++)
             {
-                System.IO.File.WriteAllBytes(path, bytes);
+                string path = $"{directoryPath}/{(CubemapFace)i}.{extension}";
+                texture.SetPixels(cubemap.GetPixels((CubemapFace)i));
+                byte[] bytes = texture.EncodeToPNG();
+                if (bytes != null)
+                {
+                    System.IO.File.WriteAllBytes(path, bytes);
+                }
             }
-            RenderTexture.active = active;
+            //RenderTexture.active = rt;
+            
+            //texture.ReadPixels(new Rect(0, 0, texture.width, texture.height), 0, 0, false);
+            
+            //RenderTexture.active = active;
+            GameObject.DestroyImmediate(cubemap);
             camera.transform.position = position;
             camera.transform.rotation = rotation;
         }

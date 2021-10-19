@@ -160,7 +160,10 @@ namespace Treasured.UnitySdk
                     string progressText = $"Generating data for {current.name}...";
                     EditorUtility.DisplayProgressBar(progressTitle, progressText, 0.33f);
 
-                    // Move the camera in the right position
+                    var di = CreateDirectory(DefaultOutputFolderPath, _target.OutputFolderName, "images", current.Id);
+                    current.Camera?.Capture(camera, di.FullName, extension, _target.Quality, _target.Format);
+                    continue;
+                    //Move the camera in the right position
                     camera.transform.SetPositionAndRotation(current.Camera.transform.position, Quaternion.identity);
 
                     if (!camera.RenderToCubemap(_cubemapRT, 63))
