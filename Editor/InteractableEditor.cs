@@ -11,7 +11,7 @@ namespace Treasured.UnitySdk
         private SerializedProperty id;
         private SerializedProperty description;
         private SerializedProperty hitbox;
-        private SerializedProperty actionGroups;
+        private SerializedProperty onClick;
 
         private TreasuredMap map;
 
@@ -22,8 +22,8 @@ namespace Treasured.UnitySdk
             id = serializedObject.FindProperty("_id");
             description = serializedObject.FindProperty("_description");
             hitbox = serializedObject.FindProperty("_hitbox");
-            actionGroups = serializedObject.FindProperty("_actionGroups");
-            list = new ActionGroupListDrawer(serializedObject, actionGroups);
+            onClick = serializedObject.FindProperty("_onClick");
+            list = new ActionGroupListDrawer(serializedObject, onClick);
         }
 
         public override void OnInspectorGUI()

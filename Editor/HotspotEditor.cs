@@ -20,7 +20,7 @@ namespace Treasured.UnitySdk
         private SerializedProperty description;
         private SerializedProperty hitbox;
         private SerializedProperty camera;
-        private SerializedProperty actionGroup;
+        private SerializedProperty onClick;
 
         private TreasuredMap map;
 
@@ -32,14 +32,19 @@ namespace Treasured.UnitySdk
             description = serializedObject.FindProperty("_description");
             hitbox = serializedObject.FindProperty("_hitbox");
             camera = serializedObject.FindProperty("_camera");
-            actionGroup = serializedObject.FindProperty("_actionGroups");
+            onClick = serializedObject.FindProperty("_onClick");
             if(serializedObject.targetObjects.Length == 1)
             {
-                list = new ActionGroupListDrawer(serializedObject, actionGroup);
+                list = new ActionGroupListDrawer(serializedObject, onClick);
             }
             (target as Hotspot).TryInvokeMethods("OnSelectedInHierarchy");
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
+            var hotspot = target as Hotspot;
+            foreach (var visibleTarget in hotspot.VisibleTargets)
+            {
+                Debug.DrawLine(hotspot.Camera.transform.position, visibleTarget.Hitbox.transform.position, Color.red, 10);
+            }
         }
 
         private void OnDisable()

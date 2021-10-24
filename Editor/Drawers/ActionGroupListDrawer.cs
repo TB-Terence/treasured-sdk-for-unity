@@ -31,7 +31,7 @@ namespace Treasured.UnitySdk
                 displayRemove = false,
                 drawHeaderCallback = (Rect rect) =>
                 {
-                    EditorGUI.LabelField(rect, "Action Groups");
+                    EditorGUI.LabelField(rect, reorderableList.serializedProperty.displayName);
                     if (GUI.Button(new Rect(rect.xMax - 40, rect.y, 20, rect.height), Styles.toolbarAdd, Styles.toolbarButton))
                     {
                         CreateNewGroup();
