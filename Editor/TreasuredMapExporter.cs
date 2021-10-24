@@ -16,8 +16,8 @@ namespace Treasured.UnitySdk
     {
         JSON = 1 << 0,
         Cubemap = 1 << 1,
-        Mask = 1 << 2,
-        All = JSON | Cubemap | Mask
+        //Mask = 1 << 2,
+        All = JSON | Cubemap //| Mask
     }
 
     internal class TreasuredMapExporter : IDisposable
@@ -32,6 +32,7 @@ namespace Treasured.UnitySdk
         static class Styles
         {
             public static readonly GUIContent folderOpened = EditorGUIUtility.TrIconContent("FolderOpened Icon", "Show in Explorer");
+            public static readonly GUIContent overwriteExistingData = EditorGUIUtility.TrTextContent("Overwrite Existing Data", "Show in Explorer");
         }
 
         #region Json
@@ -60,6 +61,7 @@ namespace Treasured.UnitySdk
         private ExportOptions exportOptions = ExportOptions.All;
         private CubemapFormat cubemapFormat = CubemapFormat.SixFaces;
         private int compression = 75;
+        private bool overwriteExistingData = true;
 
         public TreasuredMapExporter(SerializedObject serializedObject, TreasuredMap map)
         {
@@ -388,6 +390,11 @@ namespace Treasured.UnitySdk
             }
             try
             {
+                string directoryPath = $"{DefaultOutputFolderPath}/{_target.OutputFolderName}";
+                if (overwriteExistingData && Directory.Exists(directoryPath))
+                {
+                    Directory.Delete(directoryPath, true);
+                }
                 ValidateOutputDirectory();
                 if (options.HasFlag(ExportOptions.JSON))
                 {
@@ -397,10 +404,10 @@ namespace Treasured.UnitySdk
                 {
                     ExportCubemap();
                 }
-                if (options.HasFlag(ExportOptions.Mask))
-                {
-                    ExportMask();
-                }
+                //if (options.HasFlag(ExportOptions.Mask))
+                //{
+                //    ExportMask();
+                //}
             }
             catch (TargetNotAssignedException e)
             {
@@ -432,11 +439,12 @@ namespace Treasured.UnitySdk
                     Application.OpenURL(TreasuredMapExporter.DefaultOutputFolderPath);
                 }
             }
+            overwriteExistingData = EditorGUILayout.Toggle(Styles.overwriteExistingData, overwriteExistingData);
             EditorGUILayout.PropertyField(_serializedObject.FindProperty("_format"));
             EditorGUILayout.PropertyField(_serializedObject.FindProperty("_quality"));
             //using (new EditorGUILayout.HorizontalScope())
             //{
-            //    compression = EditorGUILayout.IntSlider("Compression", compression, 0, 100);
+            //    compression = EditorGUILayout.IntSlider(new GUIContent("Compression"), compression, 0, 100);
             //    EditorGUILayout.LabelField("%", GUILayout.Width(20));
             //}
             //cubemapFormat = (CubemapFormat)EditorGUILayout.EnumPopup("Cubemap Format", cubemapFormat);
