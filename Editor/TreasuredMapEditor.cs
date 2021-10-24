@@ -58,6 +58,9 @@ namespace Treasured.UnitySdk.Editor
             public static readonly GUIContent alignView = EditorGUIUtility.TrTextContent("Align View");
             public static readonly GUIContent snapAllToGround = EditorGUIUtility.TrTextContent("Snap All on Ground");
             public static readonly GUIContent selectAll = EditorGUIUtility.TrTextContent("Select All");
+            public static readonly GUIContent searchObjects = EditorGUIUtility.TrTextContent("Search", "Search objects by Id or name");
+
+            public static readonly GUIContent search = EditorGUIUtility.TrIconContent("Search Icon");
 
             public static readonly Dictionary<Type, GUIContent> createNew = new Dictionary<Type, GUIContent>()
             {
@@ -140,6 +143,8 @@ namespace Treasured.UnitySdk.Editor
 
         private TreasuredObject editingTarget;
 
+        private string searchString;
+
         private void OnEnable()
         {
             map = target as TreasuredMap;
@@ -182,10 +187,10 @@ namespace Treasured.UnitySdk.Editor
             foreach (var to in objects)
             {
                 var actionList = to.OnSelected.ToList();
-                if (to.ActionGroups.Count == 0 && actionList.Count > 0)
+                if (to.OnClick.Count == 0 && actionList.Count > 0)
                 {
                     ActionGroup group = ScriptableObject.CreateInstance<ActionGroup>();
-                    to.ActionGroups.Add(group);
+                    to.OnClick.Add(group);
                     foreach (var action in actionList)
                     {
                         group.Actions.Add(action);
@@ -309,6 +314,22 @@ namespace Treasured.UnitySdk.Editor
         [FoldoutGroup("Object Management", true)]
         void OnObjectManagementGUI()
         {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                searchString = EditorGUILayout.TextField(Styles.searchObjects, searchString);
+                if (GUILayout.Button(Styles.search, EditorStyles.label, GUILayout.Width(18), GUILayout.Height(18)))
+                {
+                    List<GameObject> searchResult = new List<GameObject>();
+                    foreach (var obj in map.GetComponentsInChildren<TreasuredObject>(true))
+                    {
+                        if (obj.Id.Contains(searchString) || obj.name.Contains(searchString))
+                        {
+                            searchResult.Add(obj.gameObject);
+                        }
+                    }
+                    Selection.objects = searchResult.ToArray();
+                }
+            }
             SerializedProperty interactableLayer = serializedObject.FindProperty("_interactableLayer");
             EditorGUI.BeginChangeCheck();
             interactableLayer.intValue = EditorGUILayout.LayerField(new GUIContent("Interactable Layer"), interactableLayer.intValue);

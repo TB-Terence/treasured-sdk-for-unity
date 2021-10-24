@@ -57,6 +57,10 @@ namespace Treasured.UnitySdk
             {
                 contract.Converter = new TransformConverter();
             }
+            if (objectType == typeof(TreasuredObject) || objectType.GetElementType() == typeof(TreasuredObject) || (objectType.GenericTypeArguments.Length == 1 && objectType.GenericTypeArguments[0] == typeof(TreasuredObject)))
+            {
+                contract.Converter = new TreasuredObjectConverter();
+            }
             return contract;
         }
 
@@ -81,6 +85,8 @@ namespace Treasured.UnitySdk
             property.Order = GetOrder(property); // Manually assign the order since we can't add JsonProperty(order) to the `name` field of UnityEngine.Object
             return property;
         }
+
+
 
         int GetOrder(JsonProperty property)
         {
