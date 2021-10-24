@@ -8,7 +8,7 @@ namespace Treasured.UnitySdk
     public enum CubemapFormat 
     { 
         Single,
-        Six
+        SixFaces
     }
 
     /// <summary>
@@ -43,7 +43,7 @@ namespace Treasured.UnitySdk
                     FlipPixels(texture, true, true);
                     File.WriteAllBytes(path, texture.EncodeToPNG());
                     break;
-                case CubemapFormat.Six:
+                case CubemapFormat.SixFaces:
                     for (int i = 0; i < 6; i++)
                     {
                         path = $"{directoryPath}/{SimplifyCubemapFace((CubemapFace)i)}.{extension}";

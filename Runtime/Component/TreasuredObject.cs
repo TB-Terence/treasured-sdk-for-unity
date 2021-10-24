@@ -103,6 +103,11 @@ namespace Treasured.UnitySdk
                 {
                     Hitbox.transform.eulerAngles = renderer.transform.eulerAngles;
                 }
+                if (!Hitbox.TryGetComponent<BoxCollider>(out var boxCollider))
+                {
+                    boxCollider = Hitbox.gameObject.AddComponent<BoxCollider>();
+                }
+                boxCollider.isTrigger = true;
             }
         }
 #endif

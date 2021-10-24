@@ -1,5 +1,4 @@
 ﻿using UnityEditor;
-using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
@@ -8,6 +7,7 @@ namespace Treasured.UnitySdk
     {
         public override void OnInspectorGUI()
         {
+            // No GUI
         }
     }
 }

@@ -7,6 +7,7 @@ namespace Treasured.UnitySdk
     {
         public override void OnInspectorGUI()
         {
+            // No GUI
         }
     }
 }

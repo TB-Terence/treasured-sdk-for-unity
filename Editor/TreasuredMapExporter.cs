@@ -66,7 +66,7 @@ namespace Treasured.UnitySdk
         private SerializedProperty _interactableLayer;
 
         private ExportOptions exportOptions = ExportOptions.All;
-        private CubemapFormat cubemapFormat = CubemapFormat.Six;
+        private CubemapFormat cubemapFormat = CubemapFormat.SixFaces;
         private int compression = 75;
 
         public TreasuredMapExporter(SerializedObject serializedObject, TreasuredMap map)
@@ -166,7 +166,7 @@ namespace Treasured.UnitySdk
                             FlipPixels(texture, true, true);
                             ImageEncoder.Encode(texture, di.FullName, "cubemap", _target.Format, compression);
                             break;
-                        case CubemapFormat.Six:
+                        case CubemapFormat.SixFaces:
                             for (int i = 0; i < 6; i++)
                             {
                                 EditorUtility.DisplayProgressBar(progressTitle, progressText, 0.33f + i * 0.11f);
@@ -437,12 +437,12 @@ namespace Treasured.UnitySdk
             }
             EditorGUILayout.PropertyField(_serializedObject.FindProperty("_format"));
             EditorGUILayout.PropertyField(_serializedObject.FindProperty("_quality"));
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                compression = EditorGUILayout.IntSlider("Compression", compression, 0, 100);
-                EditorGUILayout.LabelField("%", GUILayout.Width(20));
-            }
-            cubemapFormat = (CubemapFormat)EditorGUILayout.EnumPopup("Cubemap Format", cubemapFormat);
+            //using (new EditorGUILayout.HorizontalScope())
+            //{
+            //    compression = EditorGUILayout.IntSlider("Compression", compression, 0, 100);
+            //    EditorGUILayout.LabelField("%", GUILayout.Width(20));
+            //}
+            //cubemapFormat = (CubemapFormat)EditorGUILayout.EnumPopup("Cubemap Format", cubemapFormat);
             OnExportOptionsGUI();
             if (GUILayout.Button(new GUIContent("Export"), GUILayout.Height(24)))
             {
