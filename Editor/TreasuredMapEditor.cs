@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
+using UnityEditor.PackageManager;
 using UnityEngine;
 
 namespace Treasured.UnitySdk.Editor
@@ -10,6 +11,12 @@ namespace Treasured.UnitySdk.Editor
     [CustomEditor(typeof(TreasuredMap))]
     internal class TreasuredMapEditor : UnityEditor.Editor
     {
+        [MenuItem("Tools/Treasured/Upgrade to Latest", priority = 99)]
+        static void UpgradeToLastest()
+        {
+            Client.Add("https://github.com/TB-Terence/treasured-sdk-for-unity.git#upm");
+        }
+
         private static readonly string[] selectableObjectListNames = new string[] { "Hotspots", "Interactables" };
 
         [AttributeUsage(AttributeTargets.Method)]
@@ -329,7 +336,7 @@ namespace Treasured.UnitySdk.Editor
             exporter?.OnGUI();
         }
 
-        [FoldoutGroup("Upload", true)]
+        //[FoldoutGroup("Upload", true)]
         void OnUploadGUI()
         {
             if (GUILayout.Button("Upload", GUILayout.Height(24)))
@@ -432,8 +439,6 @@ namespace Treasured.UnitySdk.Editor
                     var root = map.gameObject.FindOrCreateChild($"{typeof(T).Name}s");
                     GameObject go = new GameObject(ObjectNames.GetUniqueName(objects.Select(x => x.name).ToArray(), typeof(T).Name));
                     T obj = go.AddComponent<T>();
-                    //BoxCollider boxCollider = go.AddComponent<BoxCollider>();
-                    //boxCollider.size = Vector3.one;
                     Camera camera = SceneView.lastActiveSceneView.camera;
                     go.transform.SetParent(root);
                     if (typeof(T) == typeof(Hotspot))
@@ -454,7 +459,6 @@ namespace Treasured.UnitySdk.Editor
                             hotspot.Camera.transform.position = hit.point + new Vector3(0, 1.5f, 0);
                             hotspot.Camera.transform.localRotation = Quaternion.identity;
                         }
-                        //boxCollider.center = new Vector3(0, boxCollider.size.y / 2, 0);
                     }
                     else
                     {

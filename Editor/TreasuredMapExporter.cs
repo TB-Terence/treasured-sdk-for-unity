@@ -66,6 +66,8 @@ namespace Treasured.UnitySdk
         private SerializedProperty _interactableLayer;
 
         private ExportOptions exportOptions = ExportOptions.All;
+        private CubemapFormat cubemapFormat = CubemapFormat.Six;
+        private int compression = 75;
 
         public TreasuredMapExporter(SerializedObject serializedObject, TreasuredMap map)
         {
@@ -130,26 +132,12 @@ namespace Treasured.UnitySdk
 
             string extension = _target.Format.ToString().ToLower();
 
-            int cubeMapSize = Mathf.Min(Mathf.NextPowerOfTwo((int)_target.Quality), 8192);
+            int size = Mathf.Min(Mathf.NextPowerOfTwo((int)_target.Quality), 8192);
 
             int count = hotspots.Length;
 
-            InitializeShader();
-
-            // Create textures
-            if (_cubemapRT == null)
-            {
-                _cubemapRT = RenderTexture.GetTemporary(cubeMapSize, cubeMapSize, 0);
-                _cubemapRT.dimension = TextureDimension.Cube;
-                _cubemapRT.useMipMap = false;
-            }
-            if (_equirectangularRT == null)
-            {
-                _equirectangularRT = RenderTexture.GetTemporary(cubeMapSize, cubeMapSize / 2, 0);
-                _equirectangularRT.dimension = TextureDimension.Tex2D;
-                _equirectangularRT.useMipMap = false;
-            }
-            _outputTexture = new Texture2D(_equirectangularRT.width, _equirectangularRT.height, TextureFormat.RGB24, false);
+            Cubemap cubemap = new Cubemap(size, TextureFormat.ARGB32, false);
+            Texture2D texture = new Texture2D(cubemap.width * (cubemapFormat == CubemapFormat.Single ? 6 : 1), cubemap.height, TextureFormat.ARGB32, false);
 
             try
             {
@@ -160,31 +148,33 @@ namespace Treasured.UnitySdk
                     string progressText = $"Generating data for {current.name}...";
                     EditorUtility.DisplayProgressBar(progressTitle, progressText, 0.33f);
 
-                    var di = CreateDirectory(DefaultOutputFolderPath, _target.OutputFolderName, "images", current.Id);
-                    current.Camera?.Capture(camera, di.FullName, extension, _target.Quality, _target.Format);
-                    continue;
-                    //Move the camera in the right position
                     camera.transform.SetPositionAndRotation(current.Camera.transform.position, Quaternion.identity);
 
-                    if (!camera.RenderToCubemap(_cubemapRT, 63))
+                    if (!camera.RenderToCubemap(cubemap))
                     {
-                        throw new NotSupportedException("Rendering to cubemap is not supported on device/platform!");
+                        throw new System.NotSupportedException("Current graphic device/platform does not support RenderToCubemap.");
                     }
-
-                    _equirectangularConverter.SetFloat(_paddingXId, camera.transform.eulerAngles.y / 360f);
-                    EditorUtility.DisplayProgressBar(progressTitle, progressText, 0.66f);
-                    Graphics.Blit(_cubemapRT, _equirectangularRT, _equirectangularConverter);
-
-                    RenderTexture.active = _equirectangularRT;
-                    _outputTexture.ReadPixels(new Rect(0, 0, _equirectangularRT.width, _equirectangularRT.height), 0, 0, false);
-
-                    byte[] bytes = _target.Format == ImageFormat.JPG ? _outputTexture.EncodeToJPG() : _outputTexture.EncodeToPNG();
-                    if (bytes != null)
+                    var di = CreateDirectory(DefaultOutputFolderPath, _target.OutputFolderName, "images", current.Id);
+                    switch (cubemapFormat)
                     {
-                        EditorUtility.DisplayProgressBar(progressTitle, progressText, 0.99f);
-                        var directory = CreateDirectory(DefaultOutputFolderPath, _target.OutputFolderName, "images", current.Id);
-                        string imagePath = Path.Combine(directory.FullName, $"{fileName}.{extension}");
-                        SaveImage(bytes, imagePath);
+                        case CubemapFormat.Single:
+                            for (int i = 0; i < 6; i++)
+                            {
+                                EditorUtility.DisplayProgressBar(progressTitle, progressText, 0.33f + i * 0.11f);
+                                texture.SetPixels(i * size, 0, size, size, cubemap.GetPixels((CubemapFace)i));
+                            }
+                            FlipPixels(texture, true, true);
+                            ImageEncoder.Encode(texture, di.FullName, "cubemap", _target.Format, compression);
+                            break;
+                        case CubemapFormat.Six:
+                            for (int i = 0; i < 6; i++)
+                            {
+                                EditorUtility.DisplayProgressBar(progressTitle, progressText, 0.33f + i * 0.11f);
+                                texture.SetPixels(cubemap.GetPixels((CubemapFace)i));
+                                FlipPixels(texture, true, true);
+                                ImageEncoder.Encode(texture, di.FullName, SimplifyCubemapFace((CubemapFace)i), _target.Format, compression);
+                            }
+                            break;
                     }
                 }
             }
@@ -194,6 +184,8 @@ namespace Treasured.UnitySdk
             }
             finally
             {
+                GameObject.DestroyImmediate(cubemap);
+                GameObject.DestroyImmediate(texture);
                 #region Restore settings
                 camera.transform.position = originalCameraPos;
                 camera.transform.rotation = originalCameraRot;
@@ -247,6 +239,10 @@ namespace Treasured.UnitySdk
                 tempObjects.Add(tempGO);
             }
 
+            int size = Mathf.Min(Mathf.NextPowerOfTwo((int)_target.Quality), 8192);
+            Cubemap cubemap = new Cubemap(size * 6, TextureFormat.ARGB32, false);
+            Texture2D texture = new Texture2D(cubemap.width * (cubemapFormat == CubemapFormat.Single ? 6 : 1), cubemap.height, TextureFormat.ARGB32, false);
+
             try
             {
                 InitializeShader();
@@ -285,24 +281,8 @@ namespace Treasured.UnitySdk
 
                 string extension = _target.Format.ToString().ToLower();
 
-                int cubeMapSize = Mathf.Min(Mathf.NextPowerOfTwo((int)_target.Quality), 8192);
 
                 int count = hotspots.Length;
-
-                // Create textures
-                if(_cubemapRT == null)
-                {
-                    _cubemapRT = RenderTexture.GetTemporary(cubeMapSize, cubeMapSize, 0);
-                    _cubemapRT.dimension = TextureDimension.Cube;
-                    _cubemapRT.useMipMap = false;
-                }
-                if (_equirectangularRT == null)
-                {
-                    _equirectangularRT = RenderTexture.GetTemporary(cubeMapSize, cubeMapSize / 2, 0);
-                    _equirectangularRT.dimension = TextureDimension.Tex2D;
-                    _equirectangularRT.useMipMap = false;
-                }
-                _outputTexture = new Texture2D(_equirectangularRT.width, _equirectangularRT.height, TextureFormat.RGB24, false);
 
                 for (int index = 0; index < count; index++)
                 {
@@ -311,33 +291,26 @@ namespace Treasured.UnitySdk
                     string progressText = $"Generating data for {current.name}...";
                     EditorUtility.DisplayProgressBar(progressTitle, progressText, 0.33f);
 
-                    // Move the camera in the right position
                     camera.transform.SetPositionAndRotation(current.Camera.transform.position, Quaternion.identity);
 
-                    if (!camera.RenderToCubemap(_cubemapRT, 63))
+                    if (!camera.RenderToCubemap(cubemap))
                     {
-                        throw new NotSupportedException("Rendering to cubemap is not supported on device/platform!");
+                        throw new System.NotSupportedException("Current graphic device/platform does not support RenderToCubemap.");
                     }
-
-                    _equirectangularConverter.SetFloat(_paddingXId, camera.transform.eulerAngles.y / 360f);
-                    EditorUtility.DisplayProgressBar(progressTitle, progressText, 0.66f);
-                    Graphics.Blit(_cubemapRT, _equirectangularRT, _equirectangularConverter);
-
-                    RenderTexture.active = _equirectangularRT;
-                    _outputTexture.ReadPixels(new Rect(0, 0, _equirectangularRT.width, _equirectangularRT.height), 0, 0, false);
-
-                    byte[] bytes = _outputTexture.EncodeToPNG(); // object id outputs will be fixed to PNG only due to loss in JPG
-                    if (bytes != null)
+                    var di = CreateDirectory(DefaultOutputFolderPath, _target.OutputFolderName, "images", current.Id);
+                    for (int i = 0; i < 6; i++)
                     {
-                        EditorUtility.DisplayProgressBar(progressTitle, progressText, 0.99f);
-                        var directory = CreateDirectory(DefaultOutputFolderPath, _target.OutputFolderName, "images", current.Id);
-                        string imagePath = Path.Combine(directory.FullName, $"mask.{extension}");
-                        SaveImage(bytes, imagePath);
+                        EditorUtility.DisplayProgressBar(progressTitle, progressText, 0.33f + i * 0.11f);
+                        texture.SetPixels(i * size, 0, size, size, cubemap.GetPixels((CubemapFace)i));
                     }
+                    FlipPixels(texture, true, true);
+                    ImageEncoder.Encode(texture, di.FullName, "mask", _target.Format, compression);
                 }
             }
             finally
             {
+                GameObject.DestroyImmediate(cubemap);
+                GameObject.DestroyImmediate(texture);
                 // Restore materials
                 foreach (var kvp in defaultMaterials)
                 {
@@ -366,16 +339,48 @@ namespace Treasured.UnitySdk
             }
         }
 
-        private void SaveImage(byte[] bytes, string path)
+        string SimplifyCubemapFace(CubemapFace cubemapFace)
         {
-            if (_target.Format == ImageFormat.WEBP)
+            switch (cubemapFace)
             {
-                ImageEncoder.EncodeToWEBP(bytes, path, 100);
+                case CubemapFace.PositiveX:
+                    return "px";
+                case CubemapFace.NegativeX:
+                    return "nx";
+                case CubemapFace.PositiveY:
+                    return "py";
+                case CubemapFace.NegativeY:
+                    return "ny";
+                case CubemapFace.PositiveZ:
+                    return "pz";
+                case CubemapFace.NegativeZ:
+                    return "nz";
+                case CubemapFace.Unknown:
+                default:
+                    return "unknown";
             }
-            else
+        }
+
+        public void FlipPixels(Texture2D texture, bool flipX, bool flipY)
+        {
+            Color32[] originalPixels = texture.GetPixels32();
+
+            var flippedPixels = Enumerable.Range(0, texture.width * texture.height).Select(index =>
             {
-                File.WriteAllBytes(path, bytes);
+                int x = index % texture.width;
+                int y = index / texture.width;
+                if (flipX)
+                    x = texture.width - 1 - x;
+
+                if (flipY)
+                    y = texture.height - 1 - y;
+
+                return originalPixels[y * texture.width + x];
             }
+            );
+
+            texture.SetPixels32(flippedPixels.ToArray());
+            texture.Apply();
         }
 
         public void Export(ExportOptions options)
@@ -432,6 +437,12 @@ namespace Treasured.UnitySdk
             }
             EditorGUILayout.PropertyField(_serializedObject.FindProperty("_format"));
             EditorGUILayout.PropertyField(_serializedObject.FindProperty("_quality"));
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                compression = EditorGUILayout.IntSlider("Compression", compression, 0, 100);
+                EditorGUILayout.LabelField("%", GUILayout.Width(20));
+            }
+            cubemapFormat = (CubemapFormat)EditorGUILayout.EnumPopup("Cubemap Format", cubemapFormat);
             OnExportOptionsGUI();
             if (GUILayout.Button(new GUIContent("Export"), GUILayout.Height(24)))
             {

@@ -1,51 +1,102 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
+    public enum CubemapFormat 
+    { 
+        Single,
+        Six
+    }
+
     /// <summary>
     /// Camera for the hotspot. Contains additional camera data for each Hotspot.
     /// </summary>
     public sealed class HotspotCamera : MonoBehaviour
     {
-        public void Capture(Camera camera, string directoryPath, string extension, ImageQuality imageQuality, ImageFormat imageFormat)
+        public void Capture(Camera camera, Cubemap cubemap, Texture2D texture, string directoryPath, string defaultName, ImageQuality imageQuality, ImageFormat imageFormat, CubemapFormat cubemapFormat)
         {
             if (camera == null)
             {
                 throw new System.NullReferenceException("No active camera provided");
             }
             int size = (int)imageQuality;
-            Vector3 position = camera.transform.position;
-            Quaternion rotation = camera.transform.rotation;
+            string extension = imageFormat.ToString().ToLower();
+
             camera.transform.position = transform.position;
             camera.transform.rotation = Quaternion.identity;
 
-        //    RenderTexture active = RenderTexture.active;
-        //    RenderTexture rt = RenderTexture.GetTemporary(size, size, 0);
-            Cubemap cubemap = new Cubemap(size, TextureFormat.ARGB32, false);
-           // rt.dimension = UnityEngine.Rendering.TextureDimension.Cube;
             if (!camera.RenderToCubemap(cubemap))
             {
                 throw new System.NotSupportedException("Current graphic device/platform does not support RenderToCubemap.");
             }
-            Texture2D texture = new Texture2D(cubemap.width, cubemap.height, TextureFormat.ARGB32, false);
-            for (int i = 0; i < 6; i++)
+            switch (cubemapFormat)
             {
-                string path = $"{directoryPath}/{(CubemapFace)i}.{extension}";
-                texture.SetPixels(cubemap.GetPixels((CubemapFace)i));
-                byte[] bytes = texture.EncodeToPNG();
-                if (bytes != null)
-                {
-                    System.IO.File.WriteAllBytes(path, bytes);
-                }
+                case CubemapFormat.Single:
+                    string path = $"{directoryPath}/{defaultName}.{extension}";
+                    for (int i = 0; i < 6; i++)
+                    {
+                        texture.SetPixels(i * size, 0, size, size, cubemap.GetPixels((CubemapFace)i));
+                    }
+                    FlipPixels(texture, true, true);
+                    File.WriteAllBytes(path, texture.EncodeToPNG());
+                    break;
+                case CubemapFormat.Six:
+                    for (int i = 0; i < 6; i++)
+                    {
+                        path = $"{directoryPath}/{SimplifyCubemapFace((CubemapFace)i)}.{extension}";
+                        texture.SetPixels(cubemap.GetPixels((CubemapFace)i));
+                        FlipPixels(texture, true, true);
+                        File.WriteAllBytes(path, texture.EncodeToPNG());
+                    }
+                    break;
             }
-            //RenderTexture.active = rt;
-            
-            //texture.ReadPixels(new Rect(0, 0, texture.width, texture.height), 0, 0, false);
-            
-            //RenderTexture.active = active;
-            GameObject.DestroyImmediate(cubemap);
-            camera.transform.position = position;
-            camera.transform.rotation = rotation;
+        }
+
+        string SimplifyCubemapFace(CubemapFace cubemapFace)
+        {
+            switch (cubemapFace)
+            {
+                case CubemapFace.PositiveX:
+                    return "px";
+                case CubemapFace.NegativeX:
+                    return "nx";
+                case CubemapFace.PositiveY:
+                    return "py";
+                case CubemapFace.NegativeY:
+                    return "ny";
+                case CubemapFace.PositiveZ:
+                    return "pz";
+                case CubemapFace.NegativeZ:
+                    return "nz";
+                case CubemapFace.Unknown:
+                default:
+                    return "unknown";
+            }
+        }
+
+        public void FlipPixels(Texture2D texture, bool flipX, bool flipY)
+        {
+            Color32[] originalPixels = texture.GetPixels32();
+
+            var flippedPixels = Enumerable.Range(0, texture.width * texture.height).Select(index =>
+            {
+                int x = index % texture.width;
+                int y = index / texture.width;
+                if (flipX)
+                    x = texture.width - 1 - x;
+
+                if (flipY)
+                    y = texture.height - 1 - y;
+
+                return originalPixels[y * texture.width + x];
+            }
+            );
+
+            texture.SetPixels32(flippedPixels.ToArray());
+            texture.Apply();
         }
 
 #if UNITY_EDITOR
