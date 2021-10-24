@@ -15,9 +15,9 @@ namespace Treasured.UnitySdk
     public enum ExportOptions
     {
         JSON = 1 << 0,
-        PanoramicImages = 1 << 1,
+        Cubemap = 1 << 1,
         Mask = 1 << 2,
-        All = JSON | PanoramicImages | Mask
+        All = JSON | Cubemap | Mask
     }
 
     internal class TreasuredMapExporter : IDisposable
@@ -53,14 +53,6 @@ namespace Treasured.UnitySdk
         private SerializedObject _serializedObject;
 
         private DirectoryInfo _outputDirectory;
-
-
-        private int _paddingXId;
-
-        private RenderTexture _cubemapRT;
-        private RenderTexture _equirectangularRT;
-        private Texture2D _outputTexture;
-        private Material _equirectangularConverter;
 
         private SerializedProperty _outputFolderName;
         private SerializedProperty _interactableLayer;
@@ -105,32 +97,21 @@ namespace Treasured.UnitySdk
         private void ExportJson()
         {
             JsonValidator.ValidateMap(_target);
-            ValidateOutputDirectory();
             string jsonPath = Path.Combine(_outputDirectory.FullName, "data.json");
             string json = JsonConvert.SerializeObject(_target, Formatting.Indented, JsonSettings);
             File.WriteAllText(jsonPath, json);
         }
 
-        private void ExportPanoramicImages()
+        private void ExportCubemap()
         {
-            var hotspots = _target.Hotspots;
-            if (hotspots == null || hotspots.Length == 0)
-            {
-                throw new InvalidOperationException("No active hotspots.");
-            }
-            ValidateOutputDirectory();
+            var hotspots = ValidateHotspots();
             var camera = ValidateCamera(); // use default camera settings to render 360 images
 
             #region Get camera settings
             RenderTexture camTarget = camera.targetTexture;
             Vector3 originalCameraPos = camera.transform.position;
             Quaternion originalCameraRot = camera.transform.rotation;
-            RenderTexture activeRT = RenderTexture.active;
             #endregion
-
-            string fileName = _target.Quality.ToString().ToLower();
-
-            string extension = _target.Format.ToString().ToLower();
 
             int size = Mathf.Min(Mathf.NextPowerOfTwo((int)_target.Quality), 8192);
 
@@ -144,9 +125,8 @@ namespace Treasured.UnitySdk
                 for (int index = 0; index < count; index++)
                 {
                     Hotspot current = hotspots[index];
-                    string progressTitle = $"Exporting Panoramic Image ({index + 1}/{count})";
-                    string progressText = $"Generating data for {current.name}...";
-                    EditorUtility.DisplayProgressBar(progressTitle, progressText, 0.33f);
+                    string progressTitle = $"Exporting Hotspot ({index + 1}/{count})";
+                    string progressText = $"Generating data {current.name}...";
 
                     camera.transform.SetPositionAndRotation(current.Camera.transform.position, Quaternion.identity);
 
@@ -160,7 +140,7 @@ namespace Treasured.UnitySdk
                         case CubemapFormat.Single:
                             for (int i = 0; i < 6; i++)
                             {
-                                EditorUtility.DisplayProgressBar(progressTitle, progressText, 0.33f + i * 0.11f);
+                                DisplayCancelableProgressBar(progressTitle, progressText, i / 6f);
                                 texture.SetPixels(i * size, 0, size, size, cubemap.GetPixels((CubemapFace)i));
                             }
                             FlipPixels(texture, true, true);
@@ -169,7 +149,7 @@ namespace Treasured.UnitySdk
                         case CubemapFormat.SixFaces:
                             for (int i = 0; i < 6; i++)
                             {
-                                EditorUtility.DisplayProgressBar(progressTitle, progressText, 0.33f + i * 0.11f);
+                                DisplayCancelableProgressBar(progressTitle, progressText, i / 6f);
                                 texture.SetPixels(cubemap.GetPixels((CubemapFace)i));
                                 FlipPixels(texture, true, true);
                                 ImageEncoder.Encode(texture, di.FullName, SimplifyCubemapFace((CubemapFace)i), _target.Format, compression);
@@ -178,27 +158,31 @@ namespace Treasured.UnitySdk
                     }
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 throw e;
             }
             finally
             {
-                GameObject.DestroyImmediate(cubemap);
-                GameObject.DestroyImmediate(texture);
+                if (cubemap != null)
+                {
+                    GameObject.DestroyImmediate(cubemap);
+                }
+                if (texture != null)
+                {
+                    GameObject.DestroyImmediate(texture);
+                }
                 #region Restore settings
                 camera.transform.position = originalCameraPos;
                 camera.transform.rotation = originalCameraRot;
                 camera.targetTexture = camTarget;
-                RenderTexture.active = activeRT;
                 #endregion
             }
         }
 
         private void ExportMask()
         {
-            ValidateOutputDirectory();
-
+            ValidateHotspots();
             TreasuredObject[] objects = _target.GetComponentsInChildren<TreasuredObject>();
             //Color[] objectIds = objects.Select(x => x.ObjectId).ToArray();
             Color maskColor = _target.MaskColor;
@@ -209,7 +193,7 @@ namespace Treasured.UnitySdk
 
             RenderTexture activeRT = RenderTexture.active;
 
-            var cameraGO = new GameObject("Panoramic Image Camera"); // creates a temporary camera with some default settings.
+            var cameraGO = new GameObject("Cubemap Camera"); // creates a temporary camera with some default settings.
             cameraGO.hideFlags = HideFlags.DontSave;
             var camera = cameraGO.AddComponent<Camera>();
             var cameraData = cameraGO.AddComponent<HDAdditionalCameraData>();
@@ -245,7 +229,6 @@ namespace Treasured.UnitySdk
 
             try
             {
-                InitializeShader();
                 if (objectIdConverter == null)
                 {
                     objectIdConverter = new Material(Shader.Find("Hidden/ObjectId"));
@@ -289,7 +272,6 @@ namespace Treasured.UnitySdk
                     Hotspot current = hotspots[index];
                     string progressTitle = $"Exporting Mask ({index + 1}/{count})";
                     string progressText = $"Generating data for {current.name}...";
-                    EditorUtility.DisplayProgressBar(progressTitle, progressText, 0.33f);
 
                     camera.transform.SetPositionAndRotation(current.Camera.transform.position, Quaternion.identity);
 
@@ -300,7 +282,7 @@ namespace Treasured.UnitySdk
                     var di = CreateDirectory(DefaultOutputFolderPath, _target.OutputFolderName, "images", current.Id);
                     for (int i = 0; i < 6; i++)
                     {
-                        EditorUtility.DisplayProgressBar(progressTitle, progressText, 0.33f + i * 0.11f);
+                        DisplayCancelableProgressBar(progressTitle, progressText, i / 6f);
                         texture.SetPixels(i * size, 0, size, size, cubemap.GetPixels((CubemapFace)i));
                     }
                     FlipPixels(texture, true, true);
@@ -309,8 +291,14 @@ namespace Treasured.UnitySdk
             }
             finally
             {
-                GameObject.DestroyImmediate(cubemap);
-                GameObject.DestroyImmediate(texture);
+                if (cubemap)
+                {
+                    GameObject.DestroyImmediate(cubemap);
+                }
+                if(texture)
+                {
+                    GameObject.DestroyImmediate(texture);
+                }
                 // Restore materials
                 foreach (var kvp in defaultMaterials)
                 {
@@ -361,7 +349,15 @@ namespace Treasured.UnitySdk
             }
         }
 
-        public void FlipPixels(Texture2D texture, bool flipX, bool flipY)
+        private void DisplayCancelableProgressBar(string title, string info, float progress)
+        {
+            if (EditorUtility.DisplayCancelableProgressBar(title, info, progress))
+            {
+                throw new OperationCanceledException("Export canceled by the user.");
+            }
+        }
+
+        private void FlipPixels(Texture2D texture, bool flipX, bool flipY)
         {
             Color32[] originalPixels = texture.GetPixels32();
 
@@ -392,13 +388,14 @@ namespace Treasured.UnitySdk
             }
             try
             {
+                ValidateOutputDirectory();
                 if (options.HasFlag(ExportOptions.JSON))
                 {
                     ExportJson();
                 }
-                if (options.HasFlag(ExportOptions.PanoramicImages))
+                if (options.HasFlag(ExportOptions.Cubemap))
                 {
-                    ExportPanoramicImages();
+                    ExportCubemap();
                 }
                 if (options.HasFlag(ExportOptions.Mask))
                 {
@@ -484,47 +481,23 @@ namespace Treasured.UnitySdk
             return camera;
         }
 
+        private Hotspot[] ValidateHotspots()
+        {
+            var hotspots = _target.Hotspots;
+            if (hotspots == null || hotspots.Length == 0)
+            {
+                throw new InvalidOperationException("No active hotspots.");
+            }
+            return hotspots;
+        }
+
         private DirectoryInfo CreateDirectory(params string[] paths)
         {
             return Directory.CreateDirectory(Path.Combine(paths));
         }
 
-        private void InitializeShader()
-        {
-            if (_equirectangularConverter == null)
-            {
-                _equirectangularConverter = new Material(Shader.Find("Hidden/I360CubemapToEquirectangular"));
-                _paddingXId = Shader.PropertyToID("_PaddingX");
-            }
-            
-        }
-
         public void Dispose()
         {
-            if (_cubemapRT != null)
-            {
-                RenderTexture.ReleaseTemporary(_cubemapRT);
-                _cubemapRT = null;
-            }
-
-            if (_equirectangularRT != null)
-            {
-                RenderTexture.ReleaseTemporary(_equirectangularRT);
-                _equirectangularRT = null;
-            }
-
-            if (_outputTexture != null)
-            {
-                GameObject.DestroyImmediate(_outputTexture);
-                _outputTexture = null;
-            }
-
-            if (_equirectangularConverter != null)
-            {
-                GameObject.DestroyImmediate(_equirectangularConverter);
-                _equirectangularConverter = null;
-            }
-
             if (objectIdConverter != null)
             {
                 GameObject.DestroyImmediate(objectIdConverter);
