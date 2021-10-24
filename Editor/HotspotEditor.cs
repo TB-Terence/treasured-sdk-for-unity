@@ -13,9 +13,7 @@ namespace Treasured.UnitySdk
             public static readonly GUIContent missingMapComponent = EditorGUIUtility.TrTextContent("Missing Treasured Map Component in parent.", "", "Warning");
         }
 
-        private static readonly Vector3 cameraCubeSize = Vector3.one * 0.3f;
-
-        private ActionGroupListDrawer list;
+        private ActionGroupListDrawer onClickList;
         private SerializedProperty id;
         private SerializedProperty description;
         private SerializedProperty hitbox;
@@ -26,7 +24,6 @@ namespace Treasured.UnitySdk
 
         private void OnEnable()
         {
-
             map = (target as Hotspot).Map;
             id = serializedObject.FindProperty("_id");
             description = serializedObject.FindProperty("_description");
@@ -35,7 +32,7 @@ namespace Treasured.UnitySdk
             onClick = serializedObject.FindProperty("_onClick");
             if(serializedObject.targetObjects.Length == 1)
             {
-                list = new ActionGroupListDrawer(serializedObject, onClick);
+                onClickList = new ActionGroupListDrawer(serializedObject, onClick);
             }
             (target as Hotspot).TryInvokeMethods("OnSelectedInHierarchy");
             SceneView.duringSceneGui -= OnSceneViewGUI;
@@ -66,7 +63,7 @@ namespace Treasured.UnitySdk
                 EditorGUILayout.PropertyField(description);
                 EditorGUILayout.PropertyField(hitbox);
                 EditorGUILayout.PropertyField(camera);
-                list?.OnGUI();
+                onClickList?.OnGUI();
             }
             if (GUILayout.Button(Styles.snapToGround, GUILayout.Height(24)))
             {

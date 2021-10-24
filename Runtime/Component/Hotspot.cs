@@ -95,7 +95,7 @@ namespace Treasured.UnitySdk
                     {
                         continue;
                     }
-                    if (Physics.Linecast(this.Camera.transform.position, obj.Hitbox.transform.position, out RaycastHit hit)) // && hit.distance == (this.transform.transform.position - obj.Hitbox.transform.position).magnitude
+                    if (!Physics.Linecast(this.Camera.transform.position, obj.Hitbox.transform.position, out RaycastHit hit) || hit.collider == obj.GetComponentInChildren<Collider>()) // && hit.distance == (this.transform.transform.position - obj.Hitbox.transform.position).magnitude
                     {
                         Debug.DrawLine(this.Camera.transform.position, hit.point, Color.red, 5);
                         targets.Add(obj);
@@ -104,8 +104,9 @@ namespace Treasured.UnitySdk
                 return targets;
             }
         }
-            
-        // DO NOT REMOVE, called by Editor
+
+        #region Editor GUI Functions
+#if UNITY_EDITOR
         void OnSelectedInHierarchy()
         {
             if (_camera == null)
@@ -115,5 +116,12 @@ namespace Treasured.UnitySdk
                 _camera.transform.localRotation = Quaternion.Euler(Hitbox.transform.localEulerAngles + CameraRotationOffset);
             }
         }
+
+        void OnSceneViewFocus()
+        {
+            UnityEditor.SceneView.lastActiveSceneView.LookAt(Camera.transform.position, Camera.transform.rotation, 0.01f);
+        }
+#endif
+        #endregion
     }
 }

@@ -2,6 +2,7 @@
 using System.IO;
 using UnityEngine;
 using UnityEditor;
+using System.Text;
 
 namespace Treasured.UnitySdk
 {
@@ -14,7 +15,7 @@ namespace Treasured.UnitySdk
             {
                 if (_instance == null)
                 {
-                    string path = GetAbsolutePath();
+                    string path = GetSettingsPath();
                     _instance = ScriptableObject.CreateInstance<TreasuredSDKSettings>();
                     if (File.Exists(path))
                     {
@@ -22,21 +23,19 @@ namespace Treasured.UnitySdk
                         JsonUtility.FromJsonOverwrite(json, _instance);
                         return _instance;
                     }
-                    string newJson = JsonUtility.ToJson(_instance, true);
-                    File.WriteAllText(path, newJson);
+                    GenerateSettingsFile(_instance);
                 }
                 return _instance;
             }
         }
-        public static readonly Color defaultFrustumColor = Color.white;
+        public static readonly Color defaultFrustumColor = Color.red;
         public static readonly Color defaultHitboxColor = new Color(0, 1, 0, 0.2f);
-        class Styles
-        {
-            public static readonly GUIContent frustumColor = EditorGUIUtility.TrTextContent("Frustum Color");
-            public static readonly GUIContent hitboxColor = EditorGUIUtility.TrTextContent("Hitbox Color");
-        }
 
+        [Tooltip("Auto focus on Treasured Object when being selected.")]
+        public bool autoFocus = true;
+        [Tooltip("Gizmos color for hotspot camera")]
         public Color frustumColor = defaultFrustumColor;
+        [Tooltip("Gizmos color for hitbox")]
         public Color hitboxColor = defaultHitboxColor;
 
         static SerializedObject GetSerializedSettings()
@@ -44,20 +43,35 @@ namespace Treasured.UnitySdk
             return new SerializedObject(Instance);
         }
 
-        static string GetAbsolutePath()
+        static string GetSettingsPath()
         {
-            return Path.Combine(new DirectoryInfo(Application.dataPath).Parent.FullName, "UserSettings", "TreasuredSDKSettings.json");
+            string projectRoot = new DirectoryInfo(Application.dataPath).Parent.FullName;
+            string previousSettingsPath = Path.Combine(projectRoot, "UserSettings", "TreasuredSDKSettings.json");
+            if (File.Exists(previousSettingsPath))
+            {
+                File.Delete(previousSettingsPath);
+            }
+            DirectoryInfo settingsFolder = Directory.CreateDirectory(Path.Combine(projectRoot, "Treasured Data"));
+            return Path.Combine(settingsFolder.FullName, "TreasuredSDKSettings.json");
+        }
+
+        static void GenerateSettingsFile(TreasuredSDKSettings settings)
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine(JsonUtility.ToJson(settings, true));
+            File.WriteAllText(GetSettingsPath(), sb.ToString());
         }
 
         [SettingsProvider]
         static SettingsProvider CreateSettingsProvider()
         {
-            var provider = new SettingsProvider("Preferences/Treasured SDK", SettingsScope.User, SettingsProvider.GetSearchKeywordsFromGUIContentProperties<Styles>());
             var settings = GetSerializedSettings();
+            var provider = new SettingsProvider("Preferences/Treasured SDK", SettingsScope.User, SettingsProvider.GetSearchKeywordsFromSerializedObject(settings));
             provider.guiHandler = (serachContext) =>
             {
                 using (var scope = new EditorGUI.ChangeCheckScope())
                 {
+                    EditorGUILayout.PropertyField(settings.FindProperty(nameof(autoFocus)));
                     EditorGUILayout.PropertyField(settings.FindProperty(nameof(frustumColor)));
                     EditorGUILayout.PropertyField(settings.FindProperty(nameof(hitboxColor)));
                     if (scope.changed)
@@ -71,8 +85,7 @@ namespace Treasured.UnitySdk
             provider.deactivateHandler = () =>
             {
                 _instance = (TreasuredSDKSettings)settings.targetObject;
-                string newJson = JsonUtility.ToJson(Instance, true);
-                File.WriteAllText(GetAbsolutePath(), newJson);
+                GenerateSettingsFile(_instance);
             };
             return provider;
         }
