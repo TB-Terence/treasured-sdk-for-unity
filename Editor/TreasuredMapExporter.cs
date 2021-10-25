@@ -127,8 +127,8 @@ namespace Treasured.UnitySdk
                 for (int index = 0; index < count; index++)
                 {
                     Hotspot current = hotspots[index];
-                    string progressTitle = $"Exporting Hotspot ({index + 1}/{count})";
-                    string progressText = $"Generating data {current.name}...";
+                    string progressTitle = $"Exporting Hotspots ({index + 1}/{count})";
+                    string progressText = $"Generating data for {current.name}...";
 
                     camera.transform.SetPositionAndRotation(current.Camera.transform.position, Quaternion.identity);
 

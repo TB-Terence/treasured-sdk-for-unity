@@ -20,7 +20,7 @@ namespace Treasured.UnitySdk
             {
                 Gizmos.color = TreasuredSDKSettings.Instance ? TreasuredSDKSettings.Instance.hitboxColor : TreasuredSDKSettings.defaultHitboxColor;
             }
-            
+
             Gizmos.DrawCube(Vector3.zero, transform.localScale);
 
             Gizmos.color = tempColor;
