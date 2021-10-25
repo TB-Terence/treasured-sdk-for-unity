@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
@@ -24,6 +25,7 @@ namespace Treasured.UnitySdk
 
         private void OnEnable()
         {
+            var hotspot = target as Hotspot;
             map = (target as Hotspot).Map;
             id = serializedObject.FindProperty("_id");
             description = serializedObject.FindProperty("_description");
@@ -34,14 +36,9 @@ namespace Treasured.UnitySdk
             {
                 onClickList = new ActionGroupListDrawer(serializedObject, onClick);
             }
-            (target as Hotspot).TryInvokeMethods("OnSelectedInHierarchy");
+            hotspot?.TryInvokeMethods("OnSelectedInHierarchy");
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
-            var hotspot = target as Hotspot;
-            foreach (var visibleTarget in hotspot.VisibleTargets)
-            {
-                Debug.DrawLine(hotspot.Camera.transform.position, visibleTarget.Hitbox.transform.position, Color.red, 10);
-            }
         }
 
         private void OnDisable()
@@ -75,21 +72,33 @@ namespace Treasured.UnitySdk
                     }
                 }
             }
+            EditorGUILayout.BeginFoldoutHeaderGroup(true, "Debug");
+            if (GUILayout.Button(new GUIContent("Show Visible Targets"), GUILayout.Height(24)))
+            {
+                foreach (var obj in serializedObject.targetObjects)
+                {
+                    if (obj is Hotspot hotspot)
+                    {
+                        foreach (var target in hotspot.VisibleTargets)
+                        {
+                            Debug.DrawLine(hotspot.Camera.transform.position, target.Hitbox.transform.position, Color.green, 5);
+                        }
+                    }
+                }
+            }
+            EditorGUILayout.EndFoldoutHeaderGroup();
             serializedObject.ApplyModifiedProperties();
         }
 
         private void OnSceneViewGUI(SceneView view)
         {
-            if (SceneView.lastActiveSceneView.size == 0.01f) // this happens when TreasuredObject is selected
-            {
-                return;
-            }
             if (target is Hotspot hotspot && hotspot.Hitbox != null && hotspot.Camera != null)
             {
                 Transform cameraTransform = hotspot.Camera.transform;
                 switch (Tools.current)
                 {
                     case Tool.Move:
+                        EditorGUI.BeginChangeCheck();
                         Vector3 newCameraPosition = Handles.PositionHandle(cameraTransform.position, cameraTransform.rotation);
                         if (EditorGUI.EndChangeCheck())
                         {
@@ -98,6 +107,7 @@ namespace Treasured.UnitySdk
                         }
                         break;
                     case Tool.Rotate:
+                        EditorGUI.BeginChangeCheck();
                         Quaternion newCameraRotation = Handles.RotationHandle(cameraTransform.rotation, cameraTransform.position);
                         if (EditorGUI.EndChangeCheck())
                         {
