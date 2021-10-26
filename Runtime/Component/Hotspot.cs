@@ -97,7 +97,6 @@ namespace Treasured.UnitySdk
                     }
                     if (!Physics.Linecast(this.Camera.transform.position, obj.Hitbox.transform.position, out RaycastHit hit) || hit.collider == obj.GetComponentInChildren<Collider>()) // && hit.distance == (this.transform.transform.position - obj.Hitbox.transform.position).magnitude
                     {
-                        Debug.DrawLine(this.Camera.transform.position, hit.point, Color.red, 5);
                         targets.Add(obj);
                     }
                 }
