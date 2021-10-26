@@ -356,7 +356,7 @@ namespace Treasured.UnitySdk
         {
             if (EditorUtility.DisplayCancelableProgressBar(title, info, progress))
             {
-                throw new OperationCanceledException("Export canceled by the user.");
+                throw new TreasuredException("Export canceled", "Export canceled by the user.");
             }
         }
 
@@ -410,13 +410,25 @@ namespace Treasured.UnitySdk
                 //    ExportMask();
                 //}
             }
-            catch (TargetNotAssignedException e)
+            catch (ContextException e)
             {
-                Debug.LogError(e.Message, e.Object);
+                if (EditorUtility.DisplayDialog(e.Title, e.Message, e.PingText))
+                {
+                    EditorGUIUtility.PingObject(e.Context);
+                }
             }
-            catch (MissingFieldException e)
+            catch (TreasuredException e)
             {
-                Debug.LogError(e.Message);
+                EditorUtility.DisplayDialog(e.Title, e.Message, "Ok");
+            }
+            catch (Exception e)
+            {
+                string exceptionType = e.GetType().Name.ToString();
+                if (exceptionType.EndsWith("Exception"))
+                {
+                    exceptionType = exceptionType.Substring(0, exceptionType.LastIndexOf("Exception"));
+                }
+                EditorUtility.DisplayDialog(ObjectNames.NicifyVariableName(exceptionType), e.Message, "Ok");
             }
             finally
             {

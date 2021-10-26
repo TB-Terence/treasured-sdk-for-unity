@@ -1,8 +1,16 @@
 ## Version 0.7.1 (October 26, 2021)
 
+### Improvements
+
+- Enhance data validation and error message prompt.
+
 ### Add
 
 - Add quality percentage control.
+
+### Fix
+
+- Reorder action group not working.
 
 ## Version 0.7.0 (October 24, 2021)
 
