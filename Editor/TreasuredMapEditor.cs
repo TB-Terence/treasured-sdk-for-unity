@@ -12,7 +12,7 @@ namespace Treasured.UnitySdk.Editor
     internal class TreasuredMapEditor : UnityEditor.Editor
     {
         [MenuItem("Tools/Treasured/Upgrade to Latest", priority = 99)]
-        static void UpgradeToLastest()
+        static void UpgradeToLatest()
         {
             Client.Add("https://github.com/TB-Terence/treasured-sdk-for-unity.git#upm");
         }
@@ -149,8 +149,6 @@ namespace Treasured.UnitySdk.Editor
         {
             map = target as TreasuredMap;
 
-            map.transform.hideFlags = HideFlags.None; // should be removed once merge is done
-
             GetFoldoutGroupMethods();
 
             _id = serializedObject.FindProperty(nameof(_id));
@@ -162,6 +160,9 @@ namespace Treasured.UnitySdk.Editor
             {
                 hotspots = map.gameObject.GetComponentsInChildren<Hotspot>().ToList();
                 interactables = map.gameObject.GetComponentsInChildren<Interactable>().ToList();
+
+                serializedObject.FindProperty("_format").enumValueIndex = 2;
+                serializedObject.ApplyModifiedProperties();
 
                 exporter = new TreasuredMapExporter(serializedObject, map);
 

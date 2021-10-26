@@ -60,7 +60,7 @@ namespace Treasured.UnitySdk
 
         private ExportOptions exportOptions = ExportOptions.All;
         private CubemapFormat cubemapFormat = CubemapFormat.SixFaces;
-        private int compression = 75;
+        private int qualityPercentage = 75;
         private bool overwriteExistingData = true;
 
         public TreasuredMapExporter(SerializedObject serializedObject, TreasuredMap map)
@@ -121,6 +121,7 @@ namespace Treasured.UnitySdk
 
             Cubemap cubemap = new Cubemap(size, TextureFormat.ARGB32, false);
             Texture2D texture = new Texture2D(cubemap.width * (cubemapFormat == CubemapFormat.Single ? 6 : 1), cubemap.height, TextureFormat.ARGB32, false);
+            ImageFormat imageFormat = ImageFormat.WEBP;
 
             try
             {
@@ -146,7 +147,7 @@ namespace Treasured.UnitySdk
                                 texture.SetPixels(i * size, 0, size, size, cubemap.GetPixels((CubemapFace)i));
                             }
                             FlipPixels(texture, true, true);
-                            ImageEncoder.Encode(texture, di.FullName, "cubemap", _target.Format, compression);
+                            ImageEncoder.Encode(texture, di.FullName, "cubemap", imageFormat, qualityPercentage);
                             break;
                         case CubemapFormat.SixFaces:
                             for (int i = 0; i < 6; i++)
@@ -154,7 +155,7 @@ namespace Treasured.UnitySdk
                                 DisplayCancelableProgressBar(progressTitle, progressText, i / 6f);
                                 texture.SetPixels(cubemap.GetPixels((CubemapFace)i));
                                 FlipPixels(texture, true, true);
-                                ImageEncoder.Encode(texture, di.FullName, SimplifyCubemapFace((CubemapFace)i), _target.Format, compression);
+                                ImageEncoder.Encode(texture, di.FullName, SimplifyCubemapFace((CubemapFace)i), imageFormat, qualityPercentage);
                             }
                             break;
                     }
@@ -288,7 +289,7 @@ namespace Treasured.UnitySdk
                         texture.SetPixels(i * size, 0, size, size, cubemap.GetPixels((CubemapFace)i));
                     }
                     FlipPixels(texture, true, true);
-                    ImageEncoder.Encode(texture, di.FullName, "mask", _target.Format, compression);
+                    ImageEncoder.Encode(texture, di.FullName, "mask", _target.Format, qualityPercentage);
                 }
             }
             finally
@@ -440,13 +441,13 @@ namespace Treasured.UnitySdk
                 }
             }
             overwriteExistingData = EditorGUILayout.Toggle(Styles.overwriteExistingData, overwriteExistingData);
-            EditorGUILayout.PropertyField(_serializedObject.FindProperty("_format"));
+            //EditorGUILayout.PropertyField(_serializedObject.FindProperty("_format"));
             EditorGUILayout.PropertyField(_serializedObject.FindProperty("_quality"));
-            //using (new EditorGUILayout.HorizontalScope())
-            //{
-            //    compression = EditorGUILayout.IntSlider(new GUIContent("Compression"), compression, 0, 100);
-            //    EditorGUILayout.LabelField("%", GUILayout.Width(20));
-            //}
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                qualityPercentage = EditorGUILayout.IntSlider(new GUIContent("Quality Percentage"), qualityPercentage, 1, 100);
+                EditorGUILayout.LabelField("%", GUILayout.Width(20));
+            }
             //cubemapFormat = (CubemapFormat)EditorGUILayout.EnumPopup("Cubemap Format", cubemapFormat);
             OnExportOptionsGUI();
             if (GUILayout.Button(new GUIContent("Export"), GUILayout.Height(24)))
