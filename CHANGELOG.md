@@ -2,7 +2,7 @@
 
 ### Improvements
 
-- Enhance data validation and error message prompt.
+- Enhance data validation prompt.
 
 ### Add
 
@@ -10,7 +10,7 @@
 
 ### Fix
 
-- Reorder action group not working.
+- Fix issue with reordering the action group.
 
 ## Version 0.7.0 (October 24, 2021)
 
