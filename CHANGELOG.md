@@ -2,7 +2,7 @@
 
 ### Improvements
 
-- Enhance data validation and error message prompt.
+- Enhance data validation prompt.
 
 ### Add
 
