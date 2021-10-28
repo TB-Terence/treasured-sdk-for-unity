@@ -73,7 +73,7 @@ namespace Treasured.UnitySdk
                 }
             }
             EditorGUILayout.BeginFoldoutHeaderGroup(true, "Debug");
-            if (GUILayout.Button(new GUIContent("Show Visible Targets"), GUILayout.Height(24)))
+            if (GUILayout.Button(new GUIContent("Show Visible Targets", "Green line - Target is visible\nRed line - Target is invisible\nBlue line - Shows distance between hit point and target location."), GUILayout.Height(24)))
             {
                 foreach (var obj in serializedObject.targetObjects)
                 {
