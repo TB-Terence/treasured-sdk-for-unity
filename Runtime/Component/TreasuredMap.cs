@@ -31,6 +31,9 @@ namespace Treasured.UnitySdk
 
         #region Launch Page
         [SerializeField]
+        private string _author;
+        public string Author { get => _author; set => _author = value; }
+        [SerializeField]
         [TextArea(3, 3)]
         private string _title;
         public string Title { get => _title; set => _title = value; }
@@ -40,9 +43,16 @@ namespace Treasured.UnitySdk
         private string _description;
         public string Description { get => _description; set => _title = _description; }
 
-        [JsonIgnore]
         [SerializeField]
-        private Texture2D _cover;
+        [TextArea(3, 3)]
+        [JsonProperty("audioUrl")]
+        private string _audioUrl;
+        [SerializeField]
+        [JsonProperty("muteOnStart")]
+        private bool _muteOnStart;
+        [SerializeField]
+        [JsonProperty("loader")]
+        private TemplateLoader _templateLoader;
         #endregion
 
         #region Guide Tour

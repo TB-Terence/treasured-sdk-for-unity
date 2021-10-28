@@ -17,10 +17,13 @@ namespace Treasured.UnitySdk
         {
             "version",
             "id",
-            "objectId",
+            "created",
             "name",
             "type",
+            "author",
+            "title",
             "description",
+            "loader",
             "hitbox",
             "camera"
         };

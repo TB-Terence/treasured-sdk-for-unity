@@ -43,6 +43,7 @@ namespace Treasured.UnitySdk
                         {
                             SerializedProperty element = elements.AppendManagedObject(type);
                             element.isExpanded = false;
+                            element.serializedObject.ApplyModifiedProperties();
                         });
                     }
                     menu.ShowAsContext();
@@ -56,7 +57,9 @@ namespace Treasured.UnitySdk
 
         public void OnGUI()
         {
+            reorderableList.serializedProperty.serializedObject.Update();
             reorderableList.DoLayoutList();
+            reorderableList.serializedProperty.serializedObject.ApplyModifiedProperties();
         }
     }
 }

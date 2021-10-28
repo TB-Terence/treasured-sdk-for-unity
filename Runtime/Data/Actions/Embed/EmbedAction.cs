@@ -2,7 +2,7 @@
 
 namespace Treasured.UnitySdk
 {
-    [Category("Media")]
+    [Category("Embed")]
     public abstract class EmbedAction : ActionBase
     {
         [SerializeField]

@@ -1,4 +1,4 @@
-## Version 0.7.1 (October 26, 2021)
+## Version 0.7.1 (October 27, 2021)
 
 ### Improvements
 
@@ -7,6 +7,7 @@
 ### Add
 
 - Add quality percentage control.
+- Missing fields for launch page.
 
 ### Fix
 

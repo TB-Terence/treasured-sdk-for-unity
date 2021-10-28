@@ -4,6 +4,10 @@
     {
         public static void ValidateMap(TreasuredMap map)
         {
+            if (string.IsNullOrWhiteSpace(map.Author))
+            {
+                throw new ContextException("Missing Field", "The author field is missing.", map);
+            }
             if (string.IsNullOrWhiteSpace(map.Title))
             {
                 throw new ContextException("Missing Field", "The title field is missing.", map);
