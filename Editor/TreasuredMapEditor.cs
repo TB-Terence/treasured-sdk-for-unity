@@ -121,8 +121,12 @@ namespace Treasured.UnitySdk.Editor
 
         private SerializedProperty _id;
 
+        private SerializedProperty _author;
         private SerializedProperty _title;
         private SerializedProperty _description;
+        private SerializedProperty _audioUrl;
+        private SerializedProperty _muteOnStart;
+        private SerializedProperty _templateLoader;
 
         private bool exportAllHotspots = true;
         private GroupToggleState hotspotsGroupToggleState = GroupToggleState.All;
@@ -153,8 +157,13 @@ namespace Treasured.UnitySdk.Editor
 
             _id = serializedObject.FindProperty(nameof(_id));
 
+            _author = serializedObject.FindProperty(nameof(_author));
             _title = serializedObject.FindProperty(nameof(_title));
             _description = serializedObject.FindProperty(nameof(_description));
+            _audioUrl = serializedObject.FindProperty(nameof(_audioUrl));
+            _muteOnStart = serializedObject.FindProperty(nameof(_muteOnStart));
+            _templateLoader = serializedObject.FindProperty(nameof(_templateLoader));
+            
 
             if (map)
             {
@@ -294,14 +303,12 @@ namespace Treasured.UnitySdk.Editor
         [FoldoutGroup("Launch Page Settings")]
         void OnLaunchPageSettingsGUI()
         {
+            EditorGUILayoutUtilities.RequiredPropertyField(_author);
             EditorGUILayoutUtilities.RequiredPropertyField(_title);
             EditorGUILayoutUtilities.RequiredPropertyField(_description);
-            //EditorGUILayout.PropertyField(cover);
-            //if (cover.objectReferenceValue is Texture2D preview)
-            //{
-            //    Rect previewRect = EditorGUILayout.GetControlRect(false, height: 128);
-            //    EditorGUI.DrawPreviewTexture(previewRect, preview, null, ScaleMode.ScaleToFit);
-            //}
+            EditorGUILayout.PropertyField(_audioUrl);
+            EditorGUILayout.PropertyField(_muteOnStart);
+            EditorGUILayout.PropertyField(_templateLoader);
         }
 
         [FoldoutGroup("Guide Tour Settings")]

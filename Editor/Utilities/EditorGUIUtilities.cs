@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    public static class EditorGUIUtilities
+    internal static class EditorGUIUtilities
     {
 
         private static MethodInfo openPropertyEditorMethodInfo;

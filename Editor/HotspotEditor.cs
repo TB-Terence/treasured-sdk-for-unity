@@ -73,15 +73,29 @@ namespace Treasured.UnitySdk
                 }
             }
             EditorGUILayout.BeginFoldoutHeaderGroup(true, "Debug");
-            if (GUILayout.Button(new GUIContent("Show Visible Targets"), GUILayout.Height(24)))
+            if (GUILayout.Button(new GUIContent("Show Visible Targets", "Green line - Target is visible\nRed line - Target is invisible\nBlue line - Shows distance between hit point and target location."), GUILayout.Height(24)))
             {
                 foreach (var obj in serializedObject.targetObjects)
                 {
                     if (obj is Hotspot hotspot)
                     {
-                        foreach (var target in hotspot.VisibleTargets)
+                        var targets = new List<TreasuredObject>();
+                        var objects = map.GetComponentsInChildren<TreasuredObject>();
+                        foreach (var o in objects)
                         {
-                            Debug.DrawLine(hotspot.Camera.transform.position, target.Hitbox.transform.position, Color.green, 5);
+                            if (o.Id.Equals(hotspot.Id) || o.Hitbox == null)
+                            {
+                                continue;
+                            }
+                            if (!Physics.Linecast(hotspot.Camera.transform.position, o.Hitbox.transform.position, out RaycastHit hit) || hit.collider == o.GetComponentInChildren<Collider>()) // && hit.distance == (this.transform.transform.position - obj.Hitbox.transform.position).magnitude
+                            {
+                                Debug.DrawLine(hotspot.Camera.transform.position, hit.point, Color.green, 5);
+                            }
+                            else
+                            {
+                                Debug.DrawLine(hotspot.Camera.transform.position, hit.point, Color.red, 5);
+                                Debug.DrawLine(o.Hitbox.transform.position, hit.point, Color.blue, 5);
+                            }
                         }
                     }
                 }
