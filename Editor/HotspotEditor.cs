@@ -15,11 +15,13 @@ namespace Treasured.UnitySdk
         }
 
         private ActionGroupListDrawer onClickList;
+        private ActionGroupListDrawer onHoverList;
         private SerializedProperty id;
         private SerializedProperty description;
         private SerializedProperty hitbox;
         private SerializedProperty camera;
         private SerializedProperty onClick;
+        private SerializedProperty onHover;
 
         private TreasuredMap map;
 
@@ -32,9 +34,11 @@ namespace Treasured.UnitySdk
             hitbox = serializedObject.FindProperty("_hitbox");
             camera = serializedObject.FindProperty("_camera");
             onClick = serializedObject.FindProperty("_onClick");
-            if(serializedObject.targetObjects.Length == 1)
+            onHover = serializedObject.FindProperty("_onHover");
+            if (serializedObject.targetObjects.Length == 1)
             {
                 onClickList = new ActionGroupListDrawer(serializedObject, onClick);
+                onHoverList = new ActionGroupListDrawer(serializedObject, onHover);
             }
             hotspot?.TryInvokeMethods("OnSelectedInHierarchy");
             SceneView.duringSceneGui -= OnSceneViewGUI;
@@ -61,6 +65,7 @@ namespace Treasured.UnitySdk
                 EditorGUILayout.PropertyField(hitbox);
                 EditorGUILayout.PropertyField(camera);
                 onClickList?.OnGUI();
+                onHoverList?.OnGUI();
             }
             if (GUILayout.Button(Styles.snapToGround, GUILayout.Height(24)))
             {
