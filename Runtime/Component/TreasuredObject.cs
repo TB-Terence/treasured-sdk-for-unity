@@ -75,7 +75,6 @@ namespace Treasured.UnitySdk
         /// <summary>
         /// Group of action to perform when the user hovers over the object.
         /// </summary>
-        [JsonProperty("actionGroups")]
         public List<ActionGroup> OnHover => _onHover;
 
         //public Color ObjectId
