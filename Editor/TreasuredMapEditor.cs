@@ -117,6 +117,8 @@ namespace Treasured.UnitySdk.Editor
             Mixed
         }
 
+        private static bool autoFocusOnSelectionChanged = false;
+
         private TreasuredMapExporter exporter;
 
         private SerializedProperty _id;
@@ -291,6 +293,34 @@ namespace Treasured.UnitySdk.Editor
                     guiMethod.Key.Invoke(this, null);
                 }
                 EditorGUILayout.EndFoldoutHeaderGroup();
+            }
+        }
+
+        [FoldoutGroup("Gizmos")]
+        void OnGizmosGUI()
+        {
+            EditorGUI.BeginChangeCheck();
+            autoFocusOnSelectionChanged = EditorGUILayout.Toggle(new GUIContent("Auto Focus", "Show the camera preview for selected Treasured Object."), autoFocusOnSelectionChanged);
+            if(EditorGUI.EndChangeCheck())
+            {
+                if (autoFocusOnSelectionChanged)
+                {
+                    Selection.selectionChanged -= OnSelectTreasuredObject;
+                    Selection.selectionChanged += OnSelectTreasuredObject;
+                }
+                else
+                {
+                    Selection.selectionChanged -= OnSelectTreasuredObject;
+                }
+            }
+        }
+
+        static void OnSelectTreasuredObject()
+        {
+            var to = Selection.activeGameObject?.GetComponent<TreasuredObject>();
+            if (to && TreasuredSDKSettings.Instance.autoFocus)
+            {
+                to.TryInvokeMethods("OnSceneViewFocus");
             }
         }
 
