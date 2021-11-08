@@ -16,8 +16,8 @@ namespace Treasured.UnitySdk
     {
         JSON = 1 << 0,
         Cubemap = 1 << 1,
-        //Mask = 1 << 2,
-        All = JSON | Cubemap //| Mask
+        Mask = 1 << 2,
+        All = JSON | Cubemap | Mask
     }
 
     internal class TreasuredMapExporter : IDisposable
@@ -185,17 +185,14 @@ namespace Treasured.UnitySdk
 
         private void ExportMask()
         {
-            ValidateHotspots();
-            TreasuredObject[] objects = _target.GetComponentsInChildren<TreasuredObject>();
-            //Color[] objectIds = objects.Select(x => x.ObjectId).ToArray();
+            var hotspots = ValidateHotspots();
+            int interactableLayer = _serializedObject.FindProperty("_interactableLayer").intValue; // single layer
             Color maskColor = _target.MaskColor;
             Color backgroundColor = Color.black;
+
             Dictionary<Renderer, Material> defaultMaterials = new Dictionary<Renderer, Material>();
-            Dictionary<Renderer, int> defaultLayers = new Dictionary<Renderer, int>(); // doesn't seem necessary but it will prevent breaking existing objects.
-            int interactableLayer = _serializedObject.FindProperty("_interactableLayer").intValue; // single layer
-
-            RenderTexture activeRT = RenderTexture.active;
-
+            Dictionary<Renderer, int> defaultLayers = new Dictionary<Renderer, int>();
+            List<GameObject> tempHotspots = new List<GameObject>();
             var cameraGO = new GameObject("Cubemap Camera"); // creates a temporary camera with some default settings.
             cameraGO.hideFlags = HideFlags.DontSave;
             var camera = cameraGO.AddComponent<Camera>();
@@ -205,44 +202,42 @@ namespace Treasured.UnitySdk
                 throw new MissingComponentException("Missing HDAdditionalCameraData component");
             }
             camera.cullingMask = 1 << interactableLayer;
-
-            #region HDRP camera settings
-            cameraData.backgroundColorHDR = backgroundColor;
-            cameraData.clearColorMode = HDAdditionalCameraData.ClearColorMode.Color;
-            cameraData.volumeLayerMask = 0; // ensure no volume effects will affect the object id color
-            cameraData.probeLayerMask = 0; // ensure no probe effects will affect the object id color
-            #endregion
-
-            // Create tempory hotspot object
-            List<GameObject> tempObjects = new List<GameObject>();
-            foreach (var hotspot in _target.Hotspots)
-            {
-                GameObject tempGO = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                tempGO.hideFlags = HideFlags.HideAndDontSave;
-                tempGO.transform.SetParent(hotspot.Hitbox.transform);
-                tempGO.transform.localScale = new Vector3(0.5f, 0.01f, 0.5f);
-                tempGO.transform.localPosition = Vector3.zero;
-                tempGO.layer = interactableLayer;
-                tempObjects.Add(tempGO);
-            }
-
-            int size = Mathf.Min(Mathf.NextPowerOfTwo((int)_target.Quality), 8192);
-            Cubemap cubemap = new Cubemap(size * 6, TextureFormat.ARGB32, false);
-            Texture2D texture = new Texture2D(cubemap.width * (cubemapFormat == CubemapFormat.Single ? 6 : 1), cubemap.height, TextureFormat.ARGB32, false);
-
             try
             {
+                TreasuredObject[] objects = _target.GetComponentsInChildren<TreasuredObject>();
                 if (objectIdConverter == null)
                 {
                     objectIdConverter = new Material(Shader.Find("Hidden/ObjectId"));
-                    colorId = Shader.PropertyToID("_IdColor");
+                }
+                
+
+                #region HDRP camera settings
+                cameraData.backgroundColorHDR = backgroundColor;
+                cameraData.clearColorMode = HDAdditionalCameraData.ClearColorMode.Color;
+                cameraData.volumeLayerMask = 0; // ensure no volume effects will affect the object id color
+                cameraData.probeLayerMask = 0; // ensure no probe effects will affect the object id color
+                #endregion
+                int size = Mathf.Min(Mathf.NextPowerOfTwo((int)_target.Quality), 8192);
+                Cubemap cubemap = new Cubemap(size * 6, TextureFormat.ARGB32, false);
+                Texture2D texture = new Texture2D(cubemap.width * (cubemapFormat == CubemapFormat.Single ? 6 : 1), cubemap.height, TextureFormat.ARGB32, false);
+
+                // Create tempory hotspot object
+                foreach (var hotspot in _target.Hotspots)
+                {
+                    GameObject tempGO = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                    tempGO.hideFlags = HideFlags.HideAndDontSave;
+                    tempGO.transform.SetParent(hotspot.Hitbox.transform);
+                    tempGO.transform.localScale = new Vector3(0.5f, 0.01f, 0.5f);
+                    tempGO.transform.localPosition = Vector3.zero;
+                    tempGO.layer = interactableLayer;
+                    tempHotspots.Add(tempGO);
                 }
 
                 // Set Object Color
                 for (int i = 0; i < objects.Length; i++)
                 {
                     TreasuredObject obj = objects[i];
-                    Renderer[] renderers = objects[i].GetComponentsInChildren<Renderer>();
+                    Renderer[] renderers = obj.GetComponentsInChildren<Renderer>();
                     MaterialPropertyBlock mpb = new MaterialPropertyBlock();
                     foreach (var renderer in renderers)
                     {
@@ -251,31 +246,27 @@ namespace Treasured.UnitySdk
                         defaultMaterials[renderer] = renderer.sharedMaterial;
                         renderer.sharedMaterial = objectIdConverter;
                         renderer.GetPropertyBlock(mpb);
-                        renderer.shadowCastingMode = ShadowCastingMode.Off;
-                        renderer.lightProbeUsage = LightProbeUsage.Off;
                         mpb.SetColor("_IdColor", maskColor);
                         renderer.SetPropertyBlock(mpb);
                     }
                 }
 
-                var hotspots = _target.Hotspots;
-                if (hotspots == null || hotspots.Length == 0)
-                {
-                    throw new InvalidOperationException("No active hotspots.");
-                }
-                ValidateOutputDirectory();
 
-                string extension = _target.Format.ToString().ToLower();
-
-
-                int count = hotspots.Length;
-
-                for (int index = 0; index < count; index++)
+                for (int index = 0; index < hotspots.Length; index++)
                 {
                     Hotspot current = hotspots[index];
-                    string progressTitle = $"Exporting Mask ({index + 1}/{count})";
+                    string progressTitle = $"Exporting Mask ({index + 1}/{hotspots.Length})";
                     string progressText = $"Generating data for {current.name}...";
-
+                    current.gameObject.SetActive(true);
+                    foreach (var obj in objects)
+                    {
+                        obj.gameObject.SetActive(true);
+                    }
+                    var visibleTargets = current.VisibleTargets;
+                    foreach (var invisibleTarget in objects.Except(visibleTargets))
+                    {
+                        invisibleTarget.gameObject.SetActive(false);
+                    }
                     camera.transform.SetPositionAndRotation(current.Camera.transform.position, Quaternion.identity);
 
                     if (!camera.RenderToCubemap(cubemap))
@@ -286,23 +277,15 @@ namespace Treasured.UnitySdk
                     for (int i = 0; i < 6; i++)
                     {
                         DisplayCancelableProgressBar(progressTitle, progressText, i / 6f);
-                        texture.SetPixels(i * size, 0, size, size, cubemap.GetPixels((CubemapFace)i));
+                        texture.SetPixels(cubemap.GetPixels((CubemapFace)i));
+                        FlipPixels(texture, true, true);
+                        ImageEncoder.Encode(texture, di.FullName, "mask_" + SimplifyCubemapFace((CubemapFace)i), ImageFormat.WEBP, qualityPercentage);
                     }
-                    FlipPixels(texture, true, true);
-                    ImageEncoder.Encode(texture, di.FullName, "mask", _target.Format, qualityPercentage);
                 }
+
             }
             finally
             {
-                if (cubemap)
-                {
-                    GameObject.DestroyImmediate(cubemap);
-                }
-                if(texture)
-                {
-                    GameObject.DestroyImmediate(texture);
-                }
-                // Restore materials
                 foreach (var kvp in defaultMaterials)
                 {
                     kvp.Key.sharedMaterial = kvp.Value;
@@ -313,15 +296,10 @@ namespace Treasured.UnitySdk
                     kvp.Key.gameObject.layer = kvp.Value;
                 }
 
-                foreach (var tempObject in tempObjects)
+                foreach (var tempHotspot in tempHotspots)
                 {
-                    GameObject.DestroyImmediate(tempObject);
+                    GameObject.DestroyImmediate(tempHotspot);
                 }
-
-                #region Restore settings
-                RenderTexture.active = activeRT;
-                #endregion
-
                 if (cameraGO != null)
                 {
                     GameObject.DestroyImmediate(cameraGO);
@@ -405,10 +383,10 @@ namespace Treasured.UnitySdk
                 {
                     ExportCubemap();
                 }
-                //if (options.HasFlag(ExportOptions.Mask))
-                //{
-                //    ExportMask();
-                //}
+                if (options.HasFlag(ExportOptions.Mask))
+                {
+                    ExportMask();
+                }
             }
             catch (ContextException e)
             {
