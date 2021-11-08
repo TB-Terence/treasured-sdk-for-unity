@@ -1,14 +1,14 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
     /// <summary>
-    /// Action that opens a link embed page.
+    /// Action that runs a custom embedded code.
     /// </summary>
-    public class OpenLinkAction : EmbedAction
+    public class CustomCodeAction : EmbedAction
     {
         [SerializeField]
-        [TextArea(3, 3)]
+        [TextArea(9, 9)]
         private string _src;
         public string Src { get => _src; set => _src = value; }
     }

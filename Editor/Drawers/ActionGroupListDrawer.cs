@@ -22,7 +22,7 @@ namespace Treasured.UnitySdk
             {
                 SerializedObject group = new SerializedObject(elements.GetArrayElementAtIndex(i).objectReferenceValue);
                 SerializedProperty element = group.FindProperty("_actions");
-                groupDrawers.Add(new ActionBaseListDrawer(group, element));
+                groupDrawers.Add(new ActionBaseListDrawer(group, element, $"Group {i + 1}"));
             }
             reorderableList = new ReorderableList(serializedObject, elements)
             {
@@ -31,7 +31,7 @@ namespace Treasured.UnitySdk
                 displayRemove = false,
                 drawHeaderCallback = (Rect rect) =>
                 {
-                    EditorGUI.LabelField(rect, "Action Groups");
+                    EditorGUI.LabelField(rect, reorderableList.serializedProperty.displayName);
                     if (GUI.Button(new Rect(rect.xMax - 40, rect.y, 20, rect.height), Styles.toolbarAdd, Styles.toolbarButton))
                     {
                         CreateNewGroup();
@@ -56,6 +56,14 @@ namespace Treasured.UnitySdk
                 {
                     ReorderableList list = groupDrawers[index].reorderableList;
                     return list.GetHeight() + 2;
+                },
+                onReorderCallbackWithDetails = (ReorderableList list, int oldIndex, int newIndex) =>
+                {
+                    groupDrawers[oldIndex].Header = $"Group {newIndex + 1}";
+                    groupDrawers[newIndex].Header = $"Group {oldIndex + 1}";
+                    var oldGroup = groupDrawers[oldIndex];
+                    groupDrawers[oldIndex] = groupDrawers[newIndex];
+                    groupDrawers[newIndex] = oldGroup;
                 }
             };
         }
@@ -69,7 +77,7 @@ namespace Treasured.UnitySdk
         {
             reorderableList.serializedProperty.TryAppendScriptableObject(out SerializedProperty newElement, out var group);
             SerializedObject so = new SerializedObject(newElement.objectReferenceValue);
-            ActionBaseListDrawer listDrawer = new ActionBaseListDrawer(so, so.FindProperty("_actions"));
+            ActionBaseListDrawer listDrawer = new ActionBaseListDrawer(so, so.FindProperty("_actions"), $"Group {groupDrawers.Count + 1}");
             groupDrawers.Add(listDrawer);
             reorderableList.serializedProperty.serializedObject.ApplyModifiedProperties();
         }

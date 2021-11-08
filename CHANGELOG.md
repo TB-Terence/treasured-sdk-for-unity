@@ -1,3 +1,32 @@
+## Version 0.7.1 (October 27, 2021)
+
+### Improvements
+
+- Enhance data validation prompt.
+
+### Add
+
+- Add quality percentage control.
+- Missing fields for launch page.
+
+### Fix
+
+- Fix issue with reordering the action group.
+
+## Version 0.7.0 (October 24, 2021)
+
+### Changes
+
+- Exports will now be in cubemap instead of equirectangular.
+
+### Add
+
+- Add camera preview when object selection changes.
+- Add search object by name or Id.
+- Add debug lines for visible targets on the Hotspot component.
+- Add export options
+- Add the ability to cancel export.
+
 ## Version 0.6.1 (October 17, 2021)
 
 ### Fix

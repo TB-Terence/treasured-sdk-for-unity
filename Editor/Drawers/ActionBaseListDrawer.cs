@@ -9,15 +9,16 @@ namespace Treasured.UnitySdk
     internal class ActionBaseListDrawer
     {
         internal ReorderableList reorderableList;
+        public string Header { get; set; }
 
-        public ActionBaseListDrawer(SerializedObject serializedObject, SerializedProperty elements)
+        public ActionBaseListDrawer(SerializedObject serializedObject, SerializedProperty elements, string header)
         {
+            Header = header;
             reorderableList = new ReorderableList(serializedObject, elements)
             {
-                headerHeight = 0,
                 drawHeaderCallback = (Rect rect) =>
                 {
-                    EditorGUI.LabelField(rect, "On Selected");
+                    EditorGUI.LabelField(rect, Header);
                 },
                 drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
                 {
@@ -42,6 +43,7 @@ namespace Treasured.UnitySdk
                         {
                             SerializedProperty element = elements.AppendManagedObject(type);
                             element.isExpanded = false;
+                            element.serializedObject.ApplyModifiedProperties();
                         });
                     }
                     menu.ShowAsContext();
@@ -55,7 +57,9 @@ namespace Treasured.UnitySdk
 
         public void OnGUI()
         {
+            reorderableList.serializedProperty.serializedObject.Update();
             reorderableList.DoLayoutList();
+            reorderableList.serializedProperty.serializedObject.ApplyModifiedProperties();
         }
     }
 }

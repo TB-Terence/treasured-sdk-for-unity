@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
+using UnityEditor.PackageManager;
 using UnityEngine;
 
 namespace Treasured.UnitySdk.Editor
@@ -10,6 +11,12 @@ namespace Treasured.UnitySdk.Editor
     [CustomEditor(typeof(TreasuredMap))]
     internal class TreasuredMapEditor : UnityEditor.Editor
     {
+        [MenuItem("Tools/Treasured/Upgrade to Latest", priority = 99)]
+        static void UpgradeToLatest()
+        {
+            Client.Add("https://github.com/TB-Terence/treasured-sdk-for-unity.git#upm");
+        }
+
         private static readonly string[] selectableObjectListNames = new string[] { "Hotspots", "Interactables" };
 
         [AttributeUsage(AttributeTargets.Method)]
@@ -51,6 +58,9 @@ namespace Treasured.UnitySdk.Editor
             public static readonly GUIContent alignView = EditorGUIUtility.TrTextContent("Align View");
             public static readonly GUIContent snapAllToGround = EditorGUIUtility.TrTextContent("Snap All on Ground");
             public static readonly GUIContent selectAll = EditorGUIUtility.TrTextContent("Select All");
+            public static readonly GUIContent searchObjects = EditorGUIUtility.TrTextContent("Search", "Search objects by Id or name");
+
+            public static readonly GUIContent search = EditorGUIUtility.TrIconContent("Search Icon");
 
             public static readonly Dictionary<Type, GUIContent> createNew = new Dictionary<Type, GUIContent>()
             {
@@ -111,8 +121,12 @@ namespace Treasured.UnitySdk.Editor
 
         private SerializedProperty _id;
 
+        private SerializedProperty _author;
         private SerializedProperty _title;
         private SerializedProperty _description;
+        private SerializedProperty _audioUrl;
+        private SerializedProperty _muteOnStart;
+        private SerializedProperty _templateLoader;
 
         private bool exportAllHotspots = true;
         private GroupToggleState hotspotsGroupToggleState = GroupToggleState.All;
@@ -133,23 +147,31 @@ namespace Treasured.UnitySdk.Editor
 
         private TreasuredObject editingTarget;
 
+        private string searchString;
+
         private void OnEnable()
         {
             map = target as TreasuredMap;
-
-            map.transform.hideFlags = HideFlags.None; // should be removed once merge is done
 
             GetFoldoutGroupMethods();
 
             _id = serializedObject.FindProperty(nameof(_id));
 
+            _author = serializedObject.FindProperty(nameof(_author));
             _title = serializedObject.FindProperty(nameof(_title));
             _description = serializedObject.FindProperty(nameof(_description));
+            _audioUrl = serializedObject.FindProperty(nameof(_audioUrl));
+            _muteOnStart = serializedObject.FindProperty(nameof(_muteOnStart));
+            _templateLoader = serializedObject.FindProperty(nameof(_templateLoader));
+            
 
             if (map)
             {
                 hotspots = map.gameObject.GetComponentsInChildren<Hotspot>().ToList();
                 interactables = map.gameObject.GetComponentsInChildren<Interactable>().ToList();
+
+                serializedObject.FindProperty("_format").enumValueIndex = 2;
+                serializedObject.ApplyModifiedProperties();
 
                 exporter = new TreasuredMapExporter(serializedObject, map);
 
@@ -175,10 +197,10 @@ namespace Treasured.UnitySdk.Editor
             foreach (var to in objects)
             {
                 var actionList = to.OnSelected.ToList();
-                if (to.ActionGroups.Count == 0 && actionList.Count > 0)
+                if (to.OnClick.Count == 0 && actionList.Count > 0)
                 {
                     ActionGroup group = ScriptableObject.CreateInstance<ActionGroup>();
-                    to.ActionGroups.Add(group);
+                    to.OnClick.Add(group);
                     foreach (var action in actionList)
                     {
                         group.Actions.Add(action);
@@ -281,14 +303,12 @@ namespace Treasured.UnitySdk.Editor
         [FoldoutGroup("Launch Page Settings")]
         void OnLaunchPageSettingsGUI()
         {
+            EditorGUILayoutUtilities.RequiredPropertyField(_author);
             EditorGUILayoutUtilities.RequiredPropertyField(_title);
             EditorGUILayoutUtilities.RequiredPropertyField(_description);
-            //EditorGUILayout.PropertyField(cover);
-            //if (cover.objectReferenceValue is Texture2D preview)
-            //{
-            //    Rect previewRect = EditorGUILayout.GetControlRect(false, height: 128);
-            //    EditorGUI.DrawPreviewTexture(previewRect, preview, null, ScaleMode.ScaleToFit);
-            //}
+            EditorGUILayout.PropertyField(_audioUrl);
+            EditorGUILayout.PropertyField(_muteOnStart);
+            EditorGUILayout.PropertyField(_templateLoader);
         }
 
         [FoldoutGroup("Guide Tour Settings")]
@@ -302,6 +322,22 @@ namespace Treasured.UnitySdk.Editor
         [FoldoutGroup("Object Management", true)]
         void OnObjectManagementGUI()
         {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                searchString = EditorGUILayout.TextField(Styles.searchObjects, searchString);
+                if (GUILayout.Button(Styles.search, EditorStyles.label, GUILayout.Width(18), GUILayout.Height(18)))
+                {
+                    List<GameObject> searchResult = new List<GameObject>();
+                    foreach (var obj in map.GetComponentsInChildren<TreasuredObject>(true))
+                    {
+                        if (obj.Id.Contains(searchString) || obj.name.Contains(searchString))
+                        {
+                            searchResult.Add(obj.gameObject);
+                        }
+                    }
+                    Selection.objects = searchResult.ToArray();
+                }
+            }
             SerializedProperty interactableLayer = serializedObject.FindProperty("_interactableLayer");
             EditorGUI.BeginChangeCheck();
             interactableLayer.intValue = EditorGUILayout.LayerField(new GUIContent("Interactable Layer"), interactableLayer.intValue);
@@ -329,7 +365,7 @@ namespace Treasured.UnitySdk.Editor
             exporter?.OnGUI();
         }
 
-        [FoldoutGroup("Upload", true)]
+        //[FoldoutGroup("Upload", true)]
         void OnUploadGUI()
         {
             if (GUILayout.Button("Upload", GUILayout.Height(24)))
@@ -432,8 +468,6 @@ namespace Treasured.UnitySdk.Editor
                     var root = map.gameObject.FindOrCreateChild($"{typeof(T).Name}s");
                     GameObject go = new GameObject(ObjectNames.GetUniqueName(objects.Select(x => x.name).ToArray(), typeof(T).Name));
                     T obj = go.AddComponent<T>();
-                    //BoxCollider boxCollider = go.AddComponent<BoxCollider>();
-                    //boxCollider.size = Vector3.one;
                     Camera camera = SceneView.lastActiveSceneView.camera;
                     go.transform.SetParent(root);
                     if (typeof(T) == typeof(Hotspot))
@@ -454,7 +488,6 @@ namespace Treasured.UnitySdk.Editor
                             hotspot.Camera.transform.position = hit.point + new Vector3(0, 1.5f, 0);
                             hotspot.Camera.transform.localRotation = Quaternion.identity;
                         }
-                        //boxCollider.center = new Vector3(0, boxCollider.size.y / 2, 0);
                     }
                     else
                     {

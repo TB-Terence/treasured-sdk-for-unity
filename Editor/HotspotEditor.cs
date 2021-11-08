@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using System.Collections.Generic;
+using UnityEditor;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
@@ -13,31 +14,33 @@ namespace Treasured.UnitySdk
             public static readonly GUIContent missingMapComponent = EditorGUIUtility.TrTextContent("Missing Treasured Map Component in parent.", "", "Warning");
         }
 
-        private static readonly Vector3 cameraCubeSize = Vector3.one * 0.3f;
-
-        private ActionGroupListDrawer list;
+        private ActionGroupListDrawer onClickList;
+        private ActionGroupListDrawer onHoverList;
         private SerializedProperty id;
         private SerializedProperty description;
         private SerializedProperty hitbox;
         private SerializedProperty camera;
-        private SerializedProperty actionGroup;
+        private SerializedProperty onClick;
+        private SerializedProperty onHover;
 
         private TreasuredMap map;
 
         private void OnEnable()
         {
-
+            var hotspot = target as Hotspot;
             map = (target as Hotspot).Map;
             id = serializedObject.FindProperty("_id");
             description = serializedObject.FindProperty("_description");
             hitbox = serializedObject.FindProperty("_hitbox");
             camera = serializedObject.FindProperty("_camera");
-            actionGroup = serializedObject.FindProperty("_actionGroups");
-            if(serializedObject.targetObjects.Length == 1)
+            onClick = serializedObject.FindProperty("_onClick");
+            onHover = serializedObject.FindProperty("_onHover");
+            if (serializedObject.targetObjects.Length == 1)
             {
-                list = new ActionGroupListDrawer(serializedObject, actionGroup);
+                onClickList = new ActionGroupListDrawer(serializedObject, onClick);
+                onHoverList = new ActionGroupListDrawer(serializedObject, onHover);
             }
-            (target as Hotspot).TryInvokeMethods("OnSelectedInHierarchy");
+            hotspot?.TryInvokeMethods("OnSelectedInHierarchy");
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
         }
@@ -61,7 +64,8 @@ namespace Treasured.UnitySdk
                 EditorGUILayout.PropertyField(description);
                 EditorGUILayout.PropertyField(hitbox);
                 EditorGUILayout.PropertyField(camera);
-                list?.OnGUI();
+                onClickList?.OnGUI();
+                onHoverList?.OnGUI();
             }
             if (GUILayout.Button(Styles.snapToGround, GUILayout.Height(24)))
             {
@@ -73,21 +77,47 @@ namespace Treasured.UnitySdk
                     }
                 }
             }
+            EditorGUILayout.BeginFoldoutHeaderGroup(true, "Debug");
+            if (GUILayout.Button(new GUIContent("Show Visible Targets", "Green line - Target is visible\nRed line - Target is invisible\nBlue line - Shows distance between hit point and target location."), GUILayout.Height(24)))
+            {
+                foreach (var obj in serializedObject.targetObjects)
+                {
+                    if (obj is Hotspot hotspot)
+                    {
+                        var targets = new List<TreasuredObject>();
+                        var objects = map.GetComponentsInChildren<TreasuredObject>();
+                        foreach (var o in objects)
+                        {
+                            if (o.Id.Equals(hotspot.Id) || o.Hitbox == null)
+                            {
+                                continue;
+                            }
+                            if (!Physics.Linecast(hotspot.Camera.transform.position, o.Hitbox.transform.position, out RaycastHit hit) || hit.collider == o.GetComponentInChildren<Collider>()) // && hit.distance == (this.transform.transform.position - obj.Hitbox.transform.position).magnitude
+                            {
+                                Debug.DrawLine(hotspot.Camera.transform.position, hit.point, Color.green, 5);
+                            }
+                            else
+                            {
+                                Debug.DrawLine(hotspot.Camera.transform.position, hit.point, Color.red, 5);
+                                Debug.DrawLine(o.Hitbox.transform.position, hit.point, Color.blue, 5);
+                            }
+                        }
+                    }
+                }
+            }
+            EditorGUILayout.EndFoldoutHeaderGroup();
             serializedObject.ApplyModifiedProperties();
         }
 
         private void OnSceneViewGUI(SceneView view)
         {
-            if (SceneView.lastActiveSceneView.size == 0.01f) // this happens when TreasuredObject is selected
-            {
-                return;
-            }
             if (target is Hotspot hotspot && hotspot.Hitbox != null && hotspot.Camera != null)
             {
                 Transform cameraTransform = hotspot.Camera.transform;
                 switch (Tools.current)
                 {
                     case Tool.Move:
+                        EditorGUI.BeginChangeCheck();
                         Vector3 newCameraPosition = Handles.PositionHandle(cameraTransform.position, cameraTransform.rotation);
                         if (EditorGUI.EndChangeCheck())
                         {
@@ -96,6 +126,7 @@ namespace Treasured.UnitySdk
                         }
                         break;
                     case Tool.Rotate:
+                        EditorGUI.BeginChangeCheck();
                         Quaternion newCameraRotation = Handles.RotationHandle(cameraTransform.rotation, cameraTransform.position);
                         if (EditorGUI.EndChangeCheck())
                         {

@@ -78,15 +78,15 @@ namespace Treasured.UnitySdk
         /// <summary>
         /// A list of visible objects that this hotspot can see.
         /// </summary>
-        public List<string> VisibleTargets
+        public List<TreasuredObject> VisibleTargets
         {
             get
             {
-                var targets = new List<string>();
+                var targets = new List<TreasuredObject>();
                 TreasuredMap map = GetComponentInParent<TreasuredMap>();
                 if (!map || !Camera)
                 {
-                    return new List<string>();
+                    return new List<TreasuredObject>();
                 }
                 var objects = map.GetComponentsInChildren<TreasuredObject>();
                 foreach (var obj in objects)
@@ -95,16 +95,17 @@ namespace Treasured.UnitySdk
                     {
                         continue;
                     }
-                    if (!Physics.Linecast(this.Camera.transform.position, obj.Hitbox.transform.position, out RaycastHit hit) || hit.collider == obj.GetComponent<Collider>())
+                    if (!Physics.Linecast(this.Camera.transform.position, obj.Hitbox.transform.position, out RaycastHit hit) || hit.collider == obj.GetComponentInChildren<Collider>()) // && hit.distance == (this.transform.transform.position - obj.Hitbox.transform.position).magnitude
                     {
-                        targets.Add(obj.Id);
+                        targets.Add(obj);
                     }
                 }
                 return targets;
             }
         }
-            
-        // DO NOT REMOVE, called by Editor
+
+        #region Editor GUI Functions
+#if UNITY_EDITOR
         void OnSelectedInHierarchy()
         {
             if (_camera == null)
@@ -114,5 +115,12 @@ namespace Treasured.UnitySdk
                 _camera.transform.localRotation = Quaternion.Euler(Hitbox.transform.localEulerAngles + CameraRotationOffset);
             }
         }
+
+        void OnSceneViewFocus()
+        {
+            UnityEditor.SceneView.lastActiveSceneView.LookAt(Camera.transform.position, Camera.transform.rotation, 0.01f);
+        }
+#endif
+        #endregion
     }
 }

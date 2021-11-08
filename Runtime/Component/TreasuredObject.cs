@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Treasured.UnitySdk
 {
@@ -28,8 +29,12 @@ namespace Treasured.UnitySdk
         [Obsolete]
         private List<ActionBase> _onSelected = new List<ActionBase>();
 
+        [FormerlySerializedAs("_actionGroups")]
         [SerializeReference]
-        private List<ActionGroup> _actionGroups = new List<ActionGroup>();
+        private List<ActionGroup> _onClick = new List<ActionGroup>();
+
+        [SerializeReference]
+        private List<ActionGroup> _onHover = new List<ActionGroup>();
         #endregion
 
         #region Properties
@@ -64,7 +69,13 @@ namespace Treasured.UnitySdk
         /// <summary>
         /// Group of action to perform when the object is selected.
         /// </summary>
-        public List<ActionGroup> ActionGroups => _actionGroups;
+        [JsonProperty("actionGroups")]
+        public List<ActionGroup> OnClick => _onClick;
+
+        /// <summary>
+        /// Group of action to perform when the user hovers over the object.
+        /// </summary>
+        public List<ActionGroup> OnHover => _onHover;
 
         //public Color ObjectId
         //{
@@ -100,6 +111,11 @@ namespace Treasured.UnitySdk
                 {
                     Hitbox.transform.eulerAngles = renderer.transform.eulerAngles;
                 }
+                if (!Hitbox.TryGetComponent<BoxCollider>(out var boxCollider))
+                {
+                    boxCollider = Hitbox.gameObject.AddComponent<BoxCollider>();
+                }
+                boxCollider.isTrigger = true;
             }
         }
 #endif

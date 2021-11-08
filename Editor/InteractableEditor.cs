@@ -1,5 +1,4 @@
 ﻿using UnityEditor;
-using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
@@ -7,11 +6,11 @@ namespace Treasured.UnitySdk
     [CanEditMultipleObjects]
     internal class InteractableEditor : UnityEditor.Editor
     {
-        private ActionGroupListDrawer list;
+        private ActionGroupListDrawer onClickList;
         private SerializedProperty id;
         private SerializedProperty description;
         private SerializedProperty hitbox;
-        private SerializedProperty actionGroups;
+        private SerializedProperty onClick;
 
         private TreasuredMap map;
 
@@ -22,8 +21,8 @@ namespace Treasured.UnitySdk
             id = serializedObject.FindProperty("_id");
             description = serializedObject.FindProperty("_description");
             hitbox = serializedObject.FindProperty("_hitbox");
-            actionGroups = serializedObject.FindProperty("_actionGroups");
-            list = new ActionGroupListDrawer(serializedObject, actionGroups);
+            onClick = serializedObject.FindProperty("_onClick");
+            onClickList = new ActionGroupListDrawer(serializedObject, onClick);
         }
 
         public override void OnInspectorGUI()
@@ -42,7 +41,7 @@ namespace Treasured.UnitySdk
             EditorGUILayout.PropertyField(hitbox);
             if (targets.Length == 1)
             {
-                list.OnGUI();
+                onClickList.OnGUI();
             }
             serializedObject.ApplyModifiedProperties();
         }
