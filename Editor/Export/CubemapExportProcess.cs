@@ -15,7 +15,7 @@ namespace Treasured.UnitySdk
             using (new EditorGUILayout.HorizontalScope())
             {
                 qualityPercentage = EditorGUILayout.IntSlider(new GUIContent("Quality Percentage"), qualityPercentage, 1, 100);
-                EditorGUILayout.LabelField("%", GUILayout.Width(28));
+                EditorGUILayout.LabelField("%", GUILayout.Width(48));
             }
         }
 
