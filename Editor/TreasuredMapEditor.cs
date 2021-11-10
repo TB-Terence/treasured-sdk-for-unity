@@ -151,6 +151,8 @@ namespace Treasured.UnitySdk.Editor
 
         private string searchString;
 
+        private ExportProcess[] exportProcesses;
+
         private void OnEnable()
         {
             map = target as TreasuredMap;
@@ -188,6 +190,13 @@ namespace Treasured.UnitySdk.Editor
 
                 Migrate(hotspots);
                 Migrate(interactables);
+
+                var exportProcessTypes = Assembly.GetExecutingAssembly().GetTypes().Where(x => !x.IsAbstract && typeof(ExportProcess).IsAssignableFrom(x)).ToArray();
+                exportProcesses = new ExportProcess[exportProcessTypes.Length];
+                for (int i = 0; i < exportProcesses.Length; i++)
+                {
+                    exportProcesses[i] = (ExportProcess)Activator.CreateInstance(exportProcessTypes[i]);
+                }
             }
 
             SceneView.duringSceneGui -= OnSceneViewGUI;
@@ -392,7 +401,30 @@ namespace Treasured.UnitySdk.Editor
         [FoldoutGroup("Export", true)]
         void OnExportGUI()
         {
-            exporter?.OnGUI();
+            EditorGUI.indentLevel++;
+            foreach (var process in exportProcesses)
+            {
+                using(new EditorGUILayout.HorizontalScope())
+                {
+                    process.Expanded = EditorGUILayout.Foldout(process.Expanded, process.DisplayName, true);
+                    if (GUILayout.Button(new GUIContent("Export"), GUILayout.Width(48)))
+                    {
+                        process.Export(target as TreasuredMap);
+                    }
+                }
+                if (process.Expanded)
+                {
+                    process.OnGUI();
+                }
+            }
+            if (GUILayout.Button(new GUIContent("Export All"), GUILayout.Height(24)))
+            {
+                foreach (var process in exportProcesses)
+                {
+                    process.Export(target as TreasuredMap);
+                }
+            }
+            EditorGUI.indentLevel--;
         }
 
         //[FoldoutGroup("Upload", true)]

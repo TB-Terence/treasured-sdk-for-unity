@@ -35,15 +35,6 @@ namespace Treasured.UnitySdk
             public static readonly GUIContent overwriteExistingData = EditorGUIUtility.TrTextContent("Overwrite Existing Data", "Show in Explorer");
         }
 
-        #region Json
-        public static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings()
-        {
-            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-            ContractResolver = ContractResolver.Instance,
-            CheckAdditionalContent = true
-        };
-        #endregion
-
         #region Image
 
         private static Material objectIdConverter;
@@ -98,10 +89,7 @@ namespace Treasured.UnitySdk
 
         private void ExportJson()
         {
-            JsonValidator.ValidateMap(_target);
-            string jsonPath = Path.Combine(_outputDirectory.FullName, "data.json");
-            string json = JsonConvert.SerializeObject(_target, Formatting.Indented, JsonSettings);
-            File.WriteAllText(jsonPath, json);
+            
         }
 
         private void ExportCubemap()
