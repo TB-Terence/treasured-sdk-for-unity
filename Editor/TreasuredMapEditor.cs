@@ -128,8 +128,6 @@ namespace Treasured.UnitySdk.Editor
 
         private static bool enableCameraPreview = false;
 
-        private TreasuredMapExporter exporter;
-
         private SerializedProperty _id;
 
         private SerializedProperty _author;
@@ -190,8 +188,6 @@ namespace Treasured.UnitySdk.Editor
 
                 serializedObject.FindProperty("_format").enumValueIndex = 2;
                 serializedObject.ApplyModifiedProperties();
-
-                exporter = new TreasuredMapExporter(serializedObject, map);
 
                 // Set icon for hotspots
                 foreach (var hotspot in hotspots)
@@ -429,7 +425,7 @@ namespace Treasured.UnitySdk.Editor
                 }
                 if (GUILayout.Button(Styles.folderOpened, EditorStyles.label, GUILayout.Width(20), GUILayout.Height(18)))
                 {
-                    Application.OpenURL(TreasuredMapExporter.DefaultOutputFolderPath);
+                    Application.OpenURL(ExportProcess.DefaultOutputFolderPath);
                 }
             }
             EditorGUILayout.LabelField("Export Options", EditorStyles.boldLabel);
@@ -448,12 +444,25 @@ namespace Treasured.UnitySdk.Editor
                     }
                     if (process.Expanded)
                     {
-                        process.OnGUI(map);
+                        process.OnGUI(serializedObject);
                     }
                 }
                 if (GUILayout.Button(new GUIContent("Export", "Export all enabled process."), GUILayout.Height(24)))
                 {
-                    string root = Path.Combine(TreasuredMapExporter.DefaultOutputFolderPath, (target as TreasuredMap).OutputFolderName);
+                    DataValidator.ValidateMap(map);
+                    string root = string.Empty;
+                    try
+                    {
+                        root = Path.Combine(ExportProcess.DefaultOutputFolderPath, (target as TreasuredMap).OutputFolderName);
+                    }
+                    catch (Exception ex) when (ex is IOException || ex is ArgumentException)
+                    {
+                        throw new ArgumentException($"Invalid folder name : {(target as TreasuredMap).OutputFolderName}");
+                    }
+                    catch
+                    {
+                        throw;
+                    }
                     if (Directory.Exists(root))
                     {
                         Directory.Delete(root, true);

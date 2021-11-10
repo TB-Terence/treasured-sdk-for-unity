@@ -10,8 +10,9 @@ namespace Treasured.UnitySdk
         private CubemapFormat cubemapFormat = CubemapFormat.SixFaces;
         private int qualityPercentage = 75;
 
-        public override void OnGUI(TreasuredMap map)
+        public override void OnGUI(SerializedObject serializedObject)
         {
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_quality"));
             using (new EditorGUILayout.HorizontalScope())
             {
                 qualityPercentage = EditorGUILayout.IntSlider(new GUIContent("Quality Percentage"), qualityPercentage, 1, 100);
