@@ -16,15 +16,15 @@ namespace Treasured.UnitySdk
             CheckAdditionalContent = true
         };
 
-        public override void OnGUI()
+        public override void OnGUI(TreasuredMap map)
         {
             formatting = (Formatting)EditorGUILayout.EnumPopup(new GUIContent("Formatting"), formatting);
         }
 
-        public override void Export(TreasuredMap map)
+        public override void Export(string rootDirectory, TreasuredMap map)
         {
             ValidateMap(map);
-            string jsonPath = Path.Combine(OutputDirectory, "data.json");
+            string jsonPath = Path.Combine(rootDirectory, "data.json");
             string json = JsonConvert.SerializeObject(map, Formatting.Indented, JsonSettings);
             File.WriteAllText(jsonPath, json);
         }                                               

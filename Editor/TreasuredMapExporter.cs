@@ -50,7 +50,7 @@ namespace Treasured.UnitySdk
         private SerializedProperty _interactableLayer;
 
         private ExportOptions exportOptions = ExportOptions.All;
-        private CubemapFormat cubemapFormat = CubemapFormat.SixFaces;
+        private CubemapFormat cubemapFormat;
         private int qualityPercentage = 75;
         private bool overwriteExistingData = true;
 
@@ -94,86 +94,12 @@ namespace Treasured.UnitySdk
 
         private void ExportCubemap()
         {
-            var hotspots = ValidateHotspots();
-            var camera = ValidateCamera(); // use default camera settings to render 360 images
-
-            #region Get camera settings
-            RenderTexture camTarget = camera.targetTexture;
-            Vector3 originalCameraPos = camera.transform.position;
-            Quaternion originalCameraRot = camera.transform.rotation;
-            #endregion
-
-            int size = Mathf.Min(Mathf.NextPowerOfTwo((int)_target.Quality), 8192);
-
-            int count = hotspots.Length;
-
-            Cubemap cubemap = new Cubemap(size, TextureFormat.ARGB32, false);
-            Texture2D texture = new Texture2D(cubemap.width * (cubemapFormat == CubemapFormat.Single ? 6 : 1), cubemap.height, TextureFormat.ARGB32, false);
-            ImageFormat imageFormat = ImageFormat.WEBP;
-
-            try
-            {
-                for (int index = 0; index < count; index++)
-                {
-                    Hotspot current = hotspots[index];
-                    string progressTitle = $"Exporting Hotspots ({index + 1}/{count})";
-                    string progressText = $"Generating data for {current.name}...";
-
-                    camera.transform.SetPositionAndRotation(current.Camera.transform.position, Quaternion.identity);
-
-                    if (!camera.RenderToCubemap(cubemap))
-                    {
-                        throw new System.NotSupportedException("Current graphic device/platform does not support RenderToCubemap.");
-                    }
-                    var di = CreateDirectory(DefaultOutputFolderPath, _target.OutputFolderName, "images", current.Id);
-                    switch (cubemapFormat)
-                    {
-                        case CubemapFormat.Single:
-                            for (int i = 0; i < 6; i++)
-                            {
-                                DisplayCancelableProgressBar(progressTitle, progressText, i / 6f);
-                                texture.SetPixels(i * size, 0, size, size, cubemap.GetPixels((CubemapFace)i));
-                            }
-                            FlipPixels(texture, true, true);
-                            ImageEncoder.Encode(texture, di.FullName, "cubemap", imageFormat, qualityPercentage);
-                            break;
-                        case CubemapFormat.SixFaces:
-                            for (int i = 0; i < 6; i++)
-                            {
-                                DisplayCancelableProgressBar(progressTitle, progressText, i / 6f);
-                                texture.SetPixels(cubemap.GetPixels((CubemapFace)i));
-                                FlipPixels(texture, true, true);
-                                ImageEncoder.Encode(texture, di.FullName, SimplifyCubemapFace((CubemapFace)i), imageFormat, qualityPercentage);
-                            }
-                            break;
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                throw e;
-            }
-            finally
-            {
-                if (cubemap != null)
-                {
-                    GameObject.DestroyImmediate(cubemap);
-                }
-                if (texture != null)
-                {
-                    GameObject.DestroyImmediate(texture);
-                }
-                #region Restore settings
-                camera.transform.position = originalCameraPos;
-                camera.transform.rotation = originalCameraRot;
-                camera.targetTexture = camTarget;
-                #endregion
-            }
+            
         }
 
         private void ExportMask()
         {
-            var hotspots = ValidateHotspots();
+            var hotspots = _target.Hotspots;// ValidateHotspots();
             int interactableLayer = _serializedObject.FindProperty("_interactableLayer").intValue; // single layer
             Color maskColor = _target.MaskColor;
             Color backgroundColor = Color.black;
@@ -266,8 +192,8 @@ namespace Treasured.UnitySdk
                     {
                         DisplayCancelableProgressBar(progressTitle, progressText, i / 6f);
                         texture.SetPixels(cubemap.GetPixels((CubemapFace)i));
-                        FlipPixels(texture, true, true);
-                        ImageEncoder.Encode(texture, di.FullName, "mask_" + SimplifyCubemapFace((CubemapFace)i), ImageFormat.WEBP, qualityPercentage);
+                        ImageUtilies.FlipPixels(texture, true, true);
+                        ImageUtilies.Encode(texture, di.FullName, "mask_" + SimplifyCubemapFace((CubemapFace)i), ImageFormat.WEBP, qualityPercentage);
                     }
                 }
 
@@ -296,7 +222,15 @@ namespace Treasured.UnitySdk
             }
         }
 
-        string SimplifyCubemapFace(CubemapFace cubemapFace)
+        private void DisplayCancelableProgressBar(string title, string info, float progress)
+        {
+            if (EditorUtility.DisplayCancelableProgressBar(title, info, progress))
+            {
+                throw new TreasuredException("Export canceled", "Export canceled by the user.");
+            }
+        }
+
+        private string SimplifyCubemapFace(CubemapFace cubemapFace)
         {
             switch (cubemapFace)
             {
@@ -316,36 +250,6 @@ namespace Treasured.UnitySdk
                 default:
                     return "unknown";
             }
-        }
-
-        private void DisplayCancelableProgressBar(string title, string info, float progress)
-        {
-            if (EditorUtility.DisplayCancelableProgressBar(title, info, progress))
-            {
-                throw new TreasuredException("Export canceled", "Export canceled by the user.");
-            }
-        }
-
-        private void FlipPixels(Texture2D texture, bool flipX, bool flipY)
-        {
-            Color32[] originalPixels = texture.GetPixels32();
-
-            var flippedPixels = Enumerable.Range(0, texture.width * texture.height).Select(index =>
-            {
-                int x = index % texture.width;
-                int y = index / texture.width;
-                if (flipX)
-                    x = texture.width - 1 - x;
-
-                if (flipY)
-                    y = texture.height - 1 - y;
-
-                return originalPixels[y * texture.width + x];
-            }
-            );
-
-            texture.SetPixels32(flippedPixels.ToArray());
-            texture.Apply();
         }
 
         public void Export(ExportOptions options)
@@ -458,25 +362,7 @@ namespace Treasured.UnitySdk
             EditorGUI.indentLevel--;
         }
 
-        private Camera ValidateCamera()
-        {
-            Camera camera = Camera.main;
-            if (camera == null)
-            {
-                throw new Exception("Camera not found. Please make sure there is active camera in the scene.");
-            }
-            return camera;
-        }
-
-        private Hotspot[] ValidateHotspots()
-        {
-            var hotspots = _target.Hotspots;
-            if (hotspots == null || hotspots.Length == 0)
-            {
-                throw new InvalidOperationException("No active hotspots.");
-            }
-            return hotspots;
-        }
+        
 
         private DirectoryInfo CreateDirectory(params string[] paths)
         {

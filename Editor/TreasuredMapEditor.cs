@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
@@ -402,27 +403,54 @@ namespace Treasured.UnitySdk.Editor
         void OnExportGUI()
         {
             EditorGUI.indentLevel++;
-            foreach (var process in exportProcesses)
-            {
-                using(new EditorGUILayout.HorizontalScope())
-                {
-                    process.Expanded = EditorGUILayout.Foldout(process.Expanded, process.DisplayName, true);
-                    if (GUILayout.Button(new GUIContent("Export"), GUILayout.Width(48)))
-                    {
-                        process.Export(target as TreasuredMap);
-                    }
-                }
-                if (process.Expanded)
-                {
-                    process.OnGUI();
-                }
-            }
-            if (GUILayout.Button(new GUIContent("Export All"), GUILayout.Height(24)))
+            try
             {
                 foreach (var process in exportProcesses)
                 {
-                    process.Export(target as TreasuredMap);
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        process.Expanded = EditorGUILayout.Foldout(process.Expanded, process.DisplayName, true);
+                        if (GUILayout.Button(new GUIContent("Export"), GUILayout.Width(48)))
+                        {
+                            process.Export(Directory.CreateDirectory(Path.Combine(TreasuredMapExporter.DefaultOutputFolderPath, (target as TreasuredMap).OutputFolderName)).FullName, target as TreasuredMap);
+                        }
+                    }
+                    if (process.Expanded)
+                    {
+                        process.OnGUI(map);
+                    }
                 }
+                if (GUILayout.Button(new GUIContent("Export All"), GUILayout.Height(24)))
+                {
+                    foreach (var process in exportProcesses)
+                    {
+                        process.Export(Directory.CreateDirectory(Path.Combine(TreasuredMapExporter.DefaultOutputFolderPath, (target as TreasuredMap).OutputFolderName)).FullName, target as TreasuredMap);
+                    }
+                }
+            }
+            catch (ContextException e)
+            {
+                if (EditorUtility.DisplayDialog(e.Title, e.Message, e.PingText))
+                {
+                    EditorGUIUtility.PingObject(e.Context);
+                }
+            }
+            catch (TreasuredException e)
+            {
+                EditorUtility.DisplayDialog(e.Title, e.Message, "Ok");
+            }
+            catch (Exception e)
+            {
+                string exceptionType = e.GetType().Name.ToString();
+                if (exceptionType.EndsWith("Exception"))
+                {
+                    exceptionType = exceptionType.Substring(0, exceptionType.LastIndexOf("Exception"));
+                }
+                EditorUtility.DisplayDialog(ObjectNames.NicifyVariableName(exceptionType), e.Message, "Ok");
+            }
+            finally
+            {
+                EditorUtility.ClearProgressBar();
             }
             EditorGUI.indentLevel--;
         }

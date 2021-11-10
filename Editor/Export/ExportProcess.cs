@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using UnityEditor;
 using UnityEngine;
 
@@ -19,8 +20,7 @@ namespace Treasured.UnitySdk
             }
         }
         public bool Expanded { get; set; } = true;
-        public string OutputDirectory { get; set; }
-        public abstract void Export(TreasuredMap map);
-        public virtual void OnGUI() { }
+        public abstract void Export(string rootDirectory, TreasuredMap map);
+        public virtual void OnGUI(TreasuredMap map) { }
     }
 }
