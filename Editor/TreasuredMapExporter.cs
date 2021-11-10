@@ -29,12 +29,7 @@ namespace Treasured.UnitySdk
         public static readonly string DefaultOutputFolderPath = $"{Directory.GetCurrentDirectory()}/{DefaultOutputFolder}";
 
         private static readonly int[] builtInLayers = new int[] { 0, 1, 2, 4, 5 };
-        static class Styles
-        {
-            public static readonly GUIContent folderOpened = EditorGUIUtility.TrIconContent("FolderOpened Icon", "Show in Explorer");
-            public static readonly GUIContent overwriteExistingData = EditorGUIUtility.TrTextContent("Overwrite Existing Data", "Show in Explorer");
-        }
-
+       
         #region Image
 
         private static Material objectIdConverter;
@@ -46,7 +41,6 @@ namespace Treasured.UnitySdk
 
         private DirectoryInfo _outputDirectory;
 
-        private SerializedProperty _outputFolderName;
         private SerializedProperty _interactableLayer;
 
         private ExportOptions exportOptions = ExportOptions.All;
@@ -58,13 +52,6 @@ namespace Treasured.UnitySdk
         {
             this._target = map;
             this._serializedObject = serializedObject;
-
-            this._outputFolderName = serializedObject.FindProperty(nameof(_outputFolderName));
-            if (string.IsNullOrEmpty(_outputFolderName.stringValue))
-            {
-                _outputFolderName.stringValue = EditorSceneManager.GetActiveScene().name;
-                serializedObject.ApplyModifiedProperties();
-            }
         }
 
         private void ValidateOutputDirectory()
@@ -304,37 +291,6 @@ namespace Treasured.UnitySdk
             {
                 EditorUtility.ClearProgressBar();
                 Dispose();
-            }
-        }
-
-        internal void OnGUI()
-        {
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                EditorGUI.BeginChangeCheck();
-                string newOutputFolderName = EditorGUILayout.TextField(new GUIContent("Output Folder Name"), _outputFolderName.stringValue);
-                if (EditorGUI.EndChangeCheck() && !string.IsNullOrWhiteSpace(newOutputFolderName))
-                {
-                    _outputFolderName.stringValue = newOutputFolderName;
-                }
-                if (GUILayout.Button(Styles.folderOpened, EditorStyles.label, GUILayout.Width(20), GUILayout.Height(18)))
-                {
-                    Application.OpenURL(TreasuredMapExporter.DefaultOutputFolderPath);
-                }
-            }
-            overwriteExistingData = EditorGUILayout.Toggle(Styles.overwriteExistingData, overwriteExistingData);
-            //EditorGUILayout.PropertyField(_serializedObject.FindProperty("_format"));
-            EditorGUILayout.PropertyField(_serializedObject.FindProperty("_quality"));
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                qualityPercentage = EditorGUILayout.IntSlider(new GUIContent("Quality Percentage"), qualityPercentage, 1, 100);
-                EditorGUILayout.LabelField("%", GUILayout.Width(20));
-            }
-            //cubemapFormat = (CubemapFormat)EditorGUILayout.EnumPopup("Cubemap Format", cubemapFormat);
-            OnExportOptionsGUI();
-            if (GUILayout.Button(new GUIContent("Export"), GUILayout.Height(24)))
-            {
-                Export(exportOptions);
             }
         }
 

@@ -25,7 +25,7 @@ namespace Treasured.UnitySdk
         {
             ValidateMap(map);
             string jsonPath = Path.Combine(rootDirectory, "data.json");
-            string json = JsonConvert.SerializeObject(map, Formatting.Indented, JsonSettings);
+            string json = JsonConvert.SerializeObject(map, formatting, JsonSettings);
             File.WriteAllText(jsonPath, json);
         }                                               
 

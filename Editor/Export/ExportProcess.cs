@@ -7,6 +7,7 @@ namespace Treasured.UnitySdk
 {
     internal abstract class ExportProcess
     {
+        public bool Enabled { get; set; } = true;
         public virtual string DisplayName
         {
             get
