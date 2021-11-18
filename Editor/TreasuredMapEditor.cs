@@ -6,7 +6,7 @@ using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEngine;
 
-namespace Treasured.UnitySdk.Editor
+namespace Treasured.UnitySdk
 {
     [CustomEditor(typeof(TreasuredMap))]
     internal class TreasuredMapEditor : UnityEditor.Editor
@@ -53,7 +53,7 @@ namespace Treasured.UnitySdk.Editor
             }
         }
 
-        static class Styles
+        public static class Styles
         {
             public static readonly GUIContent alignView = EditorGUIUtility.TrTextContent("Align View");
             public static readonly GUIContent snapAllToGround = EditorGUIUtility.TrTextContent("Snap All on Ground");
@@ -333,9 +333,9 @@ namespace Treasured.UnitySdk.Editor
         [FoldoutGroup("Launch Page Settings")]
         void OnLaunchPageSettingsGUI()
         {
-            EditorGUILayoutUtilities.RequiredPropertyField(_author);
-            EditorGUILayoutUtilities.RequiredPropertyField(_title);
-            EditorGUILayoutUtilities.RequiredPropertyField(_description);
+            EditorGUILayoutHelper.RequiredPropertyField(_author);
+            EditorGUILayoutHelper.RequiredPropertyField(_title);
+            EditorGUILayoutHelper.RequiredPropertyField(_description);
             EditorGUILayout.PropertyField(_audioUrl);
             EditorGUILayout.PropertyField(_muteOnStart);
             EditorGUILayout.PropertyField(_templateLoader);
@@ -474,7 +474,7 @@ namespace Treasured.UnitySdk.Editor
                                     EditorGUILayout.LabelField(new GUIContent(current.gameObject.name), style: Styles.objectLabel);
                                 }
                             }
-                            if (current.gameObject.activeSelf && EditorGUILayoutUtilities.CreateClickZone(Event.current, GUILayoutUtility.GetLastRect(), MouseCursor.Link, 0))
+                            if (current.gameObject.activeSelf && EditorGUILayoutHelper.CreateClickZone(Event.current, GUILayoutUtility.GetLastRect(), MouseCursor.Link, 0))
                             {
                                 if (current is Hotspot hotspot)
                                 {

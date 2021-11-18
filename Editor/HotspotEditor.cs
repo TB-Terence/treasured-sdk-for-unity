@@ -14,6 +14,8 @@ namespace Treasured.UnitySdk
             public static readonly GUIContent missingMapComponent = EditorGUIUtility.TrTextContent("Missing Treasured Map Component in parent.", "", "Warning");
         }
 
+        private static readonly GUIContent[] tabs = { new GUIContent("On Click"), new GUIContent("On Hover") };
+
         private ActionGroupListDrawer onClickList;
         private ActionGroupListDrawer onHoverList;
         private SerializedProperty id;
@@ -24,6 +26,11 @@ namespace Treasured.UnitySdk
         private SerializedProperty onHover;
 
         private TreasuredMap map;
+        private SerializedObject serializedHitboxTransform;
+        private SerializedObject serializedCameraTransform;
+
+        private int selectedTabIndex;
+
 
         private void OnEnable()
         {
@@ -35,6 +42,14 @@ namespace Treasured.UnitySdk
             camera = serializedObject.FindProperty("_camera");
             onClick = serializedObject.FindProperty("_onClick");
             onHover = serializedObject.FindProperty("_onHover");
+            if (hotspot.Hitbox)
+            {
+                serializedHitboxTransform = new SerializedObject(hotspot.Hitbox.transform);
+            }
+            if (hotspot.Camera)
+            {
+                serializedCameraTransform = new SerializedObject(hotspot.Camera.transform);
+            }
             if (serializedObject.targetObjects.Length == 1)
             {
                 onClickList = new ActionGroupListDrawer(serializedObject, onClick);
@@ -62,10 +77,19 @@ namespace Treasured.UnitySdk
             {
                 EditorGUILayout.PropertyField(id);
                 EditorGUILayout.PropertyField(description);
-                EditorGUILayout.PropertyField(hitbox);
-                EditorGUILayout.PropertyField(camera);
-                onClickList?.OnGUI();
-                onHoverList?.OnGUI();
+                EditorGUILayoutHelper.TransformPropertyField(serializedHitboxTransform, "Hitbox");
+                EditorGUILayoutHelper.TransformPropertyField(serializedCameraTransform, "Camera", true, true, false);
+                EditorGUILayout.LabelField("Actions", EditorStyles.boldLabel);
+                selectedTabIndex = GUILayout.SelectionGrid(selectedTabIndex, tabs, tabs.Length, TreasuredMapEditor.Styles.TabButton);
+                switch (selectedTabIndex)
+                {
+                    case 0:
+                        onClickList?.OnGUI();
+                        break;
+                    case 1:
+                        onHoverList?.OnGUI();
+                        break;
+                }
             }
             if (GUILayout.Button(Styles.snapToGround, GUILayout.Height(24)))
             {
