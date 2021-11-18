@@ -3,11 +3,12 @@ using ImageProcessor.Imaging.Formats;
 using ImageProcessor.Plugins.WebP.Imaging.Formats;
 using System;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    internal class ImageEncoder
+    internal class ImageUtilies
     {
         /// <summary>
         /// Encode Image in WebP format
@@ -59,6 +60,28 @@ namespace Treasured.UnitySdk
                     EncodeToWEBP(bytes, path, imageQualityPercentage);
                     break;
             }
+        }
+
+        public static void FlipPixels(Texture2D texture, bool flipX, bool flipY)
+        {
+            Color32[] originalPixels = texture.GetPixels32();
+
+            var flippedPixels = Enumerable.Range(0, texture.width * texture.height).Select(index =>
+            {
+                int x = index % texture.width;
+                int y = index / texture.width;
+                if (flipX)
+                    x = texture.width - 1 - x;
+
+                if (flipY)
+                    y = texture.height - 1 - y;
+
+                return originalPixels[y * texture.width + x];
+            }
+            );
+
+            texture.SetPixels32(flippedPixels.ToArray());
+            texture.Apply();
         }
     }
 }

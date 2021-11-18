@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEditor.PackageManager;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
@@ -60,6 +62,8 @@ namespace Treasured.UnitySdk
             public static readonly GUIContent selectAll = EditorGUIUtility.TrTextContent("Select All");
             public static readonly GUIContent searchObjects = EditorGUIUtility.TrTextContent("Search", "Search objects by Id or name");
 
+            public static readonly GUIContent folderOpened = EditorGUIUtility.TrIconContent("FolderOpened Icon", "Show in Explorer");
+
             public static readonly GUIContent search = EditorGUIUtility.TrIconContent("Search Icon");
 
             public static readonly Dictionary<Type, GUIContent> createNew = new Dictionary<Type, GUIContent>()
@@ -72,6 +76,11 @@ namespace Treasured.UnitySdk
             public static readonly GUIStyle objectLabel = new GUIStyle("label")
             {
                 fontStyle = FontStyle.Bold
+            };
+
+            public static readonly GUIStyle noLabel = new GUIStyle("label")
+            {
+                fixedWidth = 1
             };
 
             private static GUIStyle tabButton;
@@ -117,9 +126,7 @@ namespace Treasured.UnitySdk
             Mixed
         }
 
-        private static bool autoFocusOnSelectionChanged = false;
-
-        private TreasuredMapExporter exporter;
+        private static bool enableCameraPreview = false;
 
         private SerializedProperty _id;
 
@@ -151,6 +158,13 @@ namespace Treasured.UnitySdk
 
         private string searchString;
 
+        private ExportProcess[] exportProcesses;
+
+
+        private SerializedProperty _outputFolderName;
+
+        private bool _overwriteExistingData;
+
         private void OnEnable()
         {
             map = target as TreasuredMap;
@@ -175,8 +189,6 @@ namespace Treasured.UnitySdk
                 serializedObject.FindProperty("_format").enumValueIndex = 2;
                 serializedObject.ApplyModifiedProperties();
 
-                exporter = new TreasuredMapExporter(serializedObject, map);
-
                 // Set icon for hotspots
                 foreach (var hotspot in hotspots)
                 {
@@ -188,6 +200,30 @@ namespace Treasured.UnitySdk
 
                 Migrate(hotspots);
                 Migrate(interactables);
+
+                this._outputFolderName = serializedObject.FindProperty(nameof(_outputFolderName));
+                if (string.IsNullOrEmpty(_outputFolderName.stringValue))
+                {
+                    _outputFolderName.stringValue = EditorSceneManager.GetActiveScene().name;
+                    serializedObject.ApplyModifiedProperties();
+                }
+
+                if (exportProcesses == null)
+                {
+                    var exportProcessTypes = Assembly.GetExecutingAssembly().GetTypes().Where(x => !x.IsAbstract && typeof(ExportProcess).IsAssignableFrom(x)).ToArray();
+                    if(exportProcessTypes.Length > 0)
+                    {
+                        exportProcesses = new ExportProcess[exportProcessTypes.Length];
+                        for (int i = 0; i < exportProcesses.Length; i++)
+                        {
+                            exportProcesses[i] = (ExportProcess)Activator.CreateInstance(exportProcessTypes[i]);
+                        }
+                    }
+                    else
+                    {
+                        exportProcesses = new ExportProcess[0];
+                    }
+                }
             }
 
             SceneView.duringSceneGui -= OnSceneViewGUI;
@@ -290,28 +326,11 @@ namespace Treasured.UnitySdk
                 state.show = EditorGUILayout.BeginFoldoutHeaderGroup(state.show, state.name);
                 if (state.show)
                 {
+                    EditorGUI.indentLevel++;
                     guiMethod.Key.Invoke(this, null);
+                    EditorGUI.indentLevel--;
                 }
                 EditorGUILayout.EndFoldoutHeaderGroup();
-            }
-        }
-
-        [FoldoutGroup("Gizmos")]
-        void OnGizmosGUI()
-        {
-            EditorGUI.BeginChangeCheck();
-            autoFocusOnSelectionChanged = EditorGUILayout.Toggle(new GUIContent("Auto Focus", "Show the camera preview for selected Treasured Object."), autoFocusOnSelectionChanged);
-            if(EditorGUI.EndChangeCheck())
-            {
-                if (autoFocusOnSelectionChanged)
-                {
-                    Selection.selectionChanged -= OnSelectTreasuredObject;
-                    Selection.selectionChanged += OnSelectTreasuredObject;
-                }
-                else
-                {
-                    Selection.selectionChanged -= OnSelectTreasuredObject;
-                }
             }
         }
 
@@ -324,13 +343,7 @@ namespace Treasured.UnitySdk
             }
         }
 
-        [FoldoutGroup("Info")]
-        void OnInfoGUI()
-        {
-            EditorGUILayout.PropertyField(_id);
-        }
-
-        [FoldoutGroup("Launch Page Settings")]
+        [FoldoutGroup("Page Info")]
         void OnLaunchPageSettingsGUI()
         {
             EditorGUILayoutHelper.RequiredPropertyField(_author);
@@ -341,17 +354,26 @@ namespace Treasured.UnitySdk
             EditorGUILayout.PropertyField(_templateLoader);
         }
 
-        [FoldoutGroup("Guide Tour Settings")]
-        void OnGuideTourSettingsGUI()
-        {
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("_loop"));
-        }
-
-        private int layer;
-
         [FoldoutGroup("Object Management", true)]
         void OnObjectManagementGUI()
         {
+            EditorGUILayout.LabelField("Gizmos", EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
+            EditorGUI.BeginChangeCheck();
+            enableCameraPreview = EditorGUILayout.Toggle(new GUIContent("Camera Preview", "Show the camera preview for when selection changed in the hierarchy."), enableCameraPreview);
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (enableCameraPreview)
+                {
+                    Selection.selectionChanged -= OnSelectTreasuredObject;
+                    Selection.selectionChanged += OnSelectTreasuredObject;
+                }
+                else
+                {
+                    Selection.selectionChanged -= OnSelectTreasuredObject;
+                }
+            }
+            EditorGUI.indentLevel--;
             using (new EditorGUILayout.HorizontalScope())
             {
                 searchString = EditorGUILayout.TextField(Styles.searchObjects, searchString);
@@ -392,7 +414,95 @@ namespace Treasured.UnitySdk
         [FoldoutGroup("Export", true)]
         void OnExportGUI()
         {
-            exporter?.OnGUI();
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUI.BeginChangeCheck();
+                string newOutputFolderName = EditorGUILayout.TextField(new GUIContent("Output Folder Name"), _outputFolderName.stringValue);
+                if (EditorGUI.EndChangeCheck() && !string.IsNullOrWhiteSpace(newOutputFolderName))
+                {
+                    _outputFolderName.stringValue = newOutputFolderName;
+                }
+                if (GUILayout.Button(Styles.folderOpened, EditorStyles.label, GUILayout.Width(20), GUILayout.Height(18)))
+                {
+                    Application.OpenURL(ExportProcess.DefaultOutputFolderPath);
+                }
+            }
+            EditorGUILayout.LabelField("Export Options", EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
+            try
+            {
+                foreach (var process in exportProcesses)
+                {
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        float previousLabelWidth = EditorGUIUtility.labelWidth;
+                        EditorGUIUtility.labelWidth = 0;
+                        process.Enabled = EditorGUILayout.Toggle(GUIContent.none, process.Enabled, GUILayout.Width(24));
+                        EditorGUIUtility.labelWidth = previousLabelWidth;
+                        process.Expanded = EditorGUILayout.Foldout(process.Expanded, process.DisplayName, true);
+                    }
+                    if (process.Expanded)
+                    {
+                        EditorGUI.indentLevel++;
+                        process.OnGUI(serializedObject);
+                        EditorGUI.indentLevel--;
+                    }
+                }
+                if (GUILayout.Button(new GUIContent("Export", "Export all enabled process."), GUILayout.Height(24)))
+                {
+                    DataValidator.ValidateMap(map);
+                    string root = string.Empty;
+                    try
+                    {
+                        root = Path.Combine(ExportProcess.DefaultOutputFolderPath, (target as TreasuredMap).OutputFolderName).Replace('/', '\\');
+                    }
+                    catch (Exception ex) when (ex is IOException || ex is ArgumentException)
+                    {
+                        throw new ArgumentException($"Invalid folder name : {(target as TreasuredMap).OutputFolderName}");
+                    }
+                    catch
+                    {
+                        throw;
+                    }
+                    if (Directory.Exists(root))
+                    {
+                        Directory.Delete(root, true);
+                    }
+                    Directory.CreateDirectory(root); // try create the directory if not exist.
+                    foreach (var process in exportProcesses)
+                    {
+                        if (process.Enabled)
+                        {
+                            process.Export(root, target as TreasuredMap);
+                        }
+                    }
+                }
+            }
+            catch (ContextException e)
+            {
+                if (EditorUtility.DisplayDialog(e.Title, e.Message, e.PingText))
+                {
+                    EditorGUIUtility.PingObject(e.Context);
+                }
+            }
+            catch (TreasuredException e)
+            {
+                EditorUtility.DisplayDialog(e.Title, e.Message, "Ok");
+            }
+            catch (Exception e)
+            {
+                string exceptionType = e.GetType().Name.ToString();
+                if (exceptionType.EndsWith("Exception"))
+                {
+                    exceptionType = exceptionType.Substring(0, exceptionType.LastIndexOf("Exception"));
+                }
+                EditorUtility.DisplayDialog(ObjectNames.NicifyVariableName(exceptionType), e.Message, "Ok");
+            }
+            finally
+            {
+                EditorUtility.ClearProgressBar();
+            }
+            EditorGUI.indentLevel--;
         }
 
         //[FoldoutGroup("Upload", true)]
@@ -488,7 +598,6 @@ namespace Treasured.UnitySdk
                                     SceneView.lastActiveSceneView.LookAt(cameraPosition, Quaternion.LookRotation(targetPosition - cameraPosition), 1);
                                 }
                                 EditorGUIUtility.PingObject(current);
-
                             }
                         }
                     }
@@ -524,6 +633,10 @@ namespace Treasured.UnitySdk
                         SceneView.lastActiveSceneView.LookAt(go.transform.position, camera.transform.rotation);
                     }
                     editingTarget = obj;
+                }
+                if (typeof(T).Equals(typeof(Hotspot)))
+                {
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty("_loop"));
                 }
             }
         }

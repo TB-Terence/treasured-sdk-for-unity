@@ -1,3 +1,14 @@
+## Version 0.7.2 (November 9, 2021)
+
+### Add
+
+- Move export options to their own class to allow properties for each individual process.
+
+### Changes
+
+- Rename `Launch Page Settings` to `Page Info`
+- Move `Gizmos` group under `Object Management` group
+
 ## Version 0.7.1 (October 27, 2021)
 
 ### Improvements
