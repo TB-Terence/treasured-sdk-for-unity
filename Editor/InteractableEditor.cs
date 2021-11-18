@@ -13,6 +13,7 @@ namespace Treasured.UnitySdk
         private SerializedProperty onClick;
 
         private TreasuredMap map;
+        private SerializedObject serializedHitboxTransform;
 
         private void OnEnable()
         {
@@ -21,6 +22,7 @@ namespace Treasured.UnitySdk
             id = serializedObject.FindProperty("_id");
             description = serializedObject.FindProperty("_description");
             hitbox = serializedObject.FindProperty("_hitbox");
+            serializedHitboxTransform = new SerializedObject((target as Interactable).Hitbox.transform);
             onClick = serializedObject.FindProperty("_onClick");
             onClickList = new ActionGroupListDrawer(serializedObject, onClick);
         }
@@ -38,10 +40,10 @@ namespace Treasured.UnitySdk
                 EditorGUILayout.PropertyField(id);
             }
             EditorGUILayout.PropertyField(description);
-            EditorGUILayout.PropertyField(hitbox);
+            EditorGUILayoutHelper.TransformPropertyField(serializedHitboxTransform, "Hitbox");
             if (targets.Length == 1)
             {
-                onClickList.OnGUI();
+                onClickList.OnGUI(true);
             }
             serializedObject.ApplyModifiedProperties();
         }

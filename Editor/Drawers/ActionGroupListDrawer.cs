@@ -13,8 +13,10 @@ namespace Treasured.UnitySdk
             public static GUIContent toolbarRemove = EditorGUIUtility.TrIconContent("Toolbar Minus", "Remove selected group");
             public static GUIStyle toolbarButton = new GUIStyle(EditorStyles.label) { fontStyle = FontStyle.Bold };
         }
+
         private ReorderableList reorderableList;
         private List<ActionBaseListDrawer> groupDrawers = new List<ActionBaseListDrawer>();
+        private bool showLabel = false;
 
         public ActionGroupListDrawer(SerializedObject serializedObject, SerializedProperty elements)
         {
@@ -31,7 +33,10 @@ namespace Treasured.UnitySdk
                 displayRemove = false,
                 drawHeaderCallback = (Rect rect) =>
                 {
-                    EditorGUI.LabelField(rect, reorderableList.serializedProperty.displayName);
+                    if (showLabel)
+                    {
+                        EditorGUI.LabelField(rect, reorderableList.serializedProperty.displayName);
+                    }
                     if (GUI.Button(new Rect(rect.xMax - 40, rect.y, 20, rect.height), Styles.toolbarAdd, Styles.toolbarButton))
                     {
                         CreateNewGroup();
@@ -68,8 +73,9 @@ namespace Treasured.UnitySdk
             };
         }
 
-        public void OnGUI()
+        public void OnGUI(bool showLabel = false)
         {
+            this.showLabel = showLabel;
             reorderableList.DoLayoutList();
         }
 

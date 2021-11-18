@@ -1,16 +1,22 @@
 ﻿using System;
+using System.Linq;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    internal static class EditorGUILayoutUtilities
+    internal static class EditorGUILayoutHelper
     {
         static class Styles
         {
             public static GUIStyle Link = new GUIStyle() { stretchWidth = false, normal = { textColor = new Color(0f, 0.47f, 0.85f) } };
             public static readonly GUIContent requiredField = EditorGUIUtility.TrIconContent("Error", "Required field");
         }
+
+        private static object transformRotationGUI;
+        private static MethodInfo transformRotationOnEnableMethodInfo;
+        private static MethodInfo transformRotationGUIMethodInfo;
 
         public static bool Link(GUIContent label, GUIContent url)
         {
@@ -98,6 +104,42 @@ namespace Treasured.UnitySdk
                 }
             }
             return missingData;
+        }
+
+        public static void TransformPropertyField(SerializedObject serializedTransform, string name, bool showPosition = true, bool showRotation = true, bool showScale = true)
+        {
+            if (serializedTransform != null)
+            {
+                EditorGUILayout.LabelField(name, EditorStyles.boldLabel);
+                EditorGUI.indentLevel++;
+                EditorGUI.BeginChangeCheck();
+                serializedTransform.Update();
+                SerializedProperty localPosition = serializedTransform.FindProperty("m_LocalPosition");
+                SerializedProperty localRotation = serializedTransform.FindProperty("m_LocalRotation");
+                SerializedProperty localScale = serializedTransform.FindProperty("m_LocalScale");
+                if (showPosition && localPosition != null)
+                {
+                    EditorGUILayout.PropertyField(localPosition);
+                }
+                if(showRotation && localRotation != null)
+                {
+                    if (transformRotationGUI == null)
+                    {
+                        var transformRotationGUIType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.TransformRotationGUI");
+                        transformRotationGUI = Activator.CreateInstance(transformRotationGUIType);
+                        transformRotationOnEnableMethodInfo = transformRotationGUIType.GetMethod("OnEnable");
+                        transformRotationGUIMethodInfo = transformRotationGUIType.GetMethods().FirstOrDefault(x => x.Name == "RotationField" && x.GetParameters().Length == 0);
+                    }
+                    transformRotationOnEnableMethodInfo.Invoke(transformRotationGUI, new object[] { serializedTransform.FindProperty("m_LocalRotation"), new GUIContent("Local Rotation") });
+                    transformRotationGUIMethodInfo.Invoke(transformRotationGUI, null);
+                }
+                if(showScale && localScale != null)
+                {
+                    EditorGUILayout.PropertyField(serializedTransform.FindProperty("m_LocalScale"));
+                }
+                serializedTransform.ApplyModifiedProperties();
+                EditorGUI.indentLevel--;
+            }
         }
     }
 }
