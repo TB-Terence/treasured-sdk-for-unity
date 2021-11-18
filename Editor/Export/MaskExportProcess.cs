@@ -26,7 +26,7 @@ namespace Treasured.UnitySdk
             using (new EditorGUILayout.HorizontalScope())
             {
                 qualityPercentage = EditorGUILayout.IntSlider(new GUIContent("Quality Percentage"), qualityPercentage, 1, 100);
-                EditorGUILayout.LabelField("%", GUILayout.Width(48));
+                GUILayout.Label("%");
             }
         }
 
@@ -45,6 +45,7 @@ namespace Treasured.UnitySdk
 
             Dictionary<Renderer, Material> defaultMaterials = new Dictionary<Renderer, Material>();
             Dictionary<Renderer, int> defaultLayers = new Dictionary<Renderer, int>();
+            Dictionary<TreasuredObject, bool> defaultObjectStates = new Dictionary<TreasuredObject, bool>();
             List<GameObject> tempHotspots = new List<GameObject>();
             var cameraGO = new GameObject("Cubemap Camera"); // creates a temporary camera with some default settings.
             cameraGO.hideFlags = HideFlags.DontSave;
@@ -58,6 +59,10 @@ namespace Treasured.UnitySdk
             try
             {
                 TreasuredObject[] objects = map.GetComponentsInChildren<TreasuredObject>();
+                foreach (var obj in objects)
+                {
+                    defaultObjectStates[obj] = obj.gameObject.activeSelf;
+                }
                 if (objectIdConverter == null)
                 {
                     objectIdConverter = new Material(Shader.Find("Hidden/ObjectId"));
@@ -80,8 +85,8 @@ namespace Treasured.UnitySdk
                     GameObject tempGO = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
                     tempGO.hideFlags = HideFlags.HideAndDontSave;
                     tempGO.transform.SetParent(hotspot.Hitbox.transform);
-                    tempGO.transform.localScale = new Vector3(0.5f, 0.01f, 0.5f);
                     tempGO.transform.localPosition = Vector3.zero;
+                    tempGO.transform.localScale = new Vector3(0.5f, 0.01f, 0.5f);
                     tempGO.layer = interactableLayer;
                     tempHotspots.Add(tempGO);
                 }
@@ -126,7 +131,7 @@ namespace Treasured.UnitySdk
                     {
                         throw new System.NotSupportedException("Current graphic device/platform does not support RenderToCubemap.");
                     }
-                    var di = Directory.CreateDirectory(Path.Combine(rootDirectory, "images", current.Id));
+                    var di = Directory.CreateDirectory(Path.Combine(rootDirectory, "images", current.Id).Replace('/', '\\'));
                     for (int i = 0; i < 6; i++)
                     {
                         if (EditorUtility.DisplayCancelableProgressBar(progressTitle, progressText, i / 6f))
@@ -152,10 +157,16 @@ namespace Treasured.UnitySdk
                     kvp.Key.gameObject.layer = kvp.Value;
                 }
 
+                foreach (var kvp in defaultObjectStates)
+                {
+                    kvp.Key.gameObject.SetActive(kvp.Value);
+                }
+
                 foreach (var tempHotspot in tempHotspots)
                 {
                     GameObject.DestroyImmediate(tempHotspot);
                 }
+
                 if (cameraGO != null)
                 {
                     GameObject.DestroyImmediate(cameraGO);

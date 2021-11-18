@@ -443,7 +443,9 @@ namespace Treasured.UnitySdk
                     }
                     if (process.Expanded)
                     {
+                        EditorGUI.indentLevel++;
                         process.OnGUI(serializedObject);
+                        EditorGUI.indentLevel--;
                     }
                 }
                 if (GUILayout.Button(new GUIContent("Export", "Export all enabled process."), GUILayout.Height(24)))
@@ -452,7 +454,7 @@ namespace Treasured.UnitySdk
                     string root = string.Empty;
                     try
                     {
-                        root = Path.Combine(ExportProcess.DefaultOutputFolderPath, (target as TreasuredMap).OutputFolderName);
+                        root = Path.Combine(ExportProcess.DefaultOutputFolderPath, (target as TreasuredMap).OutputFolderName).Replace('/', '\\');
                     }
                     catch (Exception ex) when (ex is IOException || ex is ArgumentException)
                     {

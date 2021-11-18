@@ -16,7 +16,7 @@ namespace Treasured.UnitySdk
             using (new EditorGUILayout.HorizontalScope())
             {
                 qualityPercentage = EditorGUILayout.IntSlider(new GUIContent("Quality Percentage"), qualityPercentage, 1, 100);
-                EditorGUILayout.LabelField("%", GUILayout.Width(48));
+                GUILayout.Label("%");
             }
         }
 
@@ -53,7 +53,7 @@ namespace Treasured.UnitySdk
                     {
                         throw new System.NotSupportedException("Current graphic device/platform does not support RenderToCubemap.");
                     }
-                    var path = Directory.CreateDirectory(Path.Combine(rootDirectory, "images", current.Id));
+                    var path = Directory.CreateDirectory(Path.Combine(rootDirectory, "images", current.Id).Replace('/', '\\'));
                     switch (cubemapFormat)
                     {
                         case CubemapFormat.Single:

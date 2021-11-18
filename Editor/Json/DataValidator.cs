@@ -6,15 +6,15 @@
         {
             if (string.IsNullOrWhiteSpace(map.Author))
             {
-                throw new ContextException("Missing Field", "The author field is missing.", map);
+                throw new TreasuredException("Missing Field", "The author field is missing.");
             }
             if (string.IsNullOrWhiteSpace(map.Title))
             {
-                throw new ContextException("Missing Field", "The title field is missing.", map);
+                throw new TreasuredException("Missing Field", "The title field is missing.");
             }
             if (string.IsNullOrWhiteSpace(map.Description))
             {
-                throw new ContextException("Missing Field", "The description field is missing.", map);
+                throw new TreasuredException("Missing Field", "The description field is missing.");
             }
             foreach (var obj in map.GetComponentsInChildren<TreasuredObject>())
             {
