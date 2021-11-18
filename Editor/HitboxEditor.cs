@@ -3,7 +3,7 @@
 namespace Treasured.UnitySdk
 {
     [CustomEditor(typeof(Hitbox))]
-    internal class HitboxEditorEditor : UnityEditor.Editor
+    internal class HitboxEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
         {
