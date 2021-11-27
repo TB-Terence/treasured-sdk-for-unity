@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System;
 using UnityEngine;
 
@@ -100,5 +100,14 @@ namespace Treasured.UnitySdk
         [SerializeField]
         private int _interactableLayer; // game object can only have one layer thus using int instead of LayerMask
         #endregion
+
+        private void OnValidate()
+        {
+            //  Set default Auto Camera Rotation to false for all except for modern loader template 
+            if (_templateLoader.template != "modern")
+            {
+                _templateLoader.autoCameraRotation = false;
+            }
+        }
     }
 }
