@@ -178,9 +178,16 @@ namespace Treasured.UnitySdk
                 }
                 else
                 {
-                    Handles.color = new Color(0, 1, 0, 0.8f);
                     foreach (var target in visibleTargets)
                     {
+                        if (target is Hotspot)
+                        {
+                            Handles.color = new Color(1, 0, 0, 0.8f);
+                        }
+                        else if (target is Interactable)
+                        {
+                            Handles.color = new Color(0, 1, 0, 0.8f);
+                        }
                         Handles.matrix = Matrix4x4.TRS(target.Hitbox.transform.position, target.Hitbox.transform.rotation, Vector3.one);
                         Handles.DrawWireCube(Vector3.zero, target.Hitbox.transform.localScale);
                     }
