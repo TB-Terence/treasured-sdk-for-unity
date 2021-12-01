@@ -55,6 +55,11 @@ namespace Treasured.UnitySdk
             }
         }
 
+        class TreasuredMapGizmosSettings
+        {
+            public bool enableCameraPreview = true;
+        }
+
         public static class Styles
         {
             public static readonly GUIContent alignView = EditorGUIUtility.TrTextContent("Align View");
@@ -126,7 +131,7 @@ namespace Treasured.UnitySdk
             Mixed
         }
 
-        private static bool enableCameraPreview = false;
+        private static TreasuredMapGizmosSettings gizmosSettings = new TreasuredMapGizmosSettings();
 
         private SerializedProperty _id;
 
@@ -357,23 +362,6 @@ namespace Treasured.UnitySdk
         [FoldoutGroup("Object Management", true)]
         void OnObjectManagementGUI()
         {
-            EditorGUILayout.LabelField("Gizmos", EditorStyles.boldLabel);
-            EditorGUI.indentLevel++;
-            EditorGUI.BeginChangeCheck();
-            enableCameraPreview = EditorGUILayout.Toggle(new GUIContent("Camera Preview", "Show the camera preview for when selection changed in the hierarchy."), enableCameraPreview);
-            if (EditorGUI.EndChangeCheck())
-            {
-                if (enableCameraPreview)
-                {
-                    Selection.selectionChanged -= OnSelectTreasuredObject;
-                    Selection.selectionChanged += OnSelectTreasuredObject;
-                }
-                else
-                {
-                    Selection.selectionChanged -= OnSelectTreasuredObject;
-                }
-            }
-            EditorGUI.indentLevel--;
             using (new EditorGUILayout.HorizontalScope())
             {
                 searchString = EditorGUILayout.TextField(Styles.searchObjects, searchString);
@@ -408,6 +396,25 @@ namespace Treasured.UnitySdk
             else if (selectedObjectListIndex == 1)
             {
                 OnObjectList(interactables, ref interactablesScrollPosition, ref exportAllInteractables, ref interactablesGroupToggleState);
+            }
+        }
+
+        [FoldoutGroup("Gizmos", true)]
+        void OnGizmosGUI()
+        {
+            EditorGUI.BeginChangeCheck();
+            gizmosSettings.enableCameraPreview = EditorGUILayout.Toggle(new GUIContent("Camera Preview", "Show the camera preview for when selection changed in the hierarchy."), gizmosSettings.enableCameraPreview);
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (gizmosSettings.enableCameraPreview)
+                {
+                    Selection.selectionChanged -= OnSelectTreasuredObject;
+                    Selection.selectionChanged += OnSelectTreasuredObject;
+                }
+                else
+                {
+                    Selection.selectionChanged -= OnSelectTreasuredObject;
+                }
             }
         }
 

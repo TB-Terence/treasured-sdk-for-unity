@@ -8,7 +8,7 @@ namespace Treasured.UnitySdk
     public class PlayAudioAction : EmbedAction
     {
         [SerializeField]
-        [TextArea(3, 3)]
+        [TextArea(3, 8)]
         private string _src;
         public string Src { get => _src; set => _src = value; }
 
