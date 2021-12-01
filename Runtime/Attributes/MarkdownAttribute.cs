@@ -2,7 +2,7 @@
 
 namespace Treasured.UnitySdk
 {
-    internal class HTMLAttribute : PropertyAttribute
+    internal class MarkdownAttribute : PropertyAttribute
     {
     }
 }

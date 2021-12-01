@@ -11,7 +11,7 @@ namespace Treasured.UnitySdk.Editor
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             position.xMax -= 40;
-            EditorGUI.LabelField(position, label,  new GUIContent( property.stringValue), EditorStyles.linkLabel);
+            EditorGUI.LabelField(position, label, new GUIContent(property.stringValue, property.stringValue), EditorStyles.linkLabel);
             Rect buttonRect = new Rect(position.xMax, position.y, 40, position.height);
             if (GUI.Button(buttonRect, new GUIContent("Edit")))
             {
