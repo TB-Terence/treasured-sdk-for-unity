@@ -4,6 +4,7 @@
     {
         JPG,
         PNG,
-        WEBP
+        WEBP,
+        KTX2
     }
 }

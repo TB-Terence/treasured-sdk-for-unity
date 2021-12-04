@@ -2,14 +2,23 @@ using ImageProcessor;
 using ImageProcessor.Imaging.Formats;
 using ImageProcessor.Plugins.WebP.Imaging.Formats;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace Treasured.UnitySdk
 {
     internal class ImageUtilies
     {
+        private static string processName = "cmd.exe";
+        private static readonly string TreasuredPluginsFolder = Path.GetFullPath("Packages/treasured-sdk-for-unity/Plugins").Replace(" ", "^ ");
+        private static string ktx2Converter = Path.Combine(TreasuredPluginsFolder,
+                                                           "Ktx2Converter.bat").Replace(" ", "^ ");
+        private static string toktx = Path.Combine(TreasuredPluginsFolder, "toktx.exe").Replace(" ", "^ ");
+
         /// <summary>
         /// Encode Image in WebP format
         /// </summary>
@@ -41,6 +50,45 @@ namespace Treasured.UnitySdk
             }
         }
 
+        /// <summary>
+        /// Encode PNG images to KTX2 format
+        /// </summary>
+        /// <param name="rootDirectory">Root Directory of PNG images folder</param>
+        private static void EncodeToKTX2(string rootDirectory)
+        {
+            if (string.IsNullOrWhiteSpace(rootDirectory))
+            {
+                Debug.LogError("KTX2 encoding failed! RootDirectory is empty.");
+                return;
+            }
+
+            var modifiedDirectory = rootDirectory.Replace(" ", "^ ");
+
+            var argumentBuilder = new StringBuilder();
+            argumentBuilder.Append("/K ");
+            argumentBuilder.Append(ktx2Converter);
+            argumentBuilder.Append($" \"{toktx}\"");
+            argumentBuilder.Append($" \"{modifiedDirectory}\"");
+
+            var startInfo = new ProcessStartInfo(processName, argumentBuilder.ToString());
+            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+
+            using var ktxProcess = new Process() { StartInfo = startInfo };
+            ktxProcess.Start();
+            try
+            {
+                ktxProcess.WaitForExit();
+            }
+            catch (Exception e)
+            {
+                throw new ApplicationException(e.Message);
+            }
+            finally
+            {
+                ktxProcess.Dispose();
+            }
+        }
+
         public static void Encode(Texture2D texture, string directory, string fileName, ImageFormat format, int imageQualityPercentage = 100)
         {
             if (!Directory.Exists(directory))
@@ -58,6 +106,9 @@ namespace Treasured.UnitySdk
                     break;
                 case ImageFormat.WEBP:
                     EncodeToWEBP(bytes, path, imageQualityPercentage);
+                    break;
+                case ImageFormat.KTX2:
+                    EncodeToKTX2(directory);
                     break;
             }
         }
