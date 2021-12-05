@@ -79,7 +79,7 @@ namespace Treasured.UnitySdk
                                 }
                                 texture.SetPixels(i * size, 0, size, size, cubemap.GetPixels((CubemapFace)i));
                             }
-                            ImageUtilies.FlipPixels(texture, true, true);
+                            ImageUtilies.FlipPixels(texture, true, imageFormat != ImageFormat.KTX2);
                             ImageUtilies.Encode(texture, path.FullName, "cubemap", imageFormatParser, qualityPercentage);
                             break;
                         case CubemapFormat.SixFaces:
@@ -90,7 +90,7 @@ namespace Treasured.UnitySdk
                                     throw new TreasuredException("Export canceled", "Export canceled by the user.");
                                 }
                                 texture.SetPixels(cubemap.GetPixels((CubemapFace)i));
-                                ImageUtilies.FlipPixels(texture, true, true);
+                                ImageUtilies.FlipPixels(texture, true, imageFormat != ImageFormat.KTX2);
                                 ImageUtilies.Encode(texture, path.FullName, SimplifyCubemapFace((CubemapFace)i), imageFormatParser, qualityPercentage);
                             }
                             break;
