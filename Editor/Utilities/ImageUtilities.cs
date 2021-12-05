@@ -14,7 +14,7 @@ namespace Treasured.UnitySdk
     internal class ImageUtilies
     {
         private static string processName = "cmd.exe";
-        private static readonly string TreasuredPluginsFolder = Path.GetFullPath("Packages/treasured-sdk-for-unity/Plugins").Replace(" ", "^ ");
+        private static readonly string TreasuredPluginsFolder = Path.GetFullPath("Packages/com.treasured.unitysdk/Plugins");
         private static string ktx2Converter = Path.Combine(TreasuredPluginsFolder,
                                                            "Ktx2Converter.bat").Replace(" ", "^ ");
         private static string toktx = Path.Combine(TreasuredPluginsFolder, "toktx.exe").Replace(" ", "^ ");
