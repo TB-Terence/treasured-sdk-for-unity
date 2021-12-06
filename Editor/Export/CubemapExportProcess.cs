@@ -7,12 +7,24 @@ namespace Treasured.UnitySdk
 {
     internal class CubemapExportProcess : ExportProcess
     {
+        private SerializedProperty _format;
+        private SerializedProperty _quality;
         private CubemapFormat cubemapFormat = CubemapFormat.SixFaces;
         private int qualityPercentage = 75;
 
+        public override void OnEnable(SerializedObject serializedObject)
+        {
+            _format = serializedObject.FindProperty(nameof(_format));
+            _quality = serializedObject.FindProperty(nameof(_quality));
+
+        }
         public override void OnGUI(SerializedObject serializedObject)
         {
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("_quality"));
+            EditorGUILayout.PropertyField(_format);
+            EditorGUILayout.PropertyField(_quality);
+            if (_format.enumValueIndex == (int)ImageFormat.PNG || _format.enumValueIndex == (int)ImageFormat.Ktx2)
+                return;
+
             using (new EditorGUILayout.HorizontalScope())
             {
                 qualityPercentage = EditorGUILayout.IntSlider(new GUIContent("Quality Percentage"), qualityPercentage, 1, 100);
@@ -37,7 +49,9 @@ namespace Treasured.UnitySdk
 
             Cubemap cubemap = new Cubemap(size, TextureFormat.ARGB32, false);
             Texture2D texture = new Texture2D(cubemap.width * (cubemapFormat == CubemapFormat.Single ? 6 : 1), cubemap.height, TextureFormat.ARGB32, false);
-            ImageFormat imageFormat = ImageFormat.WEBP;
+            ImageFormat imageFormat = map.Format;
+            //  If imageFormat is KTX2 then export images as png and then later convert them to KTX2 format  
+            ImageFormat imageFormatParser = (imageFormat == ImageFormat.Ktx2) ? ImageFormat.PNG : imageFormat;
 
             try
             {
@@ -65,8 +79,8 @@ namespace Treasured.UnitySdk
                                 }
                                 texture.SetPixels(i * size, 0, size, size, cubemap.GetPixels((CubemapFace)i));
                             }
-                            ImageUtilies.FlipPixels(texture, true, true);
-                            ImageUtilies.Encode(texture, path.FullName, "cubemap", imageFormat, qualityPercentage);
+                            ImageUtilies.FlipPixels(texture, true, imageFormat != ImageFormat.Ktx2);
+                            ImageUtilies.Encode(texture, path.FullName, "cubemap", imageFormatParser, qualityPercentage);
                             break;
                         case CubemapFormat.SixFaces:
                             for (int i = 0; i < 6; i++)
@@ -76,8 +90,8 @@ namespace Treasured.UnitySdk
                                     throw new TreasuredException("Export canceled", "Export canceled by the user.");
                                 }
                                 texture.SetPixels(cubemap.GetPixels((CubemapFace)i));
-                                ImageUtilies.FlipPixels(texture, true, true);
-                                ImageUtilies.Encode(texture, path.FullName, SimplifyCubemapFace((CubemapFace)i), imageFormat, qualityPercentage);
+                                ImageUtilies.FlipPixels(texture, true, imageFormat != ImageFormat.Ktx2);
+                                ImageUtilies.Encode(texture, path.FullName, SimplifyCubemapFace((CubemapFace)i), imageFormatParser, qualityPercentage);
                             }
                             break;
                     }
@@ -102,8 +116,14 @@ namespace Treasured.UnitySdk
                 camera.transform.rotation = originalCameraRot;
                 camera.targetTexture = camTarget;
                 #endregion
+
+                if (imageFormat == ImageFormat.Ktx2)
+                {
+                    EditorUtility.DisplayCancelableProgressBar("Encoding Hotspots To KTX format", "Encoding in progress..", 0.5f);
+                    ImageUtilies.Encode(null, rootDirectory, null, ImageFormat.Ktx2);
+                }
             }
-        } 
+        }
 
         private Hotspot[] ValidateHotspots(TreasuredMap map)
         {

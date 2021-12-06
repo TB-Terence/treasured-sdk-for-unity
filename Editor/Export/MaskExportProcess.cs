@@ -56,6 +56,10 @@ namespace Treasured.UnitySdk
                 throw new MissingComponentException("Missing HDAdditionalCameraData component");
             }
             camera.cullingMask = 1 << interactableLayer;
+            ImageFormat imageFormat = map.Format;
+            //  If imageFormat is KTX2 then export images as png and then later convert them to KTX2 format  
+            ImageFormat imageFormatParser = (imageFormat == ImageFormat.Ktx2) ? ImageFormat.PNG : imageFormat;
+
             try
             {
                 TreasuredObject[] objects = map.GetComponentsInChildren<TreasuredObject>();
@@ -75,7 +79,7 @@ namespace Treasured.UnitySdk
                 cameraData.volumeLayerMask = 0; // ensure no volume effects will affect the object id color
                 cameraData.probeLayerMask = 0; // ensure no probe effects will affect the object id color
                 #endregion
-                int size = Mathf.Min(Mathf.NextPowerOfTwo((int)map.Quality), 8192);
+                int size = Mathf.Min(Mathf.NextPowerOfTwo((int)ImageQuality.Low), 8192);
                 Cubemap cubemap = new Cubemap(size * 6, TextureFormat.ARGB32, false);
                 Texture2D texture = new Texture2D(cubemap.width * (cubemapFormat == CubemapFormat.Single ? 6 : 1), cubemap.height, TextureFormat.ARGB32, false);
 
@@ -139,8 +143,8 @@ namespace Treasured.UnitySdk
                             throw new TreasuredException("Export canceled", "Export canceled by the user.");
                         }
                         texture.SetPixels(cubemap.GetPixels((CubemapFace)i));
-                        ImageUtilies.FlipPixels(texture, true, true);
-                        ImageUtilies.Encode(texture, di.FullName, "mask_" + SimplifyCubemapFace((CubemapFace)i), ImageFormat.WEBP, qualityPercentage);
+                        ImageUtilies.FlipPixels(texture, true, imageFormat != ImageFormat.Ktx2);
+                        ImageUtilies.Encode(texture, di.FullName, "mask_" + SimplifyCubemapFace((CubemapFace)i), imageFormatParser, qualityPercentage);
                     }
                 }
 
@@ -177,6 +181,12 @@ namespace Treasured.UnitySdk
                 {
                     GameObject.DestroyImmediate(objectIdConverter);
                     objectIdConverter = null;
+                }
+
+                if (imageFormat == ImageFormat.Ktx2)
+                {
+                    EditorUtility.DisplayCancelableProgressBar("Encoding Masks To KTX format", "Encoding in progress..", 0.5f);
+                    ImageUtilies.Encode(null, rootDirectory, null, ImageFormat.Ktx2);
                 }
             }
         }

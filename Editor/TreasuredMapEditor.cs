@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -228,6 +228,10 @@ namespace Treasured.UnitySdk
                     {
                         exportProcesses = new ExportProcess[0];
                     }
+                }
+                foreach (var process in exportProcesses)
+                {
+                    process.OnEnable(serializedObject);
                 }
             }
 

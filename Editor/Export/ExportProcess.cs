@@ -28,6 +28,7 @@ namespace Treasured.UnitySdk
         }
         public bool Expanded { get; set; } = true;
         public abstract void Export(string rootDirectory, TreasuredMap map);
+        public virtual void OnEnable(SerializedObject serializedObject) { }
         public virtual void OnGUI(SerializedObject serializedObject) { }
     }
 }
