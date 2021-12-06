@@ -5,6 +5,6 @@
         JPG,
         PNG,
         WEBP,
-        KTX2
+        Ktx2
     }
 }

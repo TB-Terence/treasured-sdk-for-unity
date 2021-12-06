@@ -107,7 +107,7 @@ namespace Treasured.UnitySdk
                 case ImageFormat.WEBP:
                     EncodeToWEBP(bytes, path, imageQualityPercentage);
                     break;
-                case ImageFormat.KTX2:
+                case ImageFormat.Ktx2:
                     EncodeToKTX2(directory);
                     break;
             }

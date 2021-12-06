@@ -58,7 +58,7 @@ namespace Treasured.UnitySdk
             camera.cullingMask = 1 << interactableLayer;
             ImageFormat imageFormat = map.Format;
             //  If imageFormat is KTX2 then export images as png and then later convert them to KTX2 format  
-            ImageFormat imageFormatParser = (imageFormat == ImageFormat.KTX2) ? ImageFormat.PNG : imageFormat;
+            ImageFormat imageFormatParser = (imageFormat == ImageFormat.Ktx2) ? ImageFormat.PNG : imageFormat;
 
             try
             {
@@ -143,7 +143,7 @@ namespace Treasured.UnitySdk
                             throw new TreasuredException("Export canceled", "Export canceled by the user.");
                         }
                         texture.SetPixels(cubemap.GetPixels((CubemapFace)i));
-                        ImageUtilies.FlipPixels(texture, true, imageFormat != ImageFormat.KTX2);
+                        ImageUtilies.FlipPixels(texture, true, imageFormat != ImageFormat.Ktx2);
                         ImageUtilies.Encode(texture, di.FullName, "mask_" + SimplifyCubemapFace((CubemapFace)i), imageFormatParser, qualityPercentage);
                     }
                 }
@@ -183,10 +183,10 @@ namespace Treasured.UnitySdk
                     objectIdConverter = null;
                 }
 
-                if (imageFormat == ImageFormat.KTX2)
+                if (imageFormat == ImageFormat.Ktx2)
                 {
                     EditorUtility.DisplayCancelableProgressBar("Encoding Masks To KTX format", "Encoding in progress..", 0.5f);
-                    ImageUtilies.Encode(null, rootDirectory, null, ImageFormat.KTX2);
+                    ImageUtilies.Encode(null, rootDirectory, null, ImageFormat.Ktx2);
                 }
             }
         }
