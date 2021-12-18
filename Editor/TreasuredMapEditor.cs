@@ -541,7 +541,7 @@ namespace Treasured.UnitySdk
             {
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    EditorGUILayout.LabelField(new GUIContent("Index", typeof(T) == typeof(Hotspot) ? "The order of the Hotspot for the Guide Tour." : string.Empty), GUILayout.Width(40));
+                    EditorGUILayout.LabelField(new GUIContent("Index", typeof(T) == typeof(Hotspot) ? "The order of the Hotspot for the Guide Tour." : string.Empty), GUILayout.Width(48));
                     EditorGUILayout.LabelField(new GUIContent("Name"), GUILayout.Width(64));
                     //EditorGUILayout.LabelField(new GUIContent("Export", "Enable if the object should be included in the output file."), GUILayout.Width(72));
                     GUILayout.FlexibleSpace();
@@ -591,7 +591,7 @@ namespace Treasured.UnitySdk
                         {
                             T current = objects[i];
                             // TODO: width 40 only show up to 10000
-                            EditorGUILayout.LabelField($"{i + 1}", GUILayout.Width(40));
+                            EditorGUILayout.LabelField($"{i + 1}", GUILayout.Width(48));
                             //EditorGUI.BeginChangeCheck();
                             //bool active = EditorGUILayout.Toggle(GUIContent.none, current.gameObject.activeSelf, GUILayout.Width(20));
                             //if (EditorGUI.EndChangeCheck())
