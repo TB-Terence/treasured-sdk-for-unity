@@ -10,6 +10,7 @@ namespace Treasured.UnitySdk
         private ActionGroupListDrawer onClickList;
         private SerializedProperty id;
         private SerializedProperty description;
+        private SerializedProperty icon;
         private SerializedProperty hitbox;
         private SerializedProperty onClick;
 
@@ -22,6 +23,7 @@ namespace Treasured.UnitySdk
             (target as Interactable).TryInvokeMethods("OnSelectedInHierarchy");
             id = serializedObject.FindProperty("_id");
             description = serializedObject.FindProperty("_description");
+            icon = serializedObject.FindProperty("_icon");
             hitbox = serializedObject.FindProperty("_hitbox");
             serializedHitboxTransform = new SerializedObject((target as Interactable).Hitbox.transform);
             onClick = serializedObject.FindProperty("_onClick");
@@ -48,6 +50,7 @@ namespace Treasured.UnitySdk
                 EditorGUILayout.PropertyField(id);
             }
             EditorGUILayout.PropertyField(description);
+            EditorGUILayout.PropertyField(icon);
             EditorGUILayoutHelper.TransformPropertyField(serializedHitboxTransform, "Hitbox");
             if (targets.Length == 1)
             {
