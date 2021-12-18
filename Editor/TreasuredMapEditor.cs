@@ -141,6 +141,7 @@ namespace Treasured.UnitySdk
         private SerializedProperty _audioUrl;
         private SerializedProperty _muteOnStart;
         private SerializedProperty _templateLoader;
+        private SerializedProperty uiSettings;
 
         private bool exportAllHotspots = true;
         private GroupToggleState hotspotsGroupToggleState = GroupToggleState.All;
@@ -184,7 +185,9 @@ namespace Treasured.UnitySdk
             _audioUrl = serializedObject.FindProperty(nameof(_audioUrl));
             _muteOnStart = serializedObject.FindProperty(nameof(_muteOnStart));
             _templateLoader = serializedObject.FindProperty(nameof(_templateLoader));
-            
+            uiSettings = serializedObject.FindProperty(nameof(uiSettings));
+
+
 
             if (map)
             {
@@ -396,28 +399,35 @@ namespace Treasured.UnitySdk
             if (selectedObjectListIndex == 0)
             {
                 OnObjectList(hotspots, ref hotspotsScrollPosition, ref exportAllHotspots, ref hotspotsGroupToggleState);
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_loop"));
+                EditorGUILayout.PropertyField(uiSettings.FindPropertyRelative("showHotspotButtons"));
             }
             else if (selectedObjectListIndex == 1)
             {
                 OnObjectList(interactables, ref interactablesScrollPosition, ref exportAllInteractables, ref interactablesGroupToggleState);
+                EditorGUILayout.PropertyField(uiSettings.FindPropertyRelative("showInteractableButtons"));
             }
         }
 
         [FoldoutGroup("Gizmos", true)]
         void OnGizmosGUI()
         {
-            EditorGUI.BeginChangeCheck();
-            gizmosSettings.enableCameraPreview = EditorGUILayout.Toggle(new GUIContent("Camera Preview", "Show the camera preview for when selection changed in the hierarchy."), gizmosSettings.enableCameraPreview);
-            if (EditorGUI.EndChangeCheck())
+            EditorGUILayout.LabelField(new GUIContent("Editor"), EditorStyles.boldLabel);
+            using (new EditorGUI.IndentLevelScope())
             {
-                if (gizmosSettings.enableCameraPreview)
+                EditorGUI.BeginChangeCheck();
+                gizmosSettings.enableCameraPreview = EditorGUILayout.Toggle(new GUIContent("Camera Preview", "Show the camera preview for when selection changed in the hierarchy."), gizmosSettings.enableCameraPreview);
+                if (EditorGUI.EndChangeCheck())
                 {
-                    Selection.selectionChanged -= OnSelectTreasuredObject;
-                    Selection.selectionChanged += OnSelectTreasuredObject;
-                }
-                else
-                {
-                    Selection.selectionChanged -= OnSelectTreasuredObject;
+                    if (gizmosSettings.enableCameraPreview)
+                    {
+                        Selection.selectionChanged -= OnSelectTreasuredObject;
+                        Selection.selectionChanged += OnSelectTreasuredObject;
+                    }
+                    else
+                    {
+                        Selection.selectionChanged -= OnSelectTreasuredObject;
+                    }
                 }
             }
         }
@@ -531,7 +541,7 @@ namespace Treasured.UnitySdk
             {
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    EditorGUILayout.LabelField(new GUIContent("Index", typeof(T) == typeof(Hotspot) ? "The order of the Hotspot for the Guide Tour." : string.Empty), GUILayout.Width(40));
+                    EditorGUILayout.LabelField(new GUIContent("Index", typeof(T) == typeof(Hotspot) ? "The order of the Hotspot for the Guide Tour." : string.Empty), GUILayout.Width(48));
                     EditorGUILayout.LabelField(new GUIContent("Name"), GUILayout.Width(64));
                     //EditorGUILayout.LabelField(new GUIContent("Export", "Enable if the object should be included in the output file."), GUILayout.Width(72));
                     GUILayout.FlexibleSpace();
@@ -581,7 +591,7 @@ namespace Treasured.UnitySdk
                         {
                             T current = objects[i];
                             // TODO: width 40 only show up to 10000
-                            EditorGUILayout.LabelField($"{i + 1}", GUILayout.Width(40));
+                            EditorGUILayout.LabelField($"{i + 1}", GUILayout.Width(48));
                             //EditorGUI.BeginChangeCheck();
                             //bool active = EditorGUILayout.Toggle(GUIContent.none, current.gameObject.activeSelf, GUILayout.Width(20));
                             //if (EditorGUI.EndChangeCheck())
@@ -644,10 +654,6 @@ namespace Treasured.UnitySdk
                         SceneView.lastActiveSceneView.LookAt(go.transform.position, camera.transform.rotation);
                     }
                     editingTarget = obj;
-                }
-                if (typeof(T).Equals(typeof(Hotspot)))
-                {
-                    EditorGUILayout.PropertyField(serializedObject.FindProperty("_loop"));
                 }
             }
         }

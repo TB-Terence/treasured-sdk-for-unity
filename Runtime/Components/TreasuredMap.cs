@@ -62,6 +62,10 @@ namespace Treasured.UnitySdk
         public bool Loop { get => _loop; set => _loop = value; }
         #endregion
 
+        #region Browser Settings
+        public UISettings uiSettings = new UISettings();
+        #endregion
+
         #region Export Properties
         [SerializeField]
         private ImageFormat _format = ImageFormat.Ktx2;

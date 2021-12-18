@@ -23,6 +23,9 @@ namespace Treasured.UnitySdk
         private string _description;
 
         [SerializeField]
+        private string _icon;
+
+        [SerializeField]
         private Hitbox _hitbox;
 
         [SerializeReference] // TODO: Remove this when upgrade is done.
@@ -50,6 +53,8 @@ namespace Treasured.UnitySdk
         public string Id { get => _id; }
 
         public string Description { get => _description; set => _description = value; }
+
+        public string Icon { get => _icon; set => _icon = value; }
         public Hitbox Hitbox
         {
             get
