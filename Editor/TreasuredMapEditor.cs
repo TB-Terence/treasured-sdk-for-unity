@@ -544,53 +544,52 @@ namespace Treasured.UnitySdk
             }
         }
 
-        void OnObjectList<T>(IList<T> objects, ref Vector2 scrollPosition, ref bool exportAll, ref GroupToggleState groupToggleState) where T : TreasuredObject
+        void OnObjectList<T>(IList<T> objects, ref Vector2 scrollPosition, ref bool enableAll, ref GroupToggleState groupToggleState) where T : TreasuredObject
         {
             using (new EditorGUILayout.VerticalScope(Styles.BorderlessBox))
             {
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    EditorGUILayout.LabelField(new GUIContent("Index", typeof(T) == typeof(Hotspot) ? "The order of the Hotspot for the Guide Tour." : string.Empty), GUILayout.Width(48));
+                    EditorGUILayout.LabelField(new GUIContent("Index", typeof(T) == typeof(Hotspot) ? "The order of the Hotspot for the Guide Tour." : string.Empty), GUILayout.Width(74));
                     EditorGUILayout.LabelField(new GUIContent("Name"), GUILayout.Width(64));
-                    //EditorGUILayout.LabelField(new GUIContent("Export", "Enable if the object should be included in the output file."), GUILayout.Width(72));
                     GUILayout.FlexibleSpace();
                     if (GUILayout.Button(Icons.menu, EditorStyles.label, GUILayout.Width(18), GUILayout.Height(20)))
                     {
                         ShowObjectsMenu(objects);
                     };
                 }
-                //if (objects.Count > 1)
-                //{
-                //    using (new EditorGUILayout.HorizontalScope())
-                //    {
-                //        if (objects.All(x => !x.gameObject.activeSelf))
-                //        {
-                //            exportAll = false;
-                //            groupToggleState = GroupToggleState.None;
-                //        }
-                //        else if (objects.Any(x => !x.gameObject.activeSelf))
-                //        {
-                //            groupToggleState = GroupToggleState.Mixed;
-                //        }
-                //        else
-                //        {
-                //            exportAll = true;
-                //            groupToggleState = GroupToggleState.All;
-                //        }
-                //        EditorGUI.showMixedValue = groupToggleState == GroupToggleState.Mixed;
-                //        GUILayout.Space(70);
-                //        EditorGUI.BeginChangeCheck();
-                //        exportAll = EditorGUILayout.ToggleLeft(GUIContent.none, exportAll);
-                //        if (EditorGUI.EndChangeCheck())
-                //        {
-                //            foreach (var obj in objects)
-                //            {
-                //                obj.gameObject.SetActive(exportAll);
-                //            }
-                //        }
-                //        EditorGUI.showMixedValue = false;
-                //    }
-                //}
+                if (objects.Count > 1)
+                {
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        if (objects.All(x => !x.gameObject.activeSelf))
+                        {
+                            enableAll = false;
+                            groupToggleState = GroupToggleState.None;
+                        }
+                        else if (objects.Any(x => !x.gameObject.activeSelf))
+                        {
+                            groupToggleState = GroupToggleState.Mixed;
+                        }
+                        else
+                        {
+                            enableAll = true;
+                            groupToggleState = GroupToggleState.All;
+                        }
+                        EditorGUI.showMixedValue = groupToggleState == GroupToggleState.Mixed;
+                        GUILayout.Space(3);
+                        EditorGUI.BeginChangeCheck();
+                        enableAll = EditorGUILayout.ToggleLeft(GUIContent.none, enableAll);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            foreach (var obj in objects)
+                            {
+                                obj.gameObject.SetActive(enableAll);
+                            }
+                        }
+                        EditorGUI.showMixedValue = false;
+                    }
+                }
                 using (var scope = new EditorGUILayout.ScrollViewScope(scrollPosition, GUILayout.Height(300)))
                 {
                     scrollPosition = scope.scrollPosition;
@@ -600,18 +599,18 @@ namespace Treasured.UnitySdk
                         {
                             T current = objects[i];
                             // TODO: width 40 only show up to 10000
+                            EditorGUI.BeginChangeCheck();
+                            bool active = EditorGUILayout.Toggle(GUIContent.none, current.gameObject.activeSelf, GUILayout.Width(20));
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                current.gameObject.SetActive(active);
+                            }
                             EditorGUILayout.LabelField($"{i + 1}", GUILayout.Width(48));
-                            //EditorGUI.BeginChangeCheck();
-                            //bool active = EditorGUILayout.Toggle(GUIContent.none, current.gameObject.activeSelf, GUILayout.Width(20));
-                            //if (EditorGUI.EndChangeCheck())
-                            //{
-                            //    current.gameObject.SetActive(active);
-                            //}
                             using (var hs = new EditorGUILayout.HorizontalScope())
                             {
                                 using (new EditorGUI.DisabledGroupScope(!current.gameObject.activeSelf))
                                 {
-                                    EditorGUILayout.LabelField(new GUIContent(current.gameObject.name), style: Styles.objectLabel);
+                                    EditorGUILayout.LabelField(new GUIContent(current.gameObject.name, current.Id), style: Styles.objectLabel);
                                 }
                             }
                             if (current.gameObject.activeSelf && EditorGUILayoutHelper.CreateClickZone(Event.current, GUILayoutUtility.GetLastRect(), MouseCursor.Link, 0))
