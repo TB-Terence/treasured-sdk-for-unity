@@ -16,20 +16,23 @@ namespace Treasured.UnitySdk
         {
             _format = serializedObject.FindProperty(nameof(_format));
             _quality = serializedObject.FindProperty(nameof(_quality));
-
         }
         public override void OnGUI(SerializedObject serializedObject)
         {
-            EditorGUILayout.PropertyField(_format);
-            EditorGUILayout.PropertyField(_quality);
-            if (_format.enumValueIndex == (int)ImageFormat.PNG || _format.enumValueIndex == (int)ImageFormat.Ktx2)
-                return;
-
-            using (new EditorGUILayout.HorizontalScope())
+            using (new EditorGUI.DisabledGroupScope(true))
             {
-                qualityPercentage = EditorGUILayout.IntSlider(new GUIContent("Quality Percentage"), qualityPercentage, 1, 100);
-                GUILayout.Label("%");
+                //EditorGUILayout.PropertyField(_format);
+                EditorGUILayout.EnumPopup(new GUIContent("Format"), ImageFormat.Ktx2);
             }
+            EditorGUILayout.PropertyField(_quality);
+            //if (_format.enumValueIndex == (int)ImageFormat.PNG || _format.enumValueIndex == (int)ImageFormat.Ktx2)
+            //    return;
+
+            //using (new EditorGUILayout.HorizontalScope())
+            //{
+            //    qualityPercentage = EditorGUILayout.IntSlider(new GUIContent("Quality Percentage"), qualityPercentage, 1, 100);
+            //    GUILayout.Label("%");
+            //}
         }
 
         public override void Export(string rootDirectory, TreasuredMap map)
@@ -49,7 +52,8 @@ namespace Treasured.UnitySdk
 
             Cubemap cubemap = new Cubemap(size, TextureFormat.ARGB32, false);
             Texture2D texture = new Texture2D(cubemap.width * (cubemapFormat == CubemapFormat.Single ? 6 : 1), cubemap.height, TextureFormat.ARGB32, false);
-            ImageFormat imageFormat = map.Format;
+            //ImageFormat imageFormat = map.Format;
+            ImageFormat imageFormat = ImageFormat.Ktx2;
             //  If imageFormat is KTX2 then export images as png and then later convert them to KTX2 format  
             ImageFormat imageFormatParser = (imageFormat == ImageFormat.Ktx2) ? ImageFormat.PNG : imageFormat;
 
@@ -79,7 +83,8 @@ namespace Treasured.UnitySdk
                                 }
                                 texture.SetPixels(i * size, 0, size, size, cubemap.GetPixels((CubemapFace)i));
                             }
-                            ImageUtilies.FlipPixels(texture, true, imageFormat != ImageFormat.Ktx2);
+                            //ImageUtilies.FlipPixels(texture, true, imageFormat != ImageFormat.Ktx2);
+                            ImageUtilies.FlipPixels(texture, true, false);
                             ImageUtilies.Encode(texture, path.FullName, "cubemap", imageFormatParser, qualityPercentage);
                             break;
                         case CubemapFormat.SixFaces:
@@ -90,7 +95,8 @@ namespace Treasured.UnitySdk
                                     throw new TreasuredException("Export canceled", "Export canceled by the user.");
                                 }
                                 texture.SetPixels(cubemap.GetPixels((CubemapFace)i));
-                                ImageUtilies.FlipPixels(texture, true, imageFormat != ImageFormat.Ktx2);
+                                //ImageUtilies.FlipPixels(texture, true, imageFormat != ImageFormat.Ktx2);
+                                ImageUtilies.FlipPixels(texture, true, false);
                                 ImageUtilies.Encode(texture, path.FullName, SimplifyCubemapFace((CubemapFace)i), imageFormatParser, qualityPercentage);
                             }
                             break;
@@ -119,7 +125,7 @@ namespace Treasured.UnitySdk
 
                 if (imageFormat == ImageFormat.Ktx2)
                 {
-                    EditorUtility.DisplayCancelableProgressBar("Encoding Hotspots To KTX format", "Encoding in progress..", 0.5f);
+                    EditorUtility.DisplayProgressBar("Encoding Hotspots To KTX format", "Encoding in progress..", 0.5f);
                     ImageUtilies.Encode(null, rootDirectory, null, ImageFormat.Ktx2);
                 }
             }
