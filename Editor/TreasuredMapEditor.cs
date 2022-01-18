@@ -435,17 +435,26 @@ namespace Treasured.UnitySdk
         [FoldoutGroup("Export", true)]
         void OnExportGUI()
         {
+            EditorGUI.BeginChangeCheck();
+            string newOutputFolderName = EditorGUILayout.TextField(new GUIContent("Output Folder Name"), _outputFolderName.stringValue);
+            if (EditorGUI.EndChangeCheck() && !string.IsNullOrWhiteSpace(newOutputFolderName))
+            {
+                _outputFolderName.stringValue = newOutputFolderName;
+            }
+            string outputFolderPath = Path.Combine(ExportProcess.DefaultOutputFolderPath, _outputFolderName.stringValue);
             using (new EditorGUILayout.HorizontalScope())
             {
-                EditorGUI.BeginChangeCheck();
-                string newOutputFolderName = EditorGUILayout.TextField(new GUIContent("Output Folder Name"), _outputFolderName.stringValue);
-                if (EditorGUI.EndChangeCheck() && !string.IsNullOrWhiteSpace(newOutputFolderName))
-                {
-                    _outputFolderName.stringValue = newOutputFolderName;
-                }
-                if (GUILayout.Button(Styles.folderOpened, EditorStyles.label, GUILayout.Width(20), GUILayout.Height(18)))
+                EditorGUILayout.PrefixLabel(GUIContent.none);
+                if (GUILayout.Button(new GUIContent("Show root folder", "Show the root output folder in the File Explorer"), GUILayout.Height(18)))
                 {
                     Application.OpenURL(ExportProcess.DefaultOutputFolderPath);
+                }
+                using (new EditorGUI.DisabledGroupScope(!Directory.Exists(outputFolderPath)))
+                {
+                    if (GUILayout.Button(new GUIContent("Show output folder", "Show the output folder in the File Explorer"), GUILayout.Height(18)))
+                    {
+                        Application.OpenURL(outputFolderPath);
+                    }
                 }
             }
             EditorGUILayout.LabelField("Export Options", EditorStyles.boldLabel);
