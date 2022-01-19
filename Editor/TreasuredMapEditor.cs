@@ -191,8 +191,8 @@ namespace Treasured.UnitySdk
 
             if (map)
             {
-                hotspots = map.gameObject.GetComponentsInChildren<Hotspot>().ToList();
-                interactables = map.gameObject.GetComponentsInChildren<Interactable>().ToList();
+                hotspots = map.gameObject.GetComponentsInChildren<Hotspot>(true).ToList();
+                interactables = map.gameObject.GetComponentsInChildren<Interactable>(true).ToList();
 
                 serializedObject.FindProperty("_format").enumValueIndex = 2;
                 serializedObject.ApplyModifiedProperties();
