@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
@@ -8,6 +8,10 @@ namespace Treasured.UnitySdk
     {
         [Preset("simple", "standard", "modern")]
         public string template;
+
+        [ShowIf("template", "modern")]
+        public bool autoCameraRotation;
+
         [TextArea(3, 3)]
         public string imageUrl;
     }

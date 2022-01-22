@@ -8,7 +8,7 @@ namespace Treasured.UnitySdk
     public class OpenLinkAction : EmbedAction
     {
         [SerializeField]
-        [TextArea(3, 3)]
+        [Url]
         private string _src;
         public string Src { get => _src; set => _src = value; }
     }

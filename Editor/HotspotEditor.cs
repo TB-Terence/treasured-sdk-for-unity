@@ -20,6 +20,7 @@ namespace Treasured.UnitySdk
         private ActionGroupListDrawer onHoverList;
         private SerializedProperty id;
         private SerializedProperty description;
+        private SerializedProperty icon;
         private SerializedProperty hitbox;
         private SerializedProperty camera;
         private SerializedProperty onClick;
@@ -31,6 +32,10 @@ namespace Treasured.UnitySdk
 
         private int selectedTabIndex;
 
+        private bool showVisibleTargetsOnly;
+
+        List<TreasuredObject> visibleTargets = new List<TreasuredObject>();
+
 
         private void OnEnable()
         {
@@ -38,6 +43,7 @@ namespace Treasured.UnitySdk
             map = (target as Hotspot).Map;
             id = serializedObject.FindProperty("_id");
             description = serializedObject.FindProperty("_description");
+            icon = serializedObject.FindProperty("_icon");
             hitbox = serializedObject.FindProperty("_hitbox");
             camera = serializedObject.FindProperty("_camera");
             onClick = serializedObject.FindProperty("_onClick");
@@ -77,6 +83,7 @@ namespace Treasured.UnitySdk
             {
                 EditorGUILayout.PropertyField(id);
                 EditorGUILayout.PropertyField(description);
+                EditorGUILayout.PropertyField(icon);
                 EditorGUILayoutHelper.TransformPropertyField(serializedHitboxTransform, "Hitbox");
                 EditorGUILayoutHelper.TransformPropertyField(serializedCameraTransform, "Camera", true, true, false);
                 EditorGUILayout.LabelField("Actions", EditorStyles.boldLabel);
@@ -102,31 +109,18 @@ namespace Treasured.UnitySdk
                 }
             }
             EditorGUILayout.BeginFoldoutHeaderGroup(true, "Debug");
-            if (GUILayout.Button(new GUIContent("Show Visible Targets", "Green line - Target is visible\nRed line - Target is invisible\nBlue line - Shows distance between hit point and target location."), GUILayout.Height(24)))
+            using (new EditorGUI.IndentLevelScope())
             {
-                foreach (var obj in serializedObject.targetObjects)
+                EditorGUI.BeginChangeCheck();
+                var newValue = EditorGUILayout.Toggle(new GUIContent("Show Visible Targets Only"), showVisibleTargetsOnly);
+                if (EditorGUI.EndChangeCheck())
                 {
-                    if (obj is Hotspot hotspot)
+                    showVisibleTargetsOnly = newValue;
+                    if (newValue)
                     {
-                        var targets = new List<TreasuredObject>();
-                        var objects = map.GetComponentsInChildren<TreasuredObject>();
-                        foreach (var o in objects)
-                        {
-                            if (o.Id.Equals(hotspot.Id) || o.Hitbox == null)
-                            {
-                                continue;
-                            }
-                            if (!Physics.Linecast(hotspot.Camera.transform.position, o.Hitbox.transform.position, out RaycastHit hit) || hit.collider == o.GetComponentInChildren<Collider>()) // && hit.distance == (this.transform.transform.position - obj.Hitbox.transform.position).magnitude
-                            {
-                                Debug.DrawLine(hotspot.Camera.transform.position, hit.point, Color.green, 5);
-                            }
-                            else
-                            {
-                                Debug.DrawLine(hotspot.Camera.transform.position, hit.point, Color.red, 5);
-                                Debug.DrawLine(o.Hitbox.transform.position, hit.point, Color.blue, 5);
-                            }
-                        }
+                        visibleTargets = (target as Hotspot).VisibleTargets;
                     }
+                    SceneView.lastActiveSceneView.Repaint();
                 }
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
@@ -164,6 +158,44 @@ namespace Treasured.UnitySdk
                 }
                 Handles.color = Color.white;
                 Handles.DrawDottedLine(hotspot.Hitbox.transform.position, hotspot.Camera.transform.position, 5);
+                Matrix4x4 matrix = Handles.matrix;
+                if (!showVisibleTargetsOnly)
+                {
+                    foreach (var obj in map.GetComponentsInChildren<TreasuredObject>())
+                    {
+                        if (obj == target)
+                        {
+                            continue;
+                        }
+                        if (obj is Hotspot)
+                        {
+                            Handles.color = new Color(1, 0, 0, 0.8f);
+                        }
+                        else if (obj is Interactable)
+                        {
+                            Handles.color = new Color(0, 1, 0, 0.8f);
+                        }
+                        Handles.matrix = Matrix4x4.TRS(obj.Hitbox.transform.position, obj.Hitbox.transform.rotation, Vector3.one);
+                        Handles.DrawWireCube(Vector3.zero, obj.Hitbox.transform.localScale);
+                    }
+                }
+                else
+                {
+                    foreach (var target in visibleTargets)
+                    {
+                        if (target is Hotspot)
+                        {
+                            Handles.color = new Color(1, 0, 0, 0.8f);
+                        }
+                        else if (target is Interactable)
+                        {
+                            Handles.color = new Color(0, 1, 0, 0.8f);
+                        }
+                        Handles.matrix = Matrix4x4.TRS(target.Hitbox.transform.position, target.Hitbox.transform.rotation, Vector3.one);
+                        Handles.DrawWireCube(Vector3.zero, target.Hitbox.transform.localScale);
+                    }
+                }
+                Handles.matrix = matrix;
             }
         }
     }
