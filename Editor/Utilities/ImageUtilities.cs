@@ -108,31 +108,50 @@ namespace Treasured.UnitySdk
                     EncodeToWEBP(bytes, path, imageQualityPercentage);
                     break;
                 case ImageFormat.Ktx2:
-                    EncodeToKTX2(directory);
+                    //EncodeToKTX2(directory);
+                    File.WriteAllBytes(path, bytes);
                     break;
             }
         }
 
         public static void FlipPixels(Texture2D texture, bool flipX, bool flipY)
         {
-            Color32[] originalPixels = texture.GetPixels32();
+            texture.SetPixels32(FlipPixels(texture.GetPixels32(), texture.width, texture.height, flipX, flipY));
+            texture.Apply();
+        }
 
-            var flippedPixels = Enumerable.Range(0, texture.width * texture.height).Select(index =>
+        public static Color32[] FlipPixels(Color32[] colors, int width, int height, bool flipX, bool flipY)
+        {
+            var flippedPixels = Enumerable.Range(0, width * height).Select(index =>
             {
-                int x = index % texture.width;
-                int y = index / texture.width;
+                int x = index % width;
+                int y = index / height;
                 if (flipX)
-                    x = texture.width - 1 - x;
+                    x = width - 1 - x;
 
                 if (flipY)
-                    y = texture.height - 1 - y;
+                    y = height - 1 - y;
 
-                return originalPixels[y * texture.width + x];
-            }
-            );
+                return colors[y * width + x];
+            });
+            return flippedPixels.ToArray();
+        }
 
-            texture.SetPixels32(flippedPixels.ToArray());
-            texture.Apply();
+        public static Color[] FlipPixels(Color[] colors, int width, int height, bool flipX, bool flipY)
+        {
+            var flippedPixels = Enumerable.Range(0, width * height).Select(index =>
+            {
+                int x = index % width;
+                int y = index / height;
+                if (flipX)
+                    x = width - 1 - x;
+
+                if (flipY)
+                    y = height - 1 - y;
+
+                return colors[y * width + x];
+            });
+            return flippedPixels.ToArray();
         }
     }
 }

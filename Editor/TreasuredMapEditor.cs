@@ -613,7 +613,7 @@ namespace Treasured.UnitySdk
                                     EditorGUILayout.LabelField(new GUIContent(current.gameObject.name, current.Id), style: Styles.objectLabel);
                                 }
                             }
-                            if (current.gameObject.activeSelf && EditorGUILayoutHelper.CreateClickZone(Event.current, GUILayoutUtility.GetLastRect(), MouseCursor.Link, 0))
+                            if (EditorGUILayoutHelper.CreateClickZone(Event.current, GUILayoutUtility.GetLastRect(), MouseCursor.Link, 0))
                             {
                                 if (current is Hotspot hotspot)
                                 {
