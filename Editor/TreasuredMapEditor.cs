@@ -755,6 +755,28 @@ namespace Treasured.UnitySdk
             }
         }
 
+        [MenuItem("GameObject/Treasured/Create Video Plane", false, 49)]
+        static void CreateVideoPlaneFromContextMenu()
+        {
+            TreasuredMap map = Selection.activeGameObject.GetComponentInParent<TreasuredMap>();
+            Transform root = map.transform;
+            Transform planeRoot = root.Find("Planes");
+            if (planeRoot == null)
+            {
+                planeRoot = new GameObject("Planes").transform;
+                planeRoot.SetParent(root);
+            }
+            GameObject videoPlane = new GameObject("New Video Plane", typeof(VideoPlane));
+            if (Selection.activeGameObject.transform == root)
+            {
+                videoPlane.transform.SetParent(planeRoot);
+            }
+            else
+            {
+                videoPlane.transform.SetParent(Selection.activeGameObject.transform);
+            }
+        }
+
         [MenuItem("GameObject/Treasured/Create Empty Map", false, 49)]
         static void CreateEmptyMap()
         {
@@ -783,6 +805,12 @@ namespace Treasured.UnitySdk
 
         [MenuItem("GameObject/Treasured/Create Interactable", true, 49)]
         static bool CanCreateInteractableFromContextMenu()
+        {
+            return Selection.activeGameObject?.GetComponentInParent<TreasuredMap>();
+        }
+
+        [MenuItem("GameObject/Treasured/Create Interactable", true, 49)]
+        static bool CanCreateVideoPlaneFromContextMenu()
         {
             return Selection.activeGameObject?.GetComponentInParent<TreasuredMap>();
         }

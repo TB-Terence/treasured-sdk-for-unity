@@ -93,6 +93,14 @@ namespace Treasured.UnitySdk
                 return GetComponentsInChildren<Interactable>();
             }
         }
+
+        public VideoPlane[] VideoPlanes
+        {
+            get
+            {
+                return GetComponentsInChildren<VideoPlane>();
+            }
+        }
         #endregion
 
         #region Export Settings
