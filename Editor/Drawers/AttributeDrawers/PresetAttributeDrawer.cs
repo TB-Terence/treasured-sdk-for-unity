@@ -9,7 +9,6 @@ namespace Treasured.UnitySdk
     public class PresetAttributeDrawer :  PropertyDrawer
     {
         static GUIContent dropdown = EditorGUIUtility.TrIconContent("icon dropdown");
-        static GUIContent cloud = EditorGUIUtility.TrIconContent("CloudConnect");
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {

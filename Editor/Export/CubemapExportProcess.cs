@@ -12,7 +12,7 @@ namespace Treasured.UnitySdk
 
         private SerializedProperty _format;
         private SerializedProperty _quality;
-        private CubemapFormat cubemapFormat = CubemapFormat.Single;
+        private CubemapFormat _cubemapFormat = CubemapFormat.IndividualFace;
         private int qualityPercentage = 75;
         private ImageFormat imageFormat = ImageFormat.Ktx2;
 
@@ -25,10 +25,10 @@ namespace Treasured.UnitySdk
         }
         public override void OnGUI(SerializedObject serializedObject)
         {
-            
             //EditorGUILayout.PropertyField(_format);
             imageFormat = (ImageFormat)EditorGUILayout.EnumPopup(new GUIContent("Format"), imageFormat);
             EditorGUILayout.PropertyField(_quality);
+            _cubemapFormat = (CubemapFormat)EditorGUILayout.EnumPopup(new GUIContent("Cubemap Format"), _cubemapFormat);
             if (_format.enumValueIndex == (int)ImageFormat.PNG || _format.enumValueIndex == (int)ImageFormat.Ktx2)
                 return;
 
@@ -56,12 +56,12 @@ namespace Treasured.UnitySdk
 
             Cubemap cubemap = new Cubemap(CUBEMAP_FACE_WIDTH, TextureFormat.ARGB32, false);
             Texture2D texture = null;
-            switch (cubemapFormat)
+            switch (_cubemapFormat)
             {
-                case CubemapFormat.Single:
+                case CubemapFormat._3x2:
                     texture = new Texture2D(CUDA_TEXTURE_WIDTH, CUDA_TEXTURE_WIDTH, TextureFormat.ARGB32, false);
                     break;
-                case CubemapFormat.SixFaces:
+                case CubemapFormat.IndividualFace:
                     texture = new Texture2D(cubemap.width, cubemap.height, TextureFormat.ARGB32, false);
                     break;
             };
@@ -83,9 +83,9 @@ namespace Treasured.UnitySdk
                         throw new System.NotSupportedException("Current graphic device/platform does not support RenderToCubemap.");
                     }
                     var path = Directory.CreateDirectory(Path.Combine(rootDirectory, "images", current.Id).Replace('/', '\\'));
-                    switch (cubemapFormat)
+                    switch (_cubemapFormat)
                     {
-                        case CubemapFormat.Single:
+                        case CubemapFormat._3x2:
                             // FORMAT:
                             // RIGHT(+X) LEFT(-X) TOP(+Y)
                             // BOTTOM(-Y) FRONT(+Z) BACK(-Z)
@@ -100,7 +100,7 @@ namespace Treasured.UnitySdk
                             }
                             ImageUtilies.Encode(texture, path.FullName, "cubemap", imageFormatParser, qualityPercentage);
                             break;
-                        case CubemapFormat.SixFaces:
+                        case CubemapFormat.IndividualFace:
                             for (int i = 0; i < 6; i++)
                             {
                                 if (EditorUtility.DisplayCancelableProgressBar(progressTitle, progressText, i / 6f))

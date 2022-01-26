@@ -17,7 +17,7 @@ namespace Treasured.UnitySdk
 
         public override bool Enabled { get; set; } = false;
 
-        private CubemapFormat cubemapFormat = CubemapFormat.SixFaces;
+        private CubemapFormat cubemapFormat = CubemapFormat._3x2;
         private int qualityPercentage = 75;
 
 
@@ -81,7 +81,7 @@ namespace Treasured.UnitySdk
                 #endregion
                 int size = Mathf.Min(Mathf.NextPowerOfTwo((int)ImageQuality.Low), 8192);
                 Cubemap cubemap = new Cubemap(size * 6, TextureFormat.ARGB32, false);
-                Texture2D texture = new Texture2D(cubemap.width * (cubemapFormat == CubemapFormat.Single ? 6 : 1), cubemap.height, TextureFormat.ARGB32, false);
+                Texture2D texture = new Texture2D(cubemap.width * (cubemapFormat == CubemapFormat.IndividualFace ? 6 : 1), cubemap.height, TextureFormat.ARGB32, false);
 
                 // Create tempory hotspot object
                 foreach (var hotspot in hotspots)
