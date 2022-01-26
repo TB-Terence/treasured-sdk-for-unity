@@ -51,10 +51,10 @@ namespace Treasured.UnitySdk
         }
 
         /// <summary>
-        /// Encode PNG images to KTX2 format
+        /// Convert all PNG files under root directory to KTX2
         /// </summary>
         /// <param name="rootDirectory">Root Directory of PNG images folder</param>
-        private static void EncodeToKTX2(string rootDirectory)
+        public static void ConvertToKTX2(string rootDirectory)
         {
             if (string.IsNullOrWhiteSpace(rootDirectory))
             {
@@ -106,10 +106,6 @@ namespace Treasured.UnitySdk
                     break;
                 case ImageFormat.WEBP:
                     EncodeToWEBP(bytes, path, imageQualityPercentage);
-                    break;
-                case ImageFormat.Ktx2:
-                    //EncodeToKTX2(directory);
-                    File.WriteAllBytes(path, bytes);
                     break;
             }
         }

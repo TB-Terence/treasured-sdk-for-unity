@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Text;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,11 +8,11 @@ namespace Treasured.UnitySdk
     internal class CubemapExportProcess : ExportProcess
     {
         private const int CUDA_TEXTURE_WIDTH = 4096;
-        private const int CUBEMAP_FACE_WIDTH = 1024;
+        private const int CUBEMAP_FACE_WIDTH = 1360; // 4096 / 3 round to nearest tenth
 
         private SerializedProperty _format;
         private SerializedProperty _quality;
-        private CubemapFormat cubemapFormat = CubemapFormat.SixFaces;
+        private CubemapFormat cubemapFormat = CubemapFormat.Single;
         private int qualityPercentage = 75;
         private ImageFormat imageFormat = ImageFormat.Ktx2;
 
@@ -97,7 +96,7 @@ namespace Treasured.UnitySdk
                                     throw new TreasuredException("Export canceled", "Export canceled by the user.");
                                 }
                                 texture.SetPixels((i % 3) * CUBEMAP_FACE_WIDTH, 4096 - ((i / 3) + 1) * CUBEMAP_FACE_WIDTH, CUBEMAP_FACE_WIDTH, CUBEMAP_FACE_WIDTH,
-                                    ImageUtilies.FlipPixels(cubemap.GetPixels((CubemapFace)i), CUBEMAP_FACE_WIDTH, CUBEMAP_FACE_WIDTH, true, imageFormat != ImageFormat.Ktx2));
+                                ImageUtilies.FlipPixels(cubemap.GetPixels((CubemapFace)i), CUBEMAP_FACE_WIDTH, CUBEMAP_FACE_WIDTH, true, imageFormat != ImageFormat.Ktx2));
                             }
                             ImageUtilies.Encode(texture, path.FullName, "cubemap", imageFormatParser, qualityPercentage);
                             break;
@@ -118,7 +117,7 @@ namespace Treasured.UnitySdk
                 if (imageFormat == ImageFormat.Ktx2)
                 {
                     EditorUtility.DisplayProgressBar("Converting to KTX2", "Converting in progress...", 0.5f);
-                    //ImageUtilies.Encode(null, rootDirectory, null, ImageFormat.Ktx2);
+                    ImageUtilies.ConvertToKTX2(rootDirectory);
                 }
             }
             catch (Exception e)

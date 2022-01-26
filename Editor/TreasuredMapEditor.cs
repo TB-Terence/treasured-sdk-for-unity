@@ -531,8 +531,8 @@ namespace Treasured.UnitySdk
             finally
             {
                 EditorUtility.ClearProgressBar();
+                EditorGUI.indentLevel--;
             }
-            EditorGUI.indentLevel--;
         }
 
         //[FoldoutGroup("Upload", true)]
