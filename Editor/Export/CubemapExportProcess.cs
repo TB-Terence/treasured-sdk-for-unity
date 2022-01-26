@@ -7,9 +7,12 @@ namespace Treasured.UnitySdk
 {
     internal class CubemapExportProcess : ExportProcess
     {
+        private const int CUDA_TEXTURE_WIDTH = 4096;
+        private const int CUBEMAP_FACE_WIDTH = 1360; // 4096 / 3 round to nearest tenth
+
         private SerializedProperty _format;
         private SerializedProperty _quality;
-        private CubemapFormat cubemapFormat = CubemapFormat.SixFaces;
+        private CubemapFormat cubemapFormat = CubemapFormat.Single;
         private int qualityPercentage = 75;
         private ImageFormat imageFormat = ImageFormat.Ktx2;
 
@@ -47,12 +50,21 @@ namespace Treasured.UnitySdk
             Quaternion originalCameraRot = camera.transform.rotation;
             #endregion
 
-            int size = Mathf.Min(Mathf.NextPowerOfTwo((int)map.Quality), 8192);
+            //int size = 1024;//Mathf.Min(Mathf.NextPowerOfTwo((int)map.Quality), 8192);
 
             int count = hotspots.Length;
 
-            Cubemap cubemap = new Cubemap(size, TextureFormat.ARGB32, false);
-            Texture2D texture = new Texture2D(cubemap.width * (cubemapFormat == CubemapFormat.Single ? 6 : 1), cubemap.height, TextureFormat.ARGB32, false);
+            Cubemap cubemap = new Cubemap(CUBEMAP_FACE_WIDTH, TextureFormat.ARGB32, false);
+            Texture2D texture = null;
+            switch (cubemapFormat)
+            {
+                case CubemapFormat.Single:
+                    texture = new Texture2D(CUDA_TEXTURE_WIDTH, CUDA_TEXTURE_WIDTH, TextureFormat.ARGB32, false);
+                    break;
+                case CubemapFormat.SixFaces:
+                    texture = new Texture2D(cubemap.width, cubemap.height, TextureFormat.ARGB32, false);
+                    break;
+            };
             //  If imageFormat is KTX2 then export images as png and then later convert them to KTX2 format  
             ImageFormat imageFormatParser = (imageFormat == ImageFormat.Ktx2) ? ImageFormat.PNG : imageFormat;
 
@@ -74,15 +86,18 @@ namespace Treasured.UnitySdk
                     switch (cubemapFormat)
                     {
                         case CubemapFormat.Single:
+                            // FORMAT:
+                            // RIGHT(+X) LEFT(-X) TOP(+Y)
+                            // BOTTOM(-Y) FRONT(+Z) BACK(-Z)
                             for (int i = 0; i < 6; i++)
                             {
                                 if (EditorUtility.DisplayCancelableProgressBar(progressTitle, progressText, i / 6f))
                                 {
                                     throw new TreasuredException("Export canceled", "Export canceled by the user.");
                                 }
-                                texture.SetPixels(i * size, 0, size, size, cubemap.GetPixels((CubemapFace)i));
+                                texture.SetPixels((i % 3) * CUBEMAP_FACE_WIDTH, 4096 - ((i / 3) + 1) * CUBEMAP_FACE_WIDTH, CUBEMAP_FACE_WIDTH, CUBEMAP_FACE_WIDTH,
+                                ImageUtilies.FlipPixels(cubemap.GetPixels((CubemapFace)i), CUBEMAP_FACE_WIDTH, CUBEMAP_FACE_WIDTH, true, imageFormat != ImageFormat.Ktx2));
                             }
-                            ImageUtilies.FlipPixels(texture, true, imageFormat != ImageFormat.Ktx2);
                             ImageUtilies.Encode(texture, path.FullName, "cubemap", imageFormatParser, qualityPercentage);
                             break;
                         case CubemapFormat.SixFaces:
@@ -98,6 +113,11 @@ namespace Treasured.UnitySdk
                             }
                             break;
                     }
+                }
+                if (imageFormat == ImageFormat.Ktx2)
+                {
+                    EditorUtility.DisplayProgressBar("Converting to KTX2", "Converting in progress...", 0.5f);
+                    ImageUtilies.ConvertToKTX2(rootDirectory);
                 }
             }
             catch (Exception e)
@@ -119,12 +139,6 @@ namespace Treasured.UnitySdk
                 camera.transform.rotation = originalCameraRot;
                 camera.targetTexture = camTarget;
                 #endregion
-
-                if (imageFormat == ImageFormat.Ktx2)
-                {
-                    EditorUtility.DisplayProgressBar("Encoding Hotspots To KTX format", "Encoding in progress..", 0.5f);
-                    ImageUtilies.Encode(null, rootDirectory, null, ImageFormat.Ktx2);
-                }
             }
         }
 
