@@ -7,8 +7,12 @@ namespace Treasured.UnitySdk
 {
     internal class CubemapExportProcess : ExportProcess
     {
-        private const int CUDA_TEXTURE_WIDTH = 4096;
-        private const int CUBEMAP_FACE_WIDTH = 1360; // 4096 / 3 round to nearest tenth
+        private const int MAXIMUM_CUDA_TEXTURE_WIDTH = 4096;
+        private const int MAXIMUM_CUBEMAP_FACE_WIDTH = 1360; // 4096 / 3 round to nearest tenth
+        private const int MAXIMUM_CUBEMAP_WIDTH = 8192;
+
+        private bool _isAdvancedMode = false;
+        private int _cubemapSize = MAXIMUM_CUBEMAP_FACE_WIDTH;
 
         private SerializedProperty _format;
         private SerializedProperty _quality;
@@ -29,6 +33,15 @@ namespace Treasured.UnitySdk
             imageFormat = (ImageFormat)EditorGUILayout.EnumPopup(new GUIContent("Format"), imageFormat);
             EditorGUILayout.PropertyField(_quality);
             _cubemapFormat = (CubemapFormat)EditorGUILayout.EnumPopup(new GUIContent("Cubemap Format"), _cubemapFormat);
+            if (_cubemapFormat == CubemapFormat._3x2)
+            {
+                _isAdvancedMode = EditorGUILayout.Toggle(new GUIContent("Advanced"), _isAdvancedMode);
+                if (_isAdvancedMode)
+                {
+                    _cubemapSize = EditorGUILayout.IntField(new GUIContent("Cubemap Size"), _cubemapSize);
+                    _cubemapSize = Mathf.Clamp(_cubemapSize - _cubemapSize % 10, 16, MAXIMUM_CUBEMAP_FACE_WIDTH);
+                }
+            }
             if (_format.enumValueIndex == (int)ImageFormat.PNG || _format.enumValueIndex == (int)ImageFormat.Ktx2)
                 return;
 
@@ -54,12 +67,12 @@ namespace Treasured.UnitySdk
 
             int count = hotspots.Length;
 
-            Cubemap cubemap = new Cubemap(CUBEMAP_FACE_WIDTH, TextureFormat.ARGB32, false);
+            Cubemap cubemap = new Cubemap(_cubemapFormat == CubemapFormat.IndividualFace ? (int)map.Quality : _cubemapSize, TextureFormat.ARGB32, false);
             Texture2D texture = null;
             switch (_cubemapFormat)
             {
                 case CubemapFormat._3x2:
-                    texture = new Texture2D(CUDA_TEXTURE_WIDTH, CUDA_TEXTURE_WIDTH, TextureFormat.ARGB32, false);
+                    texture = new Texture2D(MAXIMUM_CUDA_TEXTURE_WIDTH, MAXIMUM_CUDA_TEXTURE_WIDTH, TextureFormat.ARGB32, false);
                     break;
                 case CubemapFormat.IndividualFace:
                     texture = new Texture2D(cubemap.width, cubemap.height, TextureFormat.ARGB32, false);
@@ -95,8 +108,8 @@ namespace Treasured.UnitySdk
                                 {
                                     throw new TreasuredException("Export canceled", "Export canceled by the user.");
                                 }
-                                texture.SetPixels((i % 3) * CUBEMAP_FACE_WIDTH, 4096 - ((i / 3) + 1) * CUBEMAP_FACE_WIDTH, CUBEMAP_FACE_WIDTH, CUBEMAP_FACE_WIDTH,
-                                ImageUtilies.FlipPixels(cubemap.GetPixels((CubemapFace)i), CUBEMAP_FACE_WIDTH, CUBEMAP_FACE_WIDTH, true, imageFormat != ImageFormat.Ktx2));
+                                texture.SetPixels((i % 3) * _cubemapSize, MAXIMUM_CUDA_TEXTURE_WIDTH - ((i / 3) + 1) * _cubemapSize, _cubemapSize, _cubemapSize,
+                                ImageUtilies.FlipPixels(cubemap.GetPixels((CubemapFace)i), _cubemapSize, _cubemapSize, true, imageFormat != ImageFormat.Ktx2));
                             }
                             ImageUtilies.Encode(texture, path.FullName, "cubemap", imageFormatParser, qualityPercentage);
                             break;
