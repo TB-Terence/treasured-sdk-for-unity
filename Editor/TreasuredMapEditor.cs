@@ -19,7 +19,7 @@ namespace Treasured.UnitySdk
             Client.Add("https://github.com/TB-Terence/treasured-sdk-for-unity.git#upm");
         }
 
-        private static readonly string[] selectableObjectListNames = new string[] { "Hotspots", "Interactables" };
+        private static readonly string[] selectableObjectListNames = new string[] { "Hotspots", "Interactables", "Videos" };
 
         [AttributeUsage(AttributeTargets.Method)]
         class FoldoutGroupAttribute : Attribute
@@ -74,7 +74,8 @@ namespace Treasured.UnitySdk
             public static readonly Dictionary<Type, GUIContent> createNew = new Dictionary<Type, GUIContent>()
             {
                 { typeof(Hotspot), EditorGUIUtility.TrTextContent("Create New", "Creaet new Hotspot", "Toolbar Plus") },
-                { typeof(Interactable), EditorGUIUtility.TrTextContent("Create New", "Create new Interactable", "Toolbar Plus") }
+                { typeof(Interactable), EditorGUIUtility.TrTextContent("Create New", "Create new Interactable", "Toolbar Plus") },
+                { typeof(VideoRenderer), EditorGUIUtility.TrTextContent("Create New", "Create new Video Plane", "Toolbar Plus") }
             };
 
 
@@ -151,10 +152,15 @@ namespace Treasured.UnitySdk
         private GroupToggleState interactablesGroupToggleState = GroupToggleState.All;
         private Vector2 interactablesScrollPosition;
 
+        private bool exportAllVideos = true;
+        private GroupToggleState videosGroupToggleState = GroupToggleState.All;
+        private Vector2 videosScrollPosition;
+
         private int selectedObjectListIndex = 0;
 
         private List<Hotspot> hotspots = new List<Hotspot>();
         private List<Interactable> interactables = new List<Interactable>();
+        private List<VideoRenderer> videos = new List<VideoRenderer>();
 
         private Dictionary<MethodInfo, FoldoutGroupState> foldoutGroupGUI = new Dictionary<MethodInfo, FoldoutGroupState>();
 
@@ -193,6 +199,7 @@ namespace Treasured.UnitySdk
             {
                 hotspots = map.gameObject.GetComponentsInChildren<Hotspot>(true).ToList();
                 interactables = map.gameObject.GetComponentsInChildren<Interactable>(true).ToList();
+                videos = map.gameObject.GetComponentsInChildren<VideoRenderer>(true).ToList();
 
                 serializedObject.FindProperty("_format").enumValueIndex = 2;
                 serializedObject.ApplyModifiedProperties();
@@ -406,6 +413,10 @@ namespace Treasured.UnitySdk
             {
                 OnObjectList(interactables, ref interactablesScrollPosition, ref exportAllInteractables, ref interactablesGroupToggleState);
                 EditorGUILayout.PropertyField(uiSettings.FindPropertyRelative("showInteractableButtons"));
+            }
+            else if (selectedObjectListIndex == 2)
+            {
+                OnObjectList(videos, ref videosScrollPosition, ref exportAllVideos, ref videosGroupToggleState);
             }
         }
 
@@ -622,9 +633,12 @@ namespace Treasured.UnitySdk
                                 else
                                 {
                                     // Always oppsite to the transform.forward
-                                    Vector3 targetPosition = current.Hitbox.transform.position;
-                                    Vector3 cameraPosition = current.Hitbox.transform.position + current.Hitbox.transform.forward * 1;
-                                    SceneView.lastActiveSceneView.LookAt(cameraPosition, Quaternion.LookRotation(targetPosition - cameraPosition), 1);
+                                    if (current.Hitbox != null)
+                                    {
+                                        Vector3 targetPosition = current.Hitbox.transform.position;
+                                        Vector3 cameraPosition = current.Hitbox.transform.position + current.Hitbox.transform.forward * 1;
+                                        SceneView.lastActiveSceneView.LookAt(cameraPosition, Quaternion.LookRotation(targetPosition - cameraPosition), 1);
+                                    }
                                 }
                                 EditorGUIUtility.PingObject(current);
                             }
@@ -633,19 +647,12 @@ namespace Treasured.UnitySdk
                 }
                 if (GUILayout.Button(Styles.createNew[typeof(T)]))
                 {
-                    var root = map.gameObject.FindOrCreateChild($"{typeof(T).Name}s");
-                    GameObject go = new GameObject(ObjectNames.GetUniqueName(objects.Select(x => x.name).ToArray(), typeof(T).Name));
+                    var root = map.gameObject.FindOrCreateChild($"{ObjectNames.NicifyVariableName(typeof(T).Name)}s");
+                    GameObject go = new GameObject(ObjectNames.NicifyVariableName(ObjectNames.GetUniqueName(objects.Select(x => x.name).ToArray(), typeof(T).Name)));
                     T obj = go.AddComponent<T>();
                     Camera camera = SceneView.lastActiveSceneView.camera;
                     go.transform.SetParent(root);
-                    if (typeof(T) == typeof(Hotspot))
-                    {
-                        hotspots.Add(obj as Hotspot);
-                    }
-                    else if (typeof(T) == typeof(Interactable))
-                    {
-                        interactables.Add(obj as Interactable);
-                    }
+                    objects.Add(obj);
                     EditorGUIUtility.PingObject(go);
                     if (Physics.Raycast(camera.transform.position, camera.transform.forward, out var hit))
                     {
@@ -655,6 +662,10 @@ namespace Treasured.UnitySdk
                         {
                             hotspot.Camera.transform.position = hit.point + new Vector3(0, 1.5f, 0);
                             hotspot.Camera.transform.localRotation = Quaternion.identity;
+                        }
+                        else if (obj is VideoRenderer videoRenderer)
+                        {
+                            videoRenderer.Hitbox.transform.localScale = new Vector3(1, 1, 0.01f);
                         }
                     }
                     else
@@ -760,13 +771,13 @@ namespace Treasured.UnitySdk
         {
             TreasuredMap map = Selection.activeGameObject.GetComponentInParent<TreasuredMap>();
             Transform root = map.transform;
-            Transform planeRoot = root.Find("Planes");
+            Transform planeRoot = root.Find("Videos");
             if (planeRoot == null)
             {
-                planeRoot = new GameObject("Planes").transform;
+                planeRoot = new GameObject("Videos").transform;
                 planeRoot.SetParent(root);
             }
-            GameObject videoPlane = new GameObject("New Video Plane", typeof(VideoPlane));
+            GameObject videoPlane = new GameObject("New Video Plane", typeof(VideoRenderer));
             if (Selection.activeGameObject.transform == root)
             {
                 videoPlane.transform.SetParent(planeRoot);

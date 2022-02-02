@@ -94,11 +94,11 @@ namespace Treasured.UnitySdk
             }
         }
 
-        public VideoPlane[] VideoPlanes
+        public VideoRenderer[] Videos
         {
             get
             {
-                return GetComponentsInChildren<VideoPlane>();
+                return GetComponentsInChildren<VideoRenderer>();
             }
         }
         #endregion
