@@ -5,7 +5,7 @@ namespace Treasured.UnitySdk
 {
     public class VideoRenderer : TreasuredObject
     {
-        #region
+        #region data
         [SerializeField]
         private bool _lockAspectRatio;
         [SerializeField]
@@ -13,6 +13,9 @@ namespace Treasured.UnitySdk
         [SerializeField]
         [Url]
         private string _src;
+        [SerializeField]
+        [Range(0, 100)]
+        private int _volume = 100;
         #endregion
 
         [JsonIgnore]
