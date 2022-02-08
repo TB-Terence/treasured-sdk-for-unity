@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
+    [AddComponentMenu("Treasured/Video Renderer")]
     public class VideoRenderer : TreasuredObject
     {
         #region data
@@ -10,12 +11,11 @@ namespace Treasured.UnitySdk
         private bool _lockAspectRatio;
         [SerializeField]
         private string _aspectRatio = "16:9";
-        [SerializeField]
         [Url]
-        private string _src;
-        [SerializeField]
+        public string Src;
         [Range(0, 100)]
-        private int _volume = 100;
+        public int Volume = 100;
+        public bool Loop = true;
         #endregion
 
         [JsonIgnore]
@@ -26,9 +26,8 @@ namespace Treasured.UnitySdk
             get
             {
                 string[] ratios = _aspectRatio.Split(':', 'x');
-                return float.Parse(ratios[0]) / float.Parse(ratios[1]);
+                return ratios.Length == 2 ? float.Parse(ratios[0]) / float.Parse(ratios[1]) : 1;
             }
         }
-        public string Src => _src;
     }
 }

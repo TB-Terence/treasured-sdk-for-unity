@@ -32,8 +32,9 @@ namespace Treasured.UnitySdk
             SerializedProperty description = serializedObject.FindProperty("_description");
             SerializedProperty lockAspectRatio = serializedObject.FindProperty("_lockAspectRatio");
             SerializedProperty aspectRatio = serializedObject.FindProperty("_aspectRatio");
-            SerializedProperty src = serializedObject.FindProperty("_src");
-            SerializedProperty volume = serializedObject.FindProperty("_volume");
+            SerializedProperty src = serializedObject.FindProperty("Src");
+            SerializedProperty volume = serializedObject.FindProperty("Volume");
+            SerializedProperty loop = serializedObject.FindProperty("Loop");
 
             EditorGUILayout.PropertyField(id);
             EditorGUILayout.PropertyField(description);
@@ -50,6 +51,7 @@ namespace Treasured.UnitySdk
                 }
             }
             EditorGUILayout.PropertyField(volume);
+            EditorGUILayout.PropertyField(loop);
 
             serializedObject.ApplyModifiedProperties();
         }

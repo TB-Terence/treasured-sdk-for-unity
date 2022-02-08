@@ -1,7 +1,16 @@
-﻿namespace Treasured.UnitySdk
+﻿using UnityEngine;
+
+namespace Treasured.UnitySdk
 {
+    [AddComponentMenu("Treasured/Sound Source")]
     public class SoundSource : TreasuredObject
     {
-        public float Volume;
+        [Url]
+        public string Src;
+
+        [Range(0, 100)]
+        public int Volume = 100;
+
+        public bool Loop = false;
     }
 }
