@@ -101,6 +101,14 @@ namespace Treasured.UnitySdk
                 return GetComponentsInChildren<VideoRenderer>();
             }
         }
+
+        public SoundSource[] Sounds
+        {
+            get
+            {
+                return GetComponentsInChildren<SoundSource>();
+            }
+        }
         #endregion
 
         #region Export Settings
