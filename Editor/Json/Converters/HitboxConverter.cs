@@ -36,7 +36,7 @@ namespace Treasured.UnitySdk
                 writer.WritePropertyName(nameof(hitbox.transform.position));
                 serializer.Serialize(writer, position); // use custom Vector3Converter
                 writer.WritePropertyName(nameof(hitbox.transform.rotation));
-                serializer.Serialize(writer, rotation);
+                serializer.Serialize(writer, rotation.eulerAngles);
                 writer.WritePropertyName("size");
                 serializer.Serialize(writer, hitbox.transform.localScale);
                 writer.WriteEndObject();

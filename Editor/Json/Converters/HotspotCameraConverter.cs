@@ -36,7 +36,7 @@ namespace Treasured.UnitySdk
                 writer.WritePropertyName(nameof(camera.transform.position));
                 serializer.Serialize(writer, position);
                 writer.WritePropertyName(nameof(camera.transform.rotation));
-                serializer.Serialize(writer, rotation);
+                serializer.Serialize(writer, rotation.eulerAngles);
                 writer.WriteEndObject();
             }
         }

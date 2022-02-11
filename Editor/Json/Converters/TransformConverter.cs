@@ -36,7 +36,7 @@ namespace Treasured.UnitySdk
                 writer.WritePropertyName(nameof(transform.position));
                 serializer.Serialize(writer, position);
                 writer.WritePropertyName(nameof(transform.rotation));
-                serializer.Serialize(writer, rotation);
+                serializer.Serialize(writer, rotation.eulerAngles);
                 writer.WritePropertyName("scale");
                 serializer.Serialize(writer, transform.localScale);
                 writer.WriteEndObject();
