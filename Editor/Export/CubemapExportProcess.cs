@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Treasured.UnitySdk
 {
@@ -52,7 +54,7 @@ namespace Treasured.UnitySdk
             }
         }
 
-        public override void Export(string rootDirectory, TreasuredMap map)
+        public override void OnExport(string rootDirectory, TreasuredMap map)
         {
             var hotspots = ValidateHotspots(map);
             var camera = ValidateCamera(); // use default camera settings to render 360 images
@@ -196,5 +198,32 @@ namespace Treasured.UnitySdk
                     return "unknown";
             }
         }
+
+#if HDRP_10_5_1_OR_NEWER
+        private Dictionary<UnityEngine.Rendering.HighDefinition.LensDistortion, float> _lensScales = new Dictionary<UnityEngine.Rendering.HighDefinition.LensDistortion, float>();
+
+        public override void OnPreProcess(SerializedObject serializedObject)
+        {
+            _lensScales.Clear();
+            Volume[] volumes = GameObject.FindObjectsOfType<Volume>();
+            for (int i = 0; i < volumes.Length; i++)
+            {
+                if (volumes[i].profile.TryGet<UnityEngine.Rendering.HighDefinition.LensDistortion>(out var lensDistortion))
+                {
+                    _lensScales[lensDistortion] = lensDistortion.scale.value;
+                    lensDistortion.scale.value = 1;
+                }
+            }
+        }
+
+        public override void OnPostProcess(SerializedObject serializedObject)
+        {
+            foreach (var lensDistortion in _lensScales.Keys)
+            {
+                lensDistortion.scale.value = _lensScales[lensDistortion];
+            }
+            _lensScales.Clear();
+        }
+#endif
     }
 }

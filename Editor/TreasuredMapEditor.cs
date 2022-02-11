@@ -514,7 +514,9 @@ namespace Treasured.UnitySdk
                     {
                         if (process.Enabled)
                         {
-                            process.Export(root, target as TreasuredMap);
+                            process.OnPreProcess(serializedObject);
+                            process.OnExport(root, target as TreasuredMap);
+                            process.OnPostProcess(serializedObject);
                         }
                     }
                 }

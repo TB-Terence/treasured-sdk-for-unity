@@ -75,7 +75,6 @@ namespace Treasured.UnitySdk
         private ImageQuality _quality = ImageQuality.High;
         public ImageQuality Quality { get => _quality; set => _quality = value; }
 
-        public Color32 MaskColor => Color.white;
         #endregion
 
         #region Objects

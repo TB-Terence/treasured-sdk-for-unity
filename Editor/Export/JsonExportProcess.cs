@@ -22,7 +22,7 @@ namespace Treasured.UnitySdk
             TransformConverter.ConvertToThreeJsSpace = EditorGUILayout.Toggle(new GUIContent("Convert Transform"), TransformConverter.ConvertToThreeJsSpace);
         }
 
-        public override void Export(string rootDirectory, TreasuredMap map)
+        public override void OnExport(string rootDirectory, TreasuredMap map)
         {
             string jsonPath = Path.Combine(rootDirectory, "data.json").Replace('/', '\\');
             string json = JsonConvert.SerializeObject(map, formatting, JsonSettings);

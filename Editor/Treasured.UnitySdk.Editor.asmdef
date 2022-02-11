@@ -27,6 +27,11 @@
             "name": "jillejr.newtonsoft.json-for-unity",
             "expression": "13.0.102",
             "define": "NEWTONSOFT_JSON_13_0_102_OR_NEWER"
+        },
+        {
+            "name": "com.unity.render-pipelines.high-definition",
+            "expression": "10.5.1",
+            "define": "HDRP_10_5_1_OR_NEWER"
         }
     ],
     "noEngineReferences": false

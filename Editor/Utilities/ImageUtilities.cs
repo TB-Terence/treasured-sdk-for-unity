@@ -44,8 +44,8 @@ namespace Treasured.UnitySdk
                 }
                 catch (Exception e)
                 {
-                    Debug.Log($"Error encoding WebP image: {e.Message}");
-                    return;
+                    Debug.LogError(e);
+                    throw new TreasuredException ("Encoding Error", $"Unable to encode in WebP format: {e.Message}");
                 }
             }
         }
