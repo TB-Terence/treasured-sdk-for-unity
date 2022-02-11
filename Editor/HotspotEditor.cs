@@ -163,7 +163,7 @@ namespace Treasured.UnitySdk
                 {
                     foreach (var obj in map.GetComponentsInChildren<TreasuredObject>())
                     {
-                        if (obj == target)
+                        if (obj == target || obj.Hitbox == null)
                         {
                             continue;
                         }
@@ -183,6 +183,10 @@ namespace Treasured.UnitySdk
                 {
                     foreach (var target in visibleTargets)
                     {
+                        if (target.Hitbox == null)
+                        {
+                            continue;
+                        }
                         if (target is Hotspot)
                         {
                             Handles.color = new Color(1, 0, 0, 0.8f);

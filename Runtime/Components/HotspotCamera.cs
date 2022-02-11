@@ -7,8 +7,8 @@ namespace Treasured.UnitySdk
 {
     public enum CubemapFormat 
     { 
-        Single,
-        SixFaces
+        IndividualFace,
+        _3x2
     }
 
     /// <summary>
@@ -34,7 +34,7 @@ namespace Treasured.UnitySdk
             }
             switch (cubemapFormat)
             {
-                case CubemapFormat.Single:
+                case CubemapFormat.IndividualFace:
                     string path = $"{directoryPath}/{defaultName}.{extension}";
                     for (int i = 0; i < 6; i++)
                     {
@@ -43,7 +43,8 @@ namespace Treasured.UnitySdk
                     FlipPixels(texture, true, true);
                     File.WriteAllBytes(path, texture.EncodeToPNG());
                     break;
-                case CubemapFormat.SixFaces:
+                case CubemapFormat._3x2:
+                    // TODO: Change to 3x2 format
                     for (int i = 0; i < 6; i++)
                     {
                         path = $"{directoryPath}/{SimplifyCubemapFace((CubemapFace)i)}.{extension}";

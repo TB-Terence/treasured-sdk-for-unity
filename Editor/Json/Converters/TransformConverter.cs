@@ -6,6 +6,8 @@ namespace Treasured.UnitySdk
 {
     internal class TransformConverter : JsonConverter
     {
+        public static bool ConvertToThreeJsSpace = false;
+
         public override bool CanConvert(Type objectType)
         {
             return objectType == typeof(Transform);
@@ -20,13 +22,24 @@ namespace Treasured.UnitySdk
         {
             if (value is Transform transform)
             {
+                Vector3 position = transform.position;
+                Vector3 rotation = transform.eulerAngles;
+                Vector3 scale = transform.localScale;
+                if (TransformConverter.ConvertToThreeJsSpace)
+                {
+                    position.x = -position.x;
+                    rotation = Mathf.Deg2Rad * rotation;
+                    rotation.y = -rotation.y;
+                    scale.x = -scale.x;
+                    scale.z = -scale.z;
+                }
                 writer.WriteStartObject();
                 writer.WritePropertyName(nameof(transform.position));
-                serializer.Serialize(writer, transform.position);
+                serializer.Serialize(writer, position);
                 writer.WritePropertyName(nameof(transform.rotation));
-                serializer.Serialize(writer, transform.eulerAngles);
+                serializer.Serialize(writer, rotation);
                 writer.WritePropertyName("scale");
-                serializer.Serialize(writer, transform.localScale);
+                serializer.Serialize(writer, scale);
                 writer.WriteEndObject();
             }
         }

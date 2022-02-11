@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
@@ -27,6 +29,20 @@ namespace Treasured.UnitySdk.Editor
             private Vector2 previewScrollPosition;
             private Vector2 textScrollPosition;
 
+            static string s_brown = "#964B00";
+
+            Dictionary<string, string> _tagColorPairs = new Dictionary<string, string>
+            {
+                { "iframe", "#3399ff" },
+                { "width", s_brown },
+                { "height", s_brown},
+                { "src", s_brown },
+                { "title", s_brown },
+                { "frameborder", s_brown },
+                { "allow", s_brown },
+                { "allowfullscreen", s_brown },
+            };
+
             public static void Show(SerializedProperty serializedProperty, MarkdownAttribute attribute)
             {
                 MarkdownEditorWindow window = EditorWindow.GetWindow<MarkdownEditorWindow>(true, "HTML Editor");
@@ -34,6 +50,17 @@ namespace Treasured.UnitySdk.Editor
                 window.serializedProperty = serializedProperty;
                 window.attribute = attribute;
                 window.Show();
+            }
+
+            private string PraseHTML(string text)
+            {
+                string result = text;
+                foreach (var item in _tagColorPairs)
+                {
+                    var regex = new Regex("([^A-z0-9])(" + item.Key + ")([^A-z0-9])");
+                    result = regex.Replace(result, $"$1<color={item.Value}>$2</color>$3");
+                }
+                return result;
             }
 
             private void OnGUI()
@@ -49,7 +76,8 @@ namespace Treasured.UnitySdk.Editor
                 {
                     EditorStyles.textArea.richText = true;
                     Rect previewRect = EditorGUILayout.GetControlRect(GUILayout.ExpandHeight(true));
-                    var previewArgs = new object[] { previewRect, serializedProperty.stringValue, previewScrollPosition, EditorStyles.textArea };
+                    string html = PraseHTML(serializedProperty.stringValue);
+                    var previewArgs = new object[] { previewRect, html, previewScrollPosition, EditorStyles.textArea };
                     typeof(EditorGUI).GetMethod("ScrollableTextAreaInternal", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, previewArgs);
                     previewScrollPosition = (Vector2)previewArgs[2]; // set the value of scroll position
                 }

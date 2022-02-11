@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
@@ -21,11 +22,19 @@ namespace Treasured.UnitySdk
         {
             if (value is HotspotCamera camera)
             {
+                Vector3 position = camera.transform.position;
+                Vector3 rotation = camera.transform.eulerAngles;
+                if (TransformConverter.ConvertToThreeJsSpace)
+                {
+                    position.x = -position.x;
+                    rotation = Mathf.Deg2Rad * rotation;
+                    rotation.y = -rotation.y;
+                }
                 writer.WriteStartObject();
                 writer.WritePropertyName(nameof(camera.transform.position));
-                serializer.Serialize(writer, camera.transform.position);
+                serializer.Serialize(writer, position);
                 writer.WritePropertyName(nameof(camera.transform.rotation));
-                serializer.Serialize(writer, camera.transform.eulerAngles);
+                serializer.Serialize(writer, rotation);
                 writer.WriteEndObject();
             }
         }

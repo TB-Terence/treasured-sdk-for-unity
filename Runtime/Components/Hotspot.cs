@@ -12,12 +12,6 @@ namespace Treasured.UnitySdk
     public sealed class Hotspot : TreasuredObject
     {
         #region Backing fields
-        [Obsolete("Deprecated, use Hotspot.Camera to access the position instead.")]
-        [SerializeField]
-        private Vector3 _cameraPositionOffset = new Vector3(0, 2, 0);
-        [Obsolete("Deprecated, use Hotspot.Camera to access the rotation instead.")]
-        [SerializeField]
-        private Vector3 _cameraRotationOffset = new Vector3();
 
         [SerializeField]
         private HotspotCamera _camera;
@@ -25,13 +19,6 @@ namespace Treasured.UnitySdk
         #endregion
 
         #region Properties
-        [JsonIgnore]
-        [Obsolete("Deprecated, Use Camera.transfom.position instead. Note that the position will be in world space instead of offset.")]
-        public Vector3 CameraPositionOffset { get => _cameraPositionOffset; set => _cameraPositionOffset = value; }
-        [JsonIgnore]
-        [Obsolete("Deprecated, Use Camera.transfom.rotation instead. Note that the rotation will be in world space instead of offset.")]
-        public Vector3 CameraRotationOffset { get => _cameraRotationOffset; set => _cameraRotationOffset = value; }
-        
         /// <summary>
         /// Returns camera transform for the hotspot.
         /// </summary>
@@ -61,7 +48,7 @@ namespace Treasured.UnitySdk
                 queue.Enqueue(collider.enabled);
                 collider.enabled = false;
             }
-            if (Physics.Raycast(transform.position + _cameraPositionOffset, Vector3.down, out RaycastHit hit))
+            if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit))
             {
                 transform.position = hit.point + new Vector3(0, 0.01f, 0);
                 if (TryGetComponent<BoxCollider>(out var collider))
@@ -111,8 +98,8 @@ namespace Treasured.UnitySdk
             if (_camera == null)
             {
                 _camera = gameObject.FindOrCreateChild<HotspotCamera>("Camera");
-                _camera.transform.localPosition = Hitbox.transform.localPosition + CameraPositionOffset;
-                _camera.transform.localRotation = Quaternion.Euler(Hitbox.transform.localEulerAngles + CameraRotationOffset);
+                _camera.transform.localPosition = Hitbox.transform.localPosition;
+                _camera.transform.localRotation = Quaternion.Euler(Hitbox.transform.localEulerAngles);
             }
         }
 

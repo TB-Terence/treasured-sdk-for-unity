@@ -75,7 +75,6 @@ namespace Treasured.UnitySdk
         private ImageQuality _quality = ImageQuality.High;
         public ImageQuality Quality { get => _quality; set => _quality = value; }
 
-        public Color32 MaskColor => Color.white;
         #endregion
 
         #region Objects
@@ -91,6 +90,22 @@ namespace Treasured.UnitySdk
             get
             {
                 return GetComponentsInChildren<Interactable>();
+            }
+        }
+
+        public VideoRenderer[] Videos
+        {
+            get
+            {
+                return GetComponentsInChildren<VideoRenderer>();
+            }
+        }
+
+        public SoundSource[] Sounds
+        {
+            get
+            {
+                return GetComponentsInChildren<SoundSource>();
             }
         }
         #endregion

@@ -23,6 +23,9 @@ namespace Treasured.UnitySdk
         private string _description;
 
         [SerializeField]
+        [Preset("FaMicrophone", "FaVolumeUp", "FaVideo", "FaLock", "FaMap", "FaTrophy", "FaHeart", "FaPlayCircle",
+            "FaCat", "FaComment", "FaBoxOpen", "FaDungeon", "FaMusic", "FaPalette")]
+        [OpenUrl("https://react-icons.github.io/react-icons/icons?name=fa")]
         private string _icon;
 
         [SerializeField]
