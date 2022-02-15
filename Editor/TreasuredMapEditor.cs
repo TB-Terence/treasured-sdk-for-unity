@@ -527,10 +527,12 @@ namespace Treasured.UnitySdk
                 {
                     EditorGUIUtility.PingObject(e.Context);
                 }
+                Debug.LogException(e);
             }
             catch (TreasuredException e)
             {
                 EditorUtility.DisplayDialog(e.Title, e.Message, "Ok");
+                Debug.LogException(e);
             }
             catch (Exception e)
             {
@@ -540,6 +542,7 @@ namespace Treasured.UnitySdk
                     exceptionType = exceptionType.Substring(0, exceptionType.LastIndexOf("Exception"));
                 }
                 EditorUtility.DisplayDialog(ObjectNames.NicifyVariableName(exceptionType), e.Message, "Ok");
+                Debug.LogException(e);
             }
             finally
             {

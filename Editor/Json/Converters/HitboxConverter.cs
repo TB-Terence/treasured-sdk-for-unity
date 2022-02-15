@@ -22,24 +22,13 @@ namespace Treasured.UnitySdk
         {
             if (value is Hitbox hitbox)
             {
-                Vector3 position = hitbox.transform.position;
-                Vector3 rotation = hitbox.transform.eulerAngles;
-                Vector3 scale = hitbox.transform.localScale;
-                if (TransformConverter.ConvertToThreeJsSpace)
-                {
-                    position.x = -position.x;
-                    rotation = Mathf.Deg2Rad * rotation;
-                    rotation.y = -rotation.y;
-                    scale.x = -scale.x;
-                    scale.z = -scale.z;
-                }
                 writer.WriteStartObject();
                 writer.WritePropertyName(nameof(hitbox.transform.position));
-                serializer.Serialize(writer, position); // use custom Vector3Converter
+                serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsPosition(hitbox.transform.position));
                 writer.WritePropertyName(nameof(hitbox.transform.rotation));
-                serializer.Serialize(writer, rotation);
+                serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsRotation(hitbox.transform.rotation));
                 writer.WritePropertyName("size");
-                serializer.Serialize(writer, scale);
+                serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsPosition(hitbox.transform.localScale));
                 writer.WriteEndObject();
             }
         }
