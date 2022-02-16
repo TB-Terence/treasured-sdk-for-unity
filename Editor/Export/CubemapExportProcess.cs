@@ -220,7 +220,10 @@ namespace Treasured.UnitySdk
         {
             foreach (var lensDistortion in _lensScales.Keys)
             {
-                lensDistortion.scale.value = _lensScales[lensDistortion];
+                if (_lensScales.TryGetValue(lensDistortion, out var scale))
+                {
+                    lensDistortion.scale.value = scale;
+                }
             }
             _lensScales.Clear();
         }
