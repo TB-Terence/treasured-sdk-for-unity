@@ -118,6 +118,12 @@ namespace Treasured.UnitySdk
 
         [SerializeField]
         private int _interactableLayer; // game object can only have one layer thus using int instead of LayerMask
+
+        public bool _useTag;
+        public string _tag;
+        public bool _useLayerMask;
+        public LayerMask _layerMask;
+
         #endregion
 
         private void OnValidate()

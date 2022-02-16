@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using GLTF;
 
 namespace Treasured.UnitySdk
 {
@@ -14,7 +15,7 @@ namespace Treasured.UnitySdk
                 return transform.position;
             }
             Vector3 position = transform.position;
-            position.y *= -1;
+            position.x *= -1;
             return position;
         }
 
@@ -22,7 +23,7 @@ namespace Treasured.UnitySdk
         {
             if (!ShouldConvertToThreeJs)
             {
-                return transform.eulerAngles;
+                return transform.eulerAngles * Mathf.Deg2Rad;
             }
             // Rotate local rotation by 180 degress and return the Euler in radians.
             return (transform.localRotation * s_threeJsRotation).eulerAngles * Mathf.Deg2Rad;
