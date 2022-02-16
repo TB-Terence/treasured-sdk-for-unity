@@ -22,11 +22,11 @@ namespace Treasured.UnitySdk
             {
                 writer.WriteStartObject();
                 writer.WritePropertyName(nameof(transform.position));
-                serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsPosition(transform.position));
+                serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsPosition(transform));
                 writer.WritePropertyName(nameof(transform.rotation));
-                serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsRotation(transform.rotation));
+                serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsRotation(transform));
                 writer.WritePropertyName("scale");
-                serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsScale(transform.localScale));
+                serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsScale(transform));
                 writer.WriteEndObject();
             }
         }

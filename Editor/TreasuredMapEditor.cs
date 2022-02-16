@@ -633,7 +633,7 @@ namespace Treasured.UnitySdk
                             {
                                 if (current is Hotspot hotspot)
                                 {
-                                    SceneView.lastActiveSceneView.LookAt(hotspot.Camera.transform.position, hotspot.Camera.transform.rotation, 0.01f);
+                                    SceneView.lastActiveSceneView?.LookAt(hotspot.Camera.transform.position, hotspot.Camera.transform.rotation, 0.01f);
                                 }
                                 else
                                 {
