@@ -5,35 +5,32 @@ namespace Treasured.UnitySdk
     internal static class ThreeJsTransformConverter
     {
         public static bool ShouldConvertToThreeJs = false;
+        private static Quaternion s_threeJsRotation = Quaternion.Euler(0, 180, 0);
 
-        public static Vector3 ToThreeJsPosition(Vector3 position)
+        public static Vector3 ToThreeJsPosition(Transform transform)
         {
             if (!ShouldConvertToThreeJs)
             {
-                return position;
+                return transform.position;
             }
-           // position.x = -position.x;
+            Vector3 position = transform.position;
+            position.y *= -1;
             return position;
         }
 
-        public static Quaternion ToThreeJsRotation(Quaternion rotation)
+        public static Vector3 ToThreeJsRotation(Transform transform)
         {
             if (!ShouldConvertToThreeJs)
             {
-                return rotation ;
+                return transform.eulerAngles;
             }
-            return rotation;
+            // Rotate local rotation by 180 degress and return the Euler in radians.
+            return (transform.localRotation * s_threeJsRotation).eulerAngles * Mathf.Deg2Rad;
         }
 
-        public static Vector3 ToThreeJsScale(Vector3 scale)
+        public static Vector3 ToThreeJsScale(Transform transform)
         {
-            if (!ShouldConvertToThreeJs)
-            {
-                return scale;
-            }
-        //    scale.x = -scale.x;
-       //     scale.z = -scale.z;
-            return scale;
+            return transform.localScale;
         }
     }
 }
