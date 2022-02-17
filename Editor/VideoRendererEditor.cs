@@ -16,6 +16,13 @@ namespace Treasured.UnitySdk
             (target as TreasuredObject)?.TryInvokeMethods("OnSelectedInHierarchy");
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
+            if (target is VideoRenderer videoRenderer)
+            {
+                if (videoRenderer.LockAspectRatio)
+                {
+                    ScaleByRatio();
+                }
+            }
         }
 
         private void OnDisable()
@@ -39,7 +46,15 @@ namespace Treasured.UnitySdk
             EditorGUILayout.PropertyField(id);
             EditorGUILayout.PropertyField(description);
             EditorGUILayout.PropertyField(src);
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(lockAspectRatio);
+            if (EditorGUI.EndChangeCheck())
+            {
+                if (lockAspectRatio.boolValue)
+                {
+                    ScaleByRatio();
+                }
+            }
             if (lockAspectRatio.boolValue)
             {
                 int index = ArrayUtility.IndexOf(ASPECT_RATIO_OPTIONS, aspectRatio.stringValue);
@@ -48,12 +63,29 @@ namespace Treasured.UnitySdk
                 if (EditorGUI.EndChangeCheck())
                 {
                     aspectRatio.stringValue = ASPECT_RATIO_OPTIONS[newIndex];
+                    serializedObject.ApplyModifiedProperties();
+                    ScaleByRatio();
                 }
             }
             EditorGUILayout.PropertyField(volume);
             EditorGUILayout.PropertyField(loop);
 
             serializedObject.ApplyModifiedProperties();
+        }
+
+        private void ScaleByRatio()
+        {
+            if (!(serializedObject.targetObject is VideoRenderer videoRenderer))
+            {
+                return;
+            }
+            Transform transform = videoRenderer.Hitbox?.transform;
+            if (transform)
+            {
+                float ratio = videoRenderer.AspectRatio;
+                Undo.RecordObject(transform, "Scale Video Plane Hitbox");
+                transform.localScale = new Vector3(transform.localScale.x, transform.localScale.x / ratio, 0.01f);
+            }
         }
 
         private void OnSceneViewGUI(SceneView scene)
