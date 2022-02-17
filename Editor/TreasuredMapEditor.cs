@@ -19,7 +19,7 @@ namespace Treasured.UnitySdk
             Client.Add("https://github.com/TB-Terence/treasured-sdk-for-unity.git#upm");
         }
 
-        private static readonly string[] selectableObjectListNames = new string[] { "Hotspots", "Interactables", "Videos" };
+        private static readonly string[] selectableObjectListNames = new string[] { "Hotspots", "Interactables", "Videos", "Sounds" };
 
         [AttributeUsage(AttributeTargets.Method)]
         class FoldoutGroupAttribute : Attribute
@@ -75,7 +75,8 @@ namespace Treasured.UnitySdk
             {
                 { typeof(Hotspot), EditorGUIUtility.TrTextContent("Create New", "Creaet new Hotspot", "Toolbar Plus") },
                 { typeof(Interactable), EditorGUIUtility.TrTextContent("Create New", "Create new Interactable", "Toolbar Plus") },
-                { typeof(VideoRenderer), EditorGUIUtility.TrTextContent("Create New", "Create new Video Plane", "Toolbar Plus") }
+                { typeof(VideoRenderer), EditorGUIUtility.TrTextContent("Create New", "Create new Video Renderer", "Toolbar Plus") },
+                { typeof(SoundSource), EditorGUIUtility.TrTextContent("Create New", "Create new Sound Source", "Toolbar Plus") }
             };
 
 
@@ -156,11 +157,16 @@ namespace Treasured.UnitySdk
         private GroupToggleState videosGroupToggleState = GroupToggleState.All;
         private Vector2 videosScrollPosition;
 
+        private bool exportAllSoundSources = true;
+        private GroupToggleState soundSourcesGroupToggleState = GroupToggleState.All;
+        private Vector2 soundSourcesScrollPosition;
+
         private int selectedObjectListIndex = 0;
 
         private List<Hotspot> hotspots = new List<Hotspot>();
         private List<Interactable> interactables = new List<Interactable>();
         private List<VideoRenderer> videos = new List<VideoRenderer>();
+        private List<SoundSource> sounds = new List<SoundSource>();
 
         private Dictionary<MethodInfo, FoldoutGroupState> foldoutGroupGUI = new Dictionary<MethodInfo, FoldoutGroupState>();
 
@@ -200,6 +206,7 @@ namespace Treasured.UnitySdk
                 hotspots = map.gameObject.GetComponentsInChildren<Hotspot>(true).ToList();
                 interactables = map.gameObject.GetComponentsInChildren<Interactable>(true).ToList();
                 videos = map.gameObject.GetComponentsInChildren<VideoRenderer>(true).ToList();
+                sounds = map.gameObject.GetComponentsInChildren<SoundSource>(true).ToList();
 
                 serializedObject.FindProperty("_format").enumValueIndex = 2;
                 serializedObject.ApplyModifiedProperties();
@@ -417,6 +424,10 @@ namespace Treasured.UnitySdk
             else if (selectedObjectListIndex == 2)
             {
                 OnObjectList(videos, ref videosScrollPosition, ref exportAllVideos, ref videosGroupToggleState);
+            }
+            else if (selectedObjectListIndex == 3)
+            {
+                OnObjectList(sounds, ref soundSourcesScrollPosition, ref exportAllSoundSources, ref soundSourcesGroupToggleState);
             }
         }
 
