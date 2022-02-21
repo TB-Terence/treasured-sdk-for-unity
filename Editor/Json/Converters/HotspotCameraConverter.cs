@@ -22,19 +22,11 @@ namespace Treasured.UnitySdk
         {
             if (value is HotspotCamera camera)
             {
-                Vector3 position = camera.transform.position;
-                Vector3 rotation = camera.transform.eulerAngles;
-                if (TransformConverter.ConvertToThreeJsSpace)
-                {
-                    position.x = -position.x;
-                    rotation = Mathf.Deg2Rad * rotation;
-                    rotation.y = -rotation.y;
-                }
                 writer.WriteStartObject();
                 writer.WritePropertyName(nameof(camera.transform.position));
-                serializer.Serialize(writer, position);
+                serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsPosition(camera.transform));
                 writer.WritePropertyName(nameof(camera.transform.rotation));
-                serializer.Serialize(writer, rotation);
+                serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsRotation(camera.transform));
                 writer.WriteEndObject();
             }
         }

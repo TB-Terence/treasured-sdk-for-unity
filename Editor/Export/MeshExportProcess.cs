@@ -25,6 +25,7 @@ namespace Treasured.UnitySdk
             
             _layerMask = serializedObject.FindProperty(nameof(_layerMask));
             _useLayerMask = serializedObject.FindProperty(nameof(_useLayerMask));
+            this.Enabled = false;
         }
 
         public override void OnGUI(SerializedObject serializedObject)
@@ -50,12 +51,6 @@ namespace Treasured.UnitySdk
 
         public override void OnExport(string rootDirectory, TreasuredMap map)
         {
-            Vector3 originalVector3 = new Vector3(0.5f, 0.5f, 0.5f);
-
-            Debug.Log(SchemaExtensions.ToGltfVector3Convert(originalVector3).X);
-            Debug.Log(SchemaExtensions.ToGltfVector3Convert(originalVector3).Y);
-            Debug.Log(SchemaExtensions.ToGltfVector3Convert(originalVector3).Z);
-
             if (!map._useTag && !map._useLayerMask)
             {
                 Debug.Log("Mesh not exported.");

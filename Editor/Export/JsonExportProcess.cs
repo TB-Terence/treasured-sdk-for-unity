@@ -19,7 +19,7 @@ namespace Treasured.UnitySdk
         public override void OnGUI(SerializedObject serializedObject)
         {
             formatting = (Formatting)EditorGUILayout.EnumPopup(new GUIContent("Formatting"), formatting);
-            TransformConverter.ConvertToThreeJsSpace = EditorGUILayout.Toggle(new GUIContent("Convert Transform"), TransformConverter.ConvertToThreeJsSpace);
+            ThreeJsTransformConverter.ShouldConvertToThreeJs = EditorGUILayout.Toggle(new GUIContent("Convert to ThreeJs Transform", "Convert Unity Tranform to ThreeJs Transform"), ThreeJsTransformConverter.ShouldConvertToThreeJs);
         }
 
         public override void OnExport(string rootDirectory, TreasuredMap map)
