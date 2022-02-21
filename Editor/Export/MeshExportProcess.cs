@@ -1,84 +1,103 @@
 ﻿using System.Collections.Generic;
+using Newtonsoft.Json;
 using TMPro;
 using UnityEditor;
-using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityGLTF;
-using UnityGLTF.Extensions;
 
 namespace Treasured.UnitySdk
 {
+    /// <summary>
+    /// Combine and Export mesh
+    /// </summary>
     internal class MeshExportProcess : ExportProcess
     {
-        private SerializedProperty _tag;
-        private SerializedProperty _useTag;
+        private SerializedProperty _filterTag;
+        private SerializedProperty _canUseTag;
+
+        private SerializedProperty _filterLayerMask;
+        private SerializedProperty _canUseLayerMask;
+
+        private string _rootDirectory;
         
-        private SerializedProperty _layerMask;
-        private SerializedProperty _useLayerMask;
-        
+        [JsonIgnore]
+        private bool _keepCombinedMeshInScene;
+        private const string CombineMeshGameObject = "CombinedMesh";
+
         public override void OnEnable(SerializedObject serializedObject)
         {
-            _tag = serializedObject.FindProperty(nameof(_tag));
-            _useTag = serializedObject.FindProperty(nameof(_useTag));
-            
-            _layerMask = serializedObject.FindProperty(nameof(_layerMask));
-            _useLayerMask = serializedObject.FindProperty(nameof(_useLayerMask));
-            this.Enabled = false;
+            _filterTag = serializedObject.FindProperty(nameof(_filterTag));
+            _canUseTag = serializedObject.FindProperty(nameof(_canUseTag));
+
+            _filterLayerMask = serializedObject.FindProperty(nameof(_filterLayerMask));
+            _canUseLayerMask = serializedObject.FindProperty(nameof(_canUseLayerMask));
         }
 
         public override void OnGUI(SerializedObject serializedObject)
         {
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.PrefixLabel(new GUIContent("Use Tag", "Only combine GameObjects which this tag."));
-            EditorGUILayout.PropertyField(_useTag, GUIContent.none, GUILayout.Width(25));
-            if (_useTag.boolValue)
+            _canUseTag.boolValue = EditorGUILayout.Toggle(
+                new GUIContent("Use Tag", "Only combine GameObjects which this tag."),
+                _canUseTag.boolValue);
+
+            if (_canUseTag.boolValue)
             {
-                _tag.stringValue = EditorGUILayout.TagField("", _tag.stringValue);
+                _filterTag.stringValue = EditorGUILayout.TagField("", _filterTag.stringValue);
             }
+
             EditorGUILayout.EndHorizontal();
-            
+
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.PrefixLabel(new GUIContent("Use LayerMask", "Only combine GameObjects which Layer is in this LayerMask."));
-            EditorGUILayout.PropertyField(_useLayerMask, GUIContent.none, GUILayout.Width(25));
-            if (_useLayerMask.boolValue)
+            _canUseLayerMask.boolValue = EditorGUILayout.Toggle(
+                new GUIContent("Use LayerMask",
+                    "Only combine GameObjects which Layer is in this LayerMask."),
+                _canUseLayerMask.boolValue);
+            if (_canUseLayerMask.boolValue)
             {
-                EditorGUILayout.PropertyField(_layerMask, GUIContent.none);
+                EditorGUILayout.PropertyField(_filterLayerMask, GUIContent.none);
             }
+
             EditorGUILayout.EndHorizontal();
+
+            if (_canUseTag.boolValue || _canUseLayerMask.boolValue)
+            {
+                _keepCombinedMeshInScene = EditorGUILayout.Toggle(new GUIContent("Keep Combined Mesh",
+                    "Keep combined mesh gameObject in scene after exporting to GLB mesh"), _keepCombinedMeshInScene);
+            }
         }
 
         public override void OnExport(string rootDirectory, TreasuredMap map)
         {
-            if (!map._useTag && !map._useLayerMask)
+            if (!map.CanUseTag && !map.CanUseLayerMask)
             {
-                Debug.Log("Mesh not exported.");
-                return;    
+                Debug.LogError("Mesh Export Search option is not configured. GLB Mesh will not be exported.");
+                return;
             }
-            
+
+            _rootDirectory = rootDirectory;
+
             List<GameObject> meshToCombine = new List<GameObject>();
 
             var allGameObjectInScene = Object.FindObjectsOfType<GameObject>();
 
             foreach (var gameObject in allGameObjectInScene)
             {
-                if (map._useTag)
+                if (map.CanUseTag)
                 {
-                    Debug.Log("Using Tags");
                     //  Compare tag to see if needs to include in mesh combiner
-                    if (gameObject.CompareTag(map._tag))
+                    if (gameObject.CompareTag(map.FilterTag))
                     {
                         meshToCombine.Add(gameObject);
                         continue;
                     }
                 }
 
-                if (map._useLayerMask)
+                if (map.CanUseLayerMask)
                 {
-                    Debug.Log("Using LayerMask");
                     var layer = 1 << gameObject.layer;
-                    if ((map._layerMask.value & layer) == layer)
+                    if ((map.FilterLayerMask.value & layer) == layer)
                     {
                         meshToCombine.Add(gameObject);
                         continue;
@@ -86,21 +105,26 @@ namespace Treasured.UnitySdk
                 }
             }
 
-            Debug.Log($"found GameObjects: {meshToCombine.Count}");
-            // CombineAllMeshes(meshToCombine, map.transform);
+            //  Combining meshes
+            CombineAllMeshes(meshToCombine, map.transform);
         }
-        
+
         private void CombineAllMeshes(List<GameObject> meshToCombine, Transform parentTransform)
         {
-            //  Check meshToCombine for null
+            //  Checking meshToCombine for null
+            if (meshToCombine.Count == 0)
+            {
+                Debug.LogError("No GameObjects were found based on the search filter. GLB mesh will not be exported.");
+                return;
+            }
 
-            GameObject tempGameObject = new GameObject("Combined Meshes");
+            var tempGameObject = new GameObject(CombineMeshGameObject);
             var meshFilter = tempGameObject.AddComponent<MeshFilter>();
             var meshRenderer = tempGameObject.AddComponent<MeshRenderer>();
             var vertices = 0;
 
-            List<MeshFilter> meshFilters = new List<MeshFilter>();
-            
+            var meshFilters = new List<MeshFilter>();
+
             foreach (var gameObject in meshToCombine)
             {
                 if (ContainsValidRenderer(gameObject) && gameObject.TryGetComponent(out MeshFilter filter))
@@ -111,9 +135,15 @@ namespace Treasured.UnitySdk
                 }
             }
 
+            if (meshFilters.Count == 0)
+            {
+                Debug.LogError("No meshes found in the search filtered gameObjects. GLB mesh will not be exported.");
+                return;
+            }
+
             CombineInstance[] combine = new CombineInstance[meshFilters.Count];
 
-            int i = 0;
+            var i = 0;
             while (i < meshFilters.Count)
             {
                 combine[i].mesh = meshFilters[i].sharedMesh;
@@ -130,16 +160,22 @@ namespace Treasured.UnitySdk
                 Debug.Log("Using Index 32");
                 mesh.indexFormat = IndexFormat.UInt32;
             }
-            
+
             meshFilter.sharedMesh = mesh;
             meshFilter.sharedMesh.CombineMeshes(combine, true, true, false);
-            meshRenderer.material = new Material(Resources.Load("TreasuredDefaultMaterial", typeof(Material)) as Material);
+            meshRenderer.material =
+                new Material(Resources.Load("TreasuredDefaultMaterial", typeof(Material)) as Material);
             tempGameObject.gameObject.SetActive(true);
 
             Transform[] exportTransforms = new Transform[2];
             exportTransforms[0] = tempGameObject.transform;
             exportTransforms[1] = parentTransform;
             CreateGLB(exportTransforms);
+
+            if (!_keepCombinedMeshInScene)
+            {
+                Object.DestroyImmediate(tempGameObject);
+            }
         }
 
         private void CreateGLB(Transform[] export)
@@ -147,12 +183,11 @@ namespace Treasured.UnitySdk
             var exportOptions = new ExportOptions { TexturePathRetriever = RetrieveTexturePath };
             var exporter = new GLTFSceneExporter(export, exportOptions);
 
-            var path = EditorUtility.OpenFolderPanel("GLB Export Path", "", "");
             var name = SceneManager.GetActiveScene().name;
-            
-            if (!string.IsNullOrEmpty(path))
+
+            if (!string.IsNullOrEmpty(_rootDirectory))
             {
-                exporter.SaveGLB(path, name);
+                exporter.SaveGLB(_rootDirectory, name);
             }
         }
 
@@ -160,12 +195,12 @@ namespace Treasured.UnitySdk
         {
             return AssetDatabase.GetAssetPath(texture);
         }
-        
-        private bool ContainsValidRenderer (GameObject gameObject)
-        {
-            return ((gameObject.GetComponent<MeshFilter>() != null && gameObject.GetComponent<MeshRenderer>() != null) 
-                    || (gameObject.GetComponent<SkinnedMeshRenderer>() != null)) && gameObject.GetComponent<TextMeshPro>() == null;
-        }
 
+        private bool ContainsValidRenderer(GameObject gameObject)
+        {
+            return (gameObject.GetComponent<MeshFilter>() != null && gameObject.GetComponent<MeshRenderer>() != null
+                    || gameObject.GetComponent<SkinnedMeshRenderer>() != null)
+                   && gameObject.GetComponent<TextMeshPro>() == null;
+        }
     }
 }
