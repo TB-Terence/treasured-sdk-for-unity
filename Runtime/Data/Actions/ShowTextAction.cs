@@ -5,7 +5,7 @@ namespace Treasured.UnitySdk
     /// <summary>
     /// Action that show text on screen.
     /// </summary>
-    public class ShowTextAction : ActionBase
+    public class ShowTextAction : Action
     {
         public enum TextStyles
         {

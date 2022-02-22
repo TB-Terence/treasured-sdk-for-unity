@@ -7,7 +7,7 @@ namespace Treasured.UnitySdk
     /// Base class for action
     /// </summary>
     [Serializable]
-    public abstract class ActionBase
+    public abstract class Action
     {
         [SerializeField]
         [HideInInspector]

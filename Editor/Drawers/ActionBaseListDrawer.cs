@@ -33,7 +33,7 @@ namespace Treasured.UnitySdk
                 },
                 onAddDropdownCallback = (Rect buttonRect, ReorderableList list) =>
                 {
-                    var actionTypes = TypeCache.GetTypesDerivedFrom<ActionBase>().Where(x => !x.IsAbstract);
+                    var actionTypes = TypeCache.GetTypesDerivedFrom<Action>().Where(x => !x.IsAbstract);
                     GenericMenu menu = new GenericMenu();
                     foreach (var type in actionTypes)
                     {

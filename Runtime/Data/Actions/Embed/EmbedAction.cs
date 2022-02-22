@@ -3,7 +3,7 @@
 namespace Treasured.UnitySdk
 {
     [Category("Embed")]
-    public abstract class EmbedAction : ActionBase
+    public abstract class EmbedAction : Action
     {
         [SerializeField]
         private EmbedPosition _position = EmbedPosition.TopRight;

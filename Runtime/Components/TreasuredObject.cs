@@ -31,10 +31,6 @@ namespace Treasured.UnitySdk
         [SerializeField]
         private Hitbox _hitbox;
 
-        [SerializeReference] // TODO: Remove this when upgrade is done.
-        [Obsolete]
-        private List<ActionBase> _onSelected = new List<ActionBase>();
-
         [FormerlySerializedAs("_actionGroups")]
         [SerializeReference]
         private List<ActionGroup> _onClick = new List<ActionGroup>();
@@ -69,10 +65,6 @@ namespace Treasured.UnitySdk
                 _hitbox = value;
             }
         }
-
-        [JsonIgnore]
-        [Obsolete]
-        public IEnumerable<ActionBase> OnSelected => _onSelected; // TODO: Remove this
 
         /// <summary>
         /// Group of action to perform when the object is selected.
