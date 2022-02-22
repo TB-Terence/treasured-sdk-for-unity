@@ -220,9 +220,6 @@ namespace Treasured.UnitySdk
                     }
                 }
 
-                Migrate(hotspots);
-                Migrate(interactables);
-
                 this._outputFolderName = serializedObject.FindProperty(nameof(_outputFolderName));
                 if (string.IsNullOrEmpty(_outputFolderName.stringValue))
                 {
@@ -254,24 +251,6 @@ namespace Treasured.UnitySdk
 
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
-        }
-
-        private void Migrate<T>(List<T> objects) where T : TreasuredObject
-        {
-            foreach (var to in objects)
-            {
-                var actionList = to.OnSelected.ToList();
-                if (to.OnClick.Count == 0 && actionList.Count > 0)
-                {
-                    ActionGroup group = ScriptableObject.CreateInstance<ActionGroup>();
-                    to.OnClick.Add(group);
-                    foreach (var action in actionList)
-                    {
-                        group.Actions.Add(action);
-                    }
-                }
-                to.TryInvokeMethods("OnSelectedInHierarchy");
-            }
         }
 
         private void OnDisable()
