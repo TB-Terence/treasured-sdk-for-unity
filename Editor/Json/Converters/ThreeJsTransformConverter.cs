@@ -1,37 +1,23 @@
 ﻿using UnityEngine;
-using GLTF;
+using UnityGLTF.Extensions;
 
 namespace Treasured.UnitySdk
 {
     internal static class ThreeJsTransformConverter
     {
-        public static bool ShouldConvertToThreeJs = false;
-        private static Quaternion s_threeJsRotation = Quaternion.Euler(0, 180, 0);
-
-        public static Vector3 ToThreeJsPosition(Transform transform)
+        public static GLTF.Math.Vector3 ToThreeJsPosition(Transform transform)
         {
-            if (!ShouldConvertToThreeJs)
-            {
-                return transform.position;
-            }
-            Vector3 position = transform.position;
-            position.x *= -1;
-            return position;
+            return transform.position.ToGltfVector3Convert();
         }
 
-        public static Vector3 ToThreeJsRotation(Transform transform)
+        public static GLTF.Math.Quaternion ToThreeJsRotation(Transform transform)
         {
-            if (!ShouldConvertToThreeJs)
-            {
-                return transform.eulerAngles * Mathf.Deg2Rad;
-            }
-            // Rotate local rotation by 180 degress and return the Euler in radians.
-            return (transform.localRotation * s_threeJsRotation).eulerAngles * Mathf.Deg2Rad;
+            return transform.rotation.ToGltfQuaternionConvert();
         }
 
-        public static Vector3 ToThreeJsScale(Transform transform)
+        public static GLTF.Math.Vector3 ToThreeJsScale(Transform transform)
         {
-            return transform.localScale;
+            return transform.localScale.ToGltfVector3Convert();
         }
     }
 }

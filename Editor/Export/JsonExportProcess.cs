@@ -7,7 +7,7 @@ namespace Treasured.UnitySdk
 {
     internal class JsonExportProcess : ExportProcess
     {
-        private Formatting formatting = Formatting.Indented;
+        private Formatting formatting = Formatting.None;
 
         public static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings()
         {
@@ -19,7 +19,6 @@ namespace Treasured.UnitySdk
         public override void OnGUI(SerializedObject serializedObject)
         {
             formatting = (Formatting)EditorGUILayout.EnumPopup(new GUIContent("Formatting"), formatting);
-            ThreeJsTransformConverter.ShouldConvertToThreeJs = EditorGUILayout.Toggle(new GUIContent("Convert to ThreeJs Transform", "Convert Unity Tranform to ThreeJs Transform"), ThreeJsTransformConverter.ShouldConvertToThreeJs);
         }
 
         public override void OnExport(string rootDirectory, TreasuredMap map)
