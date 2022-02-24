@@ -13,6 +13,8 @@ namespace Treasured.UnitySdk
         private const int MAXIMUM_CUBEMAP_FACE_WIDTH = 1360; // 4096 / 3 round to nearest tenth
         private const int MAXIMUM_CUBEMAP_WIDTH = 8192;
 
+        private static bool s_flipY = false;
+
         private bool _isAdvancedMode = false;
         private int _cubemapSize = MAXIMUM_CUBEMAP_FACE_WIDTH;
 
@@ -34,6 +36,7 @@ namespace Treasured.UnitySdk
             //EditorGUILayout.PropertyField(_format);
             imageFormat = (ImageFormat)EditorGUILayout.EnumPopup(new GUIContent("Format"), imageFormat);
             EditorGUILayout.PropertyField(_quality);
+            s_flipY = EditorGUILayout.Toggle(new GUIContent("Flip Y"), s_flipY);
             _cubemapFormat = (CubemapFormat)EditorGUILayout.EnumPopup(new GUIContent("Cubemap Format"), _cubemapFormat);
             if (_cubemapFormat == CubemapFormat._3x2)
             {
@@ -111,7 +114,7 @@ namespace Treasured.UnitySdk
                                     throw new TreasuredException("Export canceled", "Export canceled by the user.");
                                 }
                                 texture.SetPixels((i % 3) * _cubemapSize, MAXIMUM_CUDA_TEXTURE_WIDTH - ((i / 3) + 1) * _cubemapSize, _cubemapSize, _cubemapSize,
-                                ImageUtilies.FlipPixels(cubemap.GetPixels((CubemapFace)i), _cubemapSize, _cubemapSize, true, imageFormat != ImageFormat.Ktx2));
+                                ImageUtilies.FlipPixels(cubemap.GetPixels((CubemapFace)i), _cubemapSize, _cubemapSize, true, s_flipY));
                             }
                             ImageUtilies.Encode(texture, path.FullName, "cubemap", imageFormatParser, qualityPercentage);
                             break;
@@ -123,7 +126,7 @@ namespace Treasured.UnitySdk
                                     throw new TreasuredException("Export canceled", "Export canceled by the user.");
                                 }
                                 texture.SetPixels(cubemap.GetPixels((CubemapFace)i));
-                                ImageUtilies.FlipPixels(texture, true, imageFormat != ImageFormat.Ktx2);
+                                ImageUtilies.FlipPixels(texture, true, s_flipY);
                                 ImageUtilies.Encode(texture, path.FullName, SimplifyCubemapFace((CubemapFace)i), imageFormatParser, qualityPercentage);
                             }
                             break;
