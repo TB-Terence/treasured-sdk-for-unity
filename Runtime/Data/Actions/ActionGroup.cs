@@ -11,11 +11,11 @@ namespace Treasured.UnitySdk
     public class ActionGroup : ScriptableObject
     {
         [SerializeReference]
-        private List<ActionBase> _actions = new List<ActionBase>();
+        private List<Action> _actions = new List<Action>();
 
         /// <summary>
         /// List of actions to be executed in parallel.
         /// </summary>
-        public List<ActionBase> Actions => _actions;
+        public List<Action> Actions => _actions;
     }
 }

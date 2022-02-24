@@ -75,7 +75,6 @@ namespace Treasured.UnitySdk
         private ImageQuality _quality = ImageQuality.High;
         public ImageQuality Quality { get => _quality; set => _quality = value; }
 
-        public Color32 MaskColor => Color.white;
         #endregion
 
         #region Objects
@@ -93,6 +92,22 @@ namespace Treasured.UnitySdk
                 return GetComponentsInChildren<Interactable>();
             }
         }
+
+        public VideoRenderer[] Videos
+        {
+            get
+            {
+                return GetComponentsInChildren<VideoRenderer>();
+            }
+        }
+
+        public SoundSource[] Sounds
+        {
+            get
+            {
+                return GetComponentsInChildren<SoundSource>();
+            }
+        }
         #endregion
 
         #region Export Settings
@@ -103,6 +118,12 @@ namespace Treasured.UnitySdk
 
         [SerializeField]
         private int _interactableLayer; // game object can only have one layer thus using int instead of LayerMask
+
+        public bool _useTag;
+        public string _tag;
+        public bool _useLayerMask;
+        public LayerMask _layerMask;
+
         #endregion
 
         private void OnValidate()

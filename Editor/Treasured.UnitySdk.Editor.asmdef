@@ -6,7 +6,9 @@
         "GUID:78bd2ddd6e276394a9615c203e574844",
         "GUID:457756d89b35d2941b3e7b37b4ece6f1",
         "GUID:df380645f10b7bc4b97d4f5eb6303d95",
-        "GUID:3eae0364be2026648bf74846acb8a731"
+        "GUID:3eae0364be2026648bf74846acb8a731",
+        "GUID:b446abd1ae2e0bb4895d05756cb2d387",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f"
     ],
     "includePlatforms": [
         "Editor"
@@ -18,7 +20,8 @@
         "Newtonsoft.Json.dll",
         "ImageProcessor.dll",
         "ImageProcessor.Plugins.WebP.dll",
-        "System.Drawing.dll"
+        "System.Drawing.dll",
+        "GLTFSerialization.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],
@@ -27,6 +30,11 @@
             "name": "jillejr.newtonsoft.json-for-unity",
             "expression": "13.0.102",
             "define": "NEWTONSOFT_JSON_13_0_102_OR_NEWER"
+        },
+        {
+            "name": "com.unity.render-pipelines.high-definition",
+            "expression": "10.5.1",
+            "define": "HDRP_10_5_1_OR_NEWER"
         }
     ],
     "noEngineReferences": false

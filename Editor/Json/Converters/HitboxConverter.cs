@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
@@ -23,11 +24,11 @@ namespace Treasured.UnitySdk
             {
                 writer.WriteStartObject();
                 writer.WritePropertyName(nameof(hitbox.transform.position));
-                serializer.Serialize(writer, hitbox.transform.position); // use custom Vector3Converter
+                serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsPosition(hitbox.transform));
                 writer.WritePropertyName(nameof(hitbox.transform.rotation));
-                serializer.Serialize(writer, hitbox.transform.eulerAngles);
+                serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsRotation(hitbox.transform));
                 writer.WritePropertyName("size");
-                serializer.Serialize(writer, hitbox.transform.localScale);
+                serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsPosition(hitbox.transform));
                 writer.WriteEndObject();
             }
         }

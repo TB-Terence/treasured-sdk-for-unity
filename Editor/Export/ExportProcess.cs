@@ -1,7 +1,5 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using UnityEditor;
-using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
@@ -27,8 +25,10 @@ namespace Treasured.UnitySdk
             }
         }
         public bool Expanded { get; set; } = true;
-        public abstract void Export(string rootDirectory, TreasuredMap map);
         public virtual void OnEnable(SerializedObject serializedObject) { }
         public virtual void OnGUI(SerializedObject serializedObject) { }
+        public virtual void OnPreProcess(SerializedObject serializedObject) { }
+        public abstract void OnExport(string rootDirectory, TreasuredMap map);
+        public virtual void OnPostProcess(SerializedObject serializedObject) { }
     }
 }

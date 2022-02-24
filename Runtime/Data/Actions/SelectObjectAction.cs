@@ -6,7 +6,7 @@ namespace Treasured.UnitySdk
     /// <summary>
     /// Action that executes actions on another object.
     /// </summary>
-    public class SelectObjectAction : ActionBase
+    public class SelectObjectAction : Action
     {
         [SerializeField]
         private TreasuredObject _target;

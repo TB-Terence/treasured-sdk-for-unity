@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
@@ -23,9 +24,9 @@ namespace Treasured.UnitySdk
             {
                 writer.WriteStartObject();
                 writer.WritePropertyName(nameof(camera.transform.position));
-                serializer.Serialize(writer, camera.transform.position);
+                serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsPosition(camera.transform));
                 writer.WritePropertyName(nameof(camera.transform.rotation));
-                serializer.Serialize(writer, camera.transform.eulerAngles);
+                serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsRotation(camera.transform));
                 writer.WriteEndObject();
             }
         }

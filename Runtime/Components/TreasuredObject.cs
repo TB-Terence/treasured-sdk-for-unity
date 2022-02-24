@@ -23,14 +23,13 @@ namespace Treasured.UnitySdk
         private string _description;
 
         [SerializeField]
+        [Preset("FaMicrophone", "FaVolumeUp", "FaVideo", "FaLock", "FaMap", "FaTrophy", "FaHeart", "FaPlayCircle",
+            "FaCat", "FaComment", "FaBoxOpen", "FaDungeon", "FaMusic", "FaPalette")]
+        [OpenUrl("https://react-icons.github.io/react-icons/icons?name=fa")]
         private string _icon;
 
         [SerializeField]
         private Hitbox _hitbox;
-
-        [SerializeReference] // TODO: Remove this when upgrade is done.
-        [Obsolete]
-        private List<ActionBase> _onSelected = new List<ActionBase>();
 
         [FormerlySerializedAs("_actionGroups")]
         [SerializeReference]
@@ -66,10 +65,6 @@ namespace Treasured.UnitySdk
                 _hitbox = value;
             }
         }
-
-        [JsonIgnore]
-        [Obsolete]
-        public IEnumerable<ActionBase> OnSelected => _onSelected; // TODO: Remove this
 
         /// <summary>
         /// Group of action to perform when the object is selected.

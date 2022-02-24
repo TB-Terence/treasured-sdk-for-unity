@@ -78,6 +78,10 @@ namespace Treasured.UnitySdk
                     {
                         Handles.color = new Color(0, 1, 0, 0.8f);
                     }
+                    if (obj.Hitbox == null)
+                    {
+                        continue;
+                    }
                     Handles.matrix = Matrix4x4.TRS(obj.Hitbox.transform.position, obj.Hitbox.transform.rotation, Vector3.one);
                     Handles.DrawWireCube(Vector3.zero, obj.Hitbox.transform.localScale);
                 }
