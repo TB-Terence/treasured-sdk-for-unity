@@ -176,9 +176,6 @@ namespace Treasured.UnitySdk
 
         private string searchString;
 
-        private ExportProcess[] exportProcesses;
-
-
         private SerializedProperty _outputFolderName;
 
         private bool _overwriteExistingData;
@@ -227,26 +224,10 @@ namespace Treasured.UnitySdk
                     serializedObject.ApplyModifiedProperties();
                 }
 
-                if (exportProcesses == null)
+                foreach (var process in ExportProcessSettings.Instances)
                 {
-                    var exportProcessTypes = Assembly.GetExecutingAssembly().GetTypes().Where(x => !x.IsAbstract && typeof(ExportProcess).IsAssignableFrom(x)).ToArray();
-                    if(exportProcessTypes.Length > 0)
-                    {
-                        exportProcesses = new ExportProcess[exportProcessTypes.Length];
-                        for (int i = 0; i < exportProcesses.Length; i++)
-                        {
-                            exportProcesses[i] = (ExportProcess)Activator.CreateInstance(exportProcessTypes[i]);
-                        }
-                    }
-                    else
-                    {
-                        exportProcesses = new ExportProcess[0];
-                    }
-                }
-                foreach (var process in exportProcesses)
-                {
-                    process.OnEnable(serializedObject);
-                }
+                    process.Instance?.OnEnable(serializedObject);
+                };
             }
 
             SceneView.duringSceneGui -= OnSceneViewGUI;
@@ -462,8 +443,12 @@ namespace Treasured.UnitySdk
             EditorGUI.indentLevel++;
             try
             {
-                foreach (var process in exportProcesses)
+                foreach (var process in ExportProcessSettings.Instances)
                 {
+                    if (!process.ShowInEditor)
+                    {
+                        continue;
+                    }
                     using (new EditorGUILayout.HorizontalScope())
                     {
                         float previousLabelWidth = EditorGUIUtility.labelWidth;
@@ -475,7 +460,7 @@ namespace Treasured.UnitySdk
                     if (process.Expanded)
                     {
                         EditorGUI.indentLevel++;
-                        process.OnGUI(serializedObject);
+                        process.Instance?.OnGUI(serializedObject);
                         EditorGUI.indentLevel--;
                     }
                 }
@@ -500,13 +485,13 @@ namespace Treasured.UnitySdk
                         Directory.Delete(root, true);
                     }
                     Directory.CreateDirectory(root); // try create the directory if not exist.
-                    foreach (var process in exportProcesses)
+                    foreach (var process in ExportProcessSettings.Instances)
                     {
-                        if (process.Enabled)
+                        if (process.Enabled && process.Instance != null)
                         {
-                            process.OnPreProcess(serializedObject);
-                            process.OnExport(root, target as TreasuredMap);
-                            process.OnPostProcess(serializedObject);
+                            process.Instance.OnPreProcess(serializedObject);
+                            process.Instance.OnExport(root, target as TreasuredMap);
+                            process.Instance.OnPostProcess(serializedObject);
                         }
                     }
                 }

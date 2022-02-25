@@ -16,6 +16,7 @@ namespace Treasured.UnitySdk
     /// <summary>
     /// Combine and Export mesh
     /// </summary>
+    [ExportProcessSettings(EnabledByDefault = false)]
     internal class MeshExportProcess : ExportProcess
     {
         private SerializedProperty _filterTag;
