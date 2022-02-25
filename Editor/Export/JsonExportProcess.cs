@@ -7,8 +7,8 @@ namespace Treasured.UnitySdk
 {
     internal class JsonExportProcess : ExportProcess
     {
-        private Formatting formatting = Formatting.None;
-
+        private static Formatting s_formatting = Formatting.Indented;
+        
         public static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings()
         {
             ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
@@ -18,13 +18,14 @@ namespace Treasured.UnitySdk
 
         public override void OnGUI(SerializedObject serializedObject)
         {
-            formatting = (Formatting)EditorGUILayout.EnumPopup(new GUIContent("Formatting"), formatting);
+            s_formatting = (Formatting)EditorGUILayout.EnumPopup(new GUIContent("Formatting"), s_formatting);
+            ThreeJsTransformConverter.ShouldConvertToThreeJsTransform = EditorGUILayout.Toggle(new GUIContent("Convert To Three Js"), ThreeJsTransformConverter.ShouldConvertToThreeJsTransform);
         }
 
         public override void OnExport(string rootDirectory, TreasuredMap map)
         {
             string jsonPath = Path.Combine(rootDirectory, "data.json").Replace('/', '\\');
-            string json = JsonConvert.SerializeObject(map, formatting, JsonSettings);
+            string json = JsonConvert.SerializeObject(map, s_formatting, JsonSettings);
             File.WriteAllText(jsonPath, json);
         }
     }
