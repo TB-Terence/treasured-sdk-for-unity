@@ -10,6 +10,7 @@ using UnityGLTF.Extensions;
 
 namespace Treasured.UnitySdk
 {
+    [ExportProcessSettings(EnabledByDefault = false)]
     internal class MeshExportProcess : ExportProcess
     {
         private SerializedProperty _tag;
@@ -25,7 +26,6 @@ namespace Treasured.UnitySdk
             
             _layerMask = serializedObject.FindProperty(nameof(_layerMask));
             _useLayerMask = serializedObject.FindProperty(nameof(_useLayerMask));
-            this.Enabled = false;
         }
 
         public override void OnGUI(SerializedObject serializedObject)
