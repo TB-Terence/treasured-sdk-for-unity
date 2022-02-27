@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -8,8 +7,8 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk.Editor
 {
-    [CustomPropertyDrawer(typeof(MarkdownAttribute))]
-    public class MarkdownAttributeDrawer : PropertyDrawer
+    [CustomPropertyDrawer(typeof(CodeAttribute))]
+    public class CodeAttributeDrawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
@@ -18,14 +17,14 @@ namespace Treasured.UnitySdk.Editor
             Rect buttonRect = new Rect(position.xMax, position.y, 40, position.height);
             if (GUI.Button(buttonRect, new GUIContent("Edit")))
             {
-                MarkdownEditorWindow.Show(property, (MarkdownAttribute)attribute);
+                CodeEditorWindow.Show(property, (CodeAttribute)attribute);
             }
         }
 
-        private class MarkdownEditorWindow : EditorWindow
+        private class CodeEditorWindow : EditorWindow
         {
             private SerializedProperty serializedProperty;
-            private MarkdownAttribute attribute;
+            private CodeAttribute attribute;
             private Vector2 previewScrollPosition;
             private Vector2 textScrollPosition;
 
@@ -43,9 +42,9 @@ namespace Treasured.UnitySdk.Editor
                 { "allowfullscreen", s_brown },
             };
 
-            public static void Show(SerializedProperty serializedProperty, MarkdownAttribute attribute)
+            public static void Show(SerializedProperty serializedProperty, CodeAttribute attribute)
             {
-                MarkdownEditorWindow window = EditorWindow.GetWindow<MarkdownEditorWindow>(true, "HTML Editor");
+                CodeEditorWindow window = EditorWindow.GetWindow<CodeEditorWindow>(true, "Code Editor");
                 window.minSize = new Vector2(500, 300);
                 window.serializedProperty = serializedProperty;
                 window.attribute = attribute;
@@ -88,7 +87,7 @@ namespace Treasured.UnitySdk.Editor
                 serializedProperty.stringValue = (string)typeof(EditorGUI).GetMethod("ScrollableTextAreaInternal", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, args);
                 textScrollPosition = (Vector2)args[2]; // set the value of scroll position
 
-                var buttons = typeof(MarkdownAttribute).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(x => x.GetParameters().Length == 0 && x.IsDefined(typeof(ButtonAttribute)));
+                var buttons = typeof(CodeAttribute).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(x => x.GetParameters().Length == 0 && x.IsDefined(typeof(ButtonAttribute)));
                 using (new EditorGUILayout.HorizontalScope())
                 {
                     GUILayout.FlexibleSpace();

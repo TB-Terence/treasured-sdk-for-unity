@@ -7,6 +7,7 @@ using UnityEngine.Rendering;
 
 namespace Treasured.UnitySdk
 {
+    [ExportProcessSettings(EnabledByDefault = false)]
     internal class CubemapExportProcess : ExportProcess
     {
         private const int MAXIMUM_CUDA_TEXTURE_WIDTH = 4096;
@@ -31,7 +32,7 @@ namespace Treasured.UnitySdk
             _format.enumValueIndex = (int)ImageFormat.Ktx2;
             serializedObject.ApplyModifiedProperties();
         }
-        public override void OnGUI(SerializedObject serializedObject)
+        public override void OnGUI(string root, SerializedObject serializedObject)
         {
             //EditorGUILayout.PropertyField(_format);
             imageFormat = (ImageFormat)EditorGUILayout.EnumPopup(new GUIContent("Format"), imageFormat);

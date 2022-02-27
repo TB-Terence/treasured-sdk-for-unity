@@ -16,7 +16,7 @@ namespace Treasured.UnitySdk
             CheckAdditionalContent = true
         };
 
-        public override void OnGUI(SerializedObject serializedObject)
+        public override void OnGUI(string root, SerializedObject serializedObject)
         {
             s_formatting = (Formatting)EditorGUILayout.EnumPopup(new GUIContent("Formatting"), s_formatting);
             ThreeJsTransformConverter.ShouldConvertToThreeJsTransform = EditorGUILayout.Toggle(new GUIContent("Convert To Three Js"), ThreeJsTransformConverter.ShouldConvertToThreeJsTransform);

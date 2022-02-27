@@ -15,7 +15,7 @@ namespace Treasured.UnitySdk
         public bool ShowInEditor { get; set; }
         public bool Expanded { get; set; }
         public string DisplayName { get; set; }
-        public ExportProcess Instance { get; private set; }
+        public ExportProcess Processor { get; private set; }
 
         [InitializeOnLoadMethod]
         static void Init()
@@ -31,11 +31,11 @@ namespace Treasured.UnitySdk
                 {
                     continue;
                 }
-                ExportProcess instance = (ExportProcess)Activator.CreateInstance(type);
+                ExportProcess processor = (ExportProcess)Activator.CreateInstance(type);
                 var attribute = type.GetCustomAttribute<ExportProcessSettingsAttribute>();
                 var settings = new ExportProcessSettings
                 {
-                    Instance = instance
+                    Processor = processor
                 };
                 if (attribute != null)
                 {

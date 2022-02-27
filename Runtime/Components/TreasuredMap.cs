@@ -172,6 +172,9 @@ namespace Treasured.UnitySdk
 
         #endregion
 
+        public bool generateStylesheet = false;
+        public string stylesheet;
+
         private void OnValidate()
         {
             //  Set default Auto Camera Rotation to false for all except for modern loader template 

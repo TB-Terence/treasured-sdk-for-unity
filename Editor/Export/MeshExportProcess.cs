@@ -51,7 +51,7 @@ namespace Treasured.UnitySdk
             _canUseLayerMask = serializedObject.FindProperty(nameof(_canUseLayerMask));
         }
 
-        public override void OnGUI(SerializedObject serializedObject)
+        public override void OnGUI(string root, SerializedObject serializedObject)
         {
             EditorGUILayout.BeginHorizontal();
             _canUseTag.boolValue = EditorGUILayout.Toggle(

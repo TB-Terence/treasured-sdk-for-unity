@@ -13,7 +13,7 @@ namespace Treasured.UnitySdk
         public static readonly string DefaultOutputFolderPath = $"{Directory.GetCurrentDirectory()}/{DefaultOutputFolder}";
 
         public virtual void OnEnable(SerializedObject serializedObject) { }
-        public virtual void OnGUI(SerializedObject serializedObject) { }
+        public virtual void OnGUI(string root, SerializedObject serializedObject) { }
         public virtual void OnPreProcess(SerializedObject serializedObject) { }
         public abstract void OnExport(string rootDirectory, TreasuredMap map);
         public virtual void OnPostProcess(SerializedObject serializedObject) { }
