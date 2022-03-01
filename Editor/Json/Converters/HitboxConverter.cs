@@ -35,7 +35,7 @@ namespace Treasured.UnitySdk
                     serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsEulerAngles(hitbox.transform));
                 }
                 writer.WritePropertyName("size");
-                serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsPosition(hitbox.transform));
+                serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsScale(hitbox.transform));
                 writer.WriteEndObject();
             }
         }
