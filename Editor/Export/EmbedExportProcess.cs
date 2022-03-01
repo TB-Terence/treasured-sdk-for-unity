@@ -7,6 +7,7 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
+    [ExportProcessSettings(EnabledByDefault = false, ShowInEditor = false)]
     internal class EmbedExportProcess : ExportProcess
     {
         public override void OnGUI(string root, SerializedObject serializedObject)
