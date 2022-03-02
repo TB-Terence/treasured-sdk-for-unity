@@ -143,6 +143,7 @@ namespace Treasured.UnitySdk
         private SerializedProperty _audioUrl;
         private SerializedProperty _muteOnStart;
         private SerializedProperty _templateLoader;
+        private SerializedProperty headHTML;
         private SerializedProperty uiSettings;
 
         private bool exportAllHotspots = true;
@@ -197,8 +198,7 @@ namespace Treasured.UnitySdk
             _muteOnStart = serializedObject.FindProperty(nameof(_muteOnStart));
             _templateLoader = serializedObject.FindProperty(nameof(_templateLoader));
             uiSettings = serializedObject.FindProperty(nameof(uiSettings));
-
-
+            headHTML = serializedObject.FindProperty(nameof(headHTML));
 
             if (map)
             {
@@ -331,7 +331,7 @@ namespace Treasured.UnitySdk
             }
         }
 
-        [FoldoutGroup("Landing Page Properties")]
+        [FoldoutGroup("Page Info")]
         void OnLandingPagePropertiesGUI()
         {
             EditorGUILayoutHelper.RequiredPropertyField(_author);
@@ -340,6 +340,7 @@ namespace Treasured.UnitySdk
             EditorGUILayout.PropertyField(_audioUrl);
             EditorGUILayout.PropertyField(_muteOnStart);
             EditorGUILayout.PropertyField(_templateLoader);
+            EditorGUILayout.PropertyField(headHTML);
         }
 
         [FoldoutGroup("Object Management", true)]

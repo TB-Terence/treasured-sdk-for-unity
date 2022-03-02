@@ -12,9 +12,7 @@ namespace Treasured.UnitySdk.Editor
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            position.xMax -= 40;
-            EditorGUI.LabelField(position, label, new GUIContent(property.stringValue, property.stringValue), EditorStyles.linkLabel);
-            Rect buttonRect = new Rect(position.xMax, position.y, 40, position.height);
+            Rect buttonRect = EditorGUI.PrefixLabel(position, label);
             if (GUI.Button(buttonRect, new GUIContent("Edit")))
             {
                 CodeEditorWindow.Show(property, (CodeAttribute)attribute);
@@ -29,13 +27,15 @@ namespace Treasured.UnitySdk.Editor
             private Vector2 textScrollPosition;
 
             static string s_brown = "#964B00";
+            static string s_blue = "#3399ff";
 
             Dictionary<string, string> _tagColorPairs = new Dictionary<string, string>
             {
-                { "iframe", "#3399ff" },
+                { "iframe", s_blue },
                 { "width", s_brown },
                 { "height", s_brown},
                 { "src", s_brown },
+                { "script", s_blue },
                 { "title", s_brown },
                 { "frameborder", s_brown },
                 { "allow", s_brown },
@@ -68,46 +68,48 @@ namespace Treasured.UnitySdk.Editor
                 {
                     return;
                 }
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.LabelField("Preview");
-                EditorStyles.textArea.wordWrap = true;
-                if(attribute != null)
-                {
-                    EditorStyles.textArea.richText = true;
-                    Rect previewRect = EditorGUILayout.GetControlRect(GUILayout.ExpandHeight(true));
-                    string html = PraseHTML(serializedProperty.stringValue);
-                    var previewArgs = new object[] { previewRect, html, previewScrollPosition, EditorStyles.textArea };
-                    typeof(EditorGUI).GetMethod("ScrollableTextAreaInternal", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, previewArgs);
-                    previewScrollPosition = (Vector2)previewArgs[2]; // set the value of scroll position
-                }
-                EditorGUILayout.LabelField("Content");
-                EditorStyles.textArea.richText = false;
-                Rect rect = EditorGUILayout.GetControlRect(GUILayout.ExpandHeight(true));
-                var args = new object[] { rect, serializedProperty.stringValue, textScrollPosition, EditorStyles.textArea };
-                serializedProperty.stringValue = (string)typeof(EditorGUI).GetMethod("ScrollableTextAreaInternal", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, args);
-                textScrollPosition = (Vector2)args[2]; // set the value of scroll position
-
-                var buttons = typeof(CodeAttribute).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(x => x.GetParameters().Length == 0 && x.IsDefined(typeof(ButtonAttribute)));
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    GUILayout.FlexibleSpace();
-                    foreach (MethodInfo button in buttons)
+                    EditorGUI.BeginChangeCheck();
+                    using (new EditorGUILayout.VerticalScope(GUILayout.Width(this.position.width / 2)))
                     {
-                        if (GUILayout.Button(ObjectNames.NicifyVariableName(button.Name)))
+                        EditorGUILayout.LabelField("Code");
+                        EditorStyles.textArea.richText = false;
+                        Rect rect = EditorGUILayout.GetControlRect(GUILayout.ExpandHeight(true));
+                        var args = new object[] { rect, serializedProperty.stringValue, textScrollPosition, EditorStyles.textArea };
+                        serializedProperty.stringValue = (string)typeof(EditorGUI).GetMethod("ScrollableTextAreaInternal", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, args);
+                        textScrollPosition = (Vector2)args[2]; // set the value of scroll position
+                        var buttons = typeof(CodeEditorWindow).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(x => x.GetParameters().Length == 0 && x.IsDefined(typeof(ButtonAttribute)));
+                        using (new EditorGUILayout.HorizontalScope())
                         {
-                            button.Invoke(this, null);
+                            foreach (MethodInfo button in buttons)
+                            {
+                                if (GUILayout.Button(ObjectNames.NicifyVariableName(button.Name)))
+                                {
+                                    button.Invoke(this, null);
+                                }
+                            }
                         }
                     }
-                }    
-                if (EditorGUI.EndChangeCheck())
-                {
-                    serializedProperty.serializedObject.ApplyModifiedProperties();
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        serializedProperty.serializedObject.ApplyModifiedProperties();
+                    }
+                    using (new EditorGUILayout.VerticalScope())
+                    {
+                        EditorGUILayout.LabelField("Syntax Highlighting(Experimental)");
+                        EditorStyles.textArea.wordWrap = true;
+                        if (attribute != null)
+                        {
+                            EditorStyles.textArea.richText = true;
+                            Rect previewRect = EditorGUILayout.GetControlRect(GUILayout.ExpandHeight(true));
+                            string html = PraseHTML(serializedProperty.stringValue);
+                            var previewArgs = new object[] { previewRect, html, previewScrollPosition, EditorStyles.textArea };
+                            typeof(EditorGUI).GetMethod("ScrollableTextAreaInternal", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, previewArgs);
+                            previewScrollPosition = (Vector2)previewArgs[2]; // set the value of scroll position
+                        }
+                    }
                 }
-            }
-
-            private void OnLostFocus()
-            {
-                Close();
             }
 
             [Button]
@@ -120,6 +122,7 @@ namespace Treasured.UnitySdk.Editor
             void Paste()
             {
                 serializedProperty.stringValue = GUIUtility.systemCopyBuffer;
+                serializedProperty.serializedObject.ApplyModifiedProperties();
             }
         }
     }

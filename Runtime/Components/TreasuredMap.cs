@@ -172,8 +172,8 @@ namespace Treasured.UnitySdk
 
         #endregion
 
-        public bool generateStylesheet = false;
-        public string stylesheet;
+        [Code]
+        public string headHTML;
 
         private void OnValidate()
         {
