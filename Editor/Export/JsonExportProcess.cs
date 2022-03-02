@@ -5,10 +5,12 @@ using UnityEditor;
 
 namespace Treasured.UnitySdk
 {
-    internal class JsonExportProcess : ExportProcess
+    [System.Serializable]
+    public class JsonExportProcess : ExportProcess
     {
-        private static Formatting s_formatting = Formatting.Indented;
-        
+        public Formatting formatting = Formatting.Indented;
+        public bool convertTransform = false;
+
         public static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings()
         {
             ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
@@ -18,14 +20,19 @@ namespace Treasured.UnitySdk
 
         public override void OnGUI(string root, SerializedObject serializedObject)
         {
-            s_formatting = (Formatting)EditorGUILayout.EnumPopup(new GUIContent("Formatting"), s_formatting);
+            formatting = (Formatting)EditorGUILayout.EnumPopup(new GUIContent("Formatting"), formatting);
+            EditorGUI.BeginChangeCheck();
             ThreeJsTransformConverter.ShouldConvertToThreeJsTransform = EditorGUILayout.Toggle(new GUIContent("Convert To Three Js"), ThreeJsTransformConverter.ShouldConvertToThreeJsTransform);
+            if (EditorGUI.EndChangeCheck())
+            {
+                ThreeJsTransformConverter.ShouldConvertToThreeJsTransform = convertTransform;
+            }
         }
 
         public override void OnExport(string rootDirectory, TreasuredMap map)
         {
             string jsonPath = Path.Combine(rootDirectory, "data.json").Replace('/', '\\');
-            string json = JsonConvert.SerializeObject(map, s_formatting, JsonSettings);
+            string json = JsonConvert.SerializeObject(map, formatting, JsonSettings);
             File.WriteAllText(jsonPath, json);
         }
     }

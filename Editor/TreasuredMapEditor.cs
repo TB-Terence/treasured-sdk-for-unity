@@ -447,26 +447,25 @@ namespace Treasured.UnitySdk
             EditorGUI.indentLevel++;
             try
             {
-                foreach (var process in ExportProcessSettings.Instances)
+                foreach (var process in TreasuredSDKSettings.Instance.exportProcesses)
                 {
-                    if (!process.ShowInEditor)
+                    ExportProcessSettingsAttribute attribute = process.GetType().GetCustomAttribute<ExportProcessSettingsAttribute>();
+                    if (attribute != null && process.GetType().IsDefined(typeof(HideInInspector)))
                     {
                         continue;
                     }
-                    using (new EditorGUILayout.HorizontalScope())
-                    {
-                        float previousLabelWidth = EditorGUIUtility.labelWidth;
-                        EditorGUIUtility.labelWidth = 0;
-                        process.Enabled = EditorGUILayout.Toggle(GUIContent.none, process.Enabled, GUILayout.Width(24));
-                        EditorGUIUtility.labelWidth = previousLabelWidth;
-                        process.Expanded = EditorGUILayout.Foldout(process.Expanded, process.DisplayName, true);
-                    }
-                    if (process.Expanded)
-                    {
-                        EditorGUI.indentLevel++;
-                        process.Processor?.OnGUI(_outputRoot, serializedObject);
-                        EditorGUI.indentLevel--;
-                    }
+                    //using (new EditorGUILayout.HorizontalScope())
+                    //{
+                    //    float previousLabelWidth = EditorGUIUtility.labelWidth;
+                    //    EditorGUIUtility.labelWidth = 0;
+                    //    process.Enabled = EditorGUILayout.Toggle(GUIContent.none, process.Enabled, GUILayout.Width(24));
+                    //    EditorGUIUtility.labelWidth = previousLabelWidth;
+                    //    process.Expanded = EditorGUILayout.Foldout(process.Expanded, process.DisplayName, true);
+                    //}
+                    process.enabled = EditorGUILayout.ToggleLeft(new GUIContent(ObjectNames.NicifyVariableName(process.GetType().Name)), process.enabled, EditorStyles.boldLabel);
+                    EditorGUI.indentLevel++;
+                    process.OnGUI(_outputRoot, serializedObject);
+                    EditorGUI.indentLevel--;
                 }
                 if (GUILayout.Button(new GUIContent("Export", "Export all enabled process."), GUILayout.Height(24)))
                 {

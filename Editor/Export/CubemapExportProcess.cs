@@ -7,6 +7,7 @@ using UnityEngine.Rendering;
 
 namespace Treasured.UnitySdk
 {
+    [Serializable]
     [ExportProcessSettings(EnabledByDefault = false)]
     internal class CubemapExportProcess : ExportProcess
     {
@@ -19,27 +20,19 @@ namespace Treasured.UnitySdk
         private bool _isAdvancedMode = false;
         private int _cubemapSize = MAXIMUM_CUBEMAP_FACE_WIDTH;
 
-        private SerializedProperty _format;
-        private SerializedProperty _quality;
-        private CubemapFormat _cubemapFormat = CubemapFormat.IndividualFace;
+        public ImageFormat format = ImageFormat.Ktx2;
+        public ImageQuality quality = ImageQuality.High;
+        public CubemapFormat cubemapFormat = CubemapFormat.IndividualFace;
         private int qualityPercentage = 75;
-        private ImageFormat imageFormat = ImageFormat.Ktx2;
 
-        public override void OnEnable(SerializedObject serializedObject)
-        {
-            _format = serializedObject.FindProperty(nameof(_format));
-            _quality = serializedObject.FindProperty(nameof(_quality));
-            _format.enumValueIndex = (int)ImageFormat.Ktx2;
-            serializedObject.ApplyModifiedProperties();
-        }
         public override void OnGUI(string root, SerializedObject serializedObject)
         {
-            //EditorGUILayout.PropertyField(_format);
-            imageFormat = (ImageFormat)EditorGUILayout.EnumPopup(new GUIContent("Format"), imageFormat);
-            EditorGUILayout.PropertyField(_quality);
+            //EditorGUILayout.PropertyField(format);
+            //format = (ImageFormat)EditorGUILayout.EnumPopup(new GUIContent("Format"), format);
+          //  EditorGUILayout.PropertyField(quality);
             s_flipY = EditorGUILayout.Toggle(new GUIContent("Flip Y"), s_flipY);
-            _cubemapFormat = (CubemapFormat)EditorGUILayout.EnumPopup(new GUIContent("Cubemap Format"), _cubemapFormat);
-            if (_cubemapFormat == CubemapFormat._3x2)
+            cubemapFormat = (CubemapFormat)EditorGUILayout.EnumPopup(new GUIContent("Cubemap Format"), cubemapFormat);
+            if (cubemapFormat == CubemapFormat._3x2)
             {
                 _isAdvancedMode = EditorGUILayout.Toggle(new GUIContent("Advanced"), _isAdvancedMode);
                 if (_isAdvancedMode)
@@ -48,7 +41,7 @@ namespace Treasured.UnitySdk
                     _cubemapSize = Mathf.Clamp(_cubemapSize - _cubemapSize % 10, 16, MAXIMUM_CUBEMAP_FACE_WIDTH);
                 }
             }
-            if (_format.enumValueIndex == (int)ImageFormat.PNG || _format.enumValueIndex == (int)ImageFormat.Ktx2)
+            if (format == ImageFormat.PNG || format == ImageFormat.Ktx2)
                 return;
 
             using (new EditorGUILayout.HorizontalScope())
@@ -73,9 +66,9 @@ namespace Treasured.UnitySdk
 
             int count = hotspots.Length;
 
-            Cubemap cubemap = new Cubemap(_cubemapFormat == CubemapFormat.IndividualFace ? (int)map.Quality : _cubemapSize, TextureFormat.ARGB32, false);
+            Cubemap cubemap = new Cubemap(cubemapFormat == CubemapFormat.IndividualFace ? (int)map.Quality : _cubemapSize, TextureFormat.ARGB32, false);
             Texture2D texture = null;
-            switch (_cubemapFormat)
+            switch (cubemapFormat)
             {
                 case CubemapFormat._3x2:
                     texture = new Texture2D(MAXIMUM_CUDA_TEXTURE_WIDTH, MAXIMUM_CUDA_TEXTURE_WIDTH, TextureFormat.ARGB32, false);
@@ -85,7 +78,7 @@ namespace Treasured.UnitySdk
                     break;
             };
             //  If imageFormat is KTX2 then export images as png and then later convert them to KTX2 format  
-            ImageFormat imageFormatParser = (imageFormat == ImageFormat.Ktx2) ? ImageFormat.PNG : imageFormat;
+            ImageFormat imageFormatParser = format == ImageFormat.Ktx2 ? ImageFormat.PNG : format;
 
             try
             {
@@ -102,7 +95,7 @@ namespace Treasured.UnitySdk
                         throw new System.NotSupportedException("Current graphic device/platform does not support RenderToCubemap.");
                     }
                     var path = Directory.CreateDirectory(Path.Combine(rootDirectory, "images", current.Id).Replace('/', '\\'));
-                    switch (_cubemapFormat)
+                    switch (cubemapFormat)
                     {
                         case CubemapFormat._3x2:
                             // FORMAT:
@@ -133,7 +126,7 @@ namespace Treasured.UnitySdk
                             break;
                     }
                 }
-                if (imageFormat == ImageFormat.Ktx2)
+                if (format == ImageFormat.Ktx2)
                 {
                     EditorUtility.DisplayProgressBar("Converting to KTX2", "Converting in progress...", 0.5f);
                     ImageUtilies.ConvertToKTX2(rootDirectory);

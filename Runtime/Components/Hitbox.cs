@@ -18,7 +18,7 @@ namespace Treasured.UnitySdk
             }
             else
             {
-                Gizmos.color = TreasuredSDKSettings.Instance ? TreasuredSDKSettings.Instance.hitboxColor : TreasuredSDKSettings.defaultHitboxColor;
+                //Gizmos.color = TreasuredSDKSettings.Instance ? TreasuredSDKSettings.Instance.hitboxColor : TreasuredSDKSettings.defaultHitboxColor;
             }
 
             Gizmos.DrawCube(Vector3.zero, transform.localScale);

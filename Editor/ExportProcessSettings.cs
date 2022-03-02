@@ -12,7 +12,6 @@ namespace Treasured.UnitySdk
         private static Dictionary<Type, ExportProcessSettings> s_instances = new Dictionary<Type, ExportProcessSettings>();
         public static IEnumerable<ExportProcessSettings> Instances => s_instances.Values;
         public bool Enabled { get; set; }
-        public bool ShowInEditor { get; set; }
         public bool Expanded { get; set; }
         public string DisplayName { get; set; }
         public ExportProcess Processor { get; private set; }
@@ -40,7 +39,6 @@ namespace Treasured.UnitySdk
                 if (attribute != null)
                 {
                     settings.Enabled = attribute.EnabledByDefault;
-                    settings.ShowInEditor = attribute.ShowInEditor;
                     settings.Expanded = attribute.ExpandedByDefault;
                     if (attribute.DisplayName == null)
                     {

@@ -6,7 +6,6 @@ namespace Treasured.UnitySdk
     internal class ExportProcessSettingsAttribute : Attribute
     {
         public bool EnabledByDefault { get; set; } = true;
-        public bool ShowInEditor { get; set; } = true;
         public bool ExpandedByDefault { get; set; } = true;
         public string DisplayName { get; set; }
 
