@@ -178,7 +178,11 @@ namespace Treasured.UnitySdk
                 {
                     meshFilters.Add(filter);
 
-                    vertices += filter.sharedMesh.vertexCount;
+                    //  Check if sharedMesh is not null
+                    if (filter.sharedMesh != null)
+                    {
+                        vertices += filter.sharedMesh.vertexCount;
+                    }
                 }
             }
 
