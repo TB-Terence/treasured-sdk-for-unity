@@ -54,7 +54,6 @@ namespace Treasured.UnitySdk
 
         public override void OnGUI(string root, SerializedObject serializedObject)
         {
-            return;
             EditorGUILayout.BeginHorizontal();
             _canUseTag.boolValue = EditorGUILayout.Toggle(
                 new GUIContent("Use Tag", "Only combine GameObjects which this tag."),

@@ -182,9 +182,11 @@ namespace Treasured.UnitySdk
         private bool _overwriteExistingData;
 
         private string _outputRoot;
+        private UnityEditor.Editor[] exportProcessEditors;
 
         private void OnEnable()
         {
+            ValidateSettings();
             map = target as TreasuredMap;
 
             GetFoldoutGroupMethods();
@@ -226,14 +228,32 @@ namespace Treasured.UnitySdk
                     serializedObject.ApplyModifiedProperties();
                 }
                 _outputRoot = GetOutputDirectory();
-                foreach (var process in ExportProcessSettings.Instances)
-                {
-                    process.Processor?.OnEnable(serializedObject);
-                };
             }
 
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
+        }
+
+        private void ValidateSettings()
+        {
+            // Find all serialized export processes
+            FieldInfo[] exportProcessFields = typeof(TreasuredMap).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).
+                Where(x => 
+                typeof(Export.ExportProcess).IsAssignableFrom(x.FieldType) && 
+                (x.IsPublic || (x.IsPrivate && x.IsDefined(typeof(SerializeField))))).ToArray();
+            exportProcessEditors = new UnityEditor.Editor[exportProcessFields.Length];
+            for (int i = 0; i < exportProcessFields.Length; i++)
+            {
+                FieldInfo fi = exportProcessFields[i];
+                SerializedProperty exportProcess = serializedObject.FindProperty(fi.Name);
+                if (exportProcess.objectReferenceValue == null)
+                {
+                    exportProcess.objectReferenceValue = ScriptableObject.CreateInstance(fi.FieldType);
+                    Debug.LogError($"Null Export Prcess Reference. Creating {fi.FieldType} for {fi.Name}");
+                }
+                exportProcessEditors[i] = UnityEditor.Editor.CreateEditor(exportProcess.objectReferenceValue);
+            }
+            serializedObject.ApplyModifiedProperties();
         }
 
         private void OnDisable()
@@ -325,7 +345,7 @@ namespace Treasured.UnitySdk
         static void OnSelectTreasuredObject()
         {
             var to = Selection.activeGameObject?.GetComponent<TreasuredObject>();
-            if (to && TreasuredSDKSettings.Instance.autoFocus)
+            if (to && TreasuredSDKSettingsProvider.Settings.autoFocus)
             {
                 to.TryInvokeMethods("OnSceneViewFocus");
             }
@@ -447,25 +467,15 @@ namespace Treasured.UnitySdk
             EditorGUI.indentLevel++;
             try
             {
-                foreach (var process in TreasuredSDKSettings.Instance.exportProcesses)
+                for (int i = 0; i < exportProcessEditors.Length; i++)
                 {
-                    ExportProcessSettingsAttribute attribute = process.GetType().GetCustomAttribute<ExportProcessSettingsAttribute>();
-                    if (attribute != null && process.GetType().IsDefined(typeof(HideInInspector)))
-                    {
-                        continue;
-                    }
-                    //using (new EditorGUILayout.HorizontalScope())
-                    //{
-                    //    float previousLabelWidth = EditorGUIUtility.labelWidth;
-                    //    EditorGUIUtility.labelWidth = 0;
-                    //    process.Enabled = EditorGUILayout.Toggle(GUIContent.none, process.Enabled, GUILayout.Width(24));
-                    //    EditorGUIUtility.labelWidth = previousLabelWidth;
-                    //    process.Expanded = EditorGUILayout.Foldout(process.Expanded, process.DisplayName, true);
-                    //}
-                    process.enabled = EditorGUILayout.ToggleLeft(new GUIContent(ObjectNames.NicifyVariableName(process.GetType().Name)), process.enabled, EditorStyles.boldLabel);
+                    UnityEditor.Editor editor = exportProcessEditors[i];
+                    SerializedProperty enable = editor.serializedObject.FindProperty("enable");
+                    enable.boolValue = EditorGUILayout.ToggleLeft(ObjectNames.NicifyVariableName(editor.target.GetType().Name), enable.boolValue, EditorStyles.boldLabel);
                     EditorGUI.indentLevel++;
-                    process.OnGUI(_outputRoot, serializedObject);
+                    editor.OnInspectorGUI();
                     EditorGUI.indentLevel--;
+                    editor.serializedObject.ApplyModifiedProperties();
                 }
                 if (GUILayout.Button(new GUIContent("Export", "Export all enabled process."), GUILayout.Height(24)))
                 {

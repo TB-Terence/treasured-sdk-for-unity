@@ -6,7 +6,7 @@ using UnityEditor;
 namespace Treasured.UnitySdk
 {
     [System.Serializable]
-    public class JsonExportProcess : ExportProcess
+    internal class JsonExportProcess : ExportProcess
     {
         public Formatting formatting = Formatting.Indented;
         public bool convertTransform = false;
@@ -18,11 +18,11 @@ namespace Treasured.UnitySdk
             CheckAdditionalContent = true
         };
 
-        public override void OnGUI(string root, SerializedObject serializedObject)
+        public override void OnPreferenceGUI(SerializedObject settings)
         {
             formatting = (Formatting)EditorGUILayout.EnumPopup(new GUIContent("Formatting"), formatting);
             EditorGUI.BeginChangeCheck();
-            ThreeJsTransformConverter.ShouldConvertToThreeJsTransform = EditorGUILayout.Toggle(new GUIContent("Convert To Three Js"), ThreeJsTransformConverter.ShouldConvertToThreeJsTransform);
+            convertTransform = EditorGUILayout.Toggle(new GUIContent("Convert To Three Js"), convertTransform);
             if (EditorGUI.EndChangeCheck())
             {
                 ThreeJsTransformConverter.ShouldConvertToThreeJsTransform = convertTransform;

@@ -1,15 +1,15 @@
 ﻿using System.IO;
-using UnityEngine;
-using UnityEditor;
 using System.Reflection;
-using System.Linq;
-using System;
+using UnityEditor;
+using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
     internal class TreasuredSDKSettingsProvider
     {
-        public const string sdkSettingsPath = "Assets/Treasured SDK/Settings/Treasured SDK Settings.asset";
+        public const string DefaultSdkSettingsDirectory = "Assets/Treasured SDK/Settings/";
+        public const string DefaultSdkSettingsFileName = "Settings.asset";
+
         private static TreasuredSDKSettings _settings;
         public static TreasuredSDKSettings Settings
         {
@@ -25,45 +25,20 @@ namespace Treasured.UnitySdk
         
         internal static TreasuredSDKSettings GetOrCreateSettings()
         {
-            var settings = AssetDatabase.LoadAssetAtPath<TreasuredSDKSettings>(sdkSettingsPath);
+            var settings = AssetDatabase.LoadAssetAtPath<TreasuredSDKSettings>(DefaultSdkSettingsDirectory);
             if (settings == null)
             {
                 settings = ScriptableObject.CreateInstance<TreasuredSDKSettings>();
                 settings.autoFocus = true;
                 settings.frustumColor = TreasuredSDKSettings.DefaultFrustumColor;
                 settings.hitboxColor = TreasuredSDKSettings.DefaultHitboxColor;
-                string absolutePath = Path.GetFullPath(sdkSettingsPath);
-                Directory.CreateDirectory(absolutePath);
-                AssetDatabase.CreateAsset(settings, sdkSettingsPath);
-                //var exportProcessTypes = Assembly.GetExecutingAssembly().GetTypes().Where(x => !x.IsAbstract && typeof(ExportProcess).IsAssignableFrom(x)).ToArray();
-                //settings.exportProcesses = new ExportProcess[exportProcessTypes.Length];
-                //for (int i = 0; i < exportProcessTypes.Length; i++)
-                //{
-                //    var process = (ExportProcess)ScriptableObject.CreateInstance(exportProcessTypes[i]);
-                //    process.name = ObjectNames.NicifyVariableName(exportProcessTypes[i].Name);
-                //    AssetDatabase.AddObjectToAsset(process, sdkSettingsPath);
-                //    settings.exportProcesses[i] = process;
-                //    var attribute = exportProcessTypes[i].GetCustomAttribute<ExportProcessSettingsAttribute>();
-                //    if (attribute != null)
-                //    {
-                //        process.enabled = attribute.EnabledByDefault;
-                //        //if (attribute.DisplayName == null)
-                //        //{
-                //        //    string typeName = type.Name;
-                //        //    if (typeName.EndsWith("ExportProcess"))
-                //        //    {
-                //        //        typeName = typeName.Substring(0, typeName.Length - 13);
-                //        //    }
-                //        //    settings.DisplayName = ObjectNames.NicifyVariableName(typeName);
-                //        //}
-                //        //else
-                //        //{
-                //        //    settings.DisplayName = attribute.DisplayName;
-                //        //}
-                //    }
-                //}
+                string absolutePath = Path.GetFullPath(DefaultSdkSettingsDirectory);
+                if (!Directory.Exists(absolutePath))
+                {
+                    Directory.CreateDirectory(absolutePath);
+                }
+                AssetDatabase.CreateAsset(settings, Path.Combine(DefaultSdkSettingsDirectory, DefaultSdkSettingsFileName));
                 AssetDatabase.SaveAssets();
-                Debug.LogError($"Treasured SDK Settings created at \"{sdkSettingsPath}\"", settings);
             }
             return settings;
         }
@@ -71,46 +46,12 @@ namespace Treasured.UnitySdk
         [SettingsProvider]
         internal static SettingsProvider CreateSettingsProvider()
         {
-            var provider = new SettingsProvider("Preferences/Treasured SDK", SettingsScope.User, SettingsProvider.GetSearchKeywordsFromPath(sdkSettingsPath));
+            var provider = new SettingsProvider("Preferences/Treasured SDK", SettingsScope.User, SettingsProvider.GetSearchKeywordsFromPath(DefaultSdkSettingsDirectory));
             FieldInfo[] serializedFields = typeof(TreasuredSDKSettingsProvider).GetFields(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
             provider.guiHandler = (serachContext) =>
             {
                 var settings = new SerializedObject(Settings);
-                //foreach (var fi in serializedFields)
-                //{
-                //    if ((fi.IsPrivate && !fi.IsDefined(typeof(SerializeField))) || fi.IsDefined(typeof(HideInInspector)))
-                //    {
-                //        continue;
-                //    }
-                //    SerializedProperty serializedProperty = settings.FindProperty(fi.Name);
-                //    if (serializedProperty != null)
-                //    {
-                //        if (serializedProperty.isArray && serializedProperty.propertyType == SerializedPropertyType.Generic)
-                //        {
-                //            for (int i = 0; i < serializedProperty.arraySize; i++)
-                //            {
-                //                var obj = serializedProperty.GetArrayElementAtIndex(i).objectReferenceValue;
-                //                Type objType = obj.GetType();
-                //                if (!typeof(ExportProcess).IsAssignableFrom(objType) || objType.IsDefined(typeof(HideInInspector)))
-                //                {
-                //                    continue;
-                //                }
-                //                SerializedObject serializedObject = new SerializedObject(obj);
-                //                SerializedProperty enabled = serializedObject.FindProperty("enabled");
-                //                MethodInfo guiMethod = objType.GetMethod("OnPreferenceGUI");
-                //                enabled.boolValue = EditorGUILayout.ToggleLeft(new GUIContent(ObjectNames.NicifyVariableName(objType.Name)), enabled.boolValue, EditorStyles.boldLabel);
-                //                EditorGUI.indentLevel++;
-                //                guiMethod.Invoke(obj, new object[] { settings });
-                //                EditorGUI.indentLevel--;
-                //                serializedObject.ApplyModifiedPropertiesWithoutUndo();
-                //            }
-                //        }
-                //        else
-                //        {
-                //            EditorGUILayout.PropertyField(serializedProperty);
-                //        }
-                //    }
-                //}
+                EditorGUIUtilities.DrawPropertiesExcluding(settings, "m_Script");
                 settings.ApplyModifiedPropertiesWithoutUndo();
             };
             return provider;

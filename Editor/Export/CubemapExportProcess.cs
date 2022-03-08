@@ -15,22 +15,20 @@ namespace Treasured.UnitySdk
         private const int MAXIMUM_CUBEMAP_FACE_WIDTH = 1360; // 4096 / 3 round to nearest tenth
         private const int MAXIMUM_CUBEMAP_WIDTH = 8192;
 
-        private static bool s_flipY = false;
-
         private bool _isAdvancedMode = false;
         private int _cubemapSize = MAXIMUM_CUBEMAP_FACE_WIDTH;
 
-        public ImageFormat format = ImageFormat.Ktx2;
-        public ImageQuality quality = ImageQuality.High;
+        public ImageFormat imageFormat = ImageFormat.Ktx2;
+        public ImageQuality imageQuality = ImageQuality.High;
         public CubemapFormat cubemapFormat = CubemapFormat.IndividualFace;
+        public bool flipY = false;
         private int qualityPercentage = 75;
 
         public override void OnGUI(string root, SerializedObject serializedObject)
         {
-            //EditorGUILayout.PropertyField(format);
-            //format = (ImageFormat)EditorGUILayout.EnumPopup(new GUIContent("Format"), format);
-          //  EditorGUILayout.PropertyField(quality);
-            s_flipY = EditorGUILayout.Toggle(new GUIContent("Flip Y"), s_flipY);
+            imageFormat = (ImageFormat)EditorGUILayout.EnumPopup(new GUIContent("Image Format"), imageFormat);
+            imageQuality = (ImageQuality)EditorGUILayout.EnumPopup(new GUIContent("Image Quality"), imageQuality);
+            flipY = EditorGUILayout.Toggle(new GUIContent("Flip Y"), flipY);
             cubemapFormat = (CubemapFormat)EditorGUILayout.EnumPopup(new GUIContent("Cubemap Format"), cubemapFormat);
             if (cubemapFormat == CubemapFormat._3x2)
             {
@@ -41,7 +39,7 @@ namespace Treasured.UnitySdk
                     _cubemapSize = Mathf.Clamp(_cubemapSize - _cubemapSize % 10, 16, MAXIMUM_CUBEMAP_FACE_WIDTH);
                 }
             }
-            if (format == ImageFormat.PNG || format == ImageFormat.Ktx2)
+            if (imageFormat == ImageFormat.PNG || imageFormat == ImageFormat.Ktx2)
                 return;
 
             using (new EditorGUILayout.HorizontalScope())
@@ -78,7 +76,7 @@ namespace Treasured.UnitySdk
                     break;
             };
             //  If imageFormat is KTX2 then export images as png and then later convert them to KTX2 format  
-            ImageFormat imageFormatParser = format == ImageFormat.Ktx2 ? ImageFormat.PNG : format;
+            ImageFormat imageFormatParser = imageFormat == ImageFormat.Ktx2 ? ImageFormat.PNG : imageFormat;
 
             try
             {
@@ -108,7 +106,7 @@ namespace Treasured.UnitySdk
                                     throw new TreasuredException("Export canceled", "Export canceled by the user.");
                                 }
                                 texture.SetPixels((i % 3) * _cubemapSize, MAXIMUM_CUDA_TEXTURE_WIDTH - ((i / 3) + 1) * _cubemapSize, _cubemapSize, _cubemapSize,
-                                ImageUtilies.FlipPixels(cubemap.GetPixels((CubemapFace)i), _cubemapSize, _cubemapSize, true, s_flipY));
+                                ImageUtilies.FlipPixels(cubemap.GetPixels((CubemapFace)i), _cubemapSize, _cubemapSize, true, flipY));
                             }
                             ImageUtilies.Encode(texture, path.FullName, "cubemap", imageFormatParser, qualityPercentage);
                             break;
@@ -120,13 +118,13 @@ namespace Treasured.UnitySdk
                                     throw new TreasuredException("Export canceled", "Export canceled by the user.");
                                 }
                                 texture.SetPixels(cubemap.GetPixels((CubemapFace)i));
-                                ImageUtilies.FlipPixels(texture, true, s_flipY);
+                                ImageUtilies.FlipPixels(texture, true, flipY);
                                 ImageUtilies.Encode(texture, path.FullName, SimplifyCubemapFace((CubemapFace)i), imageFormatParser, qualityPercentage);
                             }
                             break;
                     }
                 }
-                if (format == ImageFormat.Ktx2)
+                if (imageFormat == ImageFormat.Ktx2)
                 {
                     EditorUtility.DisplayProgressBar("Converting to KTX2", "Converting in progress...", 0.5f);
                     ImageUtilies.ConvertToKTX2(rootDirectory);

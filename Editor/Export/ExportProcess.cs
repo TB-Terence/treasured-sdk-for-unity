@@ -6,7 +6,8 @@ using UnityEngine;
 namespace Treasured.UnitySdk
 {
     [ExportProcessSettings()]
-    public abstract class ExportProcess : ScriptableObject
+    [System.Serializable]
+    internal abstract class ExportProcess
     {
         /// <summary>
         /// Default output folder in project root
@@ -18,7 +19,8 @@ namespace Treasured.UnitySdk
         public bool enabled;
 
         public virtual void OnEnable(SerializedObject serializedObject) { }
-        public virtual void OnGUI(string root, SerializedObject serializedObject) { }
+        public virtual void OnGUI(string root, SerializedObject map) { }
+        public virtual void OnPreferenceGUI(SerializedObject settings) { }
         public virtual void OnPreProcess(SerializedObject serializedObject) { }
         public abstract void OnExport(string rootDirectory, TreasuredMap map);
         public virtual void OnPostProcess(SerializedObject serializedObject) { }

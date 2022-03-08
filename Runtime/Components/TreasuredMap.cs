@@ -1,6 +1,7 @@
 using Newtonsoft.Json;
 using System;
 using UnityEngine;
+using Treasured.UnitySdk.Export;
 
 namespace Treasured.UnitySdk
 {
@@ -174,6 +175,18 @@ namespace Treasured.UnitySdk
 
         [Code]
         public string headHTML;
+
+        [JsonIgnore]
+        public ExportSettings exportSettings;
+
+        [JsonIgnore]
+        public JsonExportProcess jsonExportProcess;
+
+        [JsonIgnore]
+        public CubemapExportProcess cubemapExportProcess;
+
+        [JsonIgnore]
+        public MeshExportProcess meshExportProcess;
 
         private void OnValidate()
         {
