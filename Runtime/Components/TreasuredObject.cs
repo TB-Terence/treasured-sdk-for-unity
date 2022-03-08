@@ -20,6 +20,7 @@ namespace Treasured.UnitySdk
 
         [SerializeField]
         [TextArea(3, 3)]
+        [JsonIgnore]
         private string _description;
 
         [SerializeField]

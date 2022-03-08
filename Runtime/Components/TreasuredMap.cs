@@ -72,10 +72,6 @@ namespace Treasured.UnitySdk
         public ImageFormat Format { get => _format; set => _format = value; }
 
         [SerializeField]
-        private ImageQuality _quality = ImageQuality.High;
-        public ImageQuality Quality { get => _quality; set => _quality = value; }
-
-        [SerializeField]
         private bool _canUseTag;
         
         [JsonIgnore]

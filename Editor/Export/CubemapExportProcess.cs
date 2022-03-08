@@ -20,15 +20,14 @@ namespace Treasured.UnitySdk
         private int _cubemapSize = MAXIMUM_CUBEMAP_FACE_WIDTH;
 
         private SerializedProperty _format;
-        private SerializedProperty _quality;
         private CubemapFormat _cubemapFormat = CubemapFormat.IndividualFace;
         private int qualityPercentage = 75;
         private ImageFormat imageFormat = ImageFormat.Ktx2;
+        private ImageQuality quality = ImageQuality.High;
 
         public override void OnEnable(SerializedObject serializedObject)
         {
             _format = serializedObject.FindProperty(nameof(_format));
-            _quality = serializedObject.FindProperty(nameof(_quality));
             _format.enumValueIndex = (int)ImageFormat.Ktx2;
             serializedObject.ApplyModifiedProperties();
         }
@@ -36,7 +35,7 @@ namespace Treasured.UnitySdk
         {
             //EditorGUILayout.PropertyField(_format);
             imageFormat = (ImageFormat)EditorGUILayout.EnumPopup(new GUIContent("Format"), imageFormat);
-            EditorGUILayout.PropertyField(_quality);
+            quality = (ImageQuality)EditorGUILayout.EnumPopup(new GUIContent("Quality"), quality);
             s_flipY = EditorGUILayout.Toggle(new GUIContent("Flip Y"), s_flipY);
             _cubemapFormat = (CubemapFormat)EditorGUILayout.EnumPopup(new GUIContent("Cubemap Format"), _cubemapFormat);
             if (_cubemapFormat == CubemapFormat._3x2)
@@ -73,7 +72,7 @@ namespace Treasured.UnitySdk
 
             int count = hotspots.Length;
 
-            Cubemap cubemap = new Cubemap(_cubemapFormat == CubemapFormat.IndividualFace ? (int)map.Quality : _cubemapSize, TextureFormat.ARGB32, false);
+            Cubemap cubemap = new Cubemap(_cubemapFormat == CubemapFormat.IndividualFace ? (int)quality : _cubemapSize, TextureFormat.ARGB32, false);
             Texture2D texture = null;
             switch (_cubemapFormat)
             {
