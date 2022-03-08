@@ -7,5 +7,6 @@ namespace Treasured.UnitySdk
     {
         public bool showHotspotButtons = true;
         public bool showInteractableButtons = true;
+        public bool projectDomeOntoGeometry = true;
     }
 }

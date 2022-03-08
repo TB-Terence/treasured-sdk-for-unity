@@ -341,6 +341,7 @@ namespace Treasured.UnitySdk
             EditorGUILayout.PropertyField(_muteOnStart);
             EditorGUILayout.PropertyField(_templateLoader);
             EditorGUILayout.PropertyField(headHTML);
+            EditorGUILayout.PropertyField(uiSettings.FindPropertyRelative("projectDomeOntoGeometry"));
         }
 
         [FoldoutGroup("Object Management", true)]
