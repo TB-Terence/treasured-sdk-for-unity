@@ -174,7 +174,7 @@ namespace Treasured.UnitySdk
         private void OnValidate()
         {
             //  Set default Auto Camera Rotation to false for all except for modern loader template 
-            if (_templateLoader.template != "modern")
+            if (_templateLoader != null && _templateLoader.template != "modern")
             {
                 _templateLoader.autoCameraRotation = false;
             }
