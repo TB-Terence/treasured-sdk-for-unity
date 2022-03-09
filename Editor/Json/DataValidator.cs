@@ -1,4 +1,7 @@
-﻿namespace Treasured.UnitySdk
+﻿using System.Linq;
+using System.Text;
+
+namespace Treasured.UnitySdk
 {
     internal static class DataValidator
     {
@@ -16,7 +19,30 @@
             {
                 throw new TreasuredException("Missing Field", "The description field is missing.");
             }
-            foreach (var obj in map.GetComponentsInChildren<TreasuredObject>())
+            var objects = map.GetComponentsInChildren<TreasuredObject>();
+            var ids = objects.GroupBy(o => o.Id).Where(g => g.Count() > 1)
+              .Select(y => new { Elements = y.Skip(1), Id = y.Key, Counter = y.Count() })
+              .ToList();
+            bool hasDuplicates = false;
+            StringBuilder sb = new StringBuilder();
+            sb.Append("Duplicated id for the following object(s): ");
+            foreach (var id in ids)
+            {
+                if (id.Counter > 1)
+                {
+                    hasDuplicates = true;
+                    int count = id.Elements.Count();
+                    for (int i = 0; i < count; i++)
+                    {
+                        sb.Append(id.Elements.ElementAt(i).name + (i != count - 1 ? ", " : ""));
+                    }
+                }
+            }
+            if (hasDuplicates)
+            {
+                throw new TreasuredException("Duplicated Ids", sb.ToString());
+            }
+            foreach (var obj in objects)
             {
                 ValidateObject(obj);
             }
