@@ -1,5 +1,6 @@
-﻿using System.Linq;
-using System.Text;
+﻿using System;
+using System.Linq;
+using UnityEditor;
 
 namespace Treasured.UnitySdk
 {
@@ -20,28 +21,7 @@ namespace Treasured.UnitySdk
                 throw new TreasuredException("Missing Field", "The description field is missing.");
             }
             var objects = map.GetComponentsInChildren<TreasuredObject>();
-            var ids = objects.GroupBy(o => o.Id).Where(g => g.Count() > 1)
-              .Select(y => new { Elements = y.Skip(1), Id = y.Key, Counter = y.Count() })
-              .ToList();
-            bool hasDuplicates = false;
-            StringBuilder sb = new StringBuilder();
-            sb.Append("Duplicated id for the following object(s): ");
-            foreach (var id in ids)
-            {
-                if (id.Counter > 1)
-                {
-                    hasDuplicates = true;
-                    int count = id.Elements.Count();
-                    for (int i = 0; i < count; i++)
-                    {
-                        sb.Append(id.Elements.ElementAt(i).name + (i != count - 1 ? ", " : ""));
-                    }
-                }
-            }
-            if (hasDuplicates)
-            {
-                throw new TreasuredException("Duplicated Ids", sb.ToString());
-            }
+            FixDuplicateIds(objects);
             foreach (var obj in objects)
             {
                 ValidateObject(obj);
@@ -86,6 +66,23 @@ namespace Treasured.UnitySdk
                             throw new ContextException("Invalid reference", $"The target set for OnHover-Object action does not belong to the same map.", obj);
                         }
                     }
+                }
+            }
+        }
+
+        public static void FixDuplicateIds(TreasuredObject[] objects)
+        {
+            var ids = objects.GroupBy(o => o.Id).Where(g => g.Count() > 1)
+              .Select(y => new { Elements = y.Skip(1), Id = y.Key, Counter = y.Count() })
+              .ToList();
+            foreach (var id in ids)
+            {
+                int count = id.Elements.Count();
+                for (int i = 0; i < count; i++)
+                {
+                    TreasuredObject obj = id.Elements.ElementAt(i);
+                    obj.Id = Guid.NewGuid().ToString();
+                    EditorUtility.SetDirty(obj);
                 }
             }
         }
