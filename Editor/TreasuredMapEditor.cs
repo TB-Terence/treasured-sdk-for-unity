@@ -362,6 +362,7 @@ namespace Treasured.UnitySdk
             EditorGUILayout.PropertyField(_templateLoader);
             EditorGUILayout.PropertyField(headHTML);
             EditorGUILayout.PropertyField(uiSettings.FindPropertyRelative("projectDomeOntoGeometry"));
+            EditorGUILayout.PropertyField(uiSettings.FindPropertyRelative("showOnboarding"));
         }
 
         [FoldoutGroup("Object Management", true)]
@@ -644,9 +645,9 @@ namespace Treasured.UnitySdk
                     go.transform.SetParent(root);
                     objects.Add(obj);
                     EditorGUIUtility.PingObject(go);
+                    obj.TryInvokeMethods("OnSelectedInHierarchy");
                     if (Physics.Raycast(camera.transform.position, camera.transform.forward, out var hit))
                     {
-                        obj.TryInvokeMethods("OnSelectedInHierarchy");
                         obj.transform.position = hit.point;
                         if (obj is Hotspot hotspot)
                         {

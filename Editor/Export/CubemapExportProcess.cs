@@ -18,19 +18,26 @@ namespace Treasured.UnitySdk
         private bool _isAdvancedMode = false;
         private int _cubemapSize = MAXIMUM_CUBEMAP_FACE_WIDTH;
 
-        public ImageFormat imageFormat = ImageFormat.Ktx2;
-        public ImageQuality imageQuality = ImageQuality.High;
-        public CubemapFormat cubemapFormat = CubemapFormat.IndividualFace;
-        public bool flipY = false;
+        private SerializedProperty _format;
+        private CubemapFormat _cubemapFormat = CubemapFormat.IndividualFace;
         private int qualityPercentage = 75;
+        private ImageFormat imageFormat = ImageFormat.Ktx2;
+        private ImageQuality quality = ImageQuality.High;
 
+        public override void OnEnable(SerializedObject serializedObject)
+        {
+            _format = serializedObject.FindProperty(nameof(_format));
+            _format.enumValueIndex = (int)ImageFormat.Ktx2;
+            serializedObject.ApplyModifiedProperties();
+        }
         public override void OnGUI(string root, SerializedObject serializedObject)
         {
-            imageFormat = (ImageFormat)EditorGUILayout.EnumPopup(new GUIContent("Image Format"), imageFormat);
-            imageQuality = (ImageQuality)EditorGUILayout.EnumPopup(new GUIContent("Image Quality"), imageQuality);
-            flipY = EditorGUILayout.Toggle(new GUIContent("Flip Y"), flipY);
-            cubemapFormat = (CubemapFormat)EditorGUILayout.EnumPopup(new GUIContent("Cubemap Format"), cubemapFormat);
-            if (cubemapFormat == CubemapFormat._3x2)
+            //EditorGUILayout.PropertyField(_format);
+            imageFormat = (ImageFormat)EditorGUILayout.EnumPopup(new GUIContent("Format"), imageFormat);
+            quality = (ImageQuality)EditorGUILayout.EnumPopup(new GUIContent("Quality"), quality);
+            s_flipY = EditorGUILayout.Toggle(new GUIContent("Flip Y"), s_flipY);
+            _cubemapFormat = (CubemapFormat)EditorGUILayout.EnumPopup(new GUIContent("Cubemap Format"), _cubemapFormat);
+            if (_cubemapFormat == CubemapFormat._3x2)
             {
                 _isAdvancedMode = EditorGUILayout.Toggle(new GUIContent("Advanced"), _isAdvancedMode);
                 if (_isAdvancedMode)
@@ -64,7 +71,7 @@ namespace Treasured.UnitySdk
 
             int count = hotspots.Length;
 
-            Cubemap cubemap = new Cubemap(cubemapFormat == CubemapFormat.IndividualFace ? (int)map.Quality : _cubemapSize, TextureFormat.ARGB32, false);
+            Cubemap cubemap = new Cubemap(_cubemapFormat == CubemapFormat.IndividualFace ? (int)quality : _cubemapSize, TextureFormat.ARGB32, false);
             Texture2D texture = null;
             switch (cubemapFormat)
             {

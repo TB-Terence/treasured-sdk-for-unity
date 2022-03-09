@@ -15,13 +15,11 @@ namespace Treasured.UnitySdk
             serializedObject.Update();
 
             SerializedProperty id = serializedObject.FindProperty("_id");
-            SerializedProperty description = serializedObject.FindProperty("_description");
             SerializedProperty src = serializedObject.FindProperty("Src");
             SerializedProperty volume = serializedObject.FindProperty("Volume");
             SerializedProperty loop = serializedObject.FindProperty("Loop");
 
             EditorGUILayout.PropertyField(id);
-            EditorGUILayout.PropertyField(description);
             EditorGUILayout.PropertyField(src);
             EditorGUILayout.PropertyField(volume);
             EditorGUILayout.PropertyField(loop);
