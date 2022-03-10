@@ -20,6 +20,7 @@ namespace Treasured.UnitySdk
 
         [SerializeField]
         [TextArea(3, 3)]
+        [JsonIgnore]
         private string _description;
 
         [SerializeField]
@@ -49,7 +50,7 @@ namespace Treasured.UnitySdk
         /// <summary>
         /// Global unique identifier for the object.(Read Only)
         /// </summary>
-        public string Id { get => _id; }
+        public string Id { get => _id; internal set => _id = value; }
 
         public string Description { get => _description; set => _description = value; }
 

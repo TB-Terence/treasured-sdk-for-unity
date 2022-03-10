@@ -72,10 +72,6 @@ namespace Treasured.UnitySdk
         public ImageFormat Format { get => _format; set => _format = value; }
 
         [SerializeField]
-        private ImageQuality _quality = ImageQuality.High;
-        public ImageQuality Quality { get => _quality; set => _quality = value; }
-
-        [SerializeField]
         private bool _canUseTag;
         
         [JsonIgnore]
@@ -178,7 +174,7 @@ namespace Treasured.UnitySdk
         private void OnValidate()
         {
             //  Set default Auto Camera Rotation to false for all except for modern loader template 
-            if (_templateLoader.template != "modern")
+            if (_templateLoader != null && _templateLoader.template != "modern")
             {
                 _templateLoader.autoCameraRotation = false;
             }

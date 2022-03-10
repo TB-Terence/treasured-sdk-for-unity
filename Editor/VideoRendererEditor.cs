@@ -36,7 +36,6 @@ namespace Treasured.UnitySdk
             serializedObject.Update();
 
             SerializedProperty id = serializedObject.FindProperty("_id");
-            SerializedProperty description = serializedObject.FindProperty("_description");
             SerializedProperty lockAspectRatio = serializedObject.FindProperty("_lockAspectRatio");
             SerializedProperty aspectRatio = serializedObject.FindProperty("_aspectRatio");
             SerializedProperty src = serializedObject.FindProperty("Src");
@@ -44,7 +43,6 @@ namespace Treasured.UnitySdk
             SerializedProperty loop = serializedObject.FindProperty("Loop");
 
             EditorGUILayout.PropertyField(id);
-            EditorGUILayout.PropertyField(description);
             EditorGUILayout.PropertyField(src);
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(lockAspectRatio);
