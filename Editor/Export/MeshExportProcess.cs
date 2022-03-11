@@ -176,11 +176,10 @@ namespace Treasured.UnitySdk
             {
                 if (ContainsValidRenderer(gameObject) && gameObject.TryGetComponent(out MeshFilter filter))
                 {
-                    meshFilters.Add(filter);
-
                     //  Check if sharedMesh is not null
                     if (filter.sharedMesh != null)
                     {
+                        meshFilters.Add(filter);
                         vertices += filter.sharedMesh.vertexCount;
                     }
                 }
