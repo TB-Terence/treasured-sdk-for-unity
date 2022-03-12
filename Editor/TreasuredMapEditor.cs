@@ -206,7 +206,6 @@ namespace Treasured.UnitySdk
             videos = map.gameObject.GetComponentsInChildren<VideoRenderer>(true).ToList();
             sounds = map.gameObject.GetComponentsInChildren<SoundSource>(true).ToList();
 
-            serializedObject.FindProperty("_format").enumValueIndex = 2;
             serializedObject.ApplyModifiedProperties();
 
             // Set icon for hotspots
