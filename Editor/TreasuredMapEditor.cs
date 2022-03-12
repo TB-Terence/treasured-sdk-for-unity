@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Treasured.UnitySdkEditor;
+using Treasured.UnitySdk;
 using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-namespace Treasured.UnitySdk
+namespace Treasured.UnitySdkEditor
 {
     [CustomEditor(typeof(TreasuredMap))]
     internal class TreasuredMapEditor : UnityEditor.Editor
@@ -237,10 +237,15 @@ namespace Treasured.UnitySdk
 
         private void ValidateSettings()
         {
+            SerializedProperty exportSettings = serializedObject.FindProperty(nameof(TreasuredMap.exportSettings));
+            if (exportSettings.objectReferenceValue == null)
+            {
+                exportSettings.objectReferenceValue = ScriptableObject.CreateInstance<ExportSettings>();
+            }
             // Find all serialized export processes
             FieldInfo[] exportProcessFields = typeof(TreasuredMap).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).
                 Where(x => 
-                typeof(Export.ExportProcess).IsAssignableFrom(x.FieldType) && 
+                typeof(UnitySdk.Export.ExportProcess).IsAssignableFrom(x.FieldType) && 
                 (x.IsPublic || (x.IsPrivate && x.IsDefined(typeof(SerializeField))))).ToArray();
             exportProcessEditors = new UnityEditor.Editor[exportProcessFields.Length];
             for (int i = 0; i < exportProcessFields.Length; i++)
@@ -250,9 +255,8 @@ namespace Treasured.UnitySdk
                 if (exportProcess.objectReferenceValue == null)
                 {
                     exportProcess.objectReferenceValue = ScriptableObject.CreateInstance(fi.FieldType);
-                    Debug.LogError($"Null Export Process Reference. Creating {fi.FieldType} for {fi.Name}");
                 }
-                exportProcessEditors[i] = UnityEditor.Editor.CreateEditor(exportProcess.objectReferenceValue);
+                exportProcessEditors[i] = CreateEditor(exportProcess.objectReferenceValue);
             }
             serializedObject.ApplyModifiedProperties();
         }
