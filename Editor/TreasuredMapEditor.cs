@@ -453,27 +453,29 @@ namespace Treasured.UnitySdk
                     SerializedProperty enabled = editor.serializedObject.FindProperty(nameof(Exporter.enabled));
                     enabled.boolValue = EditorGUILayout.ToggleLeft(ObjectNames.NicifyVariableName(editor.target.GetType().Name), enabled.boolValue, EditorStyles.boldLabel);
                     EditorGUI.indentLevel++;
-                    editor.serializedObject.Update();
                     editor.OnInspectorGUI();
                     editor.serializedObject.ApplyModifiedProperties();
                     EditorGUI.indentLevel--;
                 }
-                if (GUILayout.Button(new GUIContent("Export", "Export all enabled process."), GUILayout.Height(24)))
+                using (new EditorGUI.DisabledGroupScope(!map.jsonExporter.enabled && !map.cubemapExporter.enabled && !map.meshExporter.enabled))
                 {
-                    DataValidator.ValidateMap(map);
-                    if (Directory.Exists(map.exportSettings.OutputDirectory))
+                    if (GUILayout.Button(new GUIContent("Export", "Export all enabled process."), GUILayout.Height(24)))
                     {
-                        Directory.Delete(map.exportSettings.OutputDirectory, true);
-                    }
-                    Directory.CreateDirectory(map.exportSettings.OutputDirectory); // try create the directory if not exist.
-                    foreach (var editor in exporterEditors)
-                    {
-                        Exporter process = (Exporter)editor.target;
-                        if (process != null && process.enabled)
+                        DataValidator.ValidateMap(map);
+                        if (Directory.Exists(map.exportSettings.OutputDirectory))
                         {
-                            process.OnPreExport();
-                            process.Export();
-                            process.OnPostExport();
+                            Directory.Delete(map.exportSettings.OutputDirectory, true);
+                        }
+                        Directory.CreateDirectory(map.exportSettings.OutputDirectory); // try create the directory if not exist.
+                        foreach (var editor in exporterEditors)
+                        {
+                            Exporter process = (Exporter)editor.target;
+                            if (process != null && process.enabled)
+                            {
+                                process.OnPreExport();
+                                process.Export();
+                                process.OnPostExport();
+                            }
                         }
                     }
                 }

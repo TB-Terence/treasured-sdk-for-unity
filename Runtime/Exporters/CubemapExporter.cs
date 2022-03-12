@@ -66,7 +66,7 @@ namespace Treasured.UnitySdk
                     {
                         throw new System.NotSupportedException("Current graphic device/platform does not support RenderToCubemap.");
                     }
-                    var path = Directory.CreateDirectory(Path.Combine(Settings.OutputDirectory, "images", current.Id).Replace('/', '\\'));
+                    var path = Directory.CreateDirectory(Path.Combine(Map.exportSettings.OutputDirectory, "images", current.Id).Replace('/', '\\'));
                     switch (cubemapFormat)
                     {
                         case CubemapFormat._3x2:
@@ -107,7 +107,7 @@ namespace Treasured.UnitySdk
 #if UNITY_EDITOR
                     UnityEditor.EditorUtility.DisplayProgressBar("Converting to KTX2", "Converting in progress...", 0.5f);
 #endif
-                    ImageUtilies.ConvertToKTX2(Settings.OutputDirectory);
+                    ImageUtilies.ConvertToKTX2(Map.exportSettings.OutputDirectory);
                 }
             }
             catch (Exception e)

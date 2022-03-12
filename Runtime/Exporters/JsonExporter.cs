@@ -19,7 +19,7 @@ namespace Treasured.UnitySdk
 
         public override void Export()
         {
-            string jsonPath = Path.Combine(Settings.OutputDirectory, "data.json").Replace('/', '\\');
+            string jsonPath = Path.Combine(Map.exportSettings?.OutputDirectory, "data.json").Replace('/', '\\');
             string json = JsonConvert.SerializeObject(Map, formatting, JsonSettings);
             File.WriteAllText(jsonPath, json);
         }

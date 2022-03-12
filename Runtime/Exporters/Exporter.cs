@@ -14,7 +14,6 @@ namespace Treasured.UnitySdk
         public bool enabled = true;
 
         public TreasuredMap Map { get => _map; }
-        public ExportSettings Settings { get => _map?.exportSettings; }
 
         public virtual void OnPreExport() { }
         public abstract void Export();

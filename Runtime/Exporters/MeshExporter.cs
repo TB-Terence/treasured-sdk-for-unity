@@ -184,9 +184,9 @@ namespace Treasured.UnitySdk
             var exportOptions = new ExportOptions { TexturePathRetriever = RetrieveTexturePath };
             var exporter = new GLTFSceneExporter(export, exportOptions);
 
-            if (!string.IsNullOrEmpty(Settings.OutputDirectory))
+            if (!string.IsNullOrEmpty(Map.exportSettings.OutputDirectory))
             {
-                exporter.SaveGLB(Settings.OutputDirectory, "scene");
+                exporter.SaveGLB(Map.exportSettings.OutputDirectory, "scene");
             }
         }
 
@@ -376,12 +376,14 @@ namespace Treasured.UnitySdk
 
         void UpdateProgress()
         {
+#if UNITY_EDITOR
             if (_progressCounter++ == _progressUpdateInterval)
             {
                 _progressCounter = 0;
                 EditorUtility.DisplayProgressBar($"Combining Terrain to {_terrainObjName}.obj...",
                     "This might take a while..", Mathf.InverseLerp(0, _totalTerrainCount, ++_terrainCount));
             }
+#endif
         }
 
         //  Option to change the parsing format
