@@ -67,9 +67,7 @@ namespace Treasured.UnitySdk
         #endregion
 
         #region Export Properties
-        [SerializeField]
-        private ImageFormat _format = ImageFormat.Ktx2;
-        public ImageFormat Format { get => _format; set => _format = value; }
+        public ImageFormat Format { get => cubemapExporter.imageFormat; }
         #endregion
 
         #region Objects

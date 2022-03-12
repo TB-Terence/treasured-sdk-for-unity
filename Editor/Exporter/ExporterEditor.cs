@@ -3,7 +3,7 @@
 namespace Treasured.UnitySdk
 {
     [CustomEditor(typeof(Exporter), true)]
-    internal class ExporterEditor : UnityEditor.Editor
+    internal class ExporterEditor : Editor
     {
         public virtual void OnPreferenceGUI()
         {
