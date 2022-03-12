@@ -11,7 +11,7 @@ namespace Treasured.UnitySdk.Export
         public ImageFormat imageFormat = ImageFormat.Ktx2;
         public ImageQuality imageQuality = ImageQuality.High;
         public CubemapFormat cubemapFormat = CubemapFormat.IndividualFace;
-        public bool flipY = false;
+        public bool flipY = true;
 
         [SerializeField]
         [HideInInspector]

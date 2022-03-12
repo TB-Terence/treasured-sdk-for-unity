@@ -22,20 +22,14 @@ namespace Treasured.UnitySdk
         private CubemapFormat _cubemapFormat = CubemapFormat.IndividualFace;
         private int qualityPercentage = 75;
         private ImageFormat imageFormat = ImageFormat.Ktx2;
+        private bool _flipY = true;
         private ImageQuality quality = ImageQuality.High;
 
-        public override void OnEnable(SerializedObject serializedObject)
-        {
-            _format = serializedObject.FindProperty(nameof(_format));
-            _format.enumValueIndex = (int)ImageFormat.Ktx2;
-            serializedObject.ApplyModifiedProperties();
-        }
         public override void OnGUI(string root, SerializedObject serializedObject)
         {
-            //EditorGUILayout.PropertyField(_format);
             imageFormat = (ImageFormat)EditorGUILayout.EnumPopup(new GUIContent("Format"), imageFormat);
             quality = (ImageQuality)EditorGUILayout.EnumPopup(new GUIContent("Quality"), quality);
-            s_flipY = EditorGUILayout.Toggle(new GUIContent("Flip Y"), s_flipY);
+            _flipY = EditorGUILayout.Toggle(new GUIContent("Flip Y"), _flipY);
             _cubemapFormat = (CubemapFormat)EditorGUILayout.EnumPopup(new GUIContent("Cubemap Format"), _cubemapFormat);
             if (_cubemapFormat == CubemapFormat._3x2)
             {
@@ -73,7 +67,7 @@ namespace Treasured.UnitySdk
 
             Cubemap cubemap = new Cubemap(_cubemapFormat == CubemapFormat.IndividualFace ? (int)quality : _cubemapSize, TextureFormat.ARGB32, false);
             Texture2D texture = null;
-            switch (cubemapFormat)
+            switch (_cubemapFormat)
             {
                 case CubemapFormat._3x2:
                     texture = new Texture2D(MAXIMUM_CUDA_TEXTURE_WIDTH, MAXIMUM_CUDA_TEXTURE_WIDTH, TextureFormat.ARGB32, false);
@@ -100,7 +94,7 @@ namespace Treasured.UnitySdk
                         throw new System.NotSupportedException("Current graphic device/platform does not support RenderToCubemap.");
                     }
                     var path = Directory.CreateDirectory(Path.Combine(rootDirectory, "images", current.Id).Replace('/', '\\'));
-                    switch (cubemapFormat)
+                    switch (_cubemapFormat)
                     {
                         case CubemapFormat._3x2:
                             // FORMAT:
@@ -113,7 +107,7 @@ namespace Treasured.UnitySdk
                                     throw new TreasuredException("Export canceled", "Export canceled by the user.");
                                 }
                                 texture.SetPixels((i % 3) * _cubemapSize, MAXIMUM_CUDA_TEXTURE_WIDTH - ((i / 3) + 1) * _cubemapSize, _cubemapSize, _cubemapSize,
-                                ImageUtilies.FlipPixels(cubemap.GetPixels((CubemapFace)i), _cubemapSize, _cubemapSize, true, flipY));
+                                ImageUtilies.FlipPixels(cubemap.GetPixels((CubemapFace)i), _cubemapSize, _cubemapSize, true, _flipY));
                             }
                             ImageUtilies.Encode(texture, path.FullName, "cubemap", imageFormatParser, qualityPercentage);
                             break;
@@ -125,7 +119,7 @@ namespace Treasured.UnitySdk
                                     throw new TreasuredException("Export canceled", "Export canceled by the user.");
                                 }
                                 texture.SetPixels(cubemap.GetPixels((CubemapFace)i));
-                                ImageUtilies.FlipPixels(texture, true, flipY);
+                                ImageUtilies.FlipPixels(texture, true, _flipY);
                                 ImageUtilies.Encode(texture, path.FullName, SimplifyCubemapFace((CubemapFace)i), imageFormatParser, qualityPercentage);
                             }
                             break;

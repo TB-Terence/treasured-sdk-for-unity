@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Treasured.UnitySdkEditor;
 using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEditor.SceneManagement;
@@ -249,7 +250,7 @@ namespace Treasured.UnitySdk
                 if (exportProcess.objectReferenceValue == null)
                 {
                     exportProcess.objectReferenceValue = ScriptableObject.CreateInstance(fi.FieldType);
-                    Debug.LogError($"Null Export Prcess Reference. Creating {fi.FieldType} for {fi.Name}");
+                    Debug.LogError($"Null Export Process Reference. Creating {fi.FieldType} for {fi.Name}");
                 }
                 exportProcessEditors[i] = UnityEditor.Editor.CreateEditor(exportProcess.objectReferenceValue);
             }
@@ -638,31 +639,8 @@ namespace Treasured.UnitySdk
                 }
                 if (GUILayout.Button(Styles.createNew[typeof(T)]))
                 {
-                    var root = map.gameObject.FindOrCreateChild($"{ObjectNames.NicifyVariableName(typeof(T).Name)}s");
-                    GameObject go = new GameObject(ObjectNames.NicifyVariableName(ObjectNames.GetUniqueName(objects.Select(x => x.name).ToArray(), typeof(T).Name)));
-                    T obj = go.AddComponent<T>();
-                    Camera camera = SceneView.lastActiveSceneView.camera;
-                    go.transform.SetParent(root);
+                    var obj = map.CreateObject<T>();
                     objects.Add(obj);
-                    EditorGUIUtility.PingObject(go);
-                    obj.TryInvokeMethods("OnSelectedInHierarchy");
-                    if (Physics.Raycast(camera.transform.position, camera.transform.forward, out var hit))
-                    {
-                        obj.transform.position = hit.point;
-                        if (obj is Hotspot hotspot)
-                        {
-                            hotspot.Camera.transform.position = hit.point + new Vector3(0, 1.5f, 0);
-                            hotspot.Camera.transform.localRotation = Quaternion.identity;
-                        }
-                        else if (obj is VideoRenderer videoRenderer)
-                        {
-                            videoRenderer.Hitbox.transform.localScale = new Vector3(1, 1, 0.01f);
-                        }
-                    }
-                    else
-                    {
-                        SceneView.lastActiveSceneView.LookAt(go.transform.position, camera.transform.rotation);
-                    }
                     editingTarget = obj;
                 }
             }

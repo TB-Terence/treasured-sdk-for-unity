@@ -2,6 +2,7 @@ using Newtonsoft.Json;
 using System;
 using UnityEngine;
 using Treasured.UnitySdk.Export;
+using System.Reflection;
 
 namespace Treasured.UnitySdk
 {
