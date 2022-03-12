@@ -1,5 +1,4 @@
-﻿using Treasured.UnitySdkEditor;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 
 namespace Treasured.UnitySdk

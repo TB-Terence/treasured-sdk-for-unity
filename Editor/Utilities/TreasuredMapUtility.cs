@@ -1,9 +1,8 @@
 ﻿using System.Reflection;
-using Treasured.UnitySdk;
 using UnityEditor;
 using UnityEngine;
 
-namespace Treasured.UnitySdkEditor
+namespace Treasured.UnitySdk
 {
     internal static class TreasuredMapUtility
     {

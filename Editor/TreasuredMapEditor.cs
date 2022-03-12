@@ -3,16 +3,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Treasured.UnitySdk;
 using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-namespace Treasured.UnitySdkEditor
+namespace Treasured.UnitySdk
 {
     [CustomEditor(typeof(TreasuredMap))]
-    internal class TreasuredMapEditor : UnityEditor.Editor
+    internal class TreasuredMapEditor : Editor
     {
         [MenuItem("Tools/Treasured/Upgrade to Latest", priority = 99)]
         static void UpgradeToLatest()
@@ -180,20 +179,14 @@ namespace Treasured.UnitySdkEditor
 
         private SerializedProperty _outputFolderName;
 
-        private bool _overwriteExistingData;
+        private Editor[] exporterEditors;
 
-        private string _outputRoot;
-        private UnityEditor.Editor[] exportProcessEditors;
+        private Editor exportSettingsEditor;
 
         private void OnEnable()
         {
-            ValidateSettings();
             map = target as TreasuredMap;
-
-            GetFoldoutGroupMethods();
-
             _id = serializedObject.FindProperty(nameof(_id));
-
             _author = serializedObject.FindProperty(nameof(_author));
             _title = serializedObject.FindProperty(nameof(_title));
             _description = serializedObject.FindProperty(nameof(_description));
@@ -202,33 +195,40 @@ namespace Treasured.UnitySdkEditor
             _templateLoader = serializedObject.FindProperty(nameof(_templateLoader));
             uiSettings = serializedObject.FindProperty(nameof(uiSettings));
             headHTML = serializedObject.FindProperty(nameof(headHTML));
+            _outputFolderName = serializedObject.FindProperty(nameof(_outputFolderName));
+            ValidateSettings();
+            exportSettingsEditor = Editor.CreateEditor(serializedObject.FindProperty(nameof(TreasuredMap.exportSettings)).objectReferenceValue);
 
-            if (map)
+            GetFoldoutGroupMethods();
+
+            hotspots = map.gameObject.GetComponentsInChildren<Hotspot>(true).ToList();
+            interactables = map.gameObject.GetComponentsInChildren<Interactable>(true).ToList();
+            videos = map.gameObject.GetComponentsInChildren<VideoRenderer>(true).ToList();
+            sounds = map.gameObject.GetComponentsInChildren<SoundSource>(true).ToList();
+
+            serializedObject.FindProperty("_format").enumValueIndex = 2;
+            serializedObject.ApplyModifiedProperties();
+
+            // Set icon for hotspots
+            foreach (var hotspot in hotspots)
             {
-                hotspots = map.gameObject.GetComponentsInChildren<Hotspot>(true).ToList();
-                interactables = map.gameObject.GetComponentsInChildren<Interactable>(true).ToList();
-                videos = map.gameObject.GetComponentsInChildren<VideoRenderer>(true).ToList();
-                sounds = map.gameObject.GetComponentsInChildren<SoundSource>(true).ToList();
-
-                serializedObject.FindProperty("_format").enumValueIndex = 2;
-                serializedObject.ApplyModifiedProperties();
-
-                // Set icon for hotspots
-                foreach (var hotspot in hotspots)
+                if (hotspot.gameObject.GetIcon() == null)
                 {
-                    if (hotspot.gameObject.GetIcon() == null)
-                    {
-                        hotspot.gameObject.SetLabelIcon(6);
-                    }
+                    hotspot.gameObject.SetLabelIcon(6);
                 }
+            }
 
-                this._outputFolderName = serializedObject.FindProperty(nameof(_outputFolderName));
-                if (string.IsNullOrEmpty(_outputFolderName.stringValue))
+            // Migrate output folder
+            if (string.IsNullOrEmpty(map.exportSettings.folderName))
+            {
+                if (string.IsNullOrEmpty( this._outputFolderName.stringValue))
                 {
-                    _outputFolderName.stringValue = EditorSceneManager.GetActiveScene().name;
-                    serializedObject.ApplyModifiedProperties();
+                    map.exportSettings.folderName = EditorSceneManager.GetActiveScene().name;
                 }
-                _outputRoot = GetOutputDirectory();
+                else
+                {
+                    map.exportSettings.folderName = this._outputFolderName.stringValue;
+                }
             }
 
             SceneView.duringSceneGui -= OnSceneViewGUI;
@@ -245,9 +245,9 @@ namespace Treasured.UnitySdkEditor
             // Find all serialized export processes
             FieldInfo[] exportProcessFields = typeof(TreasuredMap).GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).
                 Where(x => 
-                typeof(UnitySdk.Export.ExportProcess).IsAssignableFrom(x.FieldType) && 
+                typeof(Exporter).IsAssignableFrom(x.FieldType) && 
                 (x.IsPublic || (x.IsPrivate && x.IsDefined(typeof(SerializeField))))).ToArray();
-            exportProcessEditors = new UnityEditor.Editor[exportProcessFields.Length];
+            exporterEditors = new Editor[exportProcessFields.Length];
             for (int i = 0; i < exportProcessFields.Length; i++)
             {
                 FieldInfo fi = exportProcessFields[i];
@@ -256,7 +256,14 @@ namespace Treasured.UnitySdkEditor
                 {
                     exportProcess.objectReferenceValue = ScriptableObject.CreateInstance(fi.FieldType);
                 }
-                exportProcessEditors[i] = CreateEditor(exportProcess.objectReferenceValue);
+                SerializedObject so = new SerializedObject(exportProcess.objectReferenceValue);
+                SerializedProperty map = so.FindProperty("_map");
+                if(map.objectReferenceValue == null)
+                {
+                    map.objectReferenceValue = target;
+                }
+                so.ApplyModifiedProperties();
+                exporterEditors[i] = CreateEditor(exportProcess.objectReferenceValue);
             }
             serializedObject.ApplyModifiedProperties();
         }
@@ -389,16 +396,6 @@ namespace Treasured.UnitySdkEditor
                     Selection.objects = searchResult.ToArray();
                 }
             }
-            SerializedProperty interactableLayer = serializedObject.FindProperty("_interactableLayer");
-            EditorGUI.BeginChangeCheck();
-            interactableLayer.intValue = EditorGUILayout.LayerField(new GUIContent("Interactable Layer"), interactableLayer.intValue);
-            if (EditorGUI.EndChangeCheck())
-            {
-                foreach (var renderer in map.GetComponentsInChildren<Renderer>())
-                {
-                    renderer.gameObject.layer = interactableLayer.intValue;
-                }
-            }
             selectedObjectListIndex = GUILayout.SelectionGrid(selectedObjectListIndex, selectableObjectListNames, selectableObjectListNames.Length, Styles.TabButton);
             if (selectedObjectListIndex == 0)
             {
@@ -447,58 +444,36 @@ namespace Treasured.UnitySdkEditor
         [FoldoutGroup("Export", true)]
         void OnExportGUI()
         {
-            EditorGUI.BeginChangeCheck();
-            string newOutputFolderName = EditorGUILayout.TextField(new GUIContent("Output Folder Name"), _outputFolderName.stringValue);
-            if (EditorGUI.EndChangeCheck() && !string.IsNullOrWhiteSpace(newOutputFolderName))
-            {
-                _outputFolderName.stringValue = newOutputFolderName;
-                _outputRoot = GetOutputDirectory();
-            }
-            string outputFolderPath = Path.Combine(ExportProcess.DefaultOutputFolderPath, _outputFolderName.stringValue);
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                EditorGUILayout.PrefixLabel(GUIContent.none);
-                if (GUILayout.Button(new GUIContent("Show root folder", "Show the root output folder in the File Explorer"), GUILayout.Height(18)))
-                {
-                    Application.OpenURL(ExportProcess.DefaultOutputFolderPath);
-                }
-                using (new EditorGUI.DisabledGroupScope(!Directory.Exists(outputFolderPath)))
-                {
-                    if (GUILayout.Button(new GUIContent("Show output folder", "Show the output folder in the File Explorer"), GUILayout.Height(18)))
-                    {
-                        Application.OpenURL(outputFolderPath);
-                    }
-                }
-            }
-            EditorGUILayout.LabelField("Export Options", EditorStyles.boldLabel);
-            EditorGUI.indentLevel++;
+            exportSettingsEditor.OnInspectorGUI();
             try
             {
-                for (int i = 0; i < exportProcessEditors.Length; i++)
+                for (int i = 0; i < exporterEditors.Length; i++)
                 {
-                    UnityEditor.Editor editor = exportProcessEditors[i];
-                    SerializedProperty enable = editor.serializedObject.FindProperty("enable");
-                    enable.boolValue = EditorGUILayout.ToggleLeft(ObjectNames.NicifyVariableName(editor.target.GetType().Name), enable.boolValue, EditorStyles.boldLabel);
+                    Editor editor = exporterEditors[i];
+                    SerializedProperty enabled = editor.serializedObject.FindProperty(nameof(Exporter.enabled));
+                    enabled.boolValue = EditorGUILayout.ToggleLeft(ObjectNames.NicifyVariableName(editor.target.GetType().Name), enabled.boolValue, EditorStyles.boldLabel);
                     EditorGUI.indentLevel++;
+                    editor.serializedObject.Update();
                     editor.OnInspectorGUI();
-                    EditorGUI.indentLevel--;
                     editor.serializedObject.ApplyModifiedProperties();
+                    EditorGUI.indentLevel--;
                 }
                 if (GUILayout.Button(new GUIContent("Export", "Export all enabled process."), GUILayout.Height(24)))
                 {
                     DataValidator.ValidateMap(map);
-                    if (Directory.Exists(_outputRoot))
+                    if (Directory.Exists(map.exportSettings.OutputDirectory))
                     {
-                        Directory.Delete(_outputRoot, true);
+                        Directory.Delete(map.exportSettings.OutputDirectory, true);
                     }
-                    Directory.CreateDirectory(_outputRoot); // try create the directory if not exist.
-                    foreach (var process in ExportProcessSettings.Instances)
+                    Directory.CreateDirectory(map.exportSettings.OutputDirectory); // try create the directory if not exist.
+                    foreach (var editor in exporterEditors)
                     {
-                        if (process.Enabled && process.Processor != null)
+                        Exporter process = (Exporter)editor.target;
+                        if (process != null && process.enabled)
                         {
-                            process.Processor.OnPreProcess(serializedObject);
-                            process.Processor.OnExport(_outputRoot, target as TreasuredMap);
-                            process.Processor.OnPostProcess(serializedObject);
+                            process.OnPreExport();
+                            process.Export();
+                            process.OnPostExport();
                         }
                     }
                 }
@@ -529,26 +504,7 @@ namespace Treasured.UnitySdkEditor
             finally
             {
                 EditorUtility.ClearProgressBar();
-                EditorGUI.indentLevel--;
             }
-        }
-
-        string GetOutputDirectory()
-        {
-            string root = string.Empty;
-            try
-            {
-                root = Path.Combine(ExportProcess.DefaultOutputFolderPath, (target as TreasuredMap).OutputFolderName).Replace('/', '\\');
-            }
-            catch (Exception ex) when (ex is IOException || ex is ArgumentException)
-            {
-                throw new ArgumentException($"Invalid folder name : {(target as TreasuredMap).OutputFolderName}");
-            }
-            catch
-            {
-                throw;
-            }
-            return root;
         }
 
         void OnObjectList<T>(IList<T> objects, ref Vector2 scrollPosition, ref bool enableAll, ref GroupToggleState groupToggleState) where T : TreasuredObject

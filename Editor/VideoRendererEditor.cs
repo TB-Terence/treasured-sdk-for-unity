@@ -1,12 +1,10 @@
-﻿using System.Collections;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace Treasured.UnitySdk
 {
     [CustomEditor(typeof(VideoRenderer))]
-    internal class VideoRendererEditor : UnityEditor.Editor
+    internal class VideoRendererEditor : Editor
     {
         static readonly string[] ASPECT_RATIO_OPTIONS = { "16:9", "16:10" };
 

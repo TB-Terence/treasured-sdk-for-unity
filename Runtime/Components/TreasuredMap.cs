@@ -1,8 +1,6 @@
 using Newtonsoft.Json;
 using System;
 using UnityEngine;
-using Treasured.UnitySdk.Export;
-using System.Reflection;
 
 namespace Treasured.UnitySdk
 {
@@ -72,57 +70,6 @@ namespace Treasured.UnitySdk
         [SerializeField]
         private ImageFormat _format = ImageFormat.Ktx2;
         public ImageFormat Format { get => _format; set => _format = value; }
-
-        [SerializeField]
-        private bool _canUseTag;
-        
-        [JsonIgnore]
-        public bool CanUseTag
-        {
-            get => _canUseTag;
-            set => _canUseTag = value;
-        }
-
-        [SerializeField]
-        private string _filterTag = "Untagged";
-        
-        [JsonIgnore]
-        public string FilterTag
-        {
-            get => _filterTag;
-            set => _filterTag = value;
-        }
-
-        [SerializeField]
-        private bool _canUseLayerMask;
-        
-        [JsonIgnore]
-        public bool CanUseLayerMask
-        {
-            get => _canUseLayerMask;
-            set => _canUseLayerMask = value;
-        }
-
-        [SerializeField]
-        private LayerMask _filterLayerMask;
-        
-        [JsonIgnore]
-        public LayerMask FilterLayerMask
-        {
-            get => _filterLayerMask;
-            set => _filterLayerMask = value;
-        }
-
-        [SerializeField]
-        private bool _keepCombinedMesh;
-        
-        [JsonIgnore]
-        public bool KeepCombinedMesh
-        {
-            get => _keepCombinedMesh;
-            set => _keepCombinedMesh = value;
-        }
-        
         #endregion
 
         #region Objects
@@ -161,13 +108,6 @@ namespace Treasured.UnitySdk
         #region Export Settings
         [SerializeField]
         private string _outputFolderName;
-        [JsonIgnore]
-        public string OutputFolderName { get => _outputFolderName; set => _outputFolderName = value; }
-        
-
-        [SerializeField]
-        private int _interactableLayer; // game object can only have one layer thus using int instead of LayerMask
-
         #endregion
 
         [Code]
@@ -177,13 +117,13 @@ namespace Treasured.UnitySdk
         public ExportSettings exportSettings;
 
         [JsonIgnore]
-        public JsonExportProcess jsonExportProcess;
+        public JsonExporter jsonExporter;
 
         [JsonIgnore]
-        public CubemapExportProcess cubemapExportProcess;
+        public CubemapExporter cubemapExporter;
 
         [JsonIgnore]
-        public MeshExportProcess meshExportProcess;
+        public MeshExporter meshExporter;
 
         private void OnValidate()
         {

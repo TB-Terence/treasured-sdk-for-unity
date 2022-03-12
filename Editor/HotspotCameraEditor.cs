@@ -3,7 +3,7 @@
 namespace Treasured.UnitySdk
 {
     [CustomEditor(typeof(HotspotCamera))]
-    internal class HotspotCameraEditor : UnityEditor.Editor
+    internal class HotspotCameraEditor : Editor
     {
         public override void OnInspectorGUI()
         {

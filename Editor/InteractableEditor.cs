@@ -5,7 +5,7 @@ namespace Treasured.UnitySdk
 {
     [CustomEditor(typeof(Interactable))]
     [CanEditMultipleObjects]
-    internal class InteractableEditor : UnityEditor.Editor
+    internal class InteractableEditor : Editor
     {
         private ActionGroupListDrawer onClickList;
         private SerializedProperty id;

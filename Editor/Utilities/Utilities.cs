@@ -2,7 +2,7 @@
 using UnityEditor;
 using UnityEngine;
 
-namespace Treasured.UnitySdk.Editor
+namespace Treasured.UnitySdk
 {
     internal static class Utilities
     {

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Treasured.UnitySdkEditor;
 using UnityEditor;
 using UnityEngine;
 
@@ -7,7 +6,7 @@ namespace Treasured.UnitySdk
 {
     [CustomEditor(typeof(Hotspot))]
     [CanEditMultipleObjects]
-    internal class HotspotEditor : UnityEditor.Editor
+    internal class HotspotEditor : Editor
     {
         internal static class Styles
         {
