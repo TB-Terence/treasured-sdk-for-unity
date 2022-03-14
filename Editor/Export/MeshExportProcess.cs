@@ -170,7 +170,7 @@ namespace Treasured.UnitySdk
             var meshRenderer = tempGameObject.AddComponent<MeshRenderer>();
             var verticesCount = 0;
             var verticesList = new List<Vector3>();
-            var meshTriangles = new List<List<int>>();
+            var meshTriangles = new List<int>();
             var meshUVs = new List<Vector2>();
             var meshNormals = new List<Vector3>();
             var meshMaterials = new List<Material>();
@@ -183,41 +183,22 @@ namespace Treasured.UnitySdk
                     if (filter.sharedMesh != null)
                     {
                         //  Adding mesh vertices and triangles
-                        foreach (var meshVertex in filter.mesh.vertices)
+                        foreach (var meshVertex in filter.sharedMesh.vertices)
                         {
                             verticesList.Add(meshGameObject.transform.TransformPoint(meshVertex));
                         }
 
-                        foreach (var material in renderer.sharedMaterials)
+                        for (var j = 0; j < filter.sharedMesh.subMeshCount; j++)
                         {
-                            if (!meshMaterials.Contains(material))
-                            {
-                                meshMaterials.Add(material);
-                                meshTriangles.Add(new List<int>());
-                            }
-                        }
-
-                        for (var j = 0; j < filter.mesh.subMeshCount; j++)
-                        {
-                            var index = 0;
-                            for (var i = 0; i < meshMaterials.Count; i++)
-                            {
-                                if (renderer.sharedMaterials[j] == meshMaterials[i])
-                                {
-                                    index = i;
-                                    break;
-                                }
-                            }
-
-                            var triangles = filter.mesh.GetTriangles(j);
+                            var triangles = filter.sharedMesh.GetTriangles(j);
                             for (var k = 0; k < triangles.Length; k++)
                             {
-                                meshTriangles[index].Add(verticesCount + triangles[k]);
+                                meshTriangles.Add(verticesCount + triangles[k]);
                             }
                         }
                         
-                        meshUVs.AddRange(filter.mesh.uv);
-                        meshNormals.AddRange(filter.mesh.normals);
+                        meshUVs.AddRange(filter.sharedMesh.uv);
+                        meshNormals.AddRange(filter.sharedMesh.normals);
                         verticesCount = verticesList.Count;
                     }
                 }
@@ -231,18 +212,14 @@ namespace Treasured.UnitySdk
                 mesh.indexFormat = IndexFormat.UInt32;
             }
 
-            mesh.subMeshCount = meshTriangles.Count;
             mesh.vertices = verticesList.ToArray();
             mesh.uv = meshUVs.ToArray();
             mesh.normals = meshNormals.ToArray();
-
-            for (var i = 0; i < meshTriangles.Count; i++)
-            {
-                mesh.SetTriangles(meshTriangles[i].ToArray(), i);
-            }
+            mesh.SetTriangles(meshTriangles, 0);
 
             meshFilter.mesh = mesh;
-            meshRenderer.sharedMaterials = meshMaterials.ToArray();
+            meshRenderer.material =
+                new Material(Resources.Load("TreasuredDefaultMaterial", typeof(Material)) as Material);
             tempGameObject.gameObject.SetActive(true);
 
             var exportTransforms = new Transform[2];
