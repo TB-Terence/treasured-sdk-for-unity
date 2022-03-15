@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
@@ -15,16 +16,25 @@ namespace Treasured.UnitySdk
         /// <returns>Treasured Object of Type <typeparamref name="T"/></returns>
         public static T CreateObject<T>(this TreasuredMap map) where T : TreasuredObject
         {
-            string categoryName = ObjectNames.NicifyVariableName(typeof(T).Name + "s");
+            return (T)CreateObject(map, typeof(T));
+        }
+
+        public static TreasuredObject CreateObject(this TreasuredMap map, Type t)
+        {
+            if (!typeof(TreasuredObject).IsAssignableFrom(t))
+            {
+                throw new ArgumentException($"Type dismatch. {t.Name} is not a type of TreasuredObject.");
+            }
+            string categoryName = ObjectNames.NicifyVariableName(t.Name + "s");
             Transform categoryRoot = map.transform.Find(categoryName);
             if (categoryRoot == null)
             {
                 categoryRoot = new GameObject(categoryName).transform;
                 categoryRoot.SetParent(map.transform);
             }
-            string uniqueName = GameObjectUtility.GetUniqueNameForSibling(categoryRoot, ObjectNames.NicifyVariableName(typeof(T).Name));
+            string uniqueName = UnityEditor.GameObjectUtility.GetUniqueNameForSibling(categoryRoot, ObjectNames.NicifyVariableName(t.Name));
             GameObject newGO = new GameObject(uniqueName);
-            T obj = newGO.AddComponent<T>();
+            TreasuredObject obj = (TreasuredObject)newGO.AddComponent(t);
             newGO.transform.SetParent(categoryRoot);
             obj.TryInvokeMethods("OnSelectedInHierarchy");
             // Place the new game object on floor if collider found.
@@ -46,14 +56,7 @@ namespace Treasured.UnitySdk
             {
                 SceneView.lastActiveSceneView.LookAt(obj.transform.position, camera.transform.rotation);
             }
-#if UNITY_2020_3_OR_NEWER
-            // Enable renaming mode
-            Selection.activeGameObject = obj.gameObject;
-            var type = typeof(EditorWindow).Assembly.GetType("UnityEditor.SceneHierarchyWindow");
-            var hierarchyWindow = EditorWindow.GetWindow(type);
-            var rename = type.GetMethod("FrameAndRenameNewGameObject", BindingFlags.Static | BindingFlags.NonPublic);
-            rename.Invoke(null, null);
-#endif
+            EditorGUIUtility.PingObject(obj);
             return obj;
         }
     }

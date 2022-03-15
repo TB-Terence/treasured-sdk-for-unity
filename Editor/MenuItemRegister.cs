@@ -1,4 +1,5 @@
 ﻿using UnityEditor;
+using UnityEditor.PackageManager;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
@@ -8,6 +9,12 @@ namespace Treasured.UnitySdk
     /// </summary>
     internal static class MenuItemRegister
     {
+        [MenuItem("Tools/Treasured/Upgrade to Latest", priority = 99)]
+        static void UpgradeToLatest()
+        {
+            Client.Add("https://github.com/TB-Terence/treasured-sdk-for-unity.git#upm");
+        }
+
         static bool IsTreasuredMapSelected()
         {
             return Selection.activeGameObject?.GetComponentInParent<TreasuredMap>();

@@ -17,13 +17,9 @@ namespace Treasured.UnitySdk
         [Tooltip("Convert to Three JS Transform")]
         public bool convertTransform = true;
 
-        public override void OnPreExport()
-        {
-            ThreeJsTransformConverter.ShouldConvertToThreeJsTransform = convertTransform;
-        }
-
         public override void Export()
         {
+            ThreeJsTransformConverter.ShouldConvertToThreeJsTransform = convertTransform;
             string jsonPath = Path.Combine(Map.exportSettings?.OutputDirectory, "data.json").Replace('/', '\\');
             string json = JsonConvert.SerializeObject(Map, formatting, JsonSettings);
             File.WriteAllText(jsonPath, json);
