@@ -21,13 +21,13 @@ namespace Treasured.UnitySdk
             using (new EditorGUILayout.HorizontalScope())
             {
                 EditorGUILayout.PrefixLabel(GUIContent.none);
-                if (GUILayout.Button(new GUIContent("Show root folder", "Show the root output folder in the File Explorer"), GUILayout.Height(18)))
+                if (GUILayout.Button(new GUIContent("Open root folder", "Open the root output folder in the File Explorer. The default output root will be the path of your Unity project/Treasured Data"), GUILayout.Height(24)))
                 {
                     Application.OpenURL(ExportSettings.DefaultOutputDirectory);
                 }
                 using (new EditorGUI.DisabledGroupScope(!Directory.Exists(settings.OutputDirectory)))
                 {
-                    if (GUILayout.Button(new GUIContent("Show output folder", "Show the output folder in the File Explorer"), GUILayout.Height(18)))
+                    if (GUILayout.Button(new GUIContent("Open current folder", "Open the current output folder in the File Explorer. This option is available after first export."), GUILayout.Height(24)))
                     {
                         Application.OpenURL(settings.OutputDirectory);
                     }

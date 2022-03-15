@@ -194,7 +194,15 @@ namespace Treasured.UnitySdk
             {
                 exportSettings.objectReferenceValue = ScriptableObject.CreateInstance<ExportSettings>();
             }
+            SerializedObject settings = new SerializedObject(exportSettings.objectReferenceValue);
+            SerializedProperty previousFoldername = serializedObject.FindProperty("_outputFolderName");
+            if (!string.IsNullOrEmpty(previousFoldername.stringValue))
+            {
+                settings.FindProperty("folderName").stringValue = previousFoldername.stringValue;
+                previousFoldername.stringValue = "";
+            }
             Editor.CreateCachedEditor(exportSettings.objectReferenceValue, null, ref _exportSettingsEditor);
+            settings.ApplyModifiedProperties();
             serializedObject.ApplyModifiedProperties();
         }
 
