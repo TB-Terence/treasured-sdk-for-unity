@@ -110,57 +110,61 @@ namespace Treasured.UnitySdk
             var tempGameObject = new GameObject(CombineMeshGameObject);
             var meshFilter = tempGameObject.AddComponent<MeshFilter>();
             var meshRenderer = tempGameObject.AddComponent<MeshRenderer>();
-            var vertices = 0;
+            var verticesCount = 0;
+            var verticesList = new List<Vector3>();
+            var meshTriangles = new List<int>();
+            var meshUVs = new List<Vector2>();
+            var meshNormals = new List<Vector3>();
+            var meshMaterials = new List<Material>();
 
-            var meshFilters = new List<MeshFilter>();
-
-            foreach (var gameObject in meshToCombine)
+            foreach (var meshGameObject in meshToCombine)
             {
-                if (ContainsValidRenderer(gameObject) && gameObject.TryGetComponent(out MeshFilter filter))
+                if (ContainsValidRenderer(meshGameObject) && meshGameObject.TryGetComponent(out MeshFilter filter) && meshGameObject.TryGetComponent(out MeshRenderer renderer))
                 {
-                    meshFilters.Add(filter);
-
                     //  Check if sharedMesh is not null
                     if (filter.sharedMesh != null)
                     {
-                        vertices += filter.sharedMesh.vertexCount;
+                        //  Adding mesh vertices and triangles
+                        foreach (var meshVertex in filter.sharedMesh.vertices)
+                        {
+                            verticesList.Add(meshGameObject.transform.TransformPoint(meshVertex));
+                        }
+
+                        for (var j = 0; j < filter.sharedMesh.subMeshCount; j++)
+                        {
+                            var triangles = filter.sharedMesh.GetTriangles(j);
+                            for (var k = 0; k < triangles.Length; k++)
+                            {
+                                meshTriangles.Add(verticesCount + triangles[k]);
+                            }
+                        }
+                        
+                        meshUVs.AddRange(filter.sharedMesh.uv);
+                        meshNormals.AddRange(filter.sharedMesh.normals);
+                        verticesCount = verticesList.Count;
                     }
                 }
             }
 
-            if (meshFilters.Count == 0)
-            {
-                Debug.LogError("No meshes found in the search filtered gameObjects. GLB mesh will not be exported.");
-                return;
-            }
-
-            CombineInstance[] combine = new CombineInstance[meshFilters.Count];
-
-            var i = 0;
-            while (i < meshFilters.Count)
-            {
-                combine[i].mesh = meshFilters[i].sharedMesh;
-                combine[i].transform = meshFilters[i].transform.localToWorldMatrix;
-                // meshFilters[i].gameObject.SetActive(false);
-
-                i++;
-            }
-
             var mesh = new Mesh();
 
-            if (vertices > 65535)
+            if (verticesCount > 65535)
             {
                 Debug.Log("Using Index 32");
                 mesh.indexFormat = IndexFormat.UInt32;
             }
 
-            meshFilter.sharedMesh = mesh;
-            meshFilter.sharedMesh.CombineMeshes(combine, true, true, false);
+            mesh.vertices = verticesList.ToArray();
+            mesh.uv = meshUVs.ToArray();
+            mesh.normals = meshNormals.ToArray();
+            mesh.SetTriangles(meshTriangles, 0);
+
+            meshFilter.mesh = mesh;
             meshRenderer.material =
                 new Material(Resources.Load("TreasuredDefaultMaterial", typeof(Material)) as Material);
             tempGameObject.gameObject.SetActive(true);
 
-            Transform[] exportTransforms = new Transform[2];
+            var exportTransforms = new Transform[2];
             exportTransforms[0] = tempGameObject.transform;
             exportTransforms[1] = parentTransform;
             CreateGLB(exportTransforms);
