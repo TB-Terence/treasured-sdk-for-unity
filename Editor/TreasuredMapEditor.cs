@@ -20,6 +20,8 @@ namespace Treasured.UnitySdk
 
             public static readonly GUIContent folderOpened = EditorGUIUtility.TrIconContent("FolderOpened Icon", "Show in Explorer");
 
+            public static readonly GUIContent export = EditorGUIUtility.TrTextContentWithIcon("Export", "Export Scene", "SceneLoadIn");
+
             public static readonly GUIContent search = EditorGUIUtility.TrIconContent("Search Icon");
 
             public static readonly GUIContent plus = EditorGUIUtility.TrIconContent("Toolbar Plus");
@@ -27,6 +29,19 @@ namespace Treasured.UnitySdk
 
             public static readonly GUIStyle objectLabel = new GUIStyle("label")
             {
+                fontStyle = FontStyle.Bold
+            };
+
+            public static readonly GUIStyle button = new GUIStyle("label")
+            {
+                margin = new RectOffset(),
+                padding = new RectOffset(),
+            };
+
+            public static readonly GUIStyle exportButton = new GUIStyle("button")
+            {
+                margin = new RectOffset(),
+                fixedHeight = 24,
                 fontStyle = FontStyle.Bold
             };
 
@@ -44,30 +59,74 @@ namespace Treasured.UnitySdk
                     {
                         tabButton = new GUIStyle(EditorStyles.toolbarButton)
                         {
-                            margin = new RectOffset()
+                            fixedHeight = 24,
+                            fontStyle = FontStyle.Bold,
+                            padding = new RectOffset(8, 8, 0, 0),
+                            normal =
+                            {
+                                background = Texture2D.blackTexture
+                            },
+                            onNormal =
+                            {
+                                background = CreateTexture2D(1, 1, new Color(Color.gray.r, Color.gray.g, Color.gray.b, 0.15f))
+                            }
                         };
                     }
                     return tabButton;
                 }
             }
 
-            private static GUIStyle borderlessBox;
+            private static GUIStyle borderlessBoxOdd;
             /// <summary>
             /// Box without margin
             /// </summary>
-            public static GUIStyle BorderlessBox
+            public static GUIStyle BorderlessBoxOdd
             {
                 get
                 {
-                    if (borderlessBox == null)
+                    if (borderlessBoxOdd == null)
                     {
-                        borderlessBox = new GUIStyle("box")
+                        borderlessBoxOdd = new GUIStyle("box")
                         {
-                            margin = new RectOffset()
+                            margin = new RectOffset(0, 0, 2, 0),
+                            padding = new RectOffset(0, 0, 6, 6),
+                            normal = new GUIStyleState()
+                            {
+                                background = CreateTexture2D(1, 1, new Color(1, 1, 1, 0.05f))
+                            }
                         };
                     }
-                    return borderlessBox;
+                    return borderlessBoxOdd;
                 }
+            }
+
+            private static GUIStyle borderlessBoxEven;
+            /// <summary>
+            /// Box without margin
+            /// </summary>
+            public static GUIStyle BorderlessBoxEven
+            {
+                get
+                {
+                    if (borderlessBoxEven == null)
+                    {
+                        borderlessBoxEven = new GUIStyle("box")
+                        {
+                            margin = new RectOffset(0, 0, 2, 0),
+                            padding = new RectOffset(0, 0, 6, 6)
+                        };
+                    }
+                    return borderlessBoxEven;
+                }
+            }
+
+            public static Texture2D CreateTexture2D(int width, int height, Color color)
+            {
+                Color[] colors = Enumerable.Repeat(color, width * height).ToArray();
+                Texture2D texture = new Texture2D(width, height);
+                texture.SetPixels(colors);
+                texture.Apply();
+                return texture;
             }
         }
 
@@ -104,7 +163,7 @@ namespace Treasured.UnitySdk
         }
 
         private TabGroupState[] _tabGroupStates;
-        private int _selectedIndex = 1;
+        private static int _selectedIndex = 1;
         private FoldoutGroupState[] _foldoutGroupStates;
         private TreasuredMap _map;
         private Editor _exportSettingsEditor;
@@ -194,7 +253,7 @@ namespace Treasured.UnitySdk
                     expanded = true,
                     type = types[i]
                 };
-                var objects = _map.GetComponentsInChildren(types[i]);
+                var objects = _map.GetComponentsInChildren(types[i], true);
                 _foldoutGroupStates[i].objects = new List<TreasuredObject>();
                 for (int x = 0; x < objects.Length; x++)
                 {
@@ -205,7 +264,15 @@ namespace Treasured.UnitySdk
 
         public override void OnInspectorGUI()
         {
-            _selectedIndex = GUILayout.SelectionGrid(_selectedIndex, _tabGroupStates.Select(x => x.attribute.groupName).ToArray(), _tabGroupStates.Length, Styles.TabButton);
+            using(new EditorGUILayout.HorizontalScope())
+            {
+                _selectedIndex = GUILayout.SelectionGrid(_selectedIndex, _tabGroupStates.Select(x => x.attribute.groupName).ToArray(), _tabGroupStates.Length, Styles.TabButton);
+                GUILayout.FlexibleSpace();
+                if (GUILayout.Button(Styles.export, Styles.exportButton, GUILayout.Height(20), GUILayout.Width(64)))
+                {
+                    Export();
+                }
+            }
             for (int i = 0; i < _tabGroupStates.Length; i++)
             {
                 var state = _tabGroupStates[i];
@@ -235,143 +302,148 @@ namespace Treasured.UnitySdk
         [TabGroup(groupName = "Objects")]
         public void OnObjectsGUI()
         {
+            EditorGUI.indentLevel++;
             for (int i = 0; i < _foldoutGroupStates.Length; i++)
             {
-                var state = _foldoutGroupStates[i];
-                using (new GUILayout.HorizontalScope())
+                using(new GUILayout.VerticalScope(i % 2 == 0 ? Styles.BorderlessBoxEven : Styles.BorderlessBoxOdd))
                 {
-                    state.expanded = EditorGUILayout.BeginFoldoutHeaderGroup(state.expanded, new GUIContent(state.groupName));
-                    if (GUILayout.Button(EditorGUIUtility.TrIconContent("Toolbar Plus", $"Create new {ObjectNames.NicifyVariableName(state.type.Name)}"), EditorStyles.label, GUILayout.Width(20)))
+                    var state = _foldoutGroupStates[i];
+                    using (new GUILayout.HorizontalScope())
                     {
-                        state.objects.Add((target as TreasuredMap).CreateObject(state.type));
+                        state.expanded = EditorGUILayout.Foldout(state.expanded, new GUIContent(state.groupName), true);
+                        if (GUILayout.Button(EditorGUIUtility.TrIconContent("Toolbar Plus", $"Create new {ObjectNames.NicifyVariableName(state.type.Name)}"), EditorStyles.label, GUILayout.Width(20)))
+                        {
+                            state.objects.Add((target as TreasuredMap).CreateObject(state.type));
+                        }
                     }
-                }
-                if (state.expanded)
-                {
-                    using (new EditorGUILayout.VerticalScope(Styles.BorderlessBox))
+                    if (state.expanded)
                     {
-                        if (state.objects.Count > 0)
+                        using (new EditorGUILayout.VerticalScope())
                         {
-                            using (new EditorGUILayout.HorizontalScope())
+                            if (state.objects.Count > 0)
                             {
-                                EditorGUILayout.LabelField(new GUIContent(state.type == typeof(Hotspot) ? "Order" : string.Empty, state.type == typeof(Hotspot) ? "The order of the Hotspot for the Guide Tour." : string.Empty), GUILayout.Width(58));
-                                EditorGUILayout.LabelField(new GUIContent("Name"), GUILayout.Width(64));
-                                GUILayout.FlexibleSpace();
-                                if (GUILayout.Button(Icons.menu, EditorStyles.label, GUILayout.Width(18), GUILayout.Height(20)))
+                                using (new EditorGUILayout.HorizontalScope())
                                 {
-                                    ShowObjectListMenu(state.objects, state.type);
-                                };
-                            }
-                            using (new EditorGUILayout.HorizontalScope())
-                            {
-                                if (state.objects.All(x => !x.gameObject.activeSelf))
-                                {
-                                    state.enableAll = false;
-                                    state.toggleState = GroupToggleState.None;
-                                }
-                                else if (state.objects.Any(x => !x.gameObject.activeSelf))
-                                {
-                                    state.toggleState = GroupToggleState.Mixed;
-                                }
-                                else
-                                {
-                                    state.enableAll = true;
-                                    state.toggleState = GroupToggleState.All;
-                                }
-                                EditorGUI.showMixedValue = state.toggleState == GroupToggleState.Mixed;
-                                GUILayout.Space(3);
-                                EditorGUI.BeginChangeCheck();
-                                state.enableAll = EditorGUILayout.ToggleLeft(GUIContent.none, state.enableAll);
-                                if (EditorGUI.EndChangeCheck())
-                                {
-                                    foreach (var obj in state.objects)
+                                    EditorGUILayout.LabelField(new GUIContent(state.type == typeof(Hotspot) ? "Order" : string.Empty, state.type == typeof(Hotspot) ? "The order of the Hotspot for the Guide Tour." : string.Empty), GUILayout.Width(58));
+                                    EditorGUILayout.LabelField(new GUIContent("Name"), GUILayout.Width(64));
+                                    GUILayout.FlexibleSpace();
+                                    if (GUILayout.Button(Icons.menu, EditorStyles.label, GUILayout.Width(18), GUILayout.Height(20)))
                                     {
-                                        obj.gameObject.SetActive(state.enableAll);
+                                        ShowObjectListMenu(state.objects, state.type);
+                                    };
+                                }
+                                using (new EditorGUILayout.HorizontalScope())
+                                {
+                                    if (state.objects.All(x => !x.gameObject.activeSelf))
+                                    {
+                                        state.enableAll = false;
+                                        state.toggleState = GroupToggleState.None;
                                     }
-                                }
-                                EditorGUI.showMixedValue = false;
-                            }
-                        }
-                        if (state.objects.Count == 0)
-                        {
-                            EditorGUILayout.LabelField($"No {ObjectNames.NicifyVariableName(state.type.Name)} Found", EditorStyles.centeredGreyMiniLabel);
-                        }
-                        else
-                        {
-                            using (var scope = new EditorGUILayout.ScrollViewScope(state.scrollPosition, GUILayout.Height(state.objects.Count == 0 ? 20 : Mathf.Clamp(state.objects.Count * 20, state.objects.Count * 20, 200))))
-                            {
-                                state.scrollPosition = scope.scrollPosition;
-                                for (int index = 0; index < state.objects.Count; index++)
-                                {
-                                    using (new EditorGUILayout.HorizontalScope())
+                                    else if (state.objects.Any(x => !x.gameObject.activeSelf))
                                     {
-                                        TreasuredObject current = state.objects[index];
-                                        // TODO: width 40 only show up to 10000
-                                        EditorGUI.BeginChangeCheck();
-                                        bool active = EditorGUILayout.Toggle(GUIContent.none, current.gameObject.activeSelf, GUILayout.Width(20));
-                                        if (EditorGUI.EndChangeCheck())
+                                        state.toggleState = GroupToggleState.Mixed;
+                                    }
+                                    else
+                                    {
+                                        state.enableAll = true;
+                                        state.toggleState = GroupToggleState.All;
+                                    }
+                                    EditorGUI.showMixedValue = state.toggleState == GroupToggleState.Mixed;
+                                    GUILayout.Space(3);
+                                    EditorGUI.BeginChangeCheck();
+                                    state.enableAll = EditorGUILayout.ToggleLeft(GUIContent.none, state.enableAll);
+                                    if (EditorGUI.EndChangeCheck())
+                                    {
+                                        foreach (var obj in state.objects)
                                         {
-                                            current.gameObject.SetActive(active);
+                                            obj.gameObject.SetActive(state.enableAll);
                                         }
-                                        EditorGUILayout.LabelField($"{index + 1}", GUILayout.Width(32));
-                                        using (var hs = new EditorGUILayout.HorizontalScope())
+                                    }
+                                    EditorGUI.showMixedValue = false;
+                                }
+                            }
+                            if (state.objects.Count == 0)
+                            {
+                                EditorGUILayout.LabelField($"No {ObjectNames.NicifyVariableName(state.type.Name)} Found", EditorStyles.centeredGreyMiniLabel);
+                            }
+                            else
+                            {
+                                using (var scope = new EditorGUILayout.ScrollViewScope(state.scrollPosition, GUILayout.Height(state.objects.Count == 0 ? 20 : Mathf.Clamp(state.objects.Count * 20, state.objects.Count * 20, 200))))
+                                {
+                                    state.scrollPosition = scope.scrollPosition;
+                                    for (int index = 0; index < state.objects.Count; index++)
+                                    {
+                                        using (new EditorGUILayout.HorizontalScope())
                                         {
-                                            using (new EditorGUI.DisabledGroupScope(!current.gameObject.activeSelf))
+                                            TreasuredObject current = state.objects[index];
+                                            // TODO: width 40 only show up to 10000
+                                            EditorGUI.BeginChangeCheck();
+                                            bool active = EditorGUILayout.Toggle(GUIContent.none, current.gameObject.activeSelf, GUILayout.Width(20));
+                                            if (EditorGUI.EndChangeCheck())
                                             {
-                                                EditorGUILayout.LabelField(new GUIContent(current.gameObject.name, current.Id), style: Styles.objectLabel);
+                                                current.gameObject.SetActive(active);
+                                            }
+                                            EditorGUILayout.LabelField($"{index + 1}", GUILayout.Width(32));
+                                            using (var hs = new EditorGUILayout.HorizontalScope())
+                                            {
+                                                using (new EditorGUI.DisabledGroupScope(!current.gameObject.activeSelf))
+                                                {
+                                                    EditorGUILayout.LabelField(new GUIContent(current.gameObject.name, current.Id), style: Styles.objectLabel);
+                                                }
+                                            }
+                                            switch (EditorGUILayoutHelper.CreateClickZone(Event.current, GUILayoutUtility.GetLastRect(), MouseCursor.Link))
+                                            {
+                                                case 0:
+                                                    if (current is Hotspot hotspot)
+                                                    {
+                                                        SceneView.lastActiveSceneView?.LookAt(hotspot.Camera.transform.position, hotspot.Camera.transform.rotation, 0.01f);
+                                                    }
+                                                    else
+                                                    {
+                                                        // Always oppsite to the transform.forward
+                                                        if (current.Hitbox != null)
+                                                        {
+                                                            Vector3 targetPosition = current.Hitbox.transform.position;
+                                                            Vector3 cameraPosition = current.Hitbox.transform.position + current.Hitbox.transform.forward * 1;
+                                                            SceneView.lastActiveSceneView.LookAt(cameraPosition, Quaternion.LookRotation(targetPosition - cameraPosition), 1);
+                                                        }
+                                                    }
+                                                    EditorGUIUtility.PingObject(current);
+                                                    break;
+                                                case 1:
+                                                    GenericMenu menu = new GenericMenu();
+#if UNITY_2020_3_OR_NEWER
+                                                    menu.AddItem(new GUIContent("Rename"), false, () =>
+                                                    {
+                                                        EditorUtilities.RenameGO(current.gameObject);
+                                                    });
+                                                    menu.AddSeparator("");
+#endif
+                                                    menu.AddItem(new GUIContent("Remove"), false, (obj) =>
+                                                    {
+                                                        var go = obj as TreasuredObject;
+                                                        state.objects.Remove(go);
+                                                        GameObject.DestroyImmediate(go.gameObject);
+                                                    }, current);
+                                                    menu.ShowAsContext();
+                                                    break;
                                             }
                                         }
-                                        switch (EditorGUILayoutHelper.CreateClickZone(Event.current, GUILayoutUtility.GetLastRect(), MouseCursor.Link))
-                                        {
-                                            case 0:
-                                                if (current is Hotspot hotspot)
-                                                {
-                                                    SceneView.lastActiveSceneView?.LookAt(hotspot.Camera.transform.position, hotspot.Camera.transform.rotation, 0.01f);
-                                                }
-                                                else
-                                                {
-                                                    // Always oppsite to the transform.forward
-                                                    if (current.Hitbox != null)
-                                                    {
-                                                        Vector3 targetPosition = current.Hitbox.transform.position;
-                                                        Vector3 cameraPosition = current.Hitbox.transform.position + current.Hitbox.transform.forward * 1;
-                                                        SceneView.lastActiveSceneView.LookAt(cameraPosition, Quaternion.LookRotation(targetPosition - cameraPosition), 1);
-                                                    }
-                                                }
-                                                EditorGUIUtility.PingObject(current);
-                                                break;
-                                            case 1:
-                                                GenericMenu menu = new GenericMenu();
-#if UNITY_2020_3_OR_NEWER
-                                                menu.AddItem(new GUIContent("Rename"), false, () =>
-                                                {
-                                                    EditorUtilities.RenameGO(current.gameObject);
-                                                });
-                                                menu.AddSeparator("");
-#endif
-                                                menu.AddItem(new GUIContent("Remove"), false, (obj) =>
-                                                {
-                                                    var go = obj as TreasuredObject;
-                                                    state.objects.Remove(go);
-                                                    GameObject.DestroyImmediate(go.gameObject);
-                                                }, current);
-                                                menu.ShowAsContext();
-                                                break;
-                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
-                EditorGUILayout.EndFoldoutHeaderGroup();
             }
+            EditorGUI.indentLevel--;
         }
 
-        [TabGroup(groupName = "Export")]
+        [TabGroup(groupName = "Export Settings")]
         public void OnExportGUI()
         {
             _exportSettingsEditor.OnInspectorGUI();
+            _exportSettingsEditor.serializedObject.ApplyModifiedProperties();
             try
             {
                 for (int i = 0; i < _exporterEditors.Length; i++)
@@ -383,28 +455,6 @@ namespace Treasured.UnitySdk
                     editor.OnInspectorGUI();
                     editor.serializedObject.ApplyModifiedProperties();
                     EditorGUI.indentLevel--;
-                }
-                using (new EditorGUI.DisabledGroupScope(!_map.jsonExporter.enabled && !_map.cubemapExporter.enabled && !_map.meshExporter.enabled))
-                {
-                    if (GUILayout.Button(new GUIContent("Export", "Export all enabled process."), GUILayout.Height(24)))
-                    {
-                        DataValidator.ValidateMap(_map);
-                        if (Directory.Exists(_map.exportSettings.OutputDirectory))
-                        {
-                            Directory.Delete(_map.exportSettings.OutputDirectory, true);
-                        }
-                        Directory.CreateDirectory(_map.exportSettings.OutputDirectory); // try create the directory if not exist.
-                        foreach (var editor in _exporterEditors)
-                        {
-                            Exporter process = (Exporter)editor.target;
-                            if (process != null && process.enabled)
-                            {
-                                process.OnPreExport();
-                                process.Export();
-                                process.OnPostExport();
-                            }
-                        }
-                    }
                 }
             }
             catch (ContextException e)
@@ -424,6 +474,30 @@ namespace Treasured.UnitySdk
             finally
             {
                 EditorUtility.ClearProgressBar();
+            }
+        }
+
+        private void Export()
+        {
+            if (string.IsNullOrEmpty(_map.exportSettings.folderName))
+            {
+                throw new MissingFieldException("Output folder name is empty.");
+            }
+            DataValidator.ValidateMap(_map);
+            if (Directory.Exists(_map.exportSettings.OutputDirectory))
+            {
+                Directory.Delete(_map.exportSettings.OutputDirectory, true);
+            }
+            Directory.CreateDirectory(_map.exportSettings.OutputDirectory); // try create the directory if not exist.
+            foreach (var editor in _exporterEditors)
+            {
+                Exporter process = (Exporter)editor.target;
+                if (process != null && process.enabled)
+                {
+                    process.OnPreExport();
+                    process.Export();
+                    process.OnPostExport();
+                }
             }
         }
 
