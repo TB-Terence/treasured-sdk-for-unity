@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Treasured.UnitySdk
 {
     [CustomEditor(typeof(CubemapExporter))]
-    internal class CubemapExporterEditor : UnityEditor.Editor
+    internal class CubemapExporterEditor : Editor
     {
         private bool _isAdvancedMode;
         private SerializedProperty _cubemapSize;

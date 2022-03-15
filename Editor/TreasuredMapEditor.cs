@@ -20,8 +20,6 @@ namespace Treasured.UnitySdk
 
             public static readonly GUIContent folderOpened = EditorGUIUtility.TrIconContent("FolderOpened Icon", "Show in Explorer");
 
-            public static readonly GUIContent export = EditorGUIUtility.TrTextContentWithIcon("Export", "Export Scene", "SceneLoadIn");
-
             public static readonly GUIContent search = EditorGUIUtility.TrIconContent("Search Icon");
 
             public static readonly GUIContent plus = EditorGUIUtility.TrIconContent("Toolbar Plus");
@@ -274,11 +272,28 @@ namespace Treasured.UnitySdk
         {
             using(new EditorGUILayout.HorizontalScope())
             {
+                EditorGUI.BeginChangeCheck();
                 _selectedIndex = GUILayout.SelectionGrid(_selectedIndex, _tabGroupStates.Select(x => x.attribute.groupName).ToArray(), _tabGroupStates.Length, Styles.TabButton);
-                GUILayout.FlexibleSpace();
-                if (GUILayout.Button(Styles.export, Styles.exportButton, GUILayout.Height(20), GUILayout.Width(64)))
+                if (EditorGUI.EndChangeCheck() && _selectedIndex == 2)
                 {
-                    Export();
+                    InitializeExporters();
+                }
+                GUILayout.FlexibleSpace();
+                if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Export", $"Export scene to Project root/Treasured Data/{_map.exportSettings.folderName}", "SceneLoadIn"), Styles.exportButton, GUILayout.Width(64)))
+                {
+                    Exporter.Export(_map);
+                }
+                if (GUILayout.Button(EditorGUIUtility.TrIconContent("icon dropdown"), Styles.exportButton))
+                {
+                    GenericMenu menu = new GenericMenu();
+                    menu.AddItem(new GUIContent("Export to custom directory"), false, () =>
+                    {
+                        string directory = EditorUtility.OpenFolderPanel("Select output directory", "", "");
+                        ExportSettings.CustomOutputDirectory = directory;
+                        Exporter.Export(_map);
+                        ExportSettings.CustomOutputDirectory = "";
+                    });
+                    menu.ShowAsContext();
                 }
             }
             for (int i = 0; i < _tabGroupStates.Length; i++)
@@ -482,30 +497,6 @@ namespace Treasured.UnitySdk
             finally
             {
                 EditorUtility.ClearProgressBar();
-            }
-        }
-
-        private void Export()
-        {
-            if (string.IsNullOrEmpty(_map.exportSettings.folderName))
-            {
-                throw new MissingFieldException("Output folder name is empty.");
-            }
-            DataValidator.ValidateMap(_map);
-            if (Directory.Exists(_map.exportSettings.OutputDirectory))
-            {
-                Directory.Delete(_map.exportSettings.OutputDirectory, true);
-            }
-            Directory.CreateDirectory(_map.exportSettings.OutputDirectory); // try create the directory if not exist.
-            foreach (var editor in _exporterEditors)
-            {
-                Exporter process = (Exporter)editor.target;
-                if (process != null && process.enabled)
-                {
-                    process.OnPreExport();
-                    process.Export();
-                    process.OnPostExport();
-                }
             }
         }
 
