@@ -11,6 +11,7 @@ namespace Treasured.UnitySdk
     [CustomEditor(typeof(TreasuredMap))]
     internal class TreasuredMapEditor : UnityEditor.Editor
     {
+        private const string SelectedTabIndexKey = "TreasuredSDK_Inspector_SelectedTabIndex";
         public static class Styles
         {
             public static readonly GUIContent alignView = EditorGUIUtility.TrTextContent("Align View");
@@ -161,7 +162,7 @@ namespace Treasured.UnitySdk
         }
 
         private TabGroupState[] _tabGroupStates;
-        private static int _selectedIndex = 1;
+        private int _selectedTabIndex = 1;
         private FoldoutGroupState[] _foldoutGroupStates;
         private TreasuredMap _map;
         private Editor _exportSettingsEditor;
@@ -170,6 +171,7 @@ namespace Treasured.UnitySdk
 
         public void OnEnable()
         {
+            _selectedTabIndex = SessionState.GetInt(SelectedTabIndexKey, _selectedTabIndex);
             _map = target as TreasuredMap;
             _hotspots = new List<Hotspot>(_map.Hotspots);
             InitializeSettings();
@@ -290,11 +292,18 @@ namespace Treasured.UnitySdk
                     menu.ShowAsContext();
                 }
             }
-            _selectedIndex = GUILayout.SelectionGrid(_selectedIndex, _tabGroupStates.Select(x => x.attribute.groupName).ToArray(), _tabGroupStates.Length, Styles.TabButton);
+            using(var scope = new EditorGUI.ChangeCheckScope())
+            {
+                _selectedTabIndex = GUILayout.SelectionGrid(_selectedTabIndex, _tabGroupStates.Select(x => x.attribute.groupName).ToArray(), _tabGroupStates.Length, Styles.TabButton);
+                if (scope.changed)
+                {
+                    SessionState.SetInt(SelectedTabIndexKey, _selectedTabIndex);
+                }
+            }
             for (int i = 0; i < _tabGroupStates.Length; i++)
             {
                 var state = _tabGroupStates[i];
-                if (state.tabIndex != _selectedIndex)
+                if (state.tabIndex != _selectedTabIndex)
                 {
                     continue;
                 }
