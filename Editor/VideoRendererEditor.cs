@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Treasured.UnitySdk
 {
     [CustomEditor(typeof(VideoRenderer))]
-    internal class VideoRendererEditor : Editor
+    internal class VideoRendererEditor : UnityEditor.Editor
     {
         static readonly string[] ASPECT_RATIO_OPTIONS = { "16:9", "16:10" };
 

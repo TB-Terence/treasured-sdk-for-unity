@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    public abstract class Exporter : ScriptableObject
+    public abstract class Exporter : ScriptableObject, IExportHandler
     {
         /// <summary>
         /// Reference to the map object for the export process. Used internally.

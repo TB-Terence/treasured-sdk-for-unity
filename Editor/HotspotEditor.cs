@@ -6,7 +6,7 @@ namespace Treasured.UnitySdk
 {
     [CustomEditor(typeof(Hotspot))]
     [CanEditMultipleObjects]
-    internal class HotspotEditor : Editor
+    internal class HotspotEditor : UnityEditor.Editor
     {
         internal static class Styles
         {

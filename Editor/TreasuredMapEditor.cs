@@ -9,7 +9,7 @@ using UnityEngine;
 namespace Treasured.UnitySdk
 {
     [CustomEditor(typeof(TreasuredMap))]
-    internal class TreasuredMapEditor : Editor
+    internal class TreasuredMapEditor : UnityEditor.Editor
     {
         public static class Styles
         {
@@ -38,7 +38,7 @@ namespace Treasured.UnitySdk
 
             public static readonly GUIStyle exportButton = new GUIStyle("button")
             {
-                margin = new RectOffset(),
+                margin = new RectOffset(0, 0, 0, 8),
                 fixedHeight = 24,
                 fontStyle = FontStyle.Bold
             };
@@ -270,20 +270,14 @@ namespace Treasured.UnitySdk
 
         public override void OnInspectorGUI()
         {
+            serializedObject.Update();
             using(new EditorGUILayout.HorizontalScope())
             {
-                EditorGUI.BeginChangeCheck();
-                _selectedIndex = GUILayout.SelectionGrid(_selectedIndex, _tabGroupStates.Select(x => x.attribute.groupName).ToArray(), _tabGroupStates.Length, Styles.TabButton);
-                if (EditorGUI.EndChangeCheck() && _selectedIndex == 2)
-                {
-                    InitializeExporters();
-                }
-                GUILayout.FlexibleSpace();
-                if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Export", $"Export scene to Project root/Treasured Data/{_map.exportSettings.folderName}", "SceneLoadIn"), Styles.exportButton, GUILayout.Width(64)))
+                if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Export", $"Export scene to Project root/Treasured Data/{_map.exportSettings.folderName}", "SceneLoadIn"), Styles.exportButton))
                 {
                     Exporter.Export(_map);
                 }
-                if (GUILayout.Button(EditorGUIUtility.TrIconContent("icon dropdown"), Styles.exportButton))
+                if (GUILayout.Button(EditorGUIUtility.TrIconContent("icon dropdown"), Styles.exportButton, GUILayout.MaxWidth(24)))
                 {
                     GenericMenu menu = new GenericMenu();
                     menu.AddItem(new GUIContent("Export to custom directory"), false, () =>
@@ -296,6 +290,7 @@ namespace Treasured.UnitySdk
                     menu.ShowAsContext();
                 }
             }
+            _selectedIndex = GUILayout.SelectionGrid(_selectedIndex, _tabGroupStates.Select(x => x.attribute.groupName).ToArray(), _tabGroupStates.Length, Styles.TabButton);
             for (int i = 0; i < _tabGroupStates.Length; i++)
             {
                 var state = _tabGroupStates[i];
@@ -465,6 +460,7 @@ namespace Treasured.UnitySdk
         [TabGroup(groupName = "Export Settings")]
         public void OnExportGUI()
         {
+            _exportSettingsEditor.serializedObject.Update();
             _exportSettingsEditor.OnInspectorGUI();
             _exportSettingsEditor.serializedObject.ApplyModifiedProperties();
             try
@@ -472,12 +468,13 @@ namespace Treasured.UnitySdk
                 for (int i = 0; i < _exporterEditors.Length; i++)
                 {
                     Editor editor = _exporterEditors[i];
+                    editor.serializedObject.Update();
                     SerializedProperty enabled = editor.serializedObject.FindProperty(nameof(Exporter.enabled));
                     enabled.boolValue = EditorGUILayout.ToggleLeft(ObjectNames.NicifyVariableName(editor.target.GetType().Name), enabled.boolValue, EditorStyles.boldLabel);
                     EditorGUI.indentLevel++;
                     editor.OnInspectorGUI();
-                    editor.serializedObject.ApplyModifiedProperties();
                     EditorGUI.indentLevel--;
+                    editor.serializedObject.ApplyModifiedProperties();
                 }
             }
             catch (ContextException e)

@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Treasured.UnitySdk
 {
     [CustomEditor(typeof(ExportSettings))]
-    internal class ExportSettingsEditor : Editor
+    internal class ExportSettingsEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()
         {

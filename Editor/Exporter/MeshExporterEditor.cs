@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Treasured.UnitySdk
 {
     [CustomEditor(typeof(MeshExporter))]
-    internal class MeshExporterEditor : Editor
+    internal class MeshExporterEditor : UnityEditor.Editor
     {
         private SerializedProperty _filterTag;
         private SerializedProperty _canUseTag;
