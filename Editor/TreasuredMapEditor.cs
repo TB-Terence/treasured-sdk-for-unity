@@ -14,13 +14,13 @@ namespace Treasured.UnitySdk
     internal class TreasuredMapEditor : UnityEditor.Editor
     {
         [MenuItem("Tools/Treasured/Upgrade to Latest(Stable)", priority = 99)]
-        static void UpgradeToLatest()
+        static void UpgradeToStableVersion()
         {
             Client.Add("https://github.com/TB-Terence/treasured-sdk-for-unity.git#upm");
         }
         
         [MenuItem("Tools/Treasured/Upgrade to Latest(Experimental)", priority = 99)]
-        static void UpgradeToLatest()
+        static void UpgradeToExperimentalVersion()
         {
             Client.Add("https://github.com/TB-Terence/treasured-sdk-for-unity.git#exp");
         }
