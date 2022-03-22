@@ -9,10 +9,16 @@ namespace Treasured.UnitySdk
     /// </summary>
     internal static class MenuItemRegister
     {
-        [MenuItem("Tools/Treasured/Upgrade to Latest", priority = 99)]
-        static void UpgradeToLatest()
+        [MenuItem("Tools/Treasured/Upgrade to Latest(Stable)", priority = 99)]
+        static void UpgradeToStableVersion()
         {
             Client.Add("https://github.com/TB-Terence/treasured-sdk-for-unity.git#upm");
+        }
+
+        [MenuItem("Tools/Treasured/Upgrade to Latest(Experimental)", priority = 99)]
+        static void UpgradeToExperimentalVersion()
+        {
+            Client.Add("https://github.com/TB-Terence/treasured-sdk-for-unity.git#exp");
         }
 
         static bool IsTreasuredMapSelected()
