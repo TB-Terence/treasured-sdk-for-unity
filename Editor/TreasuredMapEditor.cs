@@ -285,9 +285,12 @@ namespace Treasured.UnitySdk
                     menu.AddItem(new GUIContent("Export to custom directory"), false, () =>
                     {
                         string directory = EditorUtility.OpenFolderPanel("Select output directory", "", "");
-                        ExportSettings.CustomOutputDirectory = directory;
-                        Exporter.Export(_map);
-                        ExportSettings.CustomOutputDirectory = "";
+                        if (!string.IsNullOrEmpty(directory))
+                        {
+                            ExportSettings.CustomOutputDirectory = directory;
+                            Exporter.Export(_map);
+                            ExportSettings.CustomOutputDirectory = "";
+                        }
                     });
                     menu.ShowAsContext();
                 }
