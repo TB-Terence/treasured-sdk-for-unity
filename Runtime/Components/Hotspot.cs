@@ -65,7 +65,7 @@ namespace Treasured.UnitySdk
         /// <summary>
         /// A list of visible objects that this hotspot can see.
         /// </summary>
-        [JsonIgnore]
+        //[JsonIgnore]
         public List<TreasuredObject> VisibleTargets
         {
             get
