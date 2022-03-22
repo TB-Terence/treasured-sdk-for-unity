@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
 using TMPro;
@@ -42,6 +43,8 @@ namespace Treasured.UnitySdk
         private int _totalTerrainCount;
         private int _progressUpdateInterval = 10000;
 
+        private string[] tagString = UnityEditorInternal.InternalEditorUtility.tags;
+
         public override void OnEnable(SerializedObject serializedObject)
         {
             _filterTag = serializedObject.FindProperty(nameof(_filterTag));
@@ -60,7 +63,8 @@ namespace Treasured.UnitySdk
 
             if (_canUseTag.boolValue)
             {
-                _filterTag.stringValue = EditorGUILayout.TagField("", _filterTag.stringValue);
+                // _filterTag.stringValue = EditorGUILayout.TagField("", _filterTag.stringValue);
+                _filterTag.intValue = EditorGUILayout.MaskField("", _filterTag.intValue, tagString);
             }
 
             EditorGUILayout.EndHorizontal();
@@ -109,7 +113,8 @@ namespace Treasured.UnitySdk
                 //  check with the search filter
                 if (mapCanUseTag)
                 {
-                    if (terrain.gameObject.CompareTag(mapFilterTag))
+                    var terrainTagIndex= (int)Mathf.Pow(2,Array.IndexOf(tagString, terrain.gameObject.tag));
+                    if ((mapFilterTag & terrainTagIndex) == terrainTagIndex)
                     {
                         meshToCombine.Add(ExportTerrainToObj(terrain));
                     }
@@ -134,7 +139,8 @@ namespace Treasured.UnitySdk
                 if (mapCanUseTag)
                 {
                     //  Compare tag to see if needs to include in mesh combiner
-                    if (gameObject.CompareTag(mapFilterTag))
+                    var gameObjectTagIndex = (int)Mathf.Pow(2,Array.IndexOf(tagString, gameObject.tag));
+                    if ((mapFilterTag & gameObjectTagIndex) == gameObjectTagIndex)
                     {
                         meshToCombine.Add(gameObject);
                         continue;

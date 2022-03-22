@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using GLTF.Schema;
+using Treasured.UnitySdk;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityGLTF.Extensions;
@@ -473,7 +474,9 @@ namespace UnityGLTF
 
 			if (ExportNames)
 			{
-				node.Name = nodeTransform.name;
+				node.Name = nodeTransform.TryGetComponent(out TreasuredObject treasuredObject)
+					? treasuredObject.Id
+					: nodeTransform.name;
 			}
 
 			//export camera attached to node

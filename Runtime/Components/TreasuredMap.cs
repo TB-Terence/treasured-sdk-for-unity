@@ -82,10 +82,10 @@ namespace Treasured.UnitySdk
         }
 
         [SerializeField]
-        private string _filterTag = "Untagged";
+        private int _filterTag = 1;
         
         [JsonIgnore]
-        public string FilterTag
+        public int FilterTag
         {
             get => _filterTag;
             set => _filterTag = value;
