@@ -13,10 +13,16 @@ namespace Treasured.UnitySdk
     [CustomEditor(typeof(TreasuredMap))]
     internal class TreasuredMapEditor : UnityEditor.Editor
     {
-        [MenuItem("Tools/Treasured/Upgrade to Latest", priority = 99)]
+        [MenuItem("Tools/Treasured/Upgrade to Latest(Stable)", priority = 99)]
         static void UpgradeToLatest()
         {
             Client.Add("https://github.com/TB-Terence/treasured-sdk-for-unity.git#upm");
+        }
+        
+        [MenuItem("Tools/Treasured/Upgrade to Latest(Experimental)", priority = 99)]
+        static void UpgradeToLatest()
+        {
+            Client.Add("https://github.com/TB-Terence/treasured-sdk-for-unity.git#exp");
         }
 
         private static readonly string[] selectableObjectListNames = new string[] { "Hotspots", "Interactables", "Videos", "Sounds" };
