@@ -17,6 +17,7 @@ namespace Treasured.UnitySdk
         public CubemapFormat cubemapFormat = CubemapFormat.IndividualFace;
         [SerializeField]
         private int _cubemapSize = MAXIMUM_CUBEMAP_FACE_WIDTH;
+        [HideInInspector]
         public bool flipY = true;
 
         [SerializeField]

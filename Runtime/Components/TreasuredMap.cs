@@ -66,6 +66,10 @@ namespace Treasured.UnitySdk
         public UISettings uiSettings = new UISettings();
         #endregion
 
+        #region Features
+        public FeatureSettings features = new FeatureSettings();
+        #endregion
+
         #region Export Properties
         public ImageFormat Format { get => cubemapExporter.imageFormat; }
         #endregion
