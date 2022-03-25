@@ -21,7 +21,6 @@ namespace Treasured.UnitySdk
             CubemapExporter cubemapExportProcess = (CubemapExporter)target;
             EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(CubemapExporter.imageFormat)));
             EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(CubemapExporter.imageQuality)));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(CubemapExporter.flipY)));
             EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(CubemapExporter.cubemapFormat)));
             if (cubemapExportProcess.cubemapFormat == CubemapFormat._3x2)
             {
