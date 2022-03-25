@@ -18,9 +18,13 @@ namespace Treasured.UnitySdk
         [HideInInspector]
         public bool convertTransform = true;
 
+        public override void OnPreExport()
+        {
+            ThreeJsTransformConverter.ShouldConvertToThreeJsTransform = Map.features.matterportStyleNavigation;
+        }
+
         public override void Export()
         {
-            ThreeJsTransformConverter.ShouldConvertToThreeJsTransform = convertTransform;
             string jsonPath = Path.Combine(Map.exportSettings?.OutputDirectory, "data.json").Replace('/', '\\');
             string json = JsonConvert.SerializeObject(Map, formatting, JsonSettings);
             File.WriteAllText(jsonPath, json);

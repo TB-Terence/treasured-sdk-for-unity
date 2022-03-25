@@ -183,6 +183,7 @@ namespace Treasured.UnitySdk
 
         public override void OnPreExport()
         {
+            flipY = Map.features.matterportStyleNavigation;
             _lensScales.Clear();
             Volume[] volumes = GameObject.FindObjectsOfType<Volume>();
             for (int i = 0; i < volumes.Length; i++)
