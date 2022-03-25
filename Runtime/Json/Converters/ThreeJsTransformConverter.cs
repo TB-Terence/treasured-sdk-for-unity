@@ -5,7 +5,7 @@ namespace Treasured.UnitySdk
 {
     internal static class ThreeJsTransformConverter
     {
-        public static bool ShouldConvertToThreeJsTransform = false;
+        public static bool ShouldConvertToThreeJsTransform = true;
         public static Vector3 ToThreeJsPosition(Transform transform)
         {
             if (!ShouldConvertToThreeJsTransform)

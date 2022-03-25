@@ -14,14 +14,6 @@ namespace Treasured.UnitySdk
         };
 
         public Formatting formatting = Formatting.Indented;
-        [Tooltip("Convert to Three JS Transform")]
-        [HideInInspector]
-        public bool convertTransform = true;
-
-        public override void OnPreExport()
-        {
-            ThreeJsTransformConverter.ShouldConvertToThreeJsTransform = Map.features.matterportStyleNavigation;
-        }
 
         public override void Export()
         {

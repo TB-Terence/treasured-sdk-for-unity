@@ -338,14 +338,7 @@ namespace Treasured.UnitySdk
             SerializedProperty uiSettings = serializedObject.FindProperty("uiSettings");
             EditorGUILayout.PropertyField(uiSettings);
             SerializedProperty features = serializedObject.FindProperty("features");
-            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(features);
-            if (EditorGUI.EndChangeCheck()){
-                bool enableMatterportStyleNavigation = features.FindPropertyRelative(nameof(FeatureSettings.matterportStyleNavigation)).boolValue;
-                _map.jsonExporter.convertTransform = enableMatterportStyleNavigation;
-                _map.cubemapExporter.flipY = enableMatterportStyleNavigation;
-                _map.meshExporter.enabled = enableMatterportStyleNavigation;
-            }
         }
 
         [TabGroup(groupName = "Objects")]
