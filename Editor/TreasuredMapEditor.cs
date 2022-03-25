@@ -275,22 +275,32 @@ namespace Treasured.UnitySdk
             serializedObject.Update();
             using(new EditorGUILayout.HorizontalScope())
             {
-                if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Export", $"Export scene to Project root/Treasured Data/{_map.exportSettings.folderName}", "SceneLoadIn"), Styles.exportButton))
+                if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Export", $"Export scene to {EditorPrefs.GetString(ExportSettings.OutputRootDirectoryKey, $"{ExportSettings.DefaultOutputDirectory}/{_map.exportSettings.folderName}")}", "SceneLoadIn"), Styles.exportButton))
                 {
                     Exporter.Export(_map);
+                }
+                using(new EditorGUI.DisabledGroupScope(!Directory.Exists(_map.exportSettings.OutputDirectory)))
+                {
+                    if (GUILayout.Button(EditorGUIUtility.TrIconContent("FolderOpened On Icon", "Open the current output folder in the File Explorer. This function is enabled when the directory exist."), Styles.exportButton, GUILayout.MaxWidth(24)))
+                    {
+                        Application.OpenURL(_map.exportSettings.OutputDirectory);
+                    }
                 }
                 if (GUILayout.Button(EditorGUIUtility.TrIconContent("icon dropdown"), Styles.exportButton, GUILayout.MaxWidth(24)))
                 {
                     GenericMenu menu = new GenericMenu();
-                    menu.AddItem(new GUIContent("Export to custom directory"), false, () =>
+                    menu.AddItem(new GUIContent("Config Root Directory"), false, () =>
                     {
-                        string directory = EditorUtility.OpenFolderPanel("Select output directory", "", "");
+                        string directory = EditorUtility.OpenFolderPanel("Select Output Root", "", "");
                         if (!string.IsNullOrEmpty(directory))
                         {
-                            ExportSettings.CustomOutputDirectory = directory;
-                            Exporter.Export(_map);
-                            ExportSettings.CustomOutputDirectory = "";
+                            EditorPrefs.SetString(ExportSettings.OutputRootDirectoryKey, directory);
                         }
+                    });
+                    menu.AddSeparator("");
+                    menu.AddItem(new GUIContent("Open Root Directory", "Open the root output folder in the File Explorer. The default output root will be the path in your Unity project/Treasured Data"), false, () =>
+                    {
+                        Application.OpenURL(EditorPrefs.GetString(ExportSettings.OutputRootDirectoryKey, ExportSettings.DefaultOutputDirectory));
                     });
                     menu.ShowAsContext();
                 }
@@ -486,16 +496,20 @@ namespace Treasured.UnitySdk
             _exportSettingsEditor.serializedObject.ApplyModifiedProperties();
             try
             {
-                for (int i = 0; i < _exporterEditors.Length; i++)
+                EditorGUILayout.LabelField("Exporters", EditorStyles.boldLabel);
+                using (new EditorGUI.IndentLevelScope(1))
                 {
-                    Editor editor = _exporterEditors[i];
-                    editor.serializedObject.Update();
-                    SerializedProperty enabled = editor.serializedObject.FindProperty(nameof(Exporter.enabled));
-                    enabled.boolValue = EditorGUILayout.ToggleLeft(ObjectNames.NicifyVariableName(editor.target.GetType().Name), enabled.boolValue, EditorStyles.boldLabel);
-                    EditorGUI.indentLevel++;
-                    editor.OnInspectorGUI();
-                    EditorGUI.indentLevel--;
-                    editor.serializedObject.ApplyModifiedProperties();
+                    for (int i = 0; i < _exporterEditors.Length; i++)
+                    {
+                        Editor editor = _exporterEditors[i];
+                        editor.serializedObject.Update();
+                        SerializedProperty enabled = editor.serializedObject.FindProperty(nameof(Exporter.enabled));
+                        enabled.boolValue = EditorGUILayout.ToggleLeft(ObjectNames.NicifyVariableName(editor.target.GetType().Name), enabled.boolValue, EditorStyles.boldLabel);
+                        EditorGUI.indentLevel++;
+                        editor.OnInspectorGUI();
+                        EditorGUI.indentLevel--;
+                        editor.serializedObject.ApplyModifiedProperties();
+                    }
                 }
             }
             catch (ContextException e)

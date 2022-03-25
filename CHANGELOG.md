@@ -1,3 +1,10 @@
+## Version 0.8.1 (March 24, 2022)
+
+### Add
+
+- Add `features.matterportStyleNavigation` flag to map object
+- Add option to config export root directory. The output root directory will be `ProjectPath/Treasured Data` by default.
+
 ## Version 0.7.2 (November 9, 2021)
 
 ### Add
