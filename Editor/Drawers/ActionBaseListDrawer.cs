@@ -23,9 +23,10 @@ namespace Treasured.UnitySdk
                 drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
                 {
                     SerializedProperty element = elements.GetArrayElementAtIndex(index);
-                    EditorGUI.indentLevel++;
-                    EditorGUI.PropertyField(rect, element, new GUIContent(ObjectNames.NicifyVariableName(element.managedReferenceFullTypename.Substring(element.managedReferenceFullTypename.LastIndexOf('.') + 1))), true);
-                    EditorGUI.indentLevel--;
+                    using (new EditorGUI.IndentLevelScope(1))
+                    {
+                        EditorGUI.PropertyField(rect, element, new GUIContent(ObjectNames.NicifyVariableName(element.managedReferenceFullTypename.Substring(element.managedReferenceFullTypename.LastIndexOf('.') + 1))), true);
+                    }
                 },
                 elementHeightCallback = (int index) =>
                 {
