@@ -23,11 +23,16 @@ namespace Treasured.UnitySdk
         [JsonIgnore]
         private string _description;
 
+        /// <summary>
+        /// Name of the icon for the popup icon.
+        /// </summary>
         [SerializeField]
         [Preset("FaMicrophone", "FaVolumeUp", "FaVideo", "FaLock", "FaMap", "FaTrophy", "FaHeart", "FaPlayCircle",
             "FaCat", "FaComment", "FaBoxOpen", "FaDungeon", "FaMusic", "FaPalette")]
         [OpenUrl("https://react-icons.github.io/react-icons/icons?name=fa")]
         private string _icon;
+
+        public Button button = new Button();
 
         [SerializeField]
         private Hitbox _hitbox;
@@ -54,7 +59,6 @@ namespace Treasured.UnitySdk
 
         public string Description { get => _description; set => _description = value; }
 
-        public string Icon { get => _icon; set => _icon = value; }
         public Hitbox Hitbox
         {
             get
