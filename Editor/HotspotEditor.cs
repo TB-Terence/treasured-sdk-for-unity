@@ -18,7 +18,6 @@ namespace Treasured.UnitySdk
 
         private ActionGroupListDrawer onClickList;
         private ActionGroupListDrawer onHoverList;
-        private SerializedProperty id;
         private SerializedProperty button;
         private SerializedProperty hitbox;
         private SerializedProperty camera;
@@ -40,7 +39,6 @@ namespace Treasured.UnitySdk
         {
             var hotspot = target as Hotspot;
             map = (target as Hotspot).Map;
-            id = serializedObject.FindProperty("_id");
             button = serializedObject.FindProperty(nameof(TreasuredObject.button));
             hitbox = serializedObject.FindProperty("_hitbox");
             camera = serializedObject.FindProperty("_camera");
@@ -79,7 +77,6 @@ namespace Treasured.UnitySdk
             serializedObject.Update();
             if (serializedObject.targetObjects.Length == 1)
             {
-                EditorGUILayout.PropertyField(id);
                 EditorGUILayout.PropertyField(button);
                 EditorGUILayoutHelper.TransformPropertyField(serializedHitboxTransform, "Hitbox");
                 EditorGUILayoutHelper.TransformPropertyField(serializedCameraTransform, "Camera", true, true, false);

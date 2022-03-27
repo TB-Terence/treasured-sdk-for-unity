@@ -15,7 +15,6 @@ namespace Treasured.UnitySdk
     {
         #region Backing fields
         [SerializeField]
-        [GUID]
         private string _id = Guid.NewGuid().ToString();
 
         [SerializeField]
@@ -122,6 +121,12 @@ namespace Treasured.UnitySdk
                 }
                 boxCollider.isTrigger = true;
             }
+        }
+
+        [ContextMenu("Copy ID")]
+        void CopyID()
+        {
+            GUIUtility.systemCopyBuffer = Id;
         }
 #endif
     }

@@ -94,6 +94,11 @@ namespace Treasured.UnitySdk
             setIconForObjectMethodInfo?.Invoke(null, new object[] { obj, icon });
         }
 
+        public static void SetIcon(this GameObject go, Texture2D icon)
+        {
+            SetIconForObject(go, icon);
+        }
+
         public static void SetLabelIcon(this GameObject go, int index)
         {
             index = Mathf.Clamp(index, 0, 7);
