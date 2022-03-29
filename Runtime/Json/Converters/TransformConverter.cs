@@ -20,21 +20,28 @@ namespace Treasured.UnitySdk
         {
             if (value is Transform transform)
             {
-                writer.WriteStartObject();
-                writer.WritePropertyName(nameof(transform.position));
-                serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsPosition(transform));
-                writer.WritePropertyName(nameof(transform.rotation));
-                if (ThreeJsTransformConverter.ShouldConvertToThreeJsTransform)
+                if (transform == null)
                 {
-                    serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsQuaternion(transform));
+                    writer.WriteNull();
                 }
                 else
                 {
-                    serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsEulerAngles(transform));
+                    writer.WriteStartObject();
+                    writer.WritePropertyName(nameof(transform.position));
+                    serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsPosition(transform));
+                    writer.WritePropertyName(nameof(transform.rotation));
+                    if (ThreeJsTransformConverter.ShouldConvertToThreeJsTransform)
+                    {
+                        serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsQuaternion(transform));
+                    }
+                    else
+                    {
+                        serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsEulerAngles(transform));
+                    }
+                    writer.WritePropertyName("scale");
+                    serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsScale(transform));
+                    writer.WriteEndObject();
                 }
-                writer.WritePropertyName("scale");
-                serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsScale(transform));
-                writer.WriteEndObject();
             }
         }
     }

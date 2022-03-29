@@ -275,7 +275,7 @@ namespace Treasured.UnitySdk
             serializedObject.Update();
             using(new EditorGUILayout.HorizontalScope())
             {
-                if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Export", $"Export scene to {EditorPrefs.GetString(ExportSettings.OutputRootDirectoryKey, $"{ExportSettings.DefaultOutputDirectory}")}/{_map.exportSettings.folderName}", "SceneLoadIn"), Styles.exportButton))
+                if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Export", $"Export scene to {EditorPrefs.GetString(ExportSettings.OutputRootDirectoryKey, $"{ExportSettings.DefaultOutputDirectory}")}/ {_map.exportSettings.folderName}", "SceneLoadIn"), Styles.exportButton))
                 {
                     Exporter.Export(_map);
                 }
