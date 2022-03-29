@@ -15,6 +15,7 @@ namespace Treasured.UnitySdk
         }
 
         private static readonly GUIContent[] tabs = { new GUIContent("On Click"), new GUIContent("On Hover") };
+        private const string k_ActionsListExpanded = "TreasuredSDK_ActionsListExpanded";
 
         private ActionGroupListDrawer onClickList;
         private ActionGroupListDrawer onHoverList;
@@ -80,17 +81,26 @@ namespace Treasured.UnitySdk
                 EditorGUILayout.PropertyField(button);
                 EditorGUILayoutHelper.TransformPropertyField(serializedHitboxTransform, "Hitbox");
                 EditorGUILayoutHelper.TransformPropertyField(serializedCameraTransform, "Camera", true, true, false);
-                EditorGUILayout.LabelField("Actions", EditorStyles.boldLabel);
-                selectedTabIndex = GUILayout.SelectionGrid(selectedTabIndex, tabs, tabs.Length, TreasuredMapEditor.Styles.TabButton);
-                switch (selectedTabIndex)
+                EditorGUI.BeginChangeCheck();
+                bool isExpanded = EditorGUILayout.BeginFoldoutHeaderGroup(SessionState.GetBool(k_ActionsListExpanded, true), "Actions");
+                if(EditorGUI.EndChangeCheck())
                 {
-                    case 0:
-                        onClickList?.OnGUI();
-                        break;
-                    case 1:
-                        onHoverList?.OnGUI();
-                        break;
+                    SessionState.SetBool(k_ActionsListExpanded, isExpanded);
                 }
+                if (isExpanded)
+                {
+                    selectedTabIndex = GUILayout.SelectionGrid(selectedTabIndex, tabs, tabs.Length, TreasuredMapEditor.Styles.TabButton);
+                    switch (selectedTabIndex)
+                    {
+                        case 0:
+                            onClickList?.OnGUI();
+                            break;
+                        case 1:
+                            onHoverList?.OnGUI();
+                            break;
+                    }
+                }
+                EditorGUILayout.EndFoldoutHeaderGroup();
             }
             if (GUILayout.Button(Styles.snapToGround, GUILayout.Height(24)))
             {

@@ -9,7 +9,7 @@ namespace Treasured.UnitySdk
         /// <summary>
         /// Name of the icon for the icon.
         /// </summary>
-        public string icon;
+        public string icon = "FaCircle";
         /// <summary>
         /// Transform of the button.
         /// </summary>
