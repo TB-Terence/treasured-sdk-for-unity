@@ -1,3 +1,9 @@
+## Version 0.8.2 (March 29, 2022)
+
+- Add `duration` property to ShowTextAction.
+- Add selectable button icons.
+- Bug fixes and improvements.
+
 ## Version 0.8.1 (March 24, 2022)
 
 ### Add
