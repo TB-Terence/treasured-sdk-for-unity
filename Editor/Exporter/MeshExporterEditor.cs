@@ -71,7 +71,7 @@ namespace Treasured.UnitySdk
             if (_canUseTag.boolValue || _canUseLayerMask.boolValue)
             {
                 EditorGUILayout.PropertyField(_keepCombinedMesh);
-                // EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(MeshExporter.ExportQuality)));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(MeshExporter.ExportQuality)));
             }
         }
     }

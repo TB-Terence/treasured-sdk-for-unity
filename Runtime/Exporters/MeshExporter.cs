@@ -50,7 +50,6 @@ namespace Treasured.UnitySdk
 
             List<GameObject> meshToCombine = new List<GameObject>();
             filterTag = includeTags ^ excludeTags;
-            Debug.Log($"{filterTag} : {includeTags} ^ {excludeTags}");
             
             //  Find terrain from the scene
             Terrain terrain = Terrain.activeTerrain;
@@ -121,10 +120,8 @@ namespace Treasured.UnitySdk
             var verticesCount = 0;
             var verticesList = new List<Vector3>();
             var meshTriangles = new List<int>();
-            var meshUVs = new List<Vector2>();
-            var meshNormals = new List<Vector3>();
-            var meshMaterials = new List<Material>();
-
+            var meshQuality = (int)ExportQuality;
+            
             foreach (var meshGameObject in meshToCombine)
             {
                 if (ContainsValidRenderer(meshGameObject) && meshGameObject.TryGetComponent(out MeshFilter filter) && meshGameObject.TryGetComponent(out MeshRenderer renderer))
@@ -132,11 +129,11 @@ namespace Treasured.UnitySdk
                     //  Check if sharedMesh is not null
                     if (filter.sharedMesh != null)
                     {
-                        /*if (filter.sharedMesh.triangles.Length > 3000)
+                        if (meshQuality!= 0 && filter.sharedMesh.triangles.Length > meshQuality)
                         {
-                            Debug.Log($"{filter.gameObject.name} - {filter.sharedMesh.triangles.Length}");
+                            Debug.Log($"{filter.gameObject.name} GameObject has {filter.sharedMesh.triangles.Length} vertices which exceeds the vertices limit {meshQuality}", filter.gameObject);
                             continue;
-                        }*/
+                        }
                         
                         //  Adding mesh vertices and triangles
                         foreach (var meshVertex in filter.sharedMesh.vertices)
@@ -153,8 +150,6 @@ namespace Treasured.UnitySdk
                             }
                         }
                         
-                        // meshUVs.AddRange(filter.sharedMesh.uv);
-                        // meshNormals.AddRange(filter.sharedMesh.normals);
                         verticesCount = verticesList.Count;
                     }
                 }
@@ -170,7 +165,6 @@ namespace Treasured.UnitySdk
 
             if (verticesCount > 65535)
             {
-                Debug.Log("Using Index 32");
                 mesh.indexFormat = IndexFormat.UInt32;
             }
             
@@ -187,17 +181,7 @@ namespace Treasured.UnitySdk
                 newVertices.Add(mt.MultiplyPoint3x4(verticesList[i]));
             }
 
-            /*List<Vector3> newNormals = new List<Vector3>();
-            Matrix4x4 mtNormals = mt.inverse.transpose;
-
-            for (int i = 0; i < verticesList.Count; i++)
-            {
-                newNormals.Add(mtNormals.MultiplyVector(meshNormals[i]));
-            }*/
-
             mesh.vertices = newVertices.ToArray();
-            // mesh.uv = meshUVs.ToArray();
-            // mesh.normals = newNormals.ToArray();
             mesh.SetTriangles(meshTriangles, 0);
 
             meshFilter.mesh = mesh;
@@ -264,7 +248,7 @@ namespace Treasured.UnitySdk
             var terrainData = terrain.terrainData;
             var terrainPosition = terrain.transform.position;
             var terrainParsingFormat = TerrainParsingFormat.Triangles;
-            var terrainExportQuality = MeshExportQuality.Half;
+            var terrainExportQuality = 1;  // Full: 0, Half: 1, Quarter: 2, Eighth: 3, Sixteenth: 4
 
             if (!Directory.Exists(_resourcesFolder))
             {
@@ -436,16 +420,6 @@ namespace Treasured.UnitySdk
         {
             Triangles,
             Quads
-        }
-
-        //  Option to change the export quality
-        public enum MeshExportQuality
-        {
-            Full,
-            Half,
-            Quarter,
-            Eighth,
-            Sixteenth
         }
     }
 }
