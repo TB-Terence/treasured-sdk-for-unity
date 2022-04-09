@@ -8,9 +8,7 @@ namespace Treasured.UnitySdk
     internal class InteractableEditor : UnityEditor.Editor
     {
         private ActionGroupListDrawer onClickList;
-        private SerializedProperty id;
-        private SerializedProperty description;
-        private SerializedProperty icon;
+        private SerializedProperty button;
         private SerializedProperty hitbox;
         private SerializedProperty onClick;
 
@@ -21,9 +19,7 @@ namespace Treasured.UnitySdk
         {
             map = (target as Interactable).Map;
             (target as Interactable).TryInvokeMethods("OnSelectedInHierarchy");
-            id = serializedObject.FindProperty("_id");
-            description = serializedObject.FindProperty("_description");
-            icon = serializedObject.FindProperty("_icon");
+            button = serializedObject.FindProperty(nameof(TreasuredObject.button));
             hitbox = serializedObject.FindProperty("_hitbox");
             serializedHitboxTransform = new SerializedObject((target as Interactable).Hitbox.transform);
             onClick = serializedObject.FindProperty("_onClick");
@@ -45,12 +41,7 @@ namespace Treasured.UnitySdk
                 return;
             }
             serializedObject.Update();
-            if (!id.hasMultipleDifferentValues)
-            {
-                EditorGUILayout.PropertyField(id);
-            }
-            EditorGUILayout.PropertyField(description);
-            EditorGUILayout.PropertyField(icon);
+            EditorGUILayout.PropertyField(button);
             EditorGUILayoutHelper.TransformPropertyField(serializedHitboxTransform, "Hitbox");
             if (targets.Length == 1)
             {

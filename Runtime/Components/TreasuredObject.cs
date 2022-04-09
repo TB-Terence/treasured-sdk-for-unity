@@ -15,18 +15,23 @@ namespace Treasured.UnitySdk
     {
         #region Backing fields
         [SerializeField]
-        [GUID]
         private string _id = Guid.NewGuid().ToString();
 
         [SerializeField]
         [TextArea(3, 3)]
+        [JsonIgnore]
         private string _description;
 
+        /// <summary>
+        /// Name of the icon for the popup icon.
+        /// </summary>
         [SerializeField]
         [Preset("FaMicrophone", "FaVolumeUp", "FaVideo", "FaLock", "FaMap", "FaTrophy", "FaHeart", "FaPlayCircle",
             "FaCat", "FaComment", "FaBoxOpen", "FaDungeon", "FaMusic", "FaPalette")]
         [OpenUrl("https://react-icons.github.io/react-icons/icons?name=fa")]
         private string _icon;
+
+        public Button button = new Button();
 
         [SerializeField]
         private Hitbox _hitbox;
@@ -49,11 +54,10 @@ namespace Treasured.UnitySdk
         /// <summary>
         /// Global unique identifier for the object.(Read Only)
         /// </summary>
-        public string Id { get => _id; }
+        public string Id { get => _id; internal set => _id = value; }
 
         public string Description { get => _description; set => _description = value; }
 
-        public string Icon { get => _icon; set => _icon = value; }
         public Hitbox Hitbox
         {
             get
@@ -117,6 +121,12 @@ namespace Treasured.UnitySdk
                 }
                 boxCollider.isTrigger = true;
             }
+        }
+
+        [ContextMenu("Copy ID")]
+        void CopyID()
+        {
+            GUIUtility.systemCopyBuffer = Id;
         }
 #endif
     }

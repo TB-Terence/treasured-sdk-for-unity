@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using UnityEditor;
-using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
@@ -23,6 +23,20 @@ namespace Treasured.UnitySdk
             }
             openPropertyEditorMethodInfo?.Invoke(null, new object[] { obj, true });
 #endif
+        }
+
+        public static void DrawPropertiesExcluding(SerializedObject serializedObject, params string[] propertyToExclude)
+        {
+            SerializedProperty iterator = serializedObject.GetIterator();
+            bool enterChildren = true;
+            while (iterator.NextVisible(enterChildren))
+            {
+                enterChildren = false;
+                if (!propertyToExclude.Contains(iterator.name))
+                {
+                    EditorGUILayout.PropertyField(iterator, true);
+                }
+            }
         }
     }
 }

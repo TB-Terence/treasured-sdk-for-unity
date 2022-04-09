@@ -66,15 +66,12 @@ namespace Treasured.UnitySdk
         public UISettings uiSettings = new UISettings();
         #endregion
 
+        #region Features
+        public FeatureSettings features = new FeatureSettings();
+        #endregion
+
         #region Export Properties
-        [SerializeField]
-        private ImageFormat _format = ImageFormat.Ktx2;
-        public ImageFormat Format { get => _format; set => _format = value; }
-
-        [SerializeField]
-        private ImageQuality _quality = ImageQuality.High;
-        public ImageQuality Quality { get => _quality; set => _quality = value; }
-
+        public ImageFormat Format { get => cubemapExporter.imageFormat; }
         #endregion
 
         #region Objects
@@ -113,23 +110,27 @@ namespace Treasured.UnitySdk
         #region Export Settings
         [SerializeField]
         private string _outputFolderName;
-        [JsonIgnore]
-        public string OutputFolderName { get => _outputFolderName; set => _outputFolderName = value; }
-
-        [SerializeField]
-        private int _interactableLayer; // game object can only have one layer thus using int instead of LayerMask
-
-        public bool _useTag;
-        public string _tag;
-        public bool _useLayerMask;
-        public LayerMask _layerMask;
-
         #endregion
+
+        [Code]
+        public string headHTML;
+
+        [JsonIgnore]
+        public ExportSettings exportSettings;
+
+        [JsonIgnore]
+        public JsonExporter jsonExporter;
+
+        [JsonIgnore]
+        public CubemapExporter cubemapExporter;
+
+        [JsonIgnore]
+        public MeshExporter meshExporter;
 
         private void OnValidate()
         {
             //  Set default Auto Camera Rotation to false for all except for modern loader template 
-            if (_templateLoader.template != "modern")
+            if (_templateLoader != null && _templateLoader.template != "modern")
             {
                 _templateLoader.autoCameraRotation = false;
             }

@@ -55,15 +55,23 @@ namespace Treasured.UnitySdk
             }
         }
 
-        public static bool CreateClickZone(Event e, Rect rect, MouseCursor mouseCursor, int button)
+        /// <summary>
+        /// Creates a clickable zone inside the given Rect.
+        /// </summary>
+        /// <param name="e"></param>
+        /// <param name="rect"></param>
+        /// <param name="mouseCursor"></param>
+        /// <param name="button"></param>
+        /// <returns>Return -1 if nothing is clicked, 0 for left mouse buton, 1 for right mouse button and 2 for middle mouse button.</returns>
+        public static int CreateClickZone(Event e, Rect rect, MouseCursor mouseCursor)
         {
             EditorGUIUtility.AddCursorRect(rect, mouseCursor);
-            bool clicked = rect.Contains(e.mousePosition) && (e.type == EventType.MouseDown || e.type == EventType.MouseUp) && e.button == button;
+            bool clicked = rect.Contains(e.mousePosition) && (e.type == EventType.MouseDown || e.type == EventType.MouseUp);
             if (clicked)
             {
                 e.Use();
             }
-            return clicked;
+            return clicked ? e.button : -1;
         }
 
         public static bool CreateClickZone(Event e, Rect rect, int button)
@@ -108,37 +116,43 @@ namespace Treasured.UnitySdk
 
         public static void TransformPropertyField(SerializedObject serializedTransform, string name, bool showPosition = true, bool showRotation = true, bool showScale = true)
         {
-            if (serializedTransform != null)
+            SerializedProperty property = serializedTransform.GetIterator();
+            if (serializedTransform != null && property != null)
             {
-                EditorGUILayout.LabelField(name, EditorStyles.boldLabel);
-                EditorGUI.indentLevel++;
-                EditorGUI.BeginChangeCheck();
-                serializedTransform.Update();
-                SerializedProperty localPosition = serializedTransform.FindProperty("m_LocalPosition");
-                SerializedProperty localRotation = serializedTransform.FindProperty("m_LocalRotation");
-                SerializedProperty localScale = serializedTransform.FindProperty("m_LocalScale");
-                if (showPosition && localPosition != null)
+                property.isExpanded = EditorGUILayout.BeginFoldoutHeaderGroup(property.isExpanded, name);
+                if (property.isExpanded)
                 {
-                    EditorGUILayout.PropertyField(localPosition);
-                }
-                if(showRotation && localRotation != null)
-                {
-                    if (transformRotationGUI == null)
+                    using (new EditorGUI.IndentLevelScope(1))
                     {
-                        var transformRotationGUIType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.TransformRotationGUI");
-                        transformRotationGUI = Activator.CreateInstance(transformRotationGUIType);
-                        transformRotationOnEnableMethodInfo = transformRotationGUIType.GetMethod("OnEnable");
-                        transformRotationGUIMethodInfo = transformRotationGUIType.GetMethods().FirstOrDefault(x => x.Name == "RotationField" && x.GetParameters().Length == 0);
+                        EditorGUI.BeginChangeCheck();
+                        serializedTransform.Update();
+                        SerializedProperty localPosition = serializedTransform.FindProperty("m_LocalPosition");
+                        SerializedProperty localRotation = serializedTransform.FindProperty("m_LocalRotation");
+                        SerializedProperty localScale = serializedTransform.FindProperty("m_LocalScale");
+                        if (showPosition && localPosition != null)
+                        {
+                            EditorGUILayout.PropertyField(localPosition);
+                        }
+                        if (showRotation && localRotation != null)
+                        {
+                            if (transformRotationGUI == null)
+                            {
+                                var transformRotationGUIType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.TransformRotationGUI");
+                                transformRotationGUI = Activator.CreateInstance(transformRotationGUIType);
+                                transformRotationOnEnableMethodInfo = transformRotationGUIType.GetMethod("OnEnable");
+                                transformRotationGUIMethodInfo = transformRotationGUIType.GetMethods().FirstOrDefault(x => x.Name == "RotationField" && x.GetParameters().Length == 0);
+                            }
+                            transformRotationOnEnableMethodInfo.Invoke(transformRotationGUI, new object[] { serializedTransform.FindProperty("m_LocalRotation"), new GUIContent("Local Rotation") });
+                            transformRotationGUIMethodInfo.Invoke(transformRotationGUI, null);
+                        }
+                        if (showScale && localScale != null)
+                        {
+                            EditorGUILayout.PropertyField(serializedTransform.FindProperty("m_LocalScale"));
+                        }
+                        serializedTransform.ApplyModifiedProperties();
                     }
-                    transformRotationOnEnableMethodInfo.Invoke(transformRotationGUI, new object[] { serializedTransform.FindProperty("m_LocalRotation"), new GUIContent("Local Rotation") });
-                    transformRotationGUIMethodInfo.Invoke(transformRotationGUI, null);
                 }
-                if(showScale && localScale != null)
-                {
-                    EditorGUILayout.PropertyField(serializedTransform.FindProperty("m_LocalScale"));
-                }
-                serializedTransform.ApplyModifiedProperties();
-                EditorGUI.indentLevel--;
+                EditorGUILayout.EndFoldoutHeaderGroup();
             }
         }
     }

@@ -15,12 +15,11 @@ namespace Treasured.UnitySdk
         }
 
         private static readonly GUIContent[] tabs = { new GUIContent("On Click"), new GUIContent("On Hover") };
+        private const string k_ActionsListExpanded = "TreasuredSDK_ActionsListExpanded";
 
         private ActionGroupListDrawer onClickList;
         private ActionGroupListDrawer onHoverList;
-        private SerializedProperty id;
-        private SerializedProperty description;
-        private SerializedProperty icon;
+        private SerializedProperty button;
         private SerializedProperty hitbox;
         private SerializedProperty camera;
         private SerializedProperty onClick;
@@ -41,9 +40,7 @@ namespace Treasured.UnitySdk
         {
             var hotspot = target as Hotspot;
             map = (target as Hotspot).Map;
-            id = serializedObject.FindProperty("_id");
-            description = serializedObject.FindProperty("_description");
-            icon = serializedObject.FindProperty("_icon");
+            button = serializedObject.FindProperty(nameof(TreasuredObject.button));
             hitbox = serializedObject.FindProperty("_hitbox");
             camera = serializedObject.FindProperty("_camera");
             onClick = serializedObject.FindProperty("_onClick");
@@ -81,22 +78,29 @@ namespace Treasured.UnitySdk
             serializedObject.Update();
             if (serializedObject.targetObjects.Length == 1)
             {
-                EditorGUILayout.PropertyField(id);
-                EditorGUILayout.PropertyField(description);
-                EditorGUILayout.PropertyField(icon);
+                EditorGUILayout.PropertyField(button);
                 EditorGUILayoutHelper.TransformPropertyField(serializedHitboxTransform, "Hitbox");
                 EditorGUILayoutHelper.TransformPropertyField(serializedCameraTransform, "Camera", true, true, false);
-                EditorGUILayout.LabelField("Actions", EditorStyles.boldLabel);
-                selectedTabIndex = GUILayout.SelectionGrid(selectedTabIndex, tabs, tabs.Length, TreasuredMapEditor.Styles.TabButton);
-                switch (selectedTabIndex)
+                EditorGUI.BeginChangeCheck();
+                bool isExpanded = EditorGUILayout.BeginFoldoutHeaderGroup(SessionState.GetBool(k_ActionsListExpanded, true), "Actions");
+                if(EditorGUI.EndChangeCheck())
                 {
-                    case 0:
-                        onClickList?.OnGUI();
-                        break;
-                    case 1:
-                        onHoverList?.OnGUI();
-                        break;
+                    SessionState.SetBool(k_ActionsListExpanded, isExpanded);
                 }
+                if (isExpanded)
+                {
+                    selectedTabIndex = GUILayout.SelectionGrid(selectedTabIndex, tabs, tabs.Length, TreasuredMapEditor.Styles.TabButton);
+                    switch (selectedTabIndex)
+                    {
+                        case 0:
+                            onClickList?.OnGUI();
+                            break;
+                        case 1:
+                            onHoverList?.OnGUI();
+                            break;
+                    }
+                }
+                EditorGUILayout.EndFoldoutHeaderGroup();
             }
             if (GUILayout.Button(Styles.snapToGround, GUILayout.Height(24)))
             {

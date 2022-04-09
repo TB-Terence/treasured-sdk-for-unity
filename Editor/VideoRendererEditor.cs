@@ -1,7 +1,5 @@
-﻿using System.Collections;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace Treasured.UnitySdk
 {
@@ -35,16 +33,12 @@ namespace Treasured.UnitySdk
         {
             serializedObject.Update();
 
-            SerializedProperty id = serializedObject.FindProperty("_id");
-            SerializedProperty description = serializedObject.FindProperty("_description");
             SerializedProperty lockAspectRatio = serializedObject.FindProperty("_lockAspectRatio");
             SerializedProperty aspectRatio = serializedObject.FindProperty("_aspectRatio");
             SerializedProperty src = serializedObject.FindProperty("Src");
             SerializedProperty volume = serializedObject.FindProperty("Volume");
             SerializedProperty loop = serializedObject.FindProperty("Loop");
 
-            EditorGUILayout.PropertyField(id);
-            EditorGUILayout.PropertyField(description);
             EditorGUILayout.PropertyField(src);
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(lockAspectRatio);
