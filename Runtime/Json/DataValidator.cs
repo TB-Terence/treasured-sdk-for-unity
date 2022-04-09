@@ -8,18 +8,6 @@ namespace Treasured.UnitySdk
     {
         public static void ValidateMap(TreasuredMap map)
         {
-            if (string.IsNullOrWhiteSpace(map.Author))
-            {
-                throw new TreasuredException("Missing Field", "The author field is missing.");
-            }
-            if (string.IsNullOrWhiteSpace(map.Title))
-            {
-                throw new TreasuredException("Missing Field", "The title field is missing.");
-            }
-            if (string.IsNullOrWhiteSpace(map.Description))
-            {
-                throw new TreasuredException("Missing Field", "The description field is missing.");
-            }
             var objects = map.GetComponentsInChildren<TreasuredObject>();
             FixDuplicateIds(objects);
             foreach (var obj in objects)

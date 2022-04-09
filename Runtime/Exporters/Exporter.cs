@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
@@ -17,6 +18,11 @@ namespace Treasured.UnitySdk
 
         public TreasuredMap Map { get => _map; }
 
+        public virtual List<ValidationResult> CanExport()
+        {
+            return new List<ValidationResult>();
+        }
+
         public virtual void OnPreExport() { }
         public abstract void Export();
         public virtual void OnPostExport() { }
@@ -33,7 +39,33 @@ namespace Treasured.UnitySdk
                 Directory.Delete(map.exportSettings.OutputDirectory, true);
             }
             Directory.CreateDirectory(map.exportSettings.OutputDirectory); // try create the directory if not exist.
-            foreach (var exporter in new Exporter[] { map.jsonExporter, map.cubemapExporter, map.meshExporter })
+            var exporters = new Exporter[] { map.jsonExporter, map.cubemapExporter, map.meshExporter };
+            List<ValidationResult> validationResults = new List<ValidationResult>();
+            foreach (var exporter in exporters)
+            {
+                var results = exporter.CanExport();
+                if(results != null)
+                {
+                    validationResults.AddRange(results);
+                }
+            }
+            if(validationResults.Count > 0)
+            {
+                foreach (var result in validationResults)
+                {
+                    string message = $"{result.name}\t{result.description}";
+                    if(result.type == ValidationResult.ValidationResultType.Warning)
+                    {
+                        Debug.LogWarning(message);
+                    }
+                    else if(result.type == ValidationResult.ValidationResultType.Error)
+                    {
+                        Debug.LogError(message);
+                    }
+                }
+                throw new Exception("Failed to export. Check console for more details");
+            }
+            foreach (var exporter in exporters)
             {
                 if (exporter != null && exporter.enabled)
                 {
