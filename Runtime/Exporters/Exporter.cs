@@ -56,11 +56,11 @@ namespace Treasured.UnitySdk
                     string message = $"{result.name}\n{result.description}";
                     if(result.type == ValidationResult.ValidationResultType.Warning)
                     {
-                        Debug.LogWarning(message);
+                        Debug.LogWarning(message, result.context);
                     }
                     else if(result.type == ValidationResult.ValidationResultType.Error)
                     {
-                        Debug.LogError(message);
+                        Debug.LogError(message, result.context);
                     }
                 }
                 throw new Exception("Failed to export. Check console for more details.");
