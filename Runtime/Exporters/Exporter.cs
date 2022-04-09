@@ -53,7 +53,7 @@ namespace Treasured.UnitySdk
             {
                 foreach (var result in validationResults)
                 {
-                    string message = $"{result.name}\t{result.description}";
+                    string message = $"{result.name}\n{result.description}";
                     if(result.type == ValidationResult.ValidationResultType.Warning)
                     {
                         Debug.LogWarning(message);
@@ -63,7 +63,7 @@ namespace Treasured.UnitySdk
                         Debug.LogError(message);
                     }
                 }
-                throw new Exception("Failed to export. Check console for more details");
+                throw new Exception("Failed to export. Check console for more details.");
             }
             foreach (var exporter in exporters)
             {

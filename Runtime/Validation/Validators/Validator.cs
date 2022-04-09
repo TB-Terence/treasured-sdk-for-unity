@@ -11,6 +11,9 @@ namespace Treasured.UnitySdk
             this.target = target;
         }
 
-        public abstract List<ValidationResult> GetValidationResults();
+        public virtual List<ValidationResult> GetValidationResults()
+        {
+            return new List<ValidationResult>();
+        }
     }
 }

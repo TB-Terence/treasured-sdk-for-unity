@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
-using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
@@ -25,7 +24,7 @@ namespace Treasured.UnitySdk
 
         public override List<ValidationResult> CanExport()
         {
-            RequiredFieldValidator validator = new RequiredFieldValidator(Map);
+            TreasuredMapValidator validator = new TreasuredMapValidator(Map);
             return validator.GetValidationResults();
         }
     }
