@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
@@ -10,9 +9,15 @@ namespace Treasured.UnitySdk
     [CustomPropertyDrawer(typeof(Button))]
     internal class ButtonDrawer : PropertyDrawer
     {
+        /// <summary>
+        /// Filter for Icons.
+        /// Finds all asset's file name contains Fa and is type texture2D.
+        /// </summary>
+        private const string kIconFilter = "Fa t:texture2D";
+        private static string[] s_IconFolderPaths = new string[] { "Packages/com.treasured.unitysdk/Resources/Icons/Objects/Font Awesome" };
         private static float k_SingleLineHeightWithSpace = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
-        private static Texture2D[] s_icons;
-        private static Texture2D s_defaultIcon;
+        private static GUIContent[] s_icons;
+        private static GUIContent s_defaultIcon;
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
@@ -39,7 +44,7 @@ namespace Treasured.UnitySdk
                         {
                             onSelected = (selection) =>
                             {
-                                SetIcon(property, selection.name);
+                                SetIcon(property, selection == null ? "FaCircle" : selection.name);
                             }
                         });
                     }
@@ -88,26 +93,21 @@ namespace Treasured.UnitySdk
         {
             SerializedProperty iconProperty = property.FindPropertyRelative(nameof(Button.icon));
             SerializedProperty transformProperty = property.FindPropertyRelative(nameof(Button.transform));
-            Texture2D texture = s_icons.First(x => x.name == name);
+            Texture2D texture = (Texture2D)s_icons.FirstOrDefault(x => x.tooltip == name).image;
+            iconProperty.stringValue = name;
             if (texture != null)
             {
-                iconProperty.stringValue = name;
                 if (transformProperty.objectReferenceValue != null && transformProperty.objectReferenceValue is Transform transform)
                 {
                     if (string.IsNullOrEmpty(name) || string.IsNullOrWhiteSpace(name))
                     {
-                        transform.gameObject.SetIcon(s_defaultIcon);
+                        transform.gameObject.SetIcon((Texture2D)s_defaultIcon.image);
                     }
                     else
                     {
                         transform.gameObject.SetIcon(texture);
                     }
                 }
-                iconProperty.serializedObject.ApplyModifiedProperties();
-            }
-            else
-            {
-                throw new FileNotFoundException($"Icon[{name}] is not found in the Resources/Icons/Objects/Font Awesome folder.");
             }
             iconProperty.serializedObject.ApplyModifiedProperties();
         }
@@ -126,6 +126,8 @@ namespace Treasured.UnitySdk
         {
             static class Styles
             {
+                public static GUIContent noIconFound = new GUIContent("No Icon Found");
+
                 public static readonly GUIStyle iconButton = new GUIStyle()
                 {
                     imagePosition = ImagePosition.ImageAbove,
@@ -135,6 +137,7 @@ namespace Treasured.UnitySdk
                     margin = new RectOffset(4, 4, 4, 4),
                     padding = new RectOffset(10, 10, 5, 5)
                 };
+
             }
 
             public Action<Texture2D> onSelected;
@@ -144,31 +147,54 @@ namespace Treasured.UnitySdk
 
             public IconWindowContent()
             {
-                string[] relativeIconPaths = Directory.GetFiles(Path.GetFullPath("Packages/com.treasured.unitysdk/Resources/Icons/Objects/Font Awesome"), "Fa*.png").Select(x => x.Substring(x.IndexOf("Packages")).Replace("\\", "/")).ToArray();
-                s_icons = relativeIconPaths.Select(path => AssetDatabase.LoadAssetAtPath<Texture2D>(path)).ToArray();
-                s_defaultIcon = s_icons.First(x => x.name == "FaCircle");
+                var guids = AssetDatabase.FindAssets(kIconFilter, s_IconFolderPaths);
+                if (s_icons == null || guids.Length != s_icons.Length)
+                {
+                    s_icons = new GUIContent[guids.Length];
+                    for (int i = 0; i < guids.Length; i++)
+                    {
+                        string guid = guids[i];
+                        string texturePath = AssetDatabase.GUIDToAssetPath(guid);
+                        Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath);
+                        s_icons[i] = new GUIContent(string.Empty, texture, texture.name);
+                    }
+                    s_defaultIcon = s_icons.FirstOrDefault(guiContent => guiContent.tooltip == "FaCircle");
+                }
+            }
+
+            public override Vector2 GetWindowSize()
+            {
+                Vector2 size = base.GetWindowSize();
+                return s_icons.Length == 0 ? new Vector2(size.x, k_SingleLineHeightWithSpace * 2) : size;
             }
 
             public override void OnGUI(Rect rect)
             {
-                using(new GUILayout.ScrollViewScope(scrollPosition, EditorStyles.helpBox))
+                if (s_icons.Length == 0)
                 {
-                    using (var scope = new EditorGUI.ChangeCheckScope())
+                    EditorGUI.LabelField(new Rect(rect.x, rect.y, rect.width, k_SingleLineHeightWithSpace), Styles.noIconFound, EditorStyles.centeredGreyMiniLabel);
+                }
+                else
+                {
+                    using (new GUILayout.ScrollViewScope(scrollPosition, EditorStyles.helpBox))
                     {
-                        _selectedIndex = GUI.SelectionGrid(new Rect(rect.x, rect.y, rect.width,  rect.height - k_SingleLineHeightWithSpace - EditorGUIUtility.standardVerticalSpacing), _selectedIndex, s_icons, 3, Styles.iconButton);
-                        if (scope.changed)
+                        using (var scope = new EditorGUI.ChangeCheckScope())
                         {
-                            if (onSelected != null)
+                            _selectedIndex = GUI.SelectionGrid(new Rect(rect.x, rect.y, rect.width, rect.height - k_SingleLineHeightWithSpace - EditorGUIUtility.standardVerticalSpacing), _selectedIndex, s_icons, 3, Styles.iconButton);
+                            if (scope.changed)
                             {
-                                onSelected.Invoke((Texture2D)s_icons[_selectedIndex]);
-                                editorWindow.Close();
+                                if (onSelected != null)
+                                {
+                                    onSelected.Invoke((Texture2D)s_icons[_selectedIndex].image);
+                                    editorWindow.Close();
+                                }
                             }
                         }
                     }
                 }
                 if (GUI.Button(new Rect(rect.x + 2, rect.yMax - k_SingleLineHeightWithSpace, rect.width - 4, EditorGUIUtility.singleLineHeight), "Use Default"))
                 {
-                    onSelected.Invoke(s_defaultIcon);
+                    onSelected.Invoke((Texture2D)s_defaultIcon.image);
                     editorWindow.Close();
                 }
             }
