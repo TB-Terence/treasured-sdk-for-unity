@@ -284,10 +284,7 @@ namespace Treasured.UnitySdk
                     }
                     catch (ValidationException e)
                     {
-                        if (e.errors.Count > 0)
-                        {
-                            ValidationWindow.Show(e);
-                        }
+                        MapExporterWindow.Show(_map, e);
                     }
                 }
                 using(new EditorGUI.DisabledGroupScope(!Directory.Exists(_map.exportSettings.OutputDirectory)))
@@ -339,9 +336,9 @@ namespace Treasured.UnitySdk
         [TabGroup(groupName = "Page Info")]
         public void OnPageInfoGUI()
         {
-            EditorGUILayoutHelper.RequiredPropertyField(serializedObject.FindProperty("_author"));
-            EditorGUILayoutHelper.RequiredPropertyField(serializedObject.FindProperty("_title"));
-            EditorGUILayoutHelper.RequiredPropertyField(serializedObject.FindProperty("_description"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_author"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_title"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_description"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_audioUrl"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_muteOnStart"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_templateLoader"));

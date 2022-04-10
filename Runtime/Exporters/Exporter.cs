@@ -43,11 +43,18 @@ namespace Treasured.UnitySdk
             }
             if(validationResults.Count > 0)
             {
-                if(validationResults.Count() > 0)
-                {
-                    throw new ValidationException(validationResults);
-                }
+                throw new ValidationException(validationResults);
             }
+            ForceExport(map);
+        }
+
+        public static void ForceExport(TreasuredMap map)
+        {
+            if (string.IsNullOrWhiteSpace(map.exportSettings.folderName))
+            {
+                throw new ArgumentException($"Export Settings > Folder Name is empty.");
+            }
+            var exporters = new Exporter[] { map.jsonExporter, map.cubemapExporter, map.meshExporter };
             DataValidator.ValidateMap(map);
             if (Directory.Exists(map.exportSettings.OutputDirectory))
             {
