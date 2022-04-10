@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Reflection;
 
 namespace Treasured.UnitySdk.Validation
 {
@@ -22,7 +20,7 @@ namespace Treasured.UnitySdk.Validation
                         var fieldName = info.ToTitleCase(reference.fieldInfo.Name.Replace("_", string.Empty));
                         results.Add(new ValidationResult()
                         {
-                            name = "Missing Required Field.",
+                            name = "Missing Required Field",
                             description = $"`{fieldName}` field is required but is missing or empty.",
                             type = ValidationResult.ValidationResultType.Error
                         });

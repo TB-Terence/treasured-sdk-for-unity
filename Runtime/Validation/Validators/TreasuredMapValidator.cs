@@ -101,16 +101,16 @@ namespace Treasured.UnitySdk.Validation
             var hotspots = _map.Hotspots;
             if (hotspots.Length > 2)
             {
-                for (int i = 1; i < hotspots.Length; i++)
+                for (int i = 0; i < hotspots.Length; i++)
                 {
-                    var previous = hotspots[i - 1];
                     var current = hotspots[i];
-                    if(Physics.Linecast(previous.Camera.transform.position, current.Camera.transform.position, out RaycastHit hit))
+                    var next = hotspots[(i + 1) % hotspots.Length]; // ensure last go to first
+                    if(Physics.Linecast(current.Camera.transform.position, next.Camera.transform.position, out RaycastHit hit))
                     {
                         results.Add(new ValidationResult()
                         {
                             name = "Collider blocking path",
-                            description = $"Collider blocking path between hotspot <{previous.name}> and <{current.name}>. The object is {hit.collider.gameObject.name}",
+                            description = $"Collider blocking path between hotspot <{current.name}> and <{next.name}>. The game object that blocking the path is {hit.collider.gameObject.name}",
                             context = hit.collider.gameObject,
                             type = ValidationResult.ValidationResultType.Warning
                         });
