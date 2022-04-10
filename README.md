@@ -1,14 +1,33 @@
-# Treasured Toolkit for Unity
+# Treasured SDK for Unity
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/company/treasured/)
+[![Instagram](https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](https://www.instagram.com/treasuredteam/)
+[![Youtube](https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/channel/UCe7PPx_Gn7rq3Wfl1MO9NEQ)
 
-This package provides tools for creating and exporting files used by Treasured Web Viewer.
+## Overview
+
+This package provides tools for creating and exporting files in [Unity](https://unity.com/) used by [Treasured Web Viewer](https://treasured.ca/). The package is currently under development. Issues and feature requests can be submit at [here](https://github.com/TB-Terence/treasured-sdk-for-unity/issues).
 
 ## Minimum Unity Version
-- 2020.3+
+- 2020.3+, older version may work but not guaranteed
 
-##  Packages Dependencies
-- [High Definition RP](https://docs.unity3d.com/Packages/com.unity.render-pipelines.high-definition@10.5/manual/index.html), minimum version 10.5.1+.
-- [Newtonsoft.Json](https://www.newtonsoft.com/json), minimum version 12.0.1+. We recommend install [Newtonsoft.Json-for-Unity](https://github.com/jilleJr/Newtonsoft.Json-for-Unity) and follow their [installation guide](https://github.com/jilleJr/Newtonsoft.Json-for-Unity#installation).
+## Installing the Package
+Currently the package can only be installed using git. Eventually the package will be move to scoped registry (e.g., [OpenUPM](https://openupm.com/)) or asset store.
 
-## How to add package to your project
+There are two versions of the package:
+1. Stable - This is the most stable version.
+```
+https://github.com/TB-Terence/treasured-sdk-for-unity.git/upm
+```
+2. Experimental - This is an experimental version with all the new features and changes. This version doesn't guarantee to generate valid files.
+```
+https://github.com/TB-Terence/treasured-sdk-for-unity.git/exp
+```
 
-Follow Unity's [guide](https://docs.unity3d.com/Manual/upm-ui-giturl.html) on how to add a package from a git URL to your project. The git URL for the package will be `https://github.com/TB-Terence/treasured-sdk-for-unity.git`
+### Install via GIT URL
+The guide on how to add a package from a git URL to your project can be found [here](https://docs.unity3d.com/Manual/upm-ui-giturl.html). Use the GIT URL for the version.
+
+### Install via local folder
+You must [clone](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) the project first and then follow the [guide](https://docs.unity3d.com/Manual/upm-ui-local.html) on how to add a package from local folder. Use the GIT URL for the version.
+
+## Getting Started
+- [Creating an Exhibit](Documentation~/Creating-an-Exhibit.md)
