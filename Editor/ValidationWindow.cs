@@ -24,6 +24,9 @@ namespace Treasured.UnitySdk
             window.results = e.results;
             window.warnings = e.warnings;
             window.errors = e.errors;
+            Styles.tabs[0].text = $"All({e.results.Count})";
+            Styles.tabs[1].text = $"({e.warnings.Count})";
+            Styles.tabs[2].text = $"({e.errors.Count})";
             window.Show();
         }
 
