@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace Treasured.UnitySdk
+namespace Treasured.UnitySdk.Validation
 {
     public sealed class TreasuredMapValidator : Validator
     {

@@ -1,4 +1,4 @@
-﻿namespace Treasured.UnitySdk
+﻿namespace Treasured.UnitySdk.Validation
 {
     public struct ValidationResult
     {

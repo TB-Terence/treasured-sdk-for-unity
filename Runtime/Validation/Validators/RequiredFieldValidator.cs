@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Reflection;
 
-namespace Treasured.UnitySdk
+namespace Treasured.UnitySdk.Validation
 {
     public class RequiredFieldValidator : Validator
     {
@@ -10,18 +12,18 @@ namespace Treasured.UnitySdk
         public override List<ValidationResult> GetValidationResults()
         {
             List<ValidationResult> results = new List<ValidationResult>();
-            FieldInfo[] fieldInfos = ReflectionUtilities.GetSeriliazedFieldsWithAttribute<RequiredFieldAttribute>(target);
-            foreach (FieldInfo fieldInfo in fieldInfos)
+            foreach (var reference in ReflectionUtilities.GetSeriliazedFieldReferencesWithAttribute<RequiredFieldAttribute>(target))
             {
-                var value = fieldInfo.GetValue(target);
-                if(value is string str)
+                if (reference.Value is string str)
                 {
                     if (string.IsNullOrWhiteSpace(str))
                     {
+                        TextInfo info = CultureInfo.CurrentCulture.TextInfo;
+                        var fieldName = info.ToTitleCase(reference.fieldInfo.Name.Replace("_", string.Empty));
                         results.Add(new ValidationResult()
                         {
                             name = "Missing Required Field.",
-                            description = $"`{fieldInfo.Name}` field is required but missing(empty).",
+                            description = $"`{fieldName}` field is required but is missing or empty.",
                             type = ValidationResult.ValidationResultType.Error
                         });
                     }

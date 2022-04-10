@@ -13,6 +13,7 @@ namespace Treasured.UnitySdk
         public bool autoCameraRotation;
 
         [TextArea(3, 3)]
+        [RequiredField]
         public string imageUrl;
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Treasured.UnitySdk.Validation;
 using UnityEditor;
 using UnityEngine;
 
@@ -277,7 +278,17 @@ namespace Treasured.UnitySdk
             {
                 if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Export", $"Export scene to {EditorPrefs.GetString(ExportSettings.OutputRootDirectoryKey, $"{ExportSettings.DefaultOutputDirectory}")}/ {_map.exportSettings.folderName}", "SceneLoadIn"), Styles.exportButton))
                 {
-                    Exporter.Export(_map);
+                    try
+                    {
+                        Exporter.Export(_map);
+                    }
+                    catch (ValidationException e)
+                    {
+                        if (e.errors.Count > 0)
+                        {
+                            ValidationWindow.Show(e);
+                        }
+                    }
                 }
                 using(new EditorGUI.DisabledGroupScope(!Directory.Exists(_map.exportSettings.OutputDirectory)))
                 {

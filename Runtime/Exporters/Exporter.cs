@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Treasured.UnitySdk.Validation;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
@@ -51,6 +53,11 @@ namespace Treasured.UnitySdk
             }
             if(validationResults.Count > 0)
             {
+                var errors = validationResults.Select(result => result.type == ValidationResult.ValidationResultType.Error);
+                if(errors.Count() > 0)
+                {
+                    throw new ValidationException(validationResults);
+                }
                 foreach (var result in validationResults)
                 {
                     string message = $"{result.name}\n{result.description}";
