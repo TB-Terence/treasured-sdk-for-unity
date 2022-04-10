@@ -72,9 +72,55 @@ namespace Treasured.UnitySdk
         public ImageFormat Format { get => _format; set => _format = value; }
 
         [SerializeField]
-        private ImageQuality _quality = ImageQuality.High;
-        public ImageQuality Quality { get => _quality; set => _quality = value; }
+        private bool _canUseTag;
+        
+        [JsonIgnore]
+        public bool CanUseTag
+        {
+            get => _canUseTag;
+            set => _canUseTag = value;
+        }
 
+        [SerializeField]
+        private string _filterTag = "Untagged";
+        
+        [JsonIgnore]
+        public string FilterTag
+        {
+            get => _filterTag;
+            set => _filterTag = value;
+        }
+
+        [SerializeField]
+        private bool _canUseLayerMask;
+        
+        [JsonIgnore]
+        public bool CanUseLayerMask
+        {
+            get => _canUseLayerMask;
+            set => _canUseLayerMask = value;
+        }
+
+        [SerializeField]
+        private LayerMask _filterLayerMask;
+        
+        [JsonIgnore]
+        public LayerMask FilterLayerMask
+        {
+            get => _filterLayerMask;
+            set => _filterLayerMask = value;
+        }
+
+        [SerializeField]
+        private bool _keepCombinedMesh;
+        
+        [JsonIgnore]
+        public bool KeepCombinedMesh
+        {
+            get => _keepCombinedMesh;
+            set => _keepCombinedMesh = value;
+        }
+        
         #endregion
 
         #region Objects
@@ -115,21 +161,20 @@ namespace Treasured.UnitySdk
         private string _outputFolderName;
         [JsonIgnore]
         public string OutputFolderName { get => _outputFolderName; set => _outputFolderName = value; }
+        
 
         [SerializeField]
         private int _interactableLayer; // game object can only have one layer thus using int instead of LayerMask
 
-        public bool _useTag;
-        public string _tag;
-        public bool _useLayerMask;
-        public LayerMask _layerMask;
-
         #endregion
+
+        [Code]
+        public string headHTML;
 
         private void OnValidate()
         {
             //  Set default Auto Camera Rotation to false for all except for modern loader template 
-            if (_templateLoader.template != "modern")
+            if (_templateLoader != null && _templateLoader.template != "modern")
             {
                 _templateLoader.autoCameraRotation = false;
             }

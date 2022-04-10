@@ -26,9 +26,16 @@ namespace Treasured.UnitySdk
                 writer.WritePropertyName(nameof(hitbox.transform.position));
                 serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsPosition(hitbox.transform));
                 writer.WritePropertyName(nameof(hitbox.transform.rotation));
-                serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsRotation(hitbox.transform));
+                if (ThreeJsTransformConverter.ShouldConvertToThreeJsTransform)
+                {
+                    serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsQuaternion(hitbox.transform));
+                }
+                else
+                {
+                    serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsEulerAngles(hitbox.transform));
+                }
                 writer.WritePropertyName("size");
-                serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsPosition(hitbox.transform));
+                serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsScale(hitbox.transform));
                 writer.WriteEndObject();
             }
         }

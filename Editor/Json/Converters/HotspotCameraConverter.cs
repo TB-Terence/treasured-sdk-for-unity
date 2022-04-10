@@ -26,7 +26,14 @@ namespace Treasured.UnitySdk
                 writer.WritePropertyName(nameof(camera.transform.position));
                 serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsPosition(camera.transform));
                 writer.WritePropertyName(nameof(camera.transform.rotation));
-                serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsRotation(camera.transform));
+                if (ThreeJsTransformConverter.ShouldConvertToThreeJsTransform)
+                {
+                    serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsQuaternion(camera.transform));
+                }
+                else
+                {
+                    serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsEulerAngles(camera.transform));
+                }
                 writer.WriteEndObject();
             }
         }

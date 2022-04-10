@@ -1,4 +1,6 @@
+using Newtonsoft.Json;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Treasured.UnitySdk
 {
@@ -8,8 +10,15 @@ namespace Treasured.UnitySdk
     public class CustomCodeAction : EmbedAction
     {
         [SerializeField]
-        [TextArea(9, 9)]
-        private string _src;
-        public string Src { get => _src; set => _src = value; }
+        //[TextArea(9, 9)]
+        [Code]
+        [FormerlySerializedAs("_src")]
+        private string _code;
+        
+        [System.Obsolete("Use Code Property instead")]
+        public string Src { get => _code; set => _code = value; }
+
+        [JsonIgnore]
+        public string Code { get => _code; set => _code = value; }
     }
 }

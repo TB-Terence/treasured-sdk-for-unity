@@ -13,10 +13,16 @@ namespace Treasured.UnitySdk
     [CustomEditor(typeof(TreasuredMap))]
     internal class TreasuredMapEditor : UnityEditor.Editor
     {
-        [MenuItem("Tools/Treasured/Upgrade to Latest", priority = 99)]
-        static void UpgradeToLatest()
+        [MenuItem("Tools/Treasured/Upgrade to Latest(Stable)", priority = 99)]
+        static void UpgradeToStableVersion()
         {
             Client.Add("https://github.com/TB-Terence/treasured-sdk-for-unity.git#upm");
+        }
+        
+        [MenuItem("Tools/Treasured/Upgrade to Latest(Experimental)", priority = 99)]
+        static void UpgradeToExperimentalVersion()
+        {
+            Client.Add("https://github.com/TB-Terence/treasured-sdk-for-unity.git#exp");
         }
 
         private static readonly string[] selectableObjectListNames = new string[] { "Hotspots", "Interactables", "Videos", "Sounds" };
@@ -143,6 +149,7 @@ namespace Treasured.UnitySdk
         private SerializedProperty _audioUrl;
         private SerializedProperty _muteOnStart;
         private SerializedProperty _templateLoader;
+        private SerializedProperty headHTML;
         private SerializedProperty uiSettings;
 
         private bool exportAllHotspots = true;
@@ -176,12 +183,11 @@ namespace Treasured.UnitySdk
 
         private string searchString;
 
-        private ExportProcess[] exportProcesses;
-
-
         private SerializedProperty _outputFolderName;
 
         private bool _overwriteExistingData;
+
+        private string _outputRoot;
 
         private void OnEnable()
         {
@@ -198,8 +204,7 @@ namespace Treasured.UnitySdk
             _muteOnStart = serializedObject.FindProperty(nameof(_muteOnStart));
             _templateLoader = serializedObject.FindProperty(nameof(_templateLoader));
             uiSettings = serializedObject.FindProperty(nameof(uiSettings));
-
-
+            headHTML = serializedObject.FindProperty(nameof(headHTML));
 
             if (map)
             {
@@ -226,27 +231,11 @@ namespace Treasured.UnitySdk
                     _outputFolderName.stringValue = EditorSceneManager.GetActiveScene().name;
                     serializedObject.ApplyModifiedProperties();
                 }
-
-                if (exportProcesses == null)
+                _outputRoot = GetOutputDirectory();
+                foreach (var process in ExportProcessSettings.Instances)
                 {
-                    var exportProcessTypes = Assembly.GetExecutingAssembly().GetTypes().Where(x => !x.IsAbstract && typeof(ExportProcess).IsAssignableFrom(x)).ToArray();
-                    if(exportProcessTypes.Length > 0)
-                    {
-                        exportProcesses = new ExportProcess[exportProcessTypes.Length];
-                        for (int i = 0; i < exportProcesses.Length; i++)
-                        {
-                            exportProcesses[i] = (ExportProcess)Activator.CreateInstance(exportProcessTypes[i]);
-                        }
-                    }
-                    else
-                    {
-                        exportProcesses = new ExportProcess[0];
-                    }
-                }
-                foreach (var process in exportProcesses)
-                {
-                    process.OnEnable(serializedObject);
-                }
+                    process.Processor?.OnEnable(serializedObject);
+                };
             }
 
             SceneView.duringSceneGui -= OnSceneViewGUI;
@@ -349,7 +338,7 @@ namespace Treasured.UnitySdk
         }
 
         [FoldoutGroup("Page Info")]
-        void OnLaunchPageSettingsGUI()
+        void OnLandingPagePropertiesGUI()
         {
             EditorGUILayoutHelper.RequiredPropertyField(_author);
             EditorGUILayoutHelper.RequiredPropertyField(_title);
@@ -357,6 +346,9 @@ namespace Treasured.UnitySdk
             EditorGUILayout.PropertyField(_audioUrl);
             EditorGUILayout.PropertyField(_muteOnStart);
             EditorGUILayout.PropertyField(_templateLoader);
+            EditorGUILayout.PropertyField(headHTML);
+            EditorGUILayout.PropertyField(uiSettings.FindPropertyRelative("projectDomeOntoGeometry"));
+            EditorGUILayout.PropertyField(uiSettings.FindPropertyRelative("showOnboarding"));
         }
 
         [FoldoutGroup("Object Management", true)]
@@ -441,6 +433,7 @@ namespace Treasured.UnitySdk
             if (EditorGUI.EndChangeCheck() && !string.IsNullOrWhiteSpace(newOutputFolderName))
             {
                 _outputFolderName.stringValue = newOutputFolderName;
+                _outputRoot = GetOutputDirectory();
             }
             string outputFolderPath = Path.Combine(ExportProcess.DefaultOutputFolderPath, _outputFolderName.stringValue);
             using (new EditorGUILayout.HorizontalScope())
@@ -462,8 +455,12 @@ namespace Treasured.UnitySdk
             EditorGUI.indentLevel++;
             try
             {
-                foreach (var process in exportProcesses)
+                foreach (var process in ExportProcessSettings.Instances)
                 {
+                    if (!process.ShowInEditor)
+                    {
+                        continue;
+                    }
                     using (new EditorGUILayout.HorizontalScope())
                     {
                         float previousLabelWidth = EditorGUIUtility.labelWidth;
@@ -475,38 +472,25 @@ namespace Treasured.UnitySdk
                     if (process.Expanded)
                     {
                         EditorGUI.indentLevel++;
-                        process.OnGUI(serializedObject);
+                        process.Processor?.OnGUI(_outputRoot, serializedObject);
                         EditorGUI.indentLevel--;
                     }
                 }
                 if (GUILayout.Button(new GUIContent("Export", "Export all enabled process."), GUILayout.Height(24)))
                 {
                     DataValidator.ValidateMap(map);
-                    string root = string.Empty;
-                    try
+                    if (Directory.Exists(_outputRoot))
                     {
-                        root = Path.Combine(ExportProcess.DefaultOutputFolderPath, (target as TreasuredMap).OutputFolderName).Replace('/', '\\');
+                        Directory.Delete(_outputRoot, true);
                     }
-                    catch (Exception ex) when (ex is IOException || ex is ArgumentException)
+                    Directory.CreateDirectory(_outputRoot); // try create the directory if not exist.
+                    foreach (var process in ExportProcessSettings.Instances)
                     {
-                        throw new ArgumentException($"Invalid folder name : {(target as TreasuredMap).OutputFolderName}");
-                    }
-                    catch
-                    {
-                        throw;
-                    }
-                    if (Directory.Exists(root))
-                    {
-                        Directory.Delete(root, true);
-                    }
-                    Directory.CreateDirectory(root); // try create the directory if not exist.
-                    foreach (var process in exportProcesses)
-                    {
-                        if (process.Enabled)
+                        if (process.Enabled && process.Processor != null)
                         {
-                            process.OnPreProcess(serializedObject);
-                            process.OnExport(root, target as TreasuredMap);
-                            process.OnPostProcess(serializedObject);
+                            process.Processor.OnPreProcess(serializedObject);
+                            process.Processor.OnExport(_outputRoot, target as TreasuredMap);
+                            process.Processor.OnPostProcess(serializedObject);
                         }
                     }
                 }
@@ -541,13 +525,22 @@ namespace Treasured.UnitySdk
             }
         }
 
-        //[FoldoutGroup("Upload", true)]
-        void OnUploadGUI()
+        string GetOutputDirectory()
         {
-            if (GUILayout.Button("Upload", GUILayout.Height(24)))
+            string root = string.Empty;
+            try
             {
-                UploadWindow.ShowUploadWindow();
+                root = Path.Combine(ExportProcess.DefaultOutputFolderPath, (target as TreasuredMap).OutputFolderName).Replace('/', '\\');
             }
+            catch (Exception ex) when (ex is IOException || ex is ArgumentException)
+            {
+                throw new ArgumentException($"Invalid folder name : {(target as TreasuredMap).OutputFolderName}");
+            }
+            catch
+            {
+                throw;
+            }
+            return root;
         }
 
         void OnObjectList<T>(IList<T> objects, ref Vector2 scrollPosition, ref bool enableAll, ref GroupToggleState groupToggleState) where T : TreasuredObject
@@ -649,9 +642,9 @@ namespace Treasured.UnitySdk
                     go.transform.SetParent(root);
                     objects.Add(obj);
                     EditorGUIUtility.PingObject(go);
+                    obj.TryInvokeMethods("OnSelectedInHierarchy");
                     if (Physics.Raycast(camera.transform.position, camera.transform.forward, out var hit))
                     {
-                        obj.TryInvokeMethods("OnSelectedInHierarchy");
                         obj.transform.position = hit.point;
                         if (obj is Hotspot hotspot)
                         {

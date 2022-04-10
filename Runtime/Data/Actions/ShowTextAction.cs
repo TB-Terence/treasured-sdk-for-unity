@@ -15,7 +15,7 @@ namespace Treasured.UnitySdk
         }
 
         [SerializeField]
-        [Markdown]
+        [Code]
         private string _content;
 
         [SerializeField]

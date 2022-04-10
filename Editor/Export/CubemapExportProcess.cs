@@ -7,33 +7,36 @@ using UnityEngine.Rendering;
 
 namespace Treasured.UnitySdk
 {
+    [ExportProcessSettings(EnabledByDefault = false)]
     internal class CubemapExportProcess : ExportProcess
     {
         private const int MAXIMUM_CUDA_TEXTURE_WIDTH = 4096;
         private const int MAXIMUM_CUBEMAP_FACE_WIDTH = 1360; // 4096 / 3 round to nearest tenth
         private const int MAXIMUM_CUBEMAP_WIDTH = 8192;
 
+        private static bool s_flipY = false;
+
         private bool _isAdvancedMode = false;
         private int _cubemapSize = MAXIMUM_CUBEMAP_FACE_WIDTH;
 
         private SerializedProperty _format;
-        private SerializedProperty _quality;
         private CubemapFormat _cubemapFormat = CubemapFormat.IndividualFace;
         private int qualityPercentage = 75;
         private ImageFormat imageFormat = ImageFormat.Ktx2;
+        private ImageQuality quality = ImageQuality.High;
 
         public override void OnEnable(SerializedObject serializedObject)
         {
             _format = serializedObject.FindProperty(nameof(_format));
-            _quality = serializedObject.FindProperty(nameof(_quality));
             _format.enumValueIndex = (int)ImageFormat.Ktx2;
             serializedObject.ApplyModifiedProperties();
         }
-        public override void OnGUI(SerializedObject serializedObject)
+        public override void OnGUI(string root, SerializedObject serializedObject)
         {
             //EditorGUILayout.PropertyField(_format);
             imageFormat = (ImageFormat)EditorGUILayout.EnumPopup(new GUIContent("Format"), imageFormat);
-            EditorGUILayout.PropertyField(_quality);
+            quality = (ImageQuality)EditorGUILayout.EnumPopup(new GUIContent("Quality"), quality);
+            s_flipY = EditorGUILayout.Toggle(new GUIContent("Flip Y"), s_flipY);
             _cubemapFormat = (CubemapFormat)EditorGUILayout.EnumPopup(new GUIContent("Cubemap Format"), _cubemapFormat);
             if (_cubemapFormat == CubemapFormat._3x2)
             {
@@ -69,7 +72,7 @@ namespace Treasured.UnitySdk
 
             int count = hotspots.Length;
 
-            Cubemap cubemap = new Cubemap(_cubemapFormat == CubemapFormat.IndividualFace ? (int)map.Quality : _cubemapSize, TextureFormat.ARGB32, false);
+            Cubemap cubemap = new Cubemap(_cubemapFormat == CubemapFormat.IndividualFace ? (int)quality : _cubemapSize, TextureFormat.ARGB32, false);
             Texture2D texture = null;
             switch (_cubemapFormat)
             {
@@ -111,7 +114,7 @@ namespace Treasured.UnitySdk
                                     throw new TreasuredException("Export canceled", "Export canceled by the user.");
                                 }
                                 texture.SetPixels((i % 3) * _cubemapSize, MAXIMUM_CUDA_TEXTURE_WIDTH - ((i / 3) + 1) * _cubemapSize, _cubemapSize, _cubemapSize,
-                                ImageUtilies.FlipPixels(cubemap.GetPixels((CubemapFace)i), _cubemapSize, _cubemapSize, true, imageFormat != ImageFormat.Ktx2));
+                                ImageUtilies.FlipPixels(cubemap.GetPixels((CubemapFace)i), _cubemapSize, _cubemapSize, true, s_flipY));
                             }
                             ImageUtilies.Encode(texture, path.FullName, "cubemap", imageFormatParser, qualityPercentage);
                             break;
@@ -123,7 +126,7 @@ namespace Treasured.UnitySdk
                                     throw new TreasuredException("Export canceled", "Export canceled by the user.");
                                 }
                                 texture.SetPixels(cubemap.GetPixels((CubemapFace)i));
-                                ImageUtilies.FlipPixels(texture, true, imageFormat != ImageFormat.Ktx2);
+                                ImageUtilies.FlipPixels(texture, true, s_flipY);
                                 ImageUtilies.Encode(texture, path.FullName, SimplifyCubemapFace((CubemapFace)i), imageFormatParser, qualityPercentage);
                             }
                             break;

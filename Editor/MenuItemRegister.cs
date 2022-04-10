@@ -32,8 +32,10 @@ namespace Treasured.UnitySdk
                 categoryRoot.SetParent(mapTransform);
             }
             string uniqueName = ObjectNames.GetUniqueName(Enumerable.Range(0, categoryRoot.childCount).Select(index => categoryRoot.GetChild(index).name).ToArray(), ObjectNames.NicifyVariableName(typeof(T).Name));
-            GameObject newObject = new GameObject(uniqueName, typeof(T));
+            GameObject newObject = new GameObject(uniqueName);
+            T component = newObject.AddComponent<T>();
             newObject.transform.SetParent(categoryRoot);
+            component.TryInvokeMethods("OnSelectedInHierarchy");
 #if UNITY_2020_3_OR_NEWER
             // Enable renaming mode
             Selection.activeGameObject = newObject;
