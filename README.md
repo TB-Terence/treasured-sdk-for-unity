@@ -24,10 +24,11 @@ https://github.com/TB-Terence/treasured-sdk-for-unity.git/exp
 ```
 
 ### Install via GIT URL
-The guide on how to add a package from a git URL to your project can be found [here](https://docs.unity3d.com/Manual/upm-ui-giturl.html). Use the GIT URL for the version.
+The guide on how to add a package from a git URL to your project can be found [here](https://docs.unity3d.com/Manual/upm-ui-giturl.html). Use the GIT URL above for different version.
 
 ### Install via local folder
-You must [clone](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) the project first and then follow the [guide](https://docs.unity3d.com/Manual/upm-ui-local.html) on how to add a package from local folder. Use the GIT URL for the version.
+You must [clone](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) the project first and then follow the [guide](https://docs.unity3d.com/Manual/upm-ui-local.html) on how to add a package from local folder. Use the GIT URL above for different version.
 
 ## Getting Started
 - [Creating an Exhibit](Documentation~/Creating-an-Exhibit.md)
+- [Exporting an Exhibit](Documentation~/Exporting-an-Exhibit.md)
