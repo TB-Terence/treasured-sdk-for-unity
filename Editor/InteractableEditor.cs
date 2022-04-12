@@ -42,7 +42,7 @@ namespace Treasured.UnitySdk
             }
             serializedObject.Update();
             EditorGUILayout.PropertyField(button);
-            EditorGUILayoutHelper.TransformPropertyField(serializedHitboxTransform, "Hitbox");
+            EditorGUILayoutUtils.TransformPropertyField(serializedHitboxTransform, "Hitbox");
             if (targets.Length == 1)
             {
                 onClickList.OnGUI(true);

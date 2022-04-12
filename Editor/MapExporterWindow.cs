@@ -101,9 +101,24 @@ namespace Treasured.UnitySdk
                 item.expanded = EditorGUILayout.BeginFoldoutHeaderGroup(item.expanded, EditorGUIUtility.TrTextContentWithIcon(item.validationResult.name, item.validationResult.type == ValidationResult.ValidationResultType.Warning ? MessageType.Warning : MessageType.Error));
                 if (item.expanded)
                 {
-                    using (new EditorGUI.IndentLevelScope(1))
+                    using (new EditorGUI.IndentLevelScope(2))
                     {
                         EditorGUILayout.LabelField(new GUIContent(item.validationResult.description), EditorStyles.wordWrappedLabel);
+                        using (new EditorGUILayout.HorizontalScope())
+                        {
+                            for (int index = 0; index < item.validationResult.targets.Length; index++)
+                            {
+                                if (GUILayout.Button(item.validationResult.targets[index].name, EditorStyles.linkLabel))
+                                {
+                                    EditorGUIUtility.PingObject(item.validationResult.targets[index]);
+                                }
+                            }
+                            if (GUILayout.Button(item.validationResult.target.name, EditorStyles.linkLabel))
+                            {
+                                EditorGUIUtility.PingObject(item.validationResult.target);
+                            }
+                        }
+                        
                     }
                 }
                 EditorGUILayout.EndFoldoutHeaderGroup();

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Treasured.UnitySdk.Utilities;
 using Treasured.UnitySdk.Validation;
 using UnityEditor;
 using UnityEngine;
@@ -299,7 +300,7 @@ namespace Treasured.UnitySdk
                     GenericMenu menu = new GenericMenu();
                     menu.AddItem(new GUIContent("Config Root Directory"), false, () =>
                     {
-                        string directory = EditorUtility.OpenFolderPanel("Select Output Root", "", "");
+                        string directory = UnityEditor.EditorUtility.OpenFolderPanel("Select Output Root", "", "");
                         if (!string.IsNullOrEmpty(directory))
                         {
                             EditorPrefs.SetString(ExportSettings.OutputRootDirectoryKey, directory);
@@ -441,7 +442,7 @@ namespace Treasured.UnitySdk
                                                     EditorGUILayout.LabelField(new GUIContent(current.gameObject.name, current.Id), style: Styles.objectLabel);
                                                 }
                                             }
-                                            switch (EditorGUILayoutHelper.CreateClickZone(Event.current, GUILayoutUtility.GetLastRect(), MouseCursor.Link))
+                                            switch (EditorGUILayoutUtils.CreateClickZone(Event.current, GUILayoutUtility.GetLastRect(), MouseCursor.Link))
                                             {
                                                 case 0:
                                                     if (current is Hotspot hotspot)
@@ -465,7 +466,7 @@ namespace Treasured.UnitySdk
 #if UNITY_2020_3_OR_NEWER
                                                     menu.AddItem(new GUIContent("Rename"), false, () =>
                                                     {
-                                                        EditorUtilities.RenameGO(current.gameObject);
+                                                        GameObjectUtils.RenameGO(current.gameObject);
                                                     });
                                                     menu.AddSeparator("");
 #endif
@@ -529,7 +530,7 @@ namespace Treasured.UnitySdk
             }
             finally
             {
-                EditorUtility.ClearProgressBar();
+                UnityEditor.EditorUtility.ClearProgressBar();
             }
         }
 

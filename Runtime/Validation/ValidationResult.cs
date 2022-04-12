@@ -10,7 +10,8 @@
 
         public string name;
         public string description;
-        public UnityEngine.Object context;
+        public UnityEngine.Object target;
+        public UnityEngine.Object[] targets;
         public ValidationResultType type;
     }
 }

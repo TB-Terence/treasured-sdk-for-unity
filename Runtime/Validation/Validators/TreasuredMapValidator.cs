@@ -35,7 +35,8 @@ namespace Treasured.UnitySdk.Validation
                     {
                         name = "Missing reference for Action",
                         description = $"Camera Transform is not assigned for {obj.name}.",
-                        type = ValidationResult.ValidationResultType.Error
+                        type = ValidationResult.ValidationResultType.Error,
+                        target = obj
                     });
                 }
                 foreach (var group in obj.OnClick)
@@ -50,7 +51,8 @@ namespace Treasured.UnitySdk.Validation
                                 {
                                     name = "Missing reference",
                                     description = $"The target for Select-Object action is inactive OR is not assigned for {obj.name}.",
-                                    type = ValidationResult.ValidationResultType.Error
+                                    type = ValidationResult.ValidationResultType.Error,
+                                    target = soa.Target,
                                 });
                             }
                             else if (soa.Target.GetComponentInParent<TreasuredMap>() != obj.GetComponentInParent<TreasuredMap>())
@@ -59,7 +61,8 @@ namespace Treasured.UnitySdk.Validation
                                 {
                                     name = "Invalid reference",
                                     description = $"The target set for Select-Object action does not belong to the same map.",
-                                    type = ValidationResult.ValidationResultType.Error
+                                    type = ValidationResult.ValidationResultType.Error,
+                                    target = soa.Target,
                                 });
                             }
                         }
@@ -77,7 +80,8 @@ namespace Treasured.UnitySdk.Validation
                                 {
                                     name = "Missing reference",
                                     description = $"The target for OnHover-Object action is inactive OR is not assigned for {obj.name}.",
-                                    type = ValidationResult.ValidationResultType.Error
+                                    type = ValidationResult.ValidationResultType.Error,
+                                    target = soa.Target
                                 });
                             }
                             else if (soa.Target.GetComponentInParent<TreasuredMap>() != obj.GetComponentInParent<TreasuredMap>())
@@ -86,7 +90,8 @@ namespace Treasured.UnitySdk.Validation
                                 {
                                     name = "Invalid reference",
                                     description = $"The target set for OnHover-Object action does not belong to the same map.",
-                                    type = ValidationResult.ValidationResultType.Error
+                                    type = ValidationResult.ValidationResultType.Error,
+                                    target = soa.Target
                                 });
                             }
                         }
@@ -110,8 +115,9 @@ namespace Treasured.UnitySdk.Validation
                         results.Add(new ValidationResult()
                         {
                             name = "Collider blocking path",
-                            description = $"Collider blocking path between hotspot <{current.name}> and <{next.name}>. The game object that blocking the path is {hit.collider.gameObject.name}",
-                            context = hit.collider.gameObject,
+                            description = $"Collider blocking path between hotspot <{current.name}> and <{next.name}>. The game object blocking the path: <{hit.collider.gameObject.name}>",
+                            target = hit.collider.gameObject,
+                            targets = new UnityEngine.Object[] {current, next },
                             type = ValidationResult.ValidationResultType.Warning
                         });
                     }
