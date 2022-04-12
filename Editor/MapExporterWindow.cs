@@ -106,16 +106,22 @@ namespace Treasured.UnitySdk
                         EditorGUILayout.LabelField(new GUIContent(item.validationResult.description), EditorStyles.wordWrappedLabel);
                         using (new EditorGUILayout.HorizontalScope())
                         {
-                            for (int index = 0; index < item.validationResult.targets.Length; index++)
+                            if (item.validationResult.targets != null)
                             {
-                                if (GUILayout.Button(item.validationResult.targets[index].name, EditorStyles.linkLabel))
+                                for (int index = 0; index < item.validationResult.targets.Length; index++)
                                 {
-                                    EditorGUIUtility.PingObject(item.validationResult.targets[index]);
+                                    if (GUILayout.Button(item.validationResult.targets[index].name, EditorStyles.linkLabel))
+                                    {
+                                        EditorGUIUtility.PingObject(item.validationResult.targets[index]);
+                                    }
                                 }
                             }
-                            if (GUILayout.Button(item.validationResult.target.name, EditorStyles.linkLabel))
+                            if (item.validationResult.target != null)
                             {
-                                EditorGUIUtility.PingObject(item.validationResult.target);
+                                if (GUILayout.Button(item.validationResult.target.name, EditorStyles.linkLabel))
+                                {
+                                    EditorGUIUtility.PingObject(item.validationResult.target);
+                                }
                             }
                         }
                         
