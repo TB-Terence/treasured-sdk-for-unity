@@ -29,6 +29,7 @@ namespace Treasured.UnitySdk
 #endif
         }
 
+        [RequiredField]
         public string folderName;
 
         public string OutputDirectory

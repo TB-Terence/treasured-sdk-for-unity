@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using Treasured.UnitySdk.Utilities;
+using UnityEditor;
 
 namespace Treasured.UnitySdk
 {
@@ -12,7 +13,7 @@ namespace Treasured.UnitySdk
 
         public override void OnInspectorGUI()
         {
-            EditorGUIUtilities.DrawPropertiesExcluding(serializedObject, "m_Script");
+            EditorGUIUtils.DrawPropertiesExcluding(serializedObject, "m_Script");
         }
     }
 }

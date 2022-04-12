@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Reflection;
+using Treasured.UnitySdk.Utilities;
 using UnityEditor;
 using UnityEngine;
 
@@ -51,7 +52,7 @@ namespace Treasured.UnitySdk
             provider.guiHandler = (serachContext) =>
             {
                 var settings = new SerializedObject(Settings);
-                EditorGUIUtilities.DrawPropertiesExcluding(settings, "m_Script");
+                EditorGUIUtils.DrawPropertiesExcluding(settings, "m_Script");
                 settings.ApplyModifiedPropertiesWithoutUndo();
             };
             return provider;

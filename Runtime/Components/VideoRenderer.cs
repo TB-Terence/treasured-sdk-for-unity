@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Treasured.UnitySdk
 {
@@ -12,10 +13,17 @@ namespace Treasured.UnitySdk
         [SerializeField]
         private string _aspectRatio = "16:9";
         [Url]
-        public string Src;
+        [FormerlySerializedAs("Src")]
+        public string src;
         [Range(0, 100)]
-        public int Volume = 100;
-        public bool Loop = true;
+        [FormerlySerializedAs("Volume")]
+        public int volume = 100;
+        [FormerlySerializedAs("Loop")]
+        public bool loop = true;
+        /// <summary>
+        /// Auto play the video when start.
+        /// </summary>
+        public bool autoPlay = true;
         #endregion
 
         [JsonIgnore]

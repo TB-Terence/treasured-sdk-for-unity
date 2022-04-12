@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    internal static class EditorGUILayoutHelper
+    internal static class EditorGUILayoutUtils
     {
         static class Styles
         {
