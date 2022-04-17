@@ -378,7 +378,7 @@ namespace Treasured.UnitySdk
                                     EditorGUILayout.LabelField(new GUIContent(state.type == typeof(Hotspot) ? "Order" : string.Empty, state.type == typeof(Hotspot) ? "The order of the Hotspot for the Guide Tour." : string.Empty), GUILayout.Width(58));
                                     EditorGUILayout.LabelField(new GUIContent("Name"), GUILayout.Width(64));
                                     GUILayout.FlexibleSpace();
-                                    if (GUILayout.Button(Icons.menu, EditorStyles.label, GUILayout.Width(18), GUILayout.Height(20)))
+                                    if (GUILayout.Button(GUIIcons.menu, EditorStyles.label, GUILayout.Width(18), GUILayout.Height(20)))
                                     {
                                         ShowObjectListMenu(state.objects, state.type);
                                     };

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    internal static class Icons
+    internal static class GUIIcons
     {
         public static GUIContent settings = EditorGUIUtility.TrIconContent("Settings", tooltip: "Settings");
         public static GUIContent add = EditorGUIUtility.TrIconContent("Toolbar Plus", tooltip: "Create New");
