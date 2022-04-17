@@ -41,7 +41,7 @@ namespace Treasured.UnitySdk
                     validationResults.AddRange(results);
                 }
             }
-            if(validationResults.Count > 0)
+            if(!map.exportSettings.ignoreWarnings && validationResults.Count > 0)
             {
                 throw new ValidationException(validationResults);
             }

@@ -32,6 +32,8 @@ namespace Treasured.UnitySdk
         [RequiredField]
         public string folderName;
 
+        public bool ignoreWarnings = false;
+
         public string OutputDirectory
         {
             get
