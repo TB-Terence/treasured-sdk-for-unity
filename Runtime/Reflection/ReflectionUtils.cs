@@ -3,10 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    public static class ReflectionUtilities
+    public static class ReflectionUtils
     {
         public struct SerializedFieldReference
         {
@@ -81,6 +82,48 @@ namespace Treasured.UnitySdk
         public static List<SerializedFieldReference> GetSeriliazedFieldReferencesWithAttribute<T>(object target) where T : Attribute
         {
             return GetSeriliazedFieldReferences(target).Where(reference => reference.fieldInfo.IsDefined(typeof(T))).ToList();
+        }
+
+        public static T[] GetFieldValuesOfType<T>(object target, BindingFlags bindingFlags)
+        {
+            Type type = target.GetType();
+            FieldInfo[] fieldInfos = type.GetFields(bindingFlags);
+            List<T> results = new List<T>();
+            foreach (var fi in fieldInfos)
+            {
+                if (!typeof(T).IsAssignableFrom(fi.FieldType))
+                {
+                    continue;
+                }
+                var value = fi.GetValue(target);
+                if (value == null)
+                {
+                    continue;
+                }
+                results.Add((T)value);
+            }
+            return results.ToArray();
+        }
+
+        public static T[] GetSerializedFieldValuesOfType<T>(object target)
+        {
+            Type type = target.GetType();
+            FieldInfo[] fieldInfos = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(x => x.IsPublic || x.IsDefined(typeof(SerializeField))).ToArray();
+            List<T> results = new List<T>();
+            foreach (var fi in fieldInfos)
+            {
+                if (!typeof(T).IsAssignableFrom(fi.FieldType))
+                {
+                    continue;
+                }
+                var value = fi.GetValue(target);
+                if (value == null)
+                {
+                    continue;
+                }
+                results.Add((T)value);
+            }
+            return results.ToArray();
         }
     }
 }
