@@ -14,7 +14,7 @@ namespace Treasured.UnitySdk
             CheckAdditionalContent = true
         };
 
-        public Formatting formatting = Formatting.Indented;
+        public Newtonsoft.Json.Formatting formatting = Formatting.Indented;
 
         public override void Export()
         {
