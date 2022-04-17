@@ -83,6 +83,10 @@ namespace Treasured.UnitySdk
             {
                 properties = properties.Where(x => !x.PropertyName.Equals("name") && !x.PropertyName.Equals("hideFlags")).ToList();
             }
+            else if (typeof(ScriptableObject).IsAssignableFrom(type))
+            {
+                properties = properties.Where(x => !x.PropertyName.Equals("hideFlags")).ToList();
+            }
             return properties;
         }
 

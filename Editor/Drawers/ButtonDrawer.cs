@@ -16,6 +16,7 @@ namespace Treasured.UnitySdk
         {
             SerializedProperty iconProperty = property.FindPropertyRelative(nameof(Button.icon));
             SerializedProperty transformProperty = property.FindPropertyRelative(nameof(Button.transform));
+            SerializedProperty iconAssetProperty = property.FindPropertyRelative(nameof(Button.iconAsset));
             EditorGUI.BeginProperty(position, label, property);
             property.isExpanded = EditorGUI.BeginFoldoutHeaderGroup(new Rect(position.x, position.y, position.width, k_SingleLineHeightWithSpace), property.isExpanded, label);
             if (property.isExpanded)
@@ -41,10 +42,11 @@ namespace Treasured.UnitySdk
                             }
                         });
                     }
+                    EditorGUI.PropertyField(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 2, position.width, EditorGUIUtility.singleLineHeight), iconAssetProperty);
                     if (transformProperty.objectReferenceValue == null)
                     {
-                        EditorGUI.PropertyField(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 2, position.width - 60, EditorGUIUtility.singleLineHeight), transformProperty);
-                        if (GUI.Button(new Rect(position.xMax - 58, position.y + k_SingleLineHeightWithSpace * 2, 58, EditorGUIUtility.singleLineHeight), new GUIContent("Create")))
+                        EditorGUI.PropertyField(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 3, position.width - 60, EditorGUIUtility.singleLineHeight), transformProperty);
+                        if (GUI.Button(new Rect(position.xMax - 58, position.y + k_SingleLineHeightWithSpace * 3, 58, EditorGUIUtility.singleLineHeight), new GUIContent("Create")))
                         {
                             Component component = transformProperty.serializedObject.targetObject as Component;
                             if (component)
@@ -65,15 +67,16 @@ namespace Treasured.UnitySdk
                     }
                     else
                     {
-                        EditorGUI.PropertyField(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 2, position.width, EditorGUIUtility.singleLineHeight), transformProperty);
+                        EditorGUI.PropertyField(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 2, position.width, EditorGUIUtility.singleLineHeight), iconProperty);
+                        EditorGUI.PropertyField(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 3, position.width, EditorGUIUtility.singleLineHeight), iconAssetProperty);
                         using (new EditorGUI.IndentLevelScope(1))
                         {
                             using (var scope = new EditorGUI.ChangeCheckScope())
                             {
                                 Transform transform = transformProperty.objectReferenceValue as Transform;
-                                transform.localPosition = EditorGUI.Vector3Field(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 3, position.width, EditorGUIUtility.singleLineHeight), "Position", transform.localPosition);
-                                transform.localEulerAngles = EditorGUI.Vector3Field(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 4, position.width, EditorGUIUtility.singleLineHeight), "Rotation", transform.localEulerAngles);
-                                transform.localScale = EditorGUI.Vector3Field(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 5, position.width, EditorGUIUtility.singleLineHeight), "Size", transform.localScale);
+                                transform.localPosition = EditorGUI.Vector3Field(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 4, position.width, EditorGUIUtility.singleLineHeight), "Position", transform.localPosition);
+                                transform.localEulerAngles = EditorGUI.Vector3Field(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 5, position.width, EditorGUIUtility.singleLineHeight), "Rotation", transform.localEulerAngles);
+                                transform.localScale = EditorGUI.Vector3Field(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 6, position.width, EditorGUIUtility.singleLineHeight), "Size", transform.localScale);
                                 if (scope.changed)
                                 {
                                     transformProperty.serializedObject.ApplyModifiedProperties();
@@ -115,7 +118,7 @@ namespace Treasured.UnitySdk
             {
                 return k_SingleLineHeightWithSpace;
             }
-            return k_SingleLineHeightWithSpace * (property.FindPropertyRelative(nameof(Button.transform)).objectReferenceValue == null ? 3 : 6);
+            return k_SingleLineHeightWithSpace * (property.FindPropertyRelative(nameof(Button.transform)).objectReferenceValue == null ? 4 : 7);
         }
 
 

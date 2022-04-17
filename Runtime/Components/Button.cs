@@ -10,6 +10,8 @@ namespace Treasured.UnitySdk
         /// Name of the icon for the icon.
         /// </summary>
         public string icon = "FaCircle";
+        [Newtonsoft.Json.JsonIgnore]
+        public IconAsset iconAsset;
         /// <summary>
         /// Transform of the button.
         /// </summary>
