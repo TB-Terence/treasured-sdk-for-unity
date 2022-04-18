@@ -29,6 +29,7 @@ namespace Treasured.UnitySdk
         public static GUIStyle ShortLabel { get; private set; }
         public static GUIStyle ToolbarButton { get; private set; }
         public static GUIStyle Panel { get; private set; }
+        public static GUIStyle CenterWordWrappedLabel { get; private set; }
 
         public static void Init()
         {
@@ -103,6 +104,13 @@ namespace Treasured.UnitySdk
                 normal = { textColor = Color.grey },
                 alignment = TextAnchor.MiddleCenter
             };
+
+            CenterWordWrappedLabel = new GUIStyle(EditorStyles.wordWrappedLabel)
+            {
+                padding = new RectOffset(10, 10, 2, 2),
+                fontStyle = FontStyle.Italic
+            };
+
             s_initialized = true;
         }
 

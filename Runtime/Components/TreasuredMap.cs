@@ -30,14 +30,17 @@ namespace Treasured.UnitySdk
         #endregion
 
         #region Launch Page
+        [RequiredField]
         [SerializeField]
         private string _author;
         public string Author { get => _author; set => _author = value; }
+        [RequiredField]
         [SerializeField]
         [TextArea(3, 3)]
         private string _title;
         public string Title { get => _title; set => _title = value; }
 
+        [RequiredField]
         [SerializeField]
         [TextArea(5, 5)]
         private string _description;

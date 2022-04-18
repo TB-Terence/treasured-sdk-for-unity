@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Treasured.UnitySdk.Validation;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
@@ -17,23 +20,48 @@ namespace Treasured.UnitySdk
 
         public TreasuredMap Map { get => _map; }
 
+        public virtual List<ValidationResult> CanExport()
+        {
+            return new List<ValidationResult>();
+        }
+
         public virtual void OnPreExport() { }
         public abstract void Export();
         public virtual void OnPostExport() { }
 
         public static void Export(TreasuredMap map)
         {
-            if (string.IsNullOrEmpty(map.exportSettings.folderName))
+            var exporters = new Exporter[] { map.jsonExporter, map.cubemapExporter, map.meshExporter };
+            List<ValidationResult> validationResults = new List<ValidationResult>();
+            foreach (var exporter in exporters)
             {
-                throw new MissingFieldException("Output folder name is empty.");
+                var results = exporter.CanExport();
+                if(results != null)
+                {
+                    validationResults.AddRange(results);
+                }
             }
+            if(validationResults.Count > 0)
+            {
+                throw new ValidationException(validationResults);
+            }
+            ForceExport(map);
+        }
+
+        public static void ForceExport(TreasuredMap map)
+        {
+            if (string.IsNullOrWhiteSpace(map.exportSettings.folderName))
+            {
+                throw new ArgumentException($"Export Settings > Folder Name is empty.");
+            }
+            var exporters = new Exporter[] { map.jsonExporter, map.cubemapExporter, map.meshExporter };
             DataValidator.ValidateMap(map);
             if (Directory.Exists(map.exportSettings.OutputDirectory))
             {
                 Directory.Delete(map.exportSettings.OutputDirectory, true);
             }
             Directory.CreateDirectory(map.exportSettings.OutputDirectory); // try create the directory if not exist.
-            foreach (var exporter in new Exporter[] { map.jsonExporter, map.cubemapExporter, map.meshExporter })
+            foreach (var exporter in exporters)
             {
                 if (exporter != null && exporter.enabled)
                 {
