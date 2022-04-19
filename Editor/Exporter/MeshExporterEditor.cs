@@ -16,6 +16,8 @@ namespace Treasured.UnitySdk
         private SerializedProperty _canUseLayerMask;
 
         private SerializedProperty _keepCombinedMesh;
+        private SerializedProperty _exportQuality;
+        private SerializedProperty _displayLogs;
 
         private void OnEnable()
         {
@@ -27,6 +29,8 @@ namespace Treasured.UnitySdk
             _canUseLayerMask = serializedObject.FindProperty(nameof(MeshExporter.canUseLayerMask));
 
             _keepCombinedMesh = serializedObject.FindProperty(nameof(MeshExporter.keepCombinedMesh));
+            _exportQuality = serializedObject.FindProperty(nameof(MeshExporter.ExportQuality));
+            _displayLogs = serializedObject.FindProperty(nameof(MeshExporter.displayLogs));
             
             //  TODO: Find a better way to add tags to the runtime scripts
             _tagString = UnityEditorInternal.InternalEditorUtility.tags;
@@ -71,7 +75,8 @@ namespace Treasured.UnitySdk
             if (_canUseTag.boolValue || _canUseLayerMask.boolValue)
             {
                 EditorGUILayout.PropertyField(_keepCombinedMesh);
-                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(MeshExporter.ExportQuality)));
+                EditorGUILayout.PropertyField(_exportQuality);
+                EditorGUILayout.PropertyField(_displayLogs);
             }
         }
     }
