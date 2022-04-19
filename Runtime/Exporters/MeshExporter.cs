@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -31,7 +32,7 @@ namespace Treasured.UnitySdk
         public int excludeTags = 0;
         public bool canUseTag;
         public int filterTag = 0;
-        
+
         public bool canUseLayerMask;
         public LayerMask filterLayerMask;
 
@@ -40,17 +41,20 @@ namespace Treasured.UnitySdk
         [Tooltip("Keep combined mesh gameObject in scene after exporting to GLB mesh")]
         public bool keepCombinedMesh;
 
+        [Tooltip("Display detailed mesh exporter logs")]
+        public bool displayLogs;
+
         public override void Export()
         {
             if (!canUseTag && !canUseLayerMask)
             {
-                Debug.LogError("Mesh Export Search option is not configured. GLB Mesh will not be exported.");
+                Debug.LogError("[MeshExporter] : Mesh Export Search option is not configured. GLB Mesh will not be exported.");
                 return;
             }
 
-            List<GameObject> meshToCombine = new List<GameObject>();
+            Dictionary<int, GameObject> meshToCombineDictionary = new Dictionary<int, GameObject>();
             filterTag = includeTags ^ excludeTags;
-            
+
             //  Find terrain from the scene
             Terrain terrain = Terrain.activeTerrain;
             if (terrain)
@@ -58,10 +62,13 @@ namespace Treasured.UnitySdk
                 //  check with the search filter
                 if (canUseTag)
                 {
+                    meshToCombineDictionary.Add(terrain.GetInstanceID(), terrain.gameObject);
+
                     var terrainTagIndex = (int)Mathf.Pow(2, Array.IndexOf(allTags, terrain.gameObject.tag));
                     if ((filterTag & terrainTagIndex) == terrainTagIndex)
                     {
-                        meshToCombine.Add(ExportTerrainToObj(terrain));
+                        var exportTerrainToObj = ExportTerrainToObj(terrain);
+                        meshToCombineDictionary.Add(exportTerrainToObj.GetInstanceID(), exportTerrainToObj);
                     }
                 }
                 else if (canUseLayerMask)
@@ -69,9 +76,10 @@ namespace Treasured.UnitySdk
                     var terrainLayer = 1 << terrain.gameObject.layer;
                     if ((filterLayerMask & terrainLayer) == terrainLayer)
                     {
-                        if (!meshToCombine.Contains(terrain.gameObject))
+                        if (!meshToCombineDictionary.ContainsKey(terrain.GetInstanceID()))
                         {
-                            meshToCombine.Add(ExportTerrainToObj(terrain));
+                            var exportTerrainToObj = ExportTerrainToObj(terrain);
+                            meshToCombineDictionary.Add(exportTerrainToObj.GetInstanceID(), exportTerrainToObj);
                         }
                     }
                 }
@@ -81,14 +89,23 @@ namespace Treasured.UnitySdk
 
             foreach (var gameObject in allGameObjectInScene)
             {
+                if (meshToCombineDictionary.ContainsKey(gameObject.GetInstanceID()))
+                {
+                    if (displayLogs)
+                    {
+                        Debug.Log($"[MeshExporter] : {gameObject.name} is already included in combined mesh dictionary. Duplicate will be ignored.");
+                    }
+
+                    continue;
+                }
+
                 if (canUseTag)
                 {
                     //  Compare tag to see if needs to include in mesh combiner
                     var gameObjectTagIndex = (int)Mathf.Pow(2, Array.IndexOf(allTags, gameObject.tag));
                     if ((filterTag & gameObjectTagIndex) == gameObjectTagIndex)
-                        // if ((filterTag & gameObjectTagIndex) == gameObjectTagIndex)
                     {
-                        meshToCombine.Add(gameObject);
+                        meshToCombineDictionary.Add(gameObject.GetInstanceID(), gameObject);
                         continue;
                     }
                 }
@@ -98,14 +115,57 @@ namespace Treasured.UnitySdk
                     var layer = 1 << gameObject.layer;
                     if ((filterLayerMask & layer) == layer)
                     {
-                        meshToCombine.Add(gameObject);
+                        meshToCombineDictionary.Add(gameObject.GetInstanceID(), gameObject);
                         continue;
                     }
                 }
             }
 
+            /*
+             * Check for Lod group
+             * Remove more triangle lod gameObjects
+             */
+            var lodFilterCheckDictionary = new Dictionary<int, GameObject>(meshToCombineDictionary);
+            foreach (var dict in lodFilterCheckDictionary)
+            {
+                //  Get the gameObjects which has different LOD group meshes
+                if (dict.Value.TryGetComponent(out LODGroup lodGroup))
+                {
+                    var lodCount = lodGroup.lodCount;
+                    var allLodGroups = lodGroup.GetLODs();
+                    if (lodCount == 0)
+                    {
+                        continue;
+                    }
+                    
+                    //  Check if length of renderers are not 0
+                    if (allLodGroups[lodCount - 1].renderers.Length != 0 && lodCount - 2 > 0)
+                    {
+                        //  Remove all the other lodGroup's gameObjects from meshToCombine
+                        for (var i = lodCount - 2; i >= 0; i--)
+                        {
+                            var renderers = allLodGroups[i].renderers;
+                            if (renderers.Length != 0)
+                            {
+                                foreach (var renderer in renderers)
+                                {
+                                    if (displayLogs)
+                                    {
+                                        Debug.Log(
+                                            $"[MeshExporter] : Excluded LOD - {meshToCombineDictionary[renderer.gameObject.GetInstanceID()].name}",
+                                            renderer.gameObject);
+                                    }
+
+                                    meshToCombineDictionary.Remove(renderer.gameObject.GetInstanceID());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             //  Combining meshes
-            CombineAllMeshes(meshToCombine, Map.transform);
+            CombineAllMeshes(meshToCombineDictionary.Values.ToList(), Map.transform);
         }
 
         private void CombineAllMeshes(List<GameObject> meshToCombine, Transform parentTransform)
@@ -113,43 +173,51 @@ namespace Treasured.UnitySdk
             //  Checking meshToCombine for null
             if (meshToCombine.Count == 0)
             {
-                Debug.LogError("No GameObjects were found based on the search filter. GLB mesh will not be exported.");
+                Debug.LogError("[MeshExporter] : No GameObjects were found based on the search filter. GLB mesh will not be exported.");
                 return;
             }
-            
+
             var verticesCount = 0;
             var verticesList = new List<Vector3>();
             var meshTriangles = new List<int>();
             var meshQuality = (int)ExportQuality;
-            
+
             foreach (var meshGameObject in meshToCombine)
             {
-                if (ContainsValidRenderer(meshGameObject) && meshGameObject.TryGetComponent(out MeshFilter filter) && meshGameObject.TryGetComponent(out MeshRenderer renderer))
+                if (ContainsValidRenderer(meshGameObject) && meshGameObject.TryGetComponent(out MeshFilter filter))
                 {
                     //  Check if sharedMesh is not null
                     if (filter.sharedMesh != null)
                     {
                         if (meshQuality!= 0 && filter.sharedMesh.triangles.Length > meshQuality)
                         {
-                            Debug.Log($"{filter.gameObject.name} GameObject has {filter.sharedMesh.triangles.Length} vertices which exceeds the vertices limit {meshQuality}", filter.gameObject);
+                            if (displayLogs)
+                            {
+                                Debug.Log(
+                                    $"[MeshExporter] : {filter.gameObject.name} GameObject has {filter.sharedMesh.triangles.Length} vertices which exceeds the vertices limit {meshQuality}. Object will not be exported.",
+                                    filter.gameObject);
+                            }
+
                             continue;
                         }
                         
+                        var optimizedMesh = filter.sharedMesh;
+
                         //  Adding mesh vertices and triangles
-                        foreach (var meshVertex in filter.sharedMesh.vertices)
+                        foreach (var meshVertex in optimizedMesh.vertices)
                         {
                             verticesList.Add(meshGameObject.transform.TransformPoint(meshVertex));
                         }
 
-                        for (var j = 0; j < filter.sharedMesh.subMeshCount; j++)
+                        for (var j = 0; j < optimizedMesh.subMeshCount; j++)
                         {
-                            var triangles = filter.sharedMesh.GetTriangles(j);
+                            var triangles = optimizedMesh.GetTriangles(j);
                             for (var k = 0; k < triangles.Length; k++)
                             {
                                 meshTriangles.Add(verticesCount + triangles[k]);
                             }
                         }
-                        
+
                         verticesCount = verticesList.Count;
                     }
                 }
@@ -157,7 +225,7 @@ namespace Treasured.UnitySdk
 
             if (verticesCount == 0)
             {
-                Debug.LogError("No Valid mesh were found based on the search filter. GLB mesh will not be exported.");
+                Debug.LogError("[MeshExporter] : No Valid mesh were found based on the search filter. GLB mesh will not be exported.");
                 return;
             }
 
@@ -167,15 +235,15 @@ namespace Treasured.UnitySdk
             {
                 mesh.indexFormat = IndexFormat.UInt32;
             }
-            
+
             var tempGameObject = new GameObject(CombineMeshGameObject);
             var meshFilter = tempGameObject.AddComponent<MeshFilter>();
             var meshRenderer = tempGameObject.AddComponent<MeshRenderer>();
-            
+
             //  Optimizations
             List<Vector3> newVertices = new List<Vector3>();
             Matrix4x4 mt = tempGameObject.transform.localToWorldMatrix;
-            
+
             for (int i = 0; i < verticesList.Count; i++)
             {
                 newVertices.Add(mt.MultiplyPoint3x4(verticesList[i]));
@@ -188,7 +256,7 @@ namespace Treasured.UnitySdk
             meshRenderer.material =
                 new Material(Resources.Load("TreasuredDefaultMaterial", typeof(Material)) as Material);
             tempGameObject.gameObject.SetActive(true);
-            
+
             var exportTransforms = new Transform[2];
             exportTransforms[0] = tempGameObject.transform;
             exportTransforms[1] = parentTransform;
@@ -241,14 +309,14 @@ namespace Treasured.UnitySdk
         {
             if (!terrain)
             {
-                Debug.LogError("No terrain found! Terrain will not be exported in Glb mesh");
+                Debug.LogError("[MeshExporter] : No terrain found! Terrain will not be exported in Glb mesh");
                 return new GameObject();
             }
 
             var terrainData = terrain.terrainData;
             var terrainPosition = terrain.transform.position;
             var terrainParsingFormat = TerrainParsingFormat.Triangles;
-            var terrainExportQuality = 1;  // Full: 0, Half: 1, Quarter: 2, Eighth: 3, Sixteenth: 4
+            var terrainExportQuality = 1; // Full: 0, Half: 1, Quarter: 2, Eighth: 3, Sixteenth: 4
 
             if (!Directory.Exists(_resourcesFolder))
             {
@@ -388,7 +456,7 @@ namespace Treasured.UnitySdk
             }
             catch (Exception err)
             {
-                Debug.Log($"Treasured Mesh Export: Error saving {_terrainObjName}.obj file: " + err.Message);
+                Debug.LogError($"[MeshExporter] : Error saving {_terrainObjName}.obj file: " + err.Message);
             }
 
             sw.Close();
