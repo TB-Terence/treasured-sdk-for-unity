@@ -64,7 +64,7 @@ namespace Treasured.UnitySdk
             {
                 contract.Converter = new TreasuredObjectConverter();
             }
-            if (objectType == typeof(String))
+            if (objectType == typeof(string))
             {
                 contract.Converter = new StringConverter();
             }
