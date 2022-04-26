@@ -1,6 +1,5 @@
-﻿using System.Linq;
-using System.Reflection;
-using UnityEditor;
+﻿using UnityEditor;
+using UnityEditor.PackageManager;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
@@ -10,46 +9,33 @@ namespace Treasured.UnitySdk
     /// </summary>
     internal static class MenuItemRegister
     {
+        [MenuItem("Tools/Treasured/Upgrade to Latest(Stable)", priority = 99)]
+        static void UpgradeToStableVersion()
+        {
+            Client.Add("https://github.com/TB-Terence/treasured-sdk-for-unity.git#upm");
+        }
+
+        [MenuItem("Tools/Treasured/Upgrade to Latest(Experimental)", priority = 99)]
+        static void UpgradeToExperimentalVersion()
+        {
+            Client.Add("https://github.com/TB-Terence/treasured-sdk-for-unity.git#exp");
+        }
+
         static bool IsTreasuredMapSelected()
         {
             return Selection.activeGameObject?.GetComponentInParent<TreasuredMap>();
         }
 
-        /// <summary>
-        /// Creates a new object of type <typeparamref name="T"/> and add it to the selected TreasuredMap under a game object with <paramref name="categoryName"/>.
-        /// Create new object if the map or category object not found.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="categoryName"></param>
-        static void CreateNew<T>(string categoryName) where T : TreasuredObject
+        static void CreateNew<T>() where T : TreasuredObject
         {
-            TreasuredMap map = Selection.activeGameObject.GetComponentInParent<TreasuredMap>();
-            Transform mapTransform = map.transform;
-            Transform categoryRoot = mapTransform.Find(categoryName);
-            if (categoryRoot == null)
-            {
-                categoryRoot = new GameObject(categoryName).transform;
-                categoryRoot.SetParent(mapTransform);
-            }
-            string uniqueName = ObjectNames.GetUniqueName(Enumerable.Range(0, categoryRoot.childCount).Select(index => categoryRoot.GetChild(index).name).ToArray(), ObjectNames.NicifyVariableName(typeof(T).Name));
-            GameObject newObject = new GameObject(uniqueName);
-            T component = newObject.AddComponent<T>();
-            newObject.transform.SetParent(categoryRoot);
-            component.TryInvokeMethods("OnSelectedInHierarchy");
-#if UNITY_2020_3_OR_NEWER
-            // Enable renaming mode
-            Selection.activeGameObject = newObject;
-            var type = typeof(EditorWindow).Assembly.GetType("UnityEditor.SceneHierarchyWindow");
-            var hierarchyWindow = EditorWindow.GetWindow(type);
-            var rename = type.GetMethod("FrameAndRenameNewGameObject", BindingFlags.Static | BindingFlags.NonPublic);
-            rename.Invoke(null, null);
-#endif
+            TreasuredMap map = Selection.activeGameObject?.GetComponentInParent<TreasuredMap>();
+            map?.CreateObject<T>();
         }
 
         [MenuItem("GameObject/Treasured/Sound Source", false, 49)]
         static void CreateSoundSource()
         {
-            CreateNew<SoundSource>("Sounds");
+            CreateNew<SoundSource>();
         }
 
         [MenuItem("GameObject/Treasured/Sound Source", true, 49)]
@@ -61,7 +47,7 @@ namespace Treasured.UnitySdk
         [MenuItem("GameObject/Treasured/Hotspot", false, 49)]
         static void CreateHotspot()
         {
-            CreateNew<Hotspot>("Hotspots");
+            CreateNew<Hotspot>();
         }
 
         [MenuItem("GameObject/Treasured/Hotspot", true, 49)]
@@ -73,7 +59,7 @@ namespace Treasured.UnitySdk
         [MenuItem("GameObject/Treasured/Interactable", false, 49)]
         static void CreateInteractable()
         {
-            CreateNew<Interactable>("Interactables");
+            CreateNew<Interactable>();
         }
 
         [MenuItem("GameObject/Treasured/Interactable", true, 49)]
@@ -85,7 +71,7 @@ namespace Treasured.UnitySdk
         [MenuItem("GameObject/Treasured/Video Renderer", false, 49)]
         static void CreateVideoRenderer()
         {
-            CreateNew<VideoRenderer>("Videos");
+            CreateNew<VideoRenderer>();
         }
 
         [MenuItem("GameObject/Treasured/Video Renderer", true, 49)]

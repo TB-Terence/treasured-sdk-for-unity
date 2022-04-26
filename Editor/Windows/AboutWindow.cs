@@ -19,11 +19,11 @@ namespace Treasured.UnitySdk
         {
             //EditorGUILayout.LabelField(new GUIContent(Styles.TreasuredIcon), GUILayout.MinWidth(100), GUILayout.MinHeight(100));
             EditorGUILayout.LabelField(new GUIContent("Version"), new GUIContent(TreasuredMap.Version));
-            if (EditorGUILayoutHelper.Link(new GUIContent("Website"), new GUIContent("https://treasured.ca/")))
+            if (EditorGUILayoutUtils.Link(new GUIContent("Website"), new GUIContent("https://treasured.ca/")))
             {
                 Application.OpenURL("https://treasured.ca/");
             }
-            if (EditorGUILayoutHelper.Link(new GUIContent("Email"), new GUIContent("team@treasured.ca")))
+            if (EditorGUILayoutUtils.Link(new GUIContent("Email"), new GUIContent("team@treasured.ca")))
             {
                 Application.OpenURL("mailto:team@treasured.ca");
             }
