@@ -4,7 +4,6 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    [HideInInspector]
     public class IconExporter : Exporter
     {
         public override DirectoryInfo CreateExprtDirectoryInfo()
@@ -18,17 +17,17 @@ namespace Treasured.UnitySdk
             string iconDirectory = CreateExprtDirectoryInfo().FullName;
             foreach (var obj in Map.GetComponentsInChildren<TreasuredObject>())
             {
-                if (obj.button == null || obj.button.iconAsset == null || string.IsNullOrWhiteSpace(obj.button.iconAsset.svg))
+                if (obj.button == null || obj.button.icon == null || string.IsNullOrWhiteSpace(obj.button.icon.svg))
                 {
                     continue;
                 }
                 // TODO : Validate XML file
-                if (iconNames.Contains(obj.button.iconAsset.name))
+                if (iconNames.Contains(obj.button.icon.name))
                 {
                     continue;
                 }
-                File.WriteAllText(Path.Combine(iconDirectory, $"{obj.button.iconAsset.name}.svg"), obj.button.iconAsset.svg);
-                iconNames.Add(obj.button.iconAsset.name);
+                File.WriteAllText(Path.Combine(iconDirectory, $"{obj.button.icon.name}.svg"), obj.button.icon.svg);
+                iconNames.Add(obj.button.icon.name);
             }
         }
     }

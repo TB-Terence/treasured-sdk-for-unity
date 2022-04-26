@@ -44,6 +44,10 @@ namespace Treasured.UnitySdk
             {
                 contract.Converter = new Vector3Converter();
             }
+            if (objectType == typeof(string))
+            {
+                contract.Converter = new StringConverter();
+            }
             if (objectType.BaseType == typeof(Enum))
             {
                 contract.Converter = new StringEnumConverter(new KebabCaseNamingStrategy());
@@ -60,13 +64,13 @@ namespace Treasured.UnitySdk
             {
                 contract.Converter = new TransformConverter();
             }
+            if (objectType == typeof(IconAsset))
+            {
+                contract.Converter = new IconAssetConverter();
+            }
             if (objectType == typeof(TreasuredObject) || objectType.GetElementType() == typeof(TreasuredObject) || (objectType.GenericTypeArguments.Length == 1 && objectType.GenericTypeArguments[0] == typeof(TreasuredObject)))
             {
                 contract.Converter = new TreasuredObjectConverter();
-            }
-            if (objectType == typeof(string))
-            {
-                contract.Converter = new StringConverter();
             }
             return contract;
         }

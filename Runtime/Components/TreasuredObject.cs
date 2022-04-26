@@ -31,7 +31,7 @@ namespace Treasured.UnitySdk
         [OpenUrl("https://react-icons.github.io/react-icons/icons?name=fa")]
         private string _icon;
 
-        public Button button = new Button();
+        public FloatingButton button;
 
         [SerializeField]
         private Hitbox _hitbox;

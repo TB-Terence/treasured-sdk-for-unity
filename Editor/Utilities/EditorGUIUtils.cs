@@ -15,7 +15,7 @@ namespace Treasured.UnitySdk.Utilities
         /// Finds all asset's file name contains Fa and is type texture2D.
         /// </summary>
         private const string kButtonIconFilter = "Fa t:texture2D";
-        private static readonly string[] s_buttonIconFolderPaths = new string[] { "Packages/com.treasured.unitysdk/Resources/Icons/Objects/Font Awesome" };
+        private static readonly string[] s_buttonIconFolderPaths = new string[] { "Packages/com.treasured.unitysdk/Resources/Icons" };
         public static GUIContent[] buttonIcons;
         public static GUIContent DefaultButtonIcon
         {

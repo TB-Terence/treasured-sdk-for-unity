@@ -1,8 +1,14 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
+    internal static class ObjectExtensionMethods
+    {
+        public static bool IsNullOrNone(this UnityEngine.Object obj)
+        {
+            return obj is null || obj.GetInstanceID() == -1;
+        }
+    }
     internal static class GameObjectExtensionMethods
     {
         public static Transform FindOrCreateChild(this GameObject gameObject, string name)

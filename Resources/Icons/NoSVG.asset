@@ -9,8 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
-  m_Name: FaCircle
-  m_EditorClassIdentifier: Treasured.UnitySdk.Editor:Treasured.UnitySdk:Icons/IconAsset2
-  icon: {fileID: 2800000, guid: b0ddaec6fec980848a57bd6d22eff35a, type: 3}
+  m_Script: {fileID: 11500000, guid: 349dbeb18abab754d9262e7bd4ba2cec, type: 3}
+  m_Name: NoSVG
+  m_EditorClassIdentifier: 
+  icon: {fileID: 2800000, guid: 8ae3804cec9dcd0488c6ddec21b4d5b0, type: 3}
   svg: 
