@@ -14,6 +14,60 @@ namespace Treasured.UnitySdk
     internal class TreasuredMapEditor : UnityEditor.Editor
     {
         private const string SelectedTabIndexKey = "TreasuredSDK_Inspector_SelectedTabIndex";
+
+        [MenuItem("Tools/Treasured/Upgrade to Latest(Stable)", priority = 99)]
+        static void UpgradeToStableVersion()
+        {
+            Client.Add("https://github.com/TB-Terence/treasured-sdk-for-unity.git#upm");
+        }
+        
+        [MenuItem("Tools/Treasured/Upgrade to Latest(Experimental)", priority = 99)]
+        static void UpgradeToExperimentalVersion()
+        {
+            Client.Add("https://github.com/TB-Terence/treasured-sdk-for-unity.git#exp");
+        }
+
+        private static readonly string[] selectableObjectListNames = new string[] { "Hotspots", "Interactables", "Videos", "Sounds" };
+
+        [AttributeUsage(AttributeTargets.Method)]
+        class FoldoutGroupAttribute : Attribute
+        {
+            public string Name { get; set; }
+
+            public bool DefaultState { get; set; }
+
+            public FoldoutGroupAttribute(string name)
+            {
+                Name = name;
+            }
+
+            public FoldoutGroupAttribute(string name, bool defaultState) : this(name)
+            {
+                DefaultState = defaultState;
+            }
+
+            public FoldoutGroupAttribute()
+            {
+            }
+        }
+
+        class FoldoutGroupState
+        {
+            public string name;
+            public bool show;
+
+            public FoldoutGroupState(string name, bool show)
+            {
+                this.name = name;
+                this.show = show;
+            }
+        }
+
+        class TreasuredMapGizmosSettings
+        {
+            public bool enableCameraPreview = true;
+        }
+
         public static class Styles
         {
             public static readonly GUIContent alignView = EditorGUIUtility.TrTextContent("Align View");
