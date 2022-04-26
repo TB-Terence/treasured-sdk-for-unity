@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    public sealed class Icons
+    public sealed class FloatingIcons
     {
         public const string Filter = "t:texture2D";
         public static readonly string[] IconDirectories = new string[] { "Assets/Treasured SDK/Icons/", "Packages/com.treasured.unitysdk/Resources/Icons" };
@@ -21,12 +22,40 @@ namespace Treasured.UnitySdk
             CreateIconAssets();
         }
 
-        [MenuItem("Tools/Treasured/Icons/Create Icon Assets")]
-        public static void CreateIconAssets()
+        private static void CreateIconAssets()
         {
+           
+            ImportIcons(ref CustomIcons, new string[] { IconDirectories[0] });
+            ImportIcons(ref BuiltInIcons, new string[] { IconDirectories[1] });
+        }
+
+        [MenuItem("Tools/Treasured/Icons/Import Custom Icons")]
+        public static void ImportCustomIcons()
+        {
+            string directory = EditorUtility.OpenFolderPanel("Import Icons", Application.dataPath, "");
+            if (string.IsNullOrEmpty(directory))
+            {
+                return;
+            }
             EnsureCusomtIconDirectoryExist();
-            LoadIcons(ref CustomIcons, new string[] { IconDirectories[0] });
-            LoadIcons(ref BuiltInIcons, new string[] { IconDirectories[1] });
+            DirectoryInfo customFolder = new DirectoryInfo(@$"{Application.dataPath}\Treasured SDK\Icons");
+            DirectoryInfo directoryInfo =new DirectoryInfo(directory);
+            var files = directoryInfo.GetFiles().Where(file => file.Extension.ToLowerInvariant().Equals(".png")).ToArray();
+            for (int i = 0; i < files.Length; i++)
+            {
+                FileInfo file = files[i];
+                EditorUtility.DisplayProgressBar("Importing Icon", $"{file.FullName}", (i + 1) / files.Length);
+                string name = Path.GetFileNameWithoutExtension(file.FullName);
+                Texture2D texture = new Texture2D(2, 2);
+                texture.name = name;
+                texture.LoadImage(File.ReadAllBytes(file.FullName));
+                IconAsset iconAsset = ScriptableObject.CreateInstance<IconAsset>();
+                iconAsset.icon = texture;
+                AssetDatabase.CreateAsset(iconAsset, @$"Assets\Treasured SDK\Icons\{name}.asset");
+                AssetDatabase.AddObjectToAsset(texture, iconAsset);
+            }
+            AssetDatabase.SaveAssets();
+            EditorUtility.ClearProgressBar();
         }
 
         [MenuItem("Tools/Treasured/Icons/Remove All Icon Asset")]
@@ -46,7 +75,7 @@ namespace Treasured.UnitySdk
         }
 
 
-        public static void LoadIcons(ref List<IconAsset> icons, string[] directories)
+        public static void ImportIcons(ref List<IconAsset> icons, string[] directories)
         {
             icons ??= new List<IconAsset>();
             icons.Clear();
