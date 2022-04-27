@@ -40,7 +40,7 @@ namespace Treasured.UnitySdk
         {
             var hotspot = target as Hotspot;
             map = (target as Hotspot).Map;
-            button = serializedObject.FindProperty(nameof(TreasuredObject.button));
+            button = serializedObject.FindProperty(nameof(TreasuredObject.icon));
             hitbox = serializedObject.FindProperty("_hitbox");
             camera = serializedObject.FindProperty("_camera");
             onClick = serializedObject.FindProperty("_onClick");
