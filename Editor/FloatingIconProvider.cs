@@ -67,6 +67,7 @@ namespace Treasured.UnitySdk
         [InitializeOnLoadMethod]
         static void Init()
         {
+            CreateCusomtIconDirectoryIfNotExist();
             LoadIconAssets(IconDirectories);
         }
 
@@ -126,7 +127,6 @@ namespace Treasured.UnitySdk
             {
                 return;
             }
-            CreateCusomtIconDirectoryIfNotExist();
             DirectoryInfo customFolder = new DirectoryInfo(@$"{Application.dataPath}\Treasured SDK\Icons");
             DirectoryInfo directoryInfo = new DirectoryInfo(folderPath);
             var files = directoryInfo.GetFiles().Where(file => file.Extension.ToLowerInvariant().Equals(".png")).ToArray();
