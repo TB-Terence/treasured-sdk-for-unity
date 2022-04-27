@@ -4,9 +4,9 @@ using UnityEngine;
 namespace Treasured.UnitySdk
 {
     [Serializable]
-    public class FloatingButton
+    public class FloatingIcon
     {
-        public IconAsset icon;
+        public IconAsset asset;
         /// <summary>
         /// Transform of the button.
         /// </summary>

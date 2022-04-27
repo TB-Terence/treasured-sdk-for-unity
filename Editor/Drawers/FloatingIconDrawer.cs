@@ -7,15 +7,15 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    [CustomPropertyDrawer(typeof(FloatingButton))]
-    internal class FloatingButtonDrawer : PropertyDrawer
+    [CustomPropertyDrawer(typeof(FloatingIcon))]
+    internal class FloatingIconDrawer : PropertyDrawer
     {
         public static float k_SingleLineHeightWithSpace = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            SerializedProperty iconProperty = property.FindPropertyRelative(nameof(FloatingButton.icon));
-            SerializedProperty transformProperty = property.FindPropertyRelative(nameof(FloatingButton.transform));
+            SerializedProperty iconProperty = property.FindPropertyRelative(nameof(FloatingIcon.asset));
+            SerializedProperty transformProperty = property.FindPropertyRelative(nameof(FloatingIcon.transform));
             EditorGUI.BeginProperty(position, label, property);
             property.isExpanded = EditorGUI.BeginFoldoutHeaderGroup(new Rect(position.x, position.y, position.width, k_SingleLineHeightWithSpace), property.isExpanded, label);
             if (property.isExpanded)
@@ -24,7 +24,7 @@ namespace Treasured.UnitySdk
                 {
                     using (var assetChangeScope = new EditorGUI.ChangeCheckScope())
                     {
-                        EditorGUI.PropertyField(new Rect(position.x, position.y + k_SingleLineHeightWithSpace, position.width, EditorGUIUtility.singleLineHeight), iconProperty);
+                        EditorGUI.PropertyField(new Rect(position.x, position.y + k_SingleLineHeightWithSpace, position.width - 20, EditorGUIUtility.singleLineHeight), iconProperty);
                         if (assetChangeScope.changed)
                         {
                             var obj = property.serializedObject.targetObject as MonoBehaviour;
@@ -35,9 +35,11 @@ namespace Treasured.UnitySdk
                                 {
                                     GameObject go = new GameObject("Button");
                                     buttonTransform = go.transform;
-                                    go.transform.SetParent(obj.transform);
-                                    go.transform.position = Vector3.zero;
                                 }
+                                buttonTransform.SetParent(obj.transform);
+                                buttonTransform.localPosition = Vector3.zero;
+                                buttonTransform.localRotation = Quaternion.identity;
+                                buttonTransform.localScale = Vector3.one;
                                 transformProperty.objectReferenceValue = buttonTransform;
                                 property.serializedObject.ApplyModifiedProperties();
                             }
@@ -48,30 +50,12 @@ namespace Treasured.UnitySdk
                             }
                             property.serializedObject.ApplyModifiedProperties();
                         }
-                    }
-                    if (transformProperty.objectReferenceValue.IsNullOrNone())
-                    {
-                        EditorGUI.PropertyField(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 2, position.width - 60, EditorGUIUtility.singleLineHeight), transformProperty);
-                        if (GUI.Button(new Rect(position.xMax - 58, position.y + k_SingleLineHeightWithSpace * 2, 58, EditorGUIUtility.singleLineHeight), new GUIContent("Create")))
+                        if (GUI.Button(new Rect(position.xMax - 20, position.y + k_SingleLineHeightWithSpace, 20, EditorGUIUtility.singleLineHeight), GUIIcons.menu, EditorStyles.label))
                         {
-                            Component component = transformProperty.serializedObject.targetObject as Component;
-                            if (component)
-                            {
-                                GameObject go = new GameObject(ObjectNames.NicifyVariableName(property.name));
-                                go.transform.parent = component.transform;
-                                go.transform.localPosition = Vector3.zero;
-                                go.transform.localRotation = Quaternion.identity;
-                                go.transform.localScale = Vector3.one;
-                                transformProperty.objectReferenceValue = go.transform;
-                                //if (EditorGUIUtils.DefaultButtonIconTexture)
-                                //{
-                                //    go.SetIcon(EditorGUIUtils.DefaultButtonIconTexture);
-                                //    iconProperty.stringValue = EditorGUIUtils.DefaultButtonIconTexture.name;
-                                //}
-                            }
+                            ShowMenu(property);
                         }
                     }
-                    else
+                    if (!iconProperty.objectReferenceValue.IsNullOrNone())
                     {
                         EditorGUI.PropertyField(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 2, position.width, EditorGUIUtility.singleLineHeight), transformProperty);
                         using (new EditorGUI.IndentLevelScope(1))
@@ -95,13 +79,41 @@ namespace Treasured.UnitySdk
             EditorGUI.EndProperty();
         }
 
+
+        private void ShowMenu(SerializedProperty property)
+        {
+            GenericMenu menu = new GenericMenu();
+            menu.AddItem(new GUIContent("Import Custom Icon"), false , () =>
+            {
+                EditorGUIUtility.PingObject(FloatingIconProvider.ImportIconAsset());
+            });
+            menu.AddItem(new GUIContent("Import Custom Icons from Folder"), false, () =>
+            {
+                string folderPath = EditorUtility.OpenFilePanel("Select Folder", FloatingIconProvider.CustomIconFolderOfCurrentSession, "png");
+                if (!string.IsNullOrWhiteSpace(folderPath))
+                {
+                    FloatingIconProvider.ImportIconAssetsFromFolder(folderPath);
+                }
+            });
+            menu.AddSeparator("");
+            menu.AddItem(new GUIContent("Set Custom Icon Folder"), false, () =>
+            {
+                FloatingIconProvider.CustomIconFolder = EditorUtility.OpenFolderPanel("Set Custom Icon Folder", FloatingIconProvider.CustomIconFolder, "");
+            });
+            menu.AddItem(new GUIContent("Update Icons from Custom Icon Folder"), false, () =>
+            {
+                FloatingIconProvider.ImportIconAssetsFromFolder(FloatingIconProvider.CustomIconFolder);
+            });
+            menu.ShowAsContext();
+        }
+
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
             if (!property.isExpanded)
             {
                 return k_SingleLineHeightWithSpace;
             }
-            return k_SingleLineHeightWithSpace * (property.FindPropertyRelative(nameof(FloatingButton.transform)).objectReferenceValue == null ? 3 : 6);
+            return k_SingleLineHeightWithSpace * (property.FindPropertyRelative(nameof(FloatingIcon.asset)).objectReferenceValue.IsNullOrNone() ? 2 : 6);
         }
     }
 }
