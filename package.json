@@ -16,6 +16,7 @@
   },
   "type": "tool",
   "dependencies": {
-    "com.unity.render-pipelines.high-definition": "10.5.1"
+    "com.unity.render-pipelines.high-definition": "10.5.1",
+    "com.whinarn.unitymeshsimplifier": "3.1.0"
   }
 }
