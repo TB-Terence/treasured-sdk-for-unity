@@ -16,11 +16,11 @@ Currently the package can only be installed using git. Eventually the package wi
 There are two versions of the package:
 1. Stable - This is the most stable version.
 ```
-https://github.com/TB-Terence/treasured-sdk-for-unity.git/upm
+https://github.com/TB-Terence/treasured-sdk-for-unity.git#upm
 ```
 2. Experimental - This is an experimental version with all the new features and changes. This version doesn't guarantee to generate valid files.
 ```
-https://github.com/TB-Terence/treasured-sdk-for-unity.git/exp
+https://github.com/TB-Terence/treasured-sdk-for-unity.git#exp
 ```
 
 ### Install via GIT URL
