@@ -70,20 +70,10 @@ namespace Treasured.UnitySdk
             using (new EditorGUILayout.HorizontalScope())
             {
                 GUILayout.FlexibleSpace();
-                using (new EditorGUI.DisabledGroupScope(errors.Count > 0))
+                if (GUILayout.Button(errors.Count > 0 ? "Force Export" : "Export"))
                 {
-                    if (GUILayout.Button("Export"))
-                    {
-                        Exporter.Export(map);
-                    }
-                }
-                using (new EditorGUI.DisabledGroupScope(string.IsNullOrWhiteSpace(map.exportSettings.folderName)))
-                {
-                    if (GUILayout.Button("Force Export"))
-                    {
-                        Exporter.ForceExport(map);
-                        this.Close();
-                    }
+                    Exporter.ForceExport(map);
+                    this.Close();
                 }
             }
         }

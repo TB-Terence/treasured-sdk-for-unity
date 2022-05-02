@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Treasured.UnitySdk.Utilities;
 using Treasured.UnitySdk.Validation;
 using UnityEditor;
+using UnityEditor.PackageManager;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
@@ -28,40 +28,6 @@ namespace Treasured.UnitySdk
         }
 
         private static readonly string[] selectableObjectListNames = new string[] { "Hotspots", "Interactables", "Videos", "Sounds" };
-
-        [AttributeUsage(AttributeTargets.Method)]
-        class FoldoutGroupAttribute : Attribute
-        {
-            public string Name { get; set; }
-
-            public bool DefaultState { get; set; }
-
-            public FoldoutGroupAttribute(string name)
-            {
-                Name = name;
-            }
-
-            public FoldoutGroupAttribute(string name, bool defaultState) : this(name)
-            {
-                DefaultState = defaultState;
-            }
-
-            public FoldoutGroupAttribute()
-            {
-            }
-        }
-
-        class FoldoutGroupState
-        {
-            public string name;
-            public bool show;
-
-            public FoldoutGroupState(string name, bool show)
-            {
-                this.name = name;
-                this.show = show;
-            }
-        }
 
         class TreasuredMapGizmosSettings
         {
@@ -432,7 +398,7 @@ namespace Treasured.UnitySdk
                                     EditorGUILayout.LabelField(new GUIContent(state.type == typeof(Hotspot) ? "Order" : string.Empty, state.type == typeof(Hotspot) ? "The order of the Hotspot for the Guide Tour." : string.Empty), GUILayout.Width(58));
                                     EditorGUILayout.LabelField(new GUIContent("Name"), GUILayout.Width(64));
                                     GUILayout.FlexibleSpace();
-                                    if (GUILayout.Button(Icons.menu, EditorStyles.label, GUILayout.Width(18), GUILayout.Height(20)))
+                                    if (GUILayout.Button(GUIIcons.menu, EditorStyles.label, GUILayout.Width(18), GUILayout.Height(20)))
                                     {
                                         ShowObjectListMenu(state.objects, state.type);
                                     };
