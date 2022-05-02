@@ -9,6 +9,7 @@ namespace Treasured.UnitySdk
 {
     public abstract class Exporter : ScriptableObject, IExportHandler
     {
+        public const string IconsDirectory = "icons";
         /// <summary>
         /// Reference to the map object for the export process. Used internally.
         /// </summary>
@@ -26,12 +27,17 @@ namespace Treasured.UnitySdk
         }
 
         public virtual void OnPreExport() { }
-        public abstract void Export();
+        public virtual void Export() { }
         public virtual void OnPostExport() { }
+
+        public virtual DirectoryInfo CreateExprtDirectoryInfo()
+        {
+            return Directory.CreateDirectory(Path.Combine(Map.exportSettings.OutputDirectory));
+        }
 
         public static void Export(TreasuredMap map)
         {
-            var exporters = new Exporter[] { map.jsonExporter, map.cubemapExporter, map.meshExporter };
+            var exporters = ReflectionUtils.GetSerializedFieldValuesOfType<Exporter>(map);
             List<ValidationResult> validationResults = new List<ValidationResult>();
             foreach (var exporter in exporters)
             {
@@ -41,7 +47,7 @@ namespace Treasured.UnitySdk
                     validationResults.AddRange(results);
                 }
             }
-            if(validationResults.Count > 0)
+            if((!map.exportSettings.ignoreWarnings && validationResults.Count > 0) || (map.exportSettings.ignoreWarnings && validationResults.Any(result => result.type == ValidationResult.ValidationResultType.Error)))
             {
                 throw new ValidationException(validationResults);
             }
@@ -54,7 +60,7 @@ namespace Treasured.UnitySdk
             {
                 throw new ArgumentException($"Export Settings > Folder Name is empty.");
             }
-            var exporters = new Exporter[] { map.jsonExporter, map.cubemapExporter, map.meshExporter };
+            var exporters = ReflectionUtils.GetSerializedFieldValuesOfType<Exporter>(map);
             DataValidator.ValidateMap(map);
             if (Directory.Exists(map.exportSettings.OutputDirectory))
             {

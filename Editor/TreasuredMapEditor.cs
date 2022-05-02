@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Treasured.UnitySdk.Utilities;
 using Treasured.UnitySdk.Validation;
 using UnityEditor;
+using UnityEditor.PackageManager;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
@@ -14,6 +14,26 @@ namespace Treasured.UnitySdk
     internal class TreasuredMapEditor : UnityEditor.Editor
     {
         private const string SelectedTabIndexKey = "TreasuredSDK_Inspector_SelectedTabIndex";
+
+        [MenuItem("Tools/Treasured/Upgrade to Latest(Stable)", priority = 99)]
+        static void UpgradeToStableVersion()
+        {
+            Client.Add("https://github.com/TB-Terence/treasured-sdk-for-unity.git#upm");
+        }
+        
+        [MenuItem("Tools/Treasured/Upgrade to Latest(Experimental)", priority = 99)]
+        static void UpgradeToExperimentalVersion()
+        {
+            Client.Add("https://github.com/TB-Terence/treasured-sdk-for-unity.git#exp");
+        }
+
+        private static readonly string[] selectableObjectListNames = new string[] { "Hotspots", "Interactables", "Videos", "Sounds" };
+
+        class TreasuredMapGizmosSettings
+        {
+            public bool enableCameraPreview = true;
+        }
+
         public static class Styles
         {
             public static readonly GUIContent alignView = EditorGUIUtility.TrTextContent("Align View");
@@ -378,7 +398,7 @@ namespace Treasured.UnitySdk
                                     EditorGUILayout.LabelField(new GUIContent(state.type == typeof(Hotspot) ? "Order" : string.Empty, state.type == typeof(Hotspot) ? "The order of the Hotspot for the Guide Tour." : string.Empty), GUILayout.Width(58));
                                     EditorGUILayout.LabelField(new GUIContent("Name"), GUILayout.Width(64));
                                     GUILayout.FlexibleSpace();
-                                    if (GUILayout.Button(Icons.menu, EditorStyles.label, GUILayout.Width(18), GUILayout.Height(20)))
+                                    if (GUILayout.Button(GUIIcons.menu, EditorStyles.label, GUILayout.Width(18), GUILayout.Height(20)))
                                     {
                                         ShowObjectListMenu(state.objects, state.type);
                                     };

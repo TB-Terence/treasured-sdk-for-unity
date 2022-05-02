@@ -37,12 +37,7 @@ namespace Treasured.UnitySdk
 
         public static Vector3 ToThreeJsScale(Transform transform)
         {
-            if (!ShouldConvertToThreeJsTransform)
-            {
-                return transform.localScale;
-            }
-            GLTF.Math.Vector3 scale = transform.localScale.ToGltfVector3Convert();
-            return new Vector3(scale.X, scale.Y, scale.Z);
+            return transform.localScale;
         }
     }
 }

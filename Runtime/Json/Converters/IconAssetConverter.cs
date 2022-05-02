@@ -3,21 +3,30 @@ using System;
 
 namespace Treasured.UnitySdk
 {
-    internal class StringConverter : JsonConverter
+    internal class IconAssetConverter : JsonConverter
     {
+        public override bool CanRead => false;
+
         public override bool CanConvert(Type objectType)
         {
-            return objectType == typeof(string);
+            return objectType == typeof(IconAsset);
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            return reader.Value.ToString();
+            return null;
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            writer.WriteValue(string.IsNullOrWhiteSpace((string)value) ? "" : value.ToString());
+            if (value is IconAsset icon && !icon.IsNullOrNone())
+            {
+                writer.WriteValue(icon.name);
+            }
+            else
+            {
+                writer.WriteNull();
+            }
         }
     }
 }
