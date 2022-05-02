@@ -31,7 +31,6 @@ namespace Treasured.UnitySdk
         [OpenUrl("https://react-icons.github.io/react-icons/icons?name=fa")]
         private string _icon;
 
-        [JsonProperty("button")]
         public FloatingIcon icon;
 
         [SerializeField]
