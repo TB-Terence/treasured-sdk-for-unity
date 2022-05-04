@@ -21,9 +21,9 @@
     "defineConstraints": [],
     "versionDefines": [
         {
-            "name": "jillejr.newtonsoft.json-for-unity",
-            "expression": "13.0.102",
-            "define": "NEWTONSOFT_13_0_102_OR_NEWER"
+            "name": "com.unity.nuget.newtonsoft-json",
+            "expression": "3.0.2",
+            "define": "NEWTONSOFT_3_0_2_OR_NEWER"
         },
         {
             "name": "com.unity.render-pipelines.high-definition",
