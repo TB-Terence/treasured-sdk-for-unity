@@ -16,6 +16,7 @@
   },
   "type": "tool",
   "dependencies": {
-    "com.unity.render-pipelines.high-definition": "10.5.1"
+    "com.unity.render-pipelines.high-definition": "10.5.1",
+    "com.unity.nuget.newtonsoft-json": "3.0.2"
   }
 }
