@@ -95,7 +95,7 @@ namespace Treasured.UnitySdk
             {
                 if (serializedProperty.name.Equals(nameof(TreasuredSDKPreferences.customExportFolder)))
                 {
-                    EditorGUILayoutUtils.FolderField(serializedProperty, "Select Folder", fallbackPath: Path.Combine(Application.dataPath, "Treasured Data"));
+                    EditorGUILayoutUtils.FolderField(serializedProperty, "Select Folder", TreasuredSDKPreferences.Instance.customExportFolder, fallbackPath: Path.Combine(Application.dataPath, "Treasured Data").Replace("\\", "/"));
                 }
                 else
                 {

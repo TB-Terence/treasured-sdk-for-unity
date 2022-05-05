@@ -194,12 +194,12 @@ namespace Treasured.UnitySdk
                     newPath = EditorUtility.OpenFolderPanel(title, folderPath, "");
                     if (!string.IsNullOrEmpty(newPath))
                     {
-                        serializedProperty.stringValue = newPath.Replace("/", "\\");
+                        serializedProperty.stringValue = newPath.Replace("\\", "/");
                     }
                 }
                 if (GUILayout.Button(EditorGUIUtility.TrIconContent("winbtn_win_close", $"Reset"), EditorStyles.label, GUILayout.Width(20), GUILayout.Height(20)))
                 {
-                    serializedProperty.stringValue = fallbackPath.Replace("/", "\\");
+                    serializedProperty.stringValue = fallbackPath.Replace("\\", "/");
                 }
                 if (EditorGUI.EndChangeCheck())
                 {
