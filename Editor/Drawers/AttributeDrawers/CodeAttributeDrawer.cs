@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
-namespace Treasured.UnitySdk.Editor
+namespace Treasured.UnitySdk
 {
     [CustomPropertyDrawer(typeof(CodeAttribute))]
     public class CodeAttributeDrawer : PropertyDrawer

@@ -3,7 +3,7 @@ using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
-namespace Treasured.UnitySdk.Editor
+namespace Treasured.UnitySdk
 {
     [CustomPropertyDrawer(typeof(UrlAttribute))]
     public class UrlAttributeDrawer : PropertyDrawer

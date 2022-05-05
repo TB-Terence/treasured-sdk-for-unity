@@ -50,7 +50,7 @@ namespace Treasured.UnitySdk
                 else
                 {
                     string mainAssetPath = AssetDatabase.GetAssetPath(arrayProperty.serializedObject.targetObject);
-                    if (EditorUtility.IsPersistent(arrayProperty.serializedObject.targetObject))
+                    if (UnityEditor.EditorUtility.IsPersistent(arrayProperty.serializedObject.targetObject))
                     {
                         scriptableObject = ScriptableObject.CreateInstance(elementType);
                         scriptableObject.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector;
@@ -72,7 +72,7 @@ namespace Treasured.UnitySdk
         {
             SerializedProperty lastElement = AppendLast(arrayProperty);
             string mainAssetPath = AssetDatabase.GetAssetPath(arrayProperty.serializedObject.targetObject);
-            if (EditorUtility.IsPersistent(arrayProperty.serializedObject.targetObject))
+            if (UnityEditor.EditorUtility.IsPersistent(arrayProperty.serializedObject.targetObject))
             {
                 ScriptableObject obj = ScriptableObject.CreateInstance(type);
                 if (hide)
@@ -112,7 +112,7 @@ namespace Treasured.UnitySdk
                     element.managedReferenceValue = null;
                     break;
                 case SerializedPropertyType.ObjectReference:
-                    if (element.objectReferenceValue != null && EditorUtility.IsPersistent(property.serializedObject.targetObject))
+                    if (element.objectReferenceValue != null && UnityEditor.EditorUtility.IsPersistent(property.serializedObject.targetObject))
                     {
                         AssetDatabase.RemoveObjectFromAsset(element.objectReferenceValue);
                         AssetDatabase.SaveAssets();

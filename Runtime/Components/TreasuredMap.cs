@@ -1,5 +1,7 @@
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
@@ -30,14 +32,17 @@ namespace Treasured.UnitySdk
         #endregion
 
         #region Launch Page
+        [RequiredField]
         [SerializeField]
         private string _author;
         public string Author { get => _author; set => _author = value; }
+        [RequiredField]
         [SerializeField]
         [TextArea(3, 3)]
         private string _title;
         public string Title { get => _title; set => _title = value; }
 
+        [RequiredField]
         [SerializeField]
         [TextArea(5, 5)]
         private string _description;
@@ -66,61 +71,12 @@ namespace Treasured.UnitySdk
         public UISettings uiSettings = new UISettings();
         #endregion
 
+        #region Features
+        public FeatureSettings features = new FeatureSettings();
+        #endregion
+
         #region Export Properties
-        [SerializeField]
-        private ImageFormat _format = ImageFormat.Ktx2;
-        public ImageFormat Format { get => _format; set => _format = value; }
-
-        [SerializeField]
-        private bool _canUseTag;
-        
-        [JsonIgnore]
-        public bool CanUseTag
-        {
-            get => _canUseTag;
-            set => _canUseTag = value;
-        }
-
-        [SerializeField]
-        private string _filterTag = "Untagged";
-        
-        [JsonIgnore]
-        public string FilterTag
-        {
-            get => _filterTag;
-            set => _filterTag = value;
-        }
-
-        [SerializeField]
-        private bool _canUseLayerMask;
-        
-        [JsonIgnore]
-        public bool CanUseLayerMask
-        {
-            get => _canUseLayerMask;
-            set => _canUseLayerMask = value;
-        }
-
-        [SerializeField]
-        private LayerMask _filterLayerMask;
-        
-        [JsonIgnore]
-        public LayerMask FilterLayerMask
-        {
-            get => _filterLayerMask;
-            set => _filterLayerMask = value;
-        }
-
-        [SerializeField]
-        private bool _keepCombinedMesh;
-        
-        [JsonIgnore]
-        public bool KeepCombinedMesh
-        {
-            get => _keepCombinedMesh;
-            set => _keepCombinedMesh = value;
-        }
-        
+        public ImageFormat Format { get => cubemapExporter.imageFormat; }
         #endregion
 
         #region Objects
@@ -159,17 +115,43 @@ namespace Treasured.UnitySdk
         #region Export Settings
         [SerializeField]
         private string _outputFolderName;
-        [JsonIgnore]
-        public string OutputFolderName { get => _outputFolderName; set => _outputFolderName = value; }
-        
-
-        [SerializeField]
-        private int _interactableLayer; // game object can only have one layer thus using int instead of LayerMask
-
         #endregion
 
         [Code]
         public string headHTML;
+
+        //public Dictionary<string, string> SvgData
+        //{
+        //    get
+        //    {
+        //        Dictionary<string, string> svgData = new Dictionary<string, string>();
+        //        foreach (var obj in GetComponentsInChildren<TreasuredObject>())
+        //        {
+        //            if (obj.button == null || obj.button.icon2 == null || svgData.ContainsKey(obj.button.icon2.name) || string.IsNullOrWhiteSpace(obj.button.icon2.svg))
+        //            {
+        //                continue;
+        //            }
+        //            // TODO : Validate XML file
+        //            svgData.Add(obj.button.icon2.name, obj.button.icon2.svg);
+        //        }
+        //        return svgData;
+        //    }
+        //}
+
+        [JsonIgnore]
+        public ExportSettings exportSettings;
+
+        [JsonIgnore]
+        public JsonExporter jsonExporter;
+
+        [JsonIgnore]
+        public IconExporter iconExporter;
+
+        [JsonIgnore]
+        public CubemapExporter cubemapExporter;
+
+        [JsonIgnore]
+        public MeshExporter meshExporter;
 
         private void OnValidate()
         {
