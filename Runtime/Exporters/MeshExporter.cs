@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityGLTF;
+using UnityMeshSimplifier;
 using Object = UnityEngine.Object;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -48,7 +49,8 @@ namespace Treasured.UnitySdk
         {
             if (!canUseTag && !canUseLayerMask)
             {
-                Debug.LogError("[MeshExporter] : Mesh Export Search option is not configured. GLB Mesh will not be exported.");
+                Debug.LogError(
+                    "[MeshExporter] : Mesh Export Search option is not configured. GLB Mesh will not be exported.");
                 return;
             }
 
@@ -93,7 +95,8 @@ namespace Treasured.UnitySdk
                 {
                     if (displayLogs)
                     {
-                        Debug.Log($"[MeshExporter] : {gameObject.name} is already included in combined mesh dictionary. Duplicate will be ignored.");
+                        Debug.Log(
+                            $"[MeshExporter] : {gameObject.name} is already included in combined mesh dictionary. Duplicate will be ignored.");
                     }
 
                     continue;
@@ -137,7 +140,7 @@ namespace Treasured.UnitySdk
                     {
                         continue;
                     }
-                    
+
                     //  Check if length of renderers are not 0
                     if (allLodGroups[lodCount - 1].renderers.Length != 0 && lodCount - 2 > 0)
                     {
@@ -173,7 +176,8 @@ namespace Treasured.UnitySdk
             //  Checking meshToCombine for null
             if (meshToCombine.Count == 0)
             {
-                Debug.LogError("[MeshExporter] : No GameObjects were found based on the search filter. GLB mesh will not be exported.");
+                Debug.LogError(
+                    "[MeshExporter] : No GameObjects were found based on the search filter. GLB mesh will not be exported.");
                 return;
             }
 
@@ -181,6 +185,19 @@ namespace Treasured.UnitySdk
             var verticesList = new List<Vector3>();
             var meshTriangles = new List<int>();
             var meshQuality = (int)ExportQuality;
+            var simplificationOption = new SimplificationOptions
+            {
+                PreserveBorderEdges = true,
+                PreserveUVSeamEdges = false,
+                PreserveUVFoldoverEdges = false,
+                PreserveSurfaceCurvature = false,
+                EnableSmartLink = true,
+                VertexLinkDistance = Double.Epsilon,
+                MaxIterationCount = 100,
+                Agressiveness = 7.0,
+                ManualUVComponentCount = false,
+                UVComponentCount = 0
+            };
 
             foreach (var meshGameObject in meshToCombine)
             {
@@ -189,19 +206,24 @@ namespace Treasured.UnitySdk
                     //  Check if sharedMesh is not null
                     if (filter.sharedMesh != null)
                     {
-                        if (meshQuality!= 0 && filter.sharedMesh.triangles.Length > meshQuality)
+                        var optimizedMesh = filter.sharedMesh;
+
+                        if (meshQuality != 0 && filter.sharedMesh.triangles.Length > meshQuality)
                         {
                             if (displayLogs)
                             {
                                 Debug.Log(
-                                    $"[MeshExporter] : {filter.gameObject.name} GameObject has {filter.sharedMesh.triangles.Length} vertices which exceeds the vertices limit {meshQuality}. Object will not be exported.",
+                                    $"[MeshExporter] : {filter.gameObject.name} GameObject has {filter.sharedMesh.triangles.Length} vertices which exceeds the vertices limit {meshQuality}. Optimizing Mesh...",
                                     filter.gameObject);
                             }
 
-                            continue;
+                            var meshSimplifier = new MeshSimplifier(filter.sharedMesh);
+
+                            meshSimplifier.SimplificationOptions = simplificationOption;
+                            meshSimplifier.SimplifyMesh(0.1f);
+
+                            optimizedMesh = meshSimplifier.ToMesh();
                         }
-                        
-                        var optimizedMesh = filter.sharedMesh;
 
                         //  Adding mesh vertices and triangles
                         foreach (var meshVertex in optimizedMesh.vertices)
@@ -212,9 +234,9 @@ namespace Treasured.UnitySdk
                         for (var j = 0; j < optimizedMesh.subMeshCount; j++)
                         {
                             var triangles = optimizedMesh.GetTriangles(j);
-                            for (var k = 0; k < triangles.Length; k++)
+                            foreach (var t in triangles)
                             {
-                                meshTriangles.Add(verticesCount + triangles[k]);
+                                meshTriangles.Add(verticesCount + t);
                             }
                         }
 
@@ -225,7 +247,8 @@ namespace Treasured.UnitySdk
 
             if (verticesCount == 0)
             {
-                Debug.LogError("[MeshExporter] : No Valid mesh were found based on the search filter. GLB mesh will not be exported.");
+                Debug.LogError(
+                    "[MeshExporter] : No Valid mesh were found based on the search filter. GLB mesh will not be exported.");
                 return;
             }
 
@@ -298,8 +321,9 @@ namespace Treasured.UnitySdk
 
         private bool ContainsValidRenderer(GameObject gameObject)
         {
-            return (gameObject.GetComponent<MeshFilter>() != null && gameObject.GetComponent<MeshRenderer>() != null
-                    || gameObject.GetComponent<SkinnedMeshRenderer>() != null)
+            return gameObject.GetComponent<ReflectionProbe>() == null
+                   && (gameObject.GetComponent<MeshFilter>() != null && gameObject.GetComponent<MeshRenderer>() != null
+                       || gameObject.GetComponent<SkinnedMeshRenderer>() != null)
 #if TEXTMESHPRO_3_0_6_OR_NEWER
                    && gameObject.GetComponent<TMPro.TextMeshPro>() == null;
 #endif
