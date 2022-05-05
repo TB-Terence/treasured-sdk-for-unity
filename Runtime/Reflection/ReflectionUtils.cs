@@ -57,7 +57,7 @@ namespace Treasured.UnitySdk
         /// <param name="target"></param>
         /// <returns>
         /// All serialized fields of <paramref name="target"/>. This includes all nested fields that are public or with <see cref="UnityEngine.SerializeField"/> attribute.</returns>
-        public static List<SerializedFieldReference> GetSeriliazedFieldReferences(object target)
+        public static List<SerializedFieldReference> GetSeriliazedFieldReferences(object target, bool includeNested = true)
         {
             List<SerializedFieldReference> list = new List<SerializedFieldReference>();
             if (target == null)
@@ -69,7 +69,10 @@ namespace Treasured.UnitySdk
             for (int i = 0; i < fieldInfos.Length; i++)
             {
                 list.Add(new SerializedFieldReference(target, fieldInfos[i]));
-                list.AddRange(GetSeriliazedFieldReferences(fieldInfos[i].GetValue(target)));
+                if (includeNested)
+                {
+                    list.AddRange(GetSeriliazedFieldReferences(fieldInfos[i].GetValue(target)));
+                }
             }
             return list;
         }

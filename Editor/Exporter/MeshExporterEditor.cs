@@ -79,5 +79,10 @@ namespace Treasured.UnitySdk
                 EditorGUILayout.PropertyField(_displayLogs);
             }
         }
+
+        void OnPreferenceGUI(SerializedObject serializedObject)
+        {
+            this.OnInspectorGUI();
+        }
     }
 }

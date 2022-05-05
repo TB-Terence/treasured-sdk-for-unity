@@ -518,19 +518,45 @@ namespace Treasured.UnitySdk
             _exportSettingsEditor.serializedObject.ApplyModifiedProperties();
             try
             {
-                EditorGUILayout.LabelField("Exporters", EditorStyles.boldLabel);
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.LabelField("Exporter Settings", EditorStyles.boldLabel);
+                GUILayout.FlexibleSpace();
+                if (GUILayout.Button(new GUIContent("Overwrite", "Overwrite all exporter settings from Preferences")))
+                {
+                    foreach (var editor in _exporterEditors)
+                    {
+                        var source = TreasuredSDKPreferences.Instance.exporters.FirstOrDefault(exporter => exporter.GetType() == editor.target.GetType());
+                        if (source == null)
+                        {
+                            continue;
+                        }
+                        SerializedObject serializedObject = new SerializedObject(source);
+                        SerializedProperty current = serializedObject.GetIterator();
+                        while (current.Next(true))
+                        {
+                            editor.serializedObject.CopyFromSerializedProperty(current);
+                        }
+                        // set _map for the exporter
+                        editor.serializedObject.FindProperty("_map").objectReferenceValue = _map;
+                        editor.serializedObject.ApplyModifiedProperties();
+                    }
+                }
+                EditorGUILayout.EndHorizontal();
                 using (new EditorGUI.IndentLevelScope(1))
                 {
                     for (int i = 0; i < _exporterEditors.Length; i++)
                     {
                         Editor editor = _exporterEditors[i];
                         editor.serializedObject.Update();
-                        SerializedProperty enabled = editor.serializedObject.FindProperty(nameof(Exporter.enabled));
-                        enabled.boolValue = EditorGUILayout.ToggleLeft(ObjectNames.NicifyVariableName(editor.target.GetType().Name), enabled.boolValue, EditorStyles.boldLabel);
-                        EditorGUI.indentLevel++;
-                        editor.OnInspectorGUI();
-                        EditorGUI.indentLevel--;
-                        editor.serializedObject.ApplyModifiedProperties();
+                        EditorGUI.BeginChangeCheck();
+                        using (new ExporterEditor.ExporterScope(ref (editor.serializedObject.targetObject as Exporter).enabled, ObjectNames.NicifyVariableName(editor.serializedObject.targetObject.GetType().Name)))
+                        {
+                            editor.OnInspectorGUI();
+                        }
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            editor.serializedObject.ApplyModifiedProperties();
+                        }
                     }
                 }
             }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Treasured.UnitySdk.Validation;
 using UnityEngine;
+using Newtonsoft.Json;
 
 namespace Treasured.UnitySdk
 {
@@ -19,6 +20,7 @@ namespace Treasured.UnitySdk
         [HideInInspector]
         public bool enabled = true;
 
+        [JsonIgnore]
         public TreasuredMap Map { get => _map; }
 
         public virtual List<ValidationResult> CanExport()
@@ -47,7 +49,7 @@ namespace Treasured.UnitySdk
                     validationResults.AddRange(results);
                 }
             }
-            if((!map.exportSettings.ignoreWarnings && validationResults.Count > 0) || (map.exportSettings.ignoreWarnings && validationResults.Any(result => result.type == ValidationResult.ValidationResultType.Error)))
+            if((!TreasuredSDKPreferences.Instance.ignoreWarnings && validationResults.Count > 0) || (TreasuredSDKPreferences.Instance.ignoreWarnings && validationResults.Any(result => result.type == ValidationResult.ValidationResultType.Error)))
             {
                 throw new ValidationException(validationResults);
             }

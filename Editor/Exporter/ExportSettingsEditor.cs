@@ -18,7 +18,6 @@ namespace Treasured.UnitySdk
                 {
                     settings.folderName = newOutputFolderName;
                 }
-                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(ExportSettings.ignoreWarnings)));
             }
         }
     }

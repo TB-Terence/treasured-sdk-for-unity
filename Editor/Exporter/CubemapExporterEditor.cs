@@ -31,14 +31,19 @@ namespace Treasured.UnitySdk
                     _cubemapSize.intValue = Mathf.Clamp(_cubemapSize.intValue - _cubemapSize.intValue % 10, 16, CubemapExporter.MAXIMUM_CUBEMAP_FACE_WIDTH);
                 }
             }
-            if (cubemapExportProcess.imageFormat == ImageFormat.PNG || cubemapExportProcess.imageFormat == ImageFormat.Ktx2)
-                return;
-
-            using (new EditorGUILayout.HorizontalScope())
+            if (cubemapExportProcess.imageFormat != ImageFormat.PNG && cubemapExportProcess.imageFormat != ImageFormat.Ktx2)
             {
-                _qualityPercentage.intValue = EditorGUILayout.IntSlider(new GUIContent("Quality Percentage"), _qualityPercentage.intValue, 1, 100);
-                GUILayout.Label("%");
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    _qualityPercentage.intValue = EditorGUILayout.IntSlider(new GUIContent("Quality Percentage"), _qualityPercentage.intValue, 1, 100);
+                    GUILayout.Label("%");
+                }
             }
+        }
+
+        void OnPreferenceGUI(SerializedObject serializedObject)
+        {
+            this.OnInspectorGUI();
         }
     }
 }

@@ -1,3 +1,8 @@
+# 0.9.0
+
+### Features
+* Add User Preferences. Exporter settings can now be set for the project and overwrite for individual map.
+
 ## Version 0.8.2 (March 29, 2022)
 
 - Add `duration` property to ShowTextAction.
