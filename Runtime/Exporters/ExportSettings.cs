@@ -32,9 +32,6 @@ namespace Treasured.UnitySdk
         [RequiredField]
         public string folderName;
 
-        [Tooltip("Ignore export warnings(E.g., Hotspot path blocked by collider).")]
-        public bool ignoreWarnings = false;
-
         public string OutputDirectory
         {
             get

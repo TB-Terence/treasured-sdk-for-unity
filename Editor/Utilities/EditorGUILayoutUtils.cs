@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using UnityEditor;
@@ -8,6 +9,20 @@ namespace Treasured.UnitySdk
 {
     internal static class EditorGUILayoutUtils
     {
+        public sealed class GroupScope : GUI.Scope
+        {
+            public GroupScope(string groupName, GUIStyle style)
+            {
+                EditorGUILayout.LabelField(groupName, style);
+                EditorGUI.indentLevel++;
+            }
+
+            protected override void CloseScope()
+            {
+                EditorGUI.indentLevel--;
+            }
+        }
+
         static class Styles
         {
             public static GUIStyle Link = new GUIStyle() { stretchWidth = false, normal = { textColor = new Color(0f, 0.47f, 0.85f) } };
@@ -153,6 +168,47 @@ namespace Treasured.UnitySdk
                     }
                 }
                 EditorGUILayout.EndFoldoutHeaderGroup();
+            }
+        }
+
+        /// <summary>
+        /// Draws a text field with folder picker and reset button.
+        /// </summary>
+        /// <param name="serializedProperty">String based serialized field.</param>
+        /// <param name="title">The title of the OpenFolderPanel window.</param>
+        /// <param name="folderPath">The path of the folder when it first show up.</param>
+        /// <param name="fallbackPath">The path to use if the folder does not exist.</param>
+        /// <exception cref="ArgumentException"></exception>
+        public static void FolderField(SerializedProperty serializedProperty, string title, string folderPath = "", string fallbackPath = "")
+        {
+            if (serializedProperty.propertyType != SerializedPropertyType.String)
+            {
+                throw new ArgumentException($"Type mismatch. {serializedProperty} is not type of string.");
+            }
+            EditorGUI.BeginChangeCheck();
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                string newPath = EditorGUILayout.TextField(serializedProperty.displayName, serializedProperty.stringValue);
+                if (GUILayout.Button(EditorGUIUtility.TrIconContent("FolderOpened Icon", $"Select custom export folder."), EditorStyles.label, GUILayout.Width(20), GUILayout.Height(20)))
+                {
+                    newPath = EditorUtility.OpenFolderPanel(title, folderPath, "");
+                    if (!string.IsNullOrEmpty(newPath))
+                    {
+                        serializedProperty.stringValue = newPath.Replace("/", "\\");
+                    }
+                }
+                if (GUILayout.Button(EditorGUIUtility.TrIconContent("winbtn_win_close", $"Reset"), EditorStyles.label, GUILayout.Width(20), GUILayout.Height(20)))
+                {
+                    serializedProperty.stringValue = fallbackPath.Replace("/", "\\");
+                }
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (Directory.Exists(newPath))
+                    {
+                        EditorGUI.FocusTextInControl(null);
+                        serializedProperty.serializedObject.ApplyModifiedProperties();
+                    }
+                }
             }
         }
     }
