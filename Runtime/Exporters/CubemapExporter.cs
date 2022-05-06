@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -13,6 +14,7 @@ namespace Treasured.UnitySdk
         public const int MAXIMUM_CUBEMAP_WIDTH = 8192;
 
         public ImageFormat imageFormat = ImageFormat.Ktx2;
+        public bool exportAllQualities = true;
         public ImageQuality imageQuality = ImageQuality.High;
         public CubemapFormat cubemapFormat = CubemapFormat.IndividualFace;
         [SerializeField]
@@ -26,6 +28,31 @@ namespace Treasured.UnitySdk
 
         public override void Export()
         {
+            var imageQualities = Enum.GetValues(typeof(ImageQuality)).Cast<ImageQuality>();
+
+            if (exportAllQualities)
+            {
+                foreach (var quality in imageQualities)
+                {
+                    ExportCubemap(quality);
+                }
+            }
+            else
+            {
+                ExportCubemap(imageQuality);
+            }
+
+            if (imageFormat == ImageFormat.Ktx2)
+            {
+#if UNITY_EDITOR
+                UnityEditor.EditorUtility.DisplayProgressBar("Converting to KTX2", "Converting in progress...", 0.5f);
+#endif
+                ImageUtilies.ConvertToKTX2(Map.exportSettings.OutputDirectory);
+            }
+        }
+
+        private void ExportCubemap(ImageQuality imageQuality)
+        {
             var hotspots = ValidateHotspots(Map);
             var camera = ValidateCamera(); // use default camera settings to render 360 images
 
@@ -38,7 +65,7 @@ namespace Treasured.UnitySdk
             //int size = 1024;//Mathf.Min(Mathf.NextPowerOfTwo((int)map.Quality), 8192);
 
             int count = hotspots.Length;
-
+            
             Cubemap cubemap = new Cubemap(cubemapFormat == CubemapFormat.IndividualFace ? (int)imageQuality : _cubemapSize, TextureFormat.ARGB32, false);
             Texture2D texture = null;
             switch (cubemapFormat)
@@ -58,7 +85,7 @@ namespace Treasured.UnitySdk
                 for (int index = 0; index < count; index++)
                 {
                     Hotspot current = hotspots[index];
-                    string progressTitle = $"Exporting Hotspots ({index + 1}/{count})";
+                    string progressTitle = $"Exporting {imageQuality.ToString()} quality Hotspots ({index + 1}/{count})";
                     string progressText = $"Generating data for {current.name}...";
 
                     camera.transform.SetPositionAndRotation(current.Camera.transform.position, Quaternion.identity);
@@ -67,7 +94,7 @@ namespace Treasured.UnitySdk
                     {
                         throw new System.NotSupportedException("Current graphic device/platform does not support RenderToCubemap.");
                     }
-                    var path = Directory.CreateDirectory(Path.Combine(Map.exportSettings.OutputDirectory, "images", current.Id).Replace('/', '\\'));
+                    var path = Directory.CreateDirectory(Path.Combine(Map.exportSettings.OutputDirectory, "images", imageQuality.ToString().ToLower(), current.Id).Replace('/', '\\'));
                     switch (cubemapFormat)
                     {
                         case CubemapFormat._3x2:
@@ -102,13 +129,6 @@ namespace Treasured.UnitySdk
                             }
                             break;
                     }
-                }
-                if (imageFormat == ImageFormat.Ktx2)
-                {
-#if UNITY_EDITOR
-                    UnityEditor.EditorUtility.DisplayProgressBar("Converting to KTX2", "Converting in progress...", 0.5f);
-#endif
-                    ImageUtilies.ConvertToKTX2(Map.exportSettings.OutputDirectory);
                 }
             }
             catch (Exception e)
