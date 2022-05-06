@@ -9,18 +9,27 @@ namespace Treasured.UnitySdk
         private bool _isAdvancedMode;
         private SerializedProperty _cubemapSize;
         private SerializedProperty _qualityPercentage;
+        private SerializedProperty _exportAllQualities;
 
         private void OnEnable()
         {
             _cubemapSize = serializedObject.FindProperty("_cubemapSize");
             _qualityPercentage = serializedObject.FindProperty("_qualityPercentage");
+            _exportAllQualities = serializedObject.FindProperty(nameof(CubemapExporter.exportAllQualities));
         }
 
         public override void OnInspectorGUI()
         {
             CubemapExporter cubemapExportProcess = (CubemapExporter)target;
             EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(CubemapExporter.imageFormat)));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(CubemapExporter.imageQuality)));
+            _exportAllQualities.boolValue = EditorGUILayout.Toggle(new GUIContent("Export all Image Qualities"),
+                _exportAllQualities.boolValue);
+
+            if (!_exportAllQualities.boolValue)
+            {
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(CubemapExporter.imageQuality)));
+            }
+
             EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(CubemapExporter.cubemapFormat)));
             if (cubemapExportProcess.cubemapFormat == CubemapFormat._3x2)
             {
