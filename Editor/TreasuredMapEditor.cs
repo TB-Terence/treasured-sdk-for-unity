@@ -295,9 +295,9 @@ namespace Treasured.UnitySdk
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-            using(new EditorGUILayout.HorizontalScope())
+            using (new EditorGUILayout.HorizontalScope())
             {
-                if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Export", $"Export scene to {EditorPrefs.GetString(ExportSettings.OutputRootDirectoryKey, $"{ExportSettings.DefaultOutputDirectory}")}/ {_map.exportSettings.folderName}", "SceneLoadIn"), Styles.exportButton))
+                if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Export", $"Export scene to {TreasuredSDKPreferences.Instance.customExportFolder}/{_map.exportSettings.folderName}", "SceneLoadIn"), Styles.exportButton))
                 {
                     try
                     {
@@ -318,18 +318,19 @@ namespace Treasured.UnitySdk
                 if (GUILayout.Button(EditorGUIUtility.TrIconContent("icon dropdown"), Styles.exportButton, GUILayout.MaxWidth(24)))
                 {
                     GenericMenu menu = new GenericMenu();
-                    menu.AddItem(new GUIContent("Config Root Directory"), false, () =>
+                    menu.AddItem(new GUIContent("Open Custom Export Folder", "Open custom export folder in the File Explorer. The default folder will be the path in your Unity project/Treasured Data"), false, () =>
                     {
-                        string directory = UnityEditor.EditorUtility.OpenFolderPanel("Select Output Root", "", "");
-                        if (!string.IsNullOrEmpty(directory))
+                        if (Directory.Exists(TreasuredSDKPreferences.Instance.customExportFolder))
                         {
-                            EditorPrefs.SetString(ExportSettings.OutputRootDirectoryKey, directory);
+                            Application.OpenURL(TreasuredSDKPreferences.Instance.customExportFolder);
                         }
-                    });
-                    menu.AddSeparator("");
-                    menu.AddItem(new GUIContent("Open Root Directory", "Open the root output folder in the File Explorer. The default output root will be the path in your Unity project/Treasured Data"), false, () =>
-                    {
-                        Application.OpenURL(EditorPrefs.GetString(ExportSettings.OutputRootDirectoryKey, ExportSettings.DefaultOutputDirectory));
+                        else
+                        {
+                            if(EditorUtility.DisplayDialog("Error", "Custom export folder does not exist.", "Config", "Cancel"))
+                            {
+                                SettingsService.OpenUserPreferences("Preferences/Treasured SDK");
+                            }
+                        }
                     });
                     menu.ShowAsContext();
                 }

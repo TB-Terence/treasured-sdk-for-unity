@@ -62,7 +62,7 @@ namespace Treasured.UnitySdk
             if ((UnityEngine.Object)s_instance == (UnityEngine.Object)null)
             {
                 s_instance = ScriptableObject.CreateInstance<TreasuredSDKPreferences>();
-                s_instance.customExportFolder = Path.Combine(Application.dataPath, "Treasured Data").Replace("/", "\\");
+                s_instance.customExportFolder = Path.Combine(Application.dataPath, "Treasured Data").Replace("\\", "/");
             }
         }
 
