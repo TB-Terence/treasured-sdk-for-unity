@@ -45,6 +45,14 @@ namespace Treasured.UnitySdk
         [Tooltip("Display detailed mesh exporter logs")]
         public bool displayLogs;
 
+        public override void OnPreExport()
+        {
+            if (!canUseTag && !canUseLayerMask)
+            {
+                throw new ArgumentException("[MeshExporter] : Mesh Export Search option is not configured.GLB Mesh will not be exported.");
+            }
+        }
+
         public override void Export()
         {
             if (!canUseTag && !canUseLayerMask)

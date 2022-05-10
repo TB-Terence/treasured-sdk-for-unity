@@ -48,7 +48,7 @@ namespace Treasured.UnitySdk
         }
 
         SerializedObject _serializedObject;
-        SerializedProperty[] _serializedProperties;
+        List<SerializedProperty> _serializedProperties;
         
         List<ExporterPreferenceGUIDrawer> _exporterDrawers = new List<ExporterPreferenceGUIDrawer>();
 
@@ -68,15 +68,23 @@ namespace Treasured.UnitySdk
             TreasuredSDKPreferences.Instance.hideFlags &= ~HideFlags.NotEditable;
             _serializedObject = TreasuredSDKPreferences.Instance.GetSerializedObject();
             var serializedFields = ReflectionUtils.GetSeriliazedFieldReferences(TreasuredSDKPreferences.Instance, false);
-            _serializedProperties = new SerializedProperty[serializedFields.Count - 1]; // This will not include the exporter[], alternatively filter by fieldInfo.name 
-            for (int i = 0; i < _serializedProperties.Length; i++)
+            _serializedProperties = new List<SerializedProperty>();
+            for (int i = 0; i < serializedFields.Count; i++)
             {
-                _serializedProperties[i] = _serializedObject.FindProperty(serializedFields[i].fieldInfo.Name);
+                if (serializedFields[i].fieldInfo.Name.Equals("exporters")) // skip exporter[] field
+                {
+                    continue;
+                }
+                _serializedProperties.Add(_serializedObject.FindProperty(serializedFields[i].fieldInfo.Name));
             }
             // initialize exporter gui drawers
             _exporterDrawers = new List<ExporterPreferenceGUIDrawer>();
             for (int i = 0; i < TreasuredSDKPreferences.Instance.exporters.Count; i++)
             {
+                if ((UnityEngine.Object)TreasuredSDKPreferences.Instance.exporters[i] == (UnityEngine.Object)null)
+                {
+                    continue;
+                }
                 _exporterDrawers.Add(new ExporterPreferenceGUIDrawer(TreasuredSDKPreferences.Instance.exporters[i]));
             }
         }

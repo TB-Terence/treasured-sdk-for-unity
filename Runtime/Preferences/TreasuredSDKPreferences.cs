@@ -83,6 +83,10 @@ namespace Treasured.UnitySdk
             // remove existing types
             foreach (var exporter in exporters)
             {
+                if ((UnityEngine.Object)exporter == (UnityEngine.Object)null)
+                {
+                    continue;
+                }
                 exporterTypes.Remove(exporter.GetType());
             }
             foreach (var missingType in exporterTypes)
