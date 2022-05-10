@@ -33,7 +33,7 @@ namespace Treasured.UnitySdk
             {
                 if (_onPreferenceGUI != null && _onPreferenceGUI.GetParameters().Length == 1)
                 {
-                    using (new ExporterEditor.ExporterScope(ref (SerializedObject.targetObject as Exporter).enabled, ObjectNames.NicifyVariableName(SerializedObject.targetObject.GetType().Name)))
+                    using (new ExporterEditor.ExporterScope(SerializedObject.targetObject as Exporter))
                     {
                         SerializedObject.Update();
                         EditorGUI.BeginChangeCheck();

@@ -8,7 +8,7 @@ namespace Treasured.UnitySdk.Utilities
 {
     internal class TypeCache
     {
-        static Dictionary<Type, Type> _cachedEditorTypes = new Dictionary<Type, Type>();
+        static Dictionary<Type, Type> s_cachedEditorTypes = new Dictionary<Type, Type>();
 
         [InitializeOnLoadMethod]
         static void GetCustomEditorTypes()
@@ -24,7 +24,7 @@ namespace Treasured.UnitySdk.Utilities
                     Type type = fieldInfo.GetValue(customEditorAttribute) as Type;
                     if (type != null)
                     {
-                        _cachedEditorTypes[type] = customEditorType;
+                        s_cachedEditorTypes[type] = customEditorType;
                     }
                 }
             }
@@ -38,7 +38,7 @@ namespace Treasured.UnitySdk.Utilities
         /// <returns></returns>
         public static bool TryGetCustomEditorType<T>(out Type customEditorType)
         {
-            return _cachedEditorTypes.TryGetValue(typeof(T), out customEditorType);
+            return s_cachedEditorTypes.TryGetValue(typeof(T), out customEditorType);
         }
     }
 }

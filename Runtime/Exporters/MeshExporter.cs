@@ -45,6 +45,19 @@ namespace Treasured.UnitySdk
         [Tooltip("Display detailed mesh exporter logs")]
         public bool displayLogs;
 
+        [UnityEngine.ContextMenu("Reset")]
+        private void Reset()
+        {
+            enabled = true;
+            includeTags = 1;
+            excludeTags = 0;
+            canUseTag = false;
+            filterTag = 0;
+            canUseLayerMask = false;
+            filterLayerMask = 0;
+            ExportQuality = MeshExportQuality.Full;
+        }
+
         public override void OnPreExport()
         {
             if (!canUseTag && !canUseLayerMask)

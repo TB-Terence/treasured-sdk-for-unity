@@ -549,8 +549,9 @@ namespace Treasured.UnitySdk
                     {
                         Editor editor = _exporterEditors[i];
                         editor.serializedObject.Update();
+                        var exporter = (editor.serializedObject.targetObject as Exporter);
                         EditorGUI.BeginChangeCheck();
-                        using (new ExporterEditor.ExporterScope(ref (editor.serializedObject.targetObject as Exporter).enabled, ObjectNames.NicifyVariableName(editor.serializedObject.targetObject.GetType().Name)))
+                        using (var scope = new ExporterEditor.ExporterScope(exporter))
                         {
                             editor.OnInspectorGUI();
                         }

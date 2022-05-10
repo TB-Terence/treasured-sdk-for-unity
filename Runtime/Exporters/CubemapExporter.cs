@@ -26,6 +26,19 @@ namespace Treasured.UnitySdk
         [HideInInspector]
         private int _qualityPercentage = 75;
 
+        [UnityEngine.ContextMenu("Reset")]
+        private void Reset()
+        {
+            enabled = true;
+            imageFormat = ImageFormat.Ktx2;
+            exportAllQualities = true;
+            imageQuality = ImageQuality.High;
+            cubemapFormat = CubemapFormat.IndividualFace;
+            _cubemapSize = MAXIMUM_CUBEMAP_FACE_WIDTH;
+            flipY = true;
+            _qualityPercentage = 75;
+        }
+
         public override void Export()
         {
             var imageQualities = Enum.GetValues(typeof(ImageQuality)).Cast<ImageQuality>();
