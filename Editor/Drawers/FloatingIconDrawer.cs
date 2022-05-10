@@ -10,6 +10,8 @@ namespace Treasured.UnitySdk
     [CustomPropertyDrawer(typeof(FloatingIcon))]
     internal class FloatingIconDrawer : PropertyDrawer
     {
+        private const string FloatingIconFoldoutKey = "TreasuredSDK_FloatingIconFoldout";
+
         public static float k_SingleLineHeightWithSpace = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
@@ -17,8 +19,13 @@ namespace Treasured.UnitySdk
             SerializedProperty iconProperty = property.FindPropertyRelative(nameof(FloatingIcon.asset));
             SerializedProperty transformProperty = property.FindPropertyRelative(nameof(FloatingIcon.transform));
             EditorGUI.BeginProperty(position, label, property);
-            property.isExpanded = EditorGUI.BeginFoldoutHeaderGroup(new Rect(position.x, position.y, position.width, k_SingleLineHeightWithSpace), property.isExpanded, label);
-            if (property.isExpanded)
+            EditorGUI.BeginChangeCheck();
+            var expanded = EditorGUI.BeginFoldoutHeaderGroup(new Rect(position.x, position.y, position.width, k_SingleLineHeightWithSpace), SessionState.GetBool(FloatingIconFoldoutKey, true), label);
+            if (EditorGUI.EndChangeCheck())
+            {
+                SessionState.SetBool(FloatingIconFoldoutKey, expanded);
+            }
+            if (expanded)
             {
                 using (new EditorGUI.IndentLevelScope(1))
                 {
@@ -109,7 +116,7 @@ namespace Treasured.UnitySdk
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            if (!property.isExpanded)
+            if (!SessionState.GetBool(FloatingIconFoldoutKey, true))
             {
                 return k_SingleLineHeightWithSpace;
             }
