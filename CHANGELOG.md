@@ -1,3 +1,9 @@
+# 0.10.1
+
+### Fixed
+* Fixed transform for button still gets export when icon is null
+* Fixed game object icon not set to default when icon is set to null
+
 # 0.10.0
 
 ### Added

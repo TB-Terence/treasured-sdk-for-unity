@@ -44,10 +44,7 @@ namespace Treasured.UnitySdk
                                 property.serializedObject.ApplyModifiedProperties();
                             }
                             IconAsset iconAsset = iconProperty.objectReferenceValue as IconAsset;
-                            if (!iconAsset.IsNullOrNone() && !transformProperty.objectReferenceValue.IsNullOrNone())
-                            {
-                                ((transformProperty.objectReferenceValue) as Transform).gameObject.SetIcon(iconAsset.icon);
-                            }
+                            ((transformProperty.objectReferenceValue) as Transform).gameObject.SetIcon(!iconAsset.IsNullOrNone() && !transformProperty.objectReferenceValue.IsNullOrNone() ? iconAsset.icon : null);
                             property.serializedObject.ApplyModifiedProperties();
                         }
                         if (GUI.Button(new Rect(position.xMax - 20, position.y + k_SingleLineHeightWithSpace, 20, EditorGUIUtility.singleLineHeight), GUIIcons.menu, EditorStyles.label))
@@ -58,17 +55,20 @@ namespace Treasured.UnitySdk
                     if (!iconProperty.objectReferenceValue.IsNullOrNone())
                     {
                         EditorGUI.PropertyField(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 2, position.width, EditorGUIUtility.singleLineHeight), transformProperty);
-                        using (new EditorGUI.IndentLevelScope(1))
+                        if (!transformProperty.objectReferenceValue.IsNullOrNone())
                         {
-                            using (var scope = new EditorGUI.ChangeCheckScope())
+                            using (new EditorGUI.IndentLevelScope(1))
                             {
-                                Transform transform = transformProperty.objectReferenceValue as Transform;
-                                transform.localPosition = EditorGUI.Vector3Field(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 3, position.width, EditorGUIUtility.singleLineHeight), "Position", transform.localPosition);
-                                transform.localEulerAngles = EditorGUI.Vector3Field(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 4, position.width, EditorGUIUtility.singleLineHeight), "Rotation", transform.localEulerAngles);
-                                transform.localScale = EditorGUI.Vector3Field(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 5, position.width, EditorGUIUtility.singleLineHeight), "Size", transform.localScale);
-                                if (scope.changed)
+                                using (var scope = new EditorGUI.ChangeCheckScope())
                                 {
-                                    transformProperty.serializedObject.ApplyModifiedProperties();
+                                    Transform transform = transformProperty.objectReferenceValue as Transform;
+                                    transform.localPosition = EditorGUI.Vector3Field(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 3, position.width, EditorGUIUtility.singleLineHeight), "Position", transform.localPosition);
+                                    transform.localEulerAngles = EditorGUI.Vector3Field(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 4, position.width, EditorGUIUtility.singleLineHeight), "Rotation", transform.localEulerAngles);
+                                    transform.localScale = EditorGUI.Vector3Field(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 5, position.width, EditorGUIUtility.singleLineHeight), "Size", transform.localScale);
+                                    if (scope.changed)
+                                    {
+                                        transformProperty.serializedObject.ApplyModifiedProperties();
+                                    }
                                 }
                             }
                         }
@@ -113,7 +113,9 @@ namespace Treasured.UnitySdk
             {
                 return k_SingleLineHeightWithSpace;
             }
-            return k_SingleLineHeightWithSpace * (property.FindPropertyRelative(nameof(FloatingIcon.asset)).objectReferenceValue.IsNullOrNone() ? 2 : 6);
+            bool assetIsNull = property.FindPropertyRelative(nameof(FloatingIcon.asset)).objectReferenceValue.IsNullOrNone();
+            bool transformIsNull = property.FindPropertyRelative(nameof(FloatingIcon.transform)).objectReferenceValue.IsNullOrNone();
+            return k_SingleLineHeightWithSpace * (assetIsNull ? 2 : transformIsNull ? 3 : 6);
         }
     }
 }

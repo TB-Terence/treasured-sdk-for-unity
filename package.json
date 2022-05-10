@@ -1,6 +1,6 @@
 {
   "name": "com.treasured.unitysdk",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "displayName": "Treasured SDK for Unity",
   "description": "This package provides tools for creating and exporting files used by the Treasured 3D website.",
   "unity": "2020.3",
