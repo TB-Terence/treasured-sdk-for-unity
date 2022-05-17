@@ -45,24 +45,24 @@ namespace Treasured.UnitySdk.Validation
                     {
                         if (action is SelectObjectAction soa)
                         {
-                            if (soa.Target == null || (soa.Target != null && !soa.Target.gameObject.activeSelf))
+                            if (soa.target == null || (soa.target != null && !soa.target.gameObject.activeSelf))
                             {
                                 results.Add(new ValidationResult()
                                 {
                                     name = "Missing reference",
                                     description = $"The target for Select-Object action is inactive OR is not assigned for {obj.name}.",
                                     type = ValidationResult.ValidationResultType.Error,
-                                    target = soa.Target,
+                                    target = soa.target,
                                 });
                             }
-                            else if (soa.Target.GetComponentInParent<TreasuredMap>() != obj.GetComponentInParent<TreasuredMap>())
+                            else if (soa.target.GetComponentInParent<TreasuredMap>() != obj.GetComponentInParent<TreasuredMap>())
                             {
                                 results.Add(new ValidationResult()
                                 {
                                     name = "Invalid reference",
                                     description = $"The target set for Select-Object action does not belong to the same map.",
                                     type = ValidationResult.ValidationResultType.Error,
-                                    target = soa.Target,
+                                    target = soa.target,
                                 });
                             }
                         }
@@ -74,24 +74,24 @@ namespace Treasured.UnitySdk.Validation
                     {
                         if (action is SelectObjectAction soa)
                         {
-                            if (soa.Target == null || (soa.Target != null && !soa.Target.gameObject.activeSelf))
+                            if (soa.target == null || (soa.target != null && !soa.target.gameObject.activeSelf))
                             {
                                 results.Add(new ValidationResult()
                                 {
                                     name = "Missing reference",
                                     description = $"The target for OnHover-Object action is inactive OR is not assigned for {obj.name}.",
                                     type = ValidationResult.ValidationResultType.Error,
-                                    target = soa.Target
+                                    target = soa.target
                                 });
                             }
-                            else if (soa.Target.GetComponentInParent<TreasuredMap>() != obj.GetComponentInParent<TreasuredMap>())
+                            else if (soa.target.GetComponentInParent<TreasuredMap>() != obj.GetComponentInParent<TreasuredMap>())
                             {
                                 results.Add(new ValidationResult()
                                 {
                                     name = "Invalid reference",
                                     description = $"The target set for OnHover-Object action does not belong to the same map.",
                                     type = ValidationResult.ValidationResultType.Error,
-                                    target = soa.Target
+                                    target = soa.target
                                 });
                             }
                         }
