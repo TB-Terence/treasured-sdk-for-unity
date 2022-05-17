@@ -18,7 +18,9 @@ namespace Treasured.UnitySdk
         public ImageQuality imageQuality = ImageQuality.High;
         public CubemapFormat cubemapFormat = CubemapFormat.IndividualFace;
         [SerializeField]
-        private int _cubemapSize = MAXIMUM_CUBEMAP_FACE_WIDTH;
+        private bool _useCustomWidth = false;
+        [SerializeField]
+        private int _customCubemapWidth = MAXIMUM_CUBEMAP_FACE_WIDTH;
         [HideInInspector]
         public bool flipY = true;
 
@@ -34,7 +36,8 @@ namespace Treasured.UnitySdk
             exportAllQualities = true;
             imageQuality = ImageQuality.High;
             cubemapFormat = CubemapFormat.IndividualFace;
-            _cubemapSize = MAXIMUM_CUBEMAP_FACE_WIDTH;
+            _useCustomWidth = false;
+            _customCubemapWidth = MAXIMUM_CUBEMAP_FACE_WIDTH;
             flipY = true;
             _qualityPercentage = 75;
         }
@@ -75,11 +78,9 @@ namespace Treasured.UnitySdk
             Quaternion originalCameraRot = camera.transform.rotation;
             #endregion
 
-            //int size = 1024;//Mathf.Min(Mathf.NextPowerOfTwo((int)map.Quality), 8192);
-
             int count = hotspots.Length;
             
-            Cubemap cubemap = new Cubemap(cubemapFormat == CubemapFormat.IndividualFace ? (int)imageQuality : _cubemapSize, TextureFormat.ARGB32, false);
+            Cubemap cubemap = new Cubemap(_useCustomWidth ? _customCubemapWidth : (int)imageQuality, TextureFormat.ARGB32, false);
             Texture2D texture = null;
             switch (cubemapFormat)
             {
@@ -114,6 +115,7 @@ namespace Treasured.UnitySdk
                             // FORMAT:
                             // RIGHT(+X) LEFT(-X) TOP(+Y)
                             // BOTTOM(-Y) FRONT(+Z) BACK(-Z)
+                            int cubemapWidth = Mathf.Clamp(_useCustomWidth ? _customCubemapWidth - _customCubemapWidth % 10 : (int)imageQuality, 16, CubemapExporter.MAXIMUM_CUBEMAP_FACE_WIDTH);
                             for (int i = 0; i < 6; i++)
                             {
 #if UNITY_EDITOR
@@ -122,8 +124,8 @@ namespace Treasured.UnitySdk
                                     throw new TreasuredException("Export canceled", "Export canceled by the user.");
                                 }
 #endif
-                                texture.SetPixels((i % 3) * _cubemapSize, MAXIMUM_CUDA_TEXTURE_WIDTH - ((i / 3) + 1) * _cubemapSize, _cubemapSize, _cubemapSize,
-                                ImageUtilies.FlipPixels(cubemap.GetPixels((CubemapFace)i), _cubemapSize, _cubemapSize, true, flipY));
+                                texture.SetPixels((i % 3) * cubemapWidth, MAXIMUM_CUDA_TEXTURE_WIDTH - ((i / 3) + 1) * cubemapWidth, cubemapWidth, cubemapWidth,
+                                ImageUtilies.FlipPixels(cubemap.GetPixels((CubemapFace)i), cubemapWidth, cubemapWidth, true, flipY));
                             }
                             ImageUtilies.Encode(texture, path.FullName, "cubemap", imageFormatParser, _qualityPercentage);
                             break;
