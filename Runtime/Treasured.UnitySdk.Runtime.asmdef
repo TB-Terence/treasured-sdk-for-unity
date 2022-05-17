@@ -5,7 +5,8 @@
         "Unity.RenderPipelines.HighDefinition.Runtime",
         "Unity.RenderPipelines.Core.Runtime",
         "Unity.TextMeshPro",
-        "Whinarn.UnityMeshSimplifier.Runtime"
+        "Whinarn.UnityMeshSimplifier.Runtime",
+        "XNode"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
