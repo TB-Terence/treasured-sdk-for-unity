@@ -40,6 +40,10 @@ namespace Treasured.UnitySdk
                         // Clamp value for 3x2 format
                         _customCubemapWidth.intValue = Mathf.Clamp(_customCubemapWidth.intValue - _customCubemapWidth.intValue % 10, 16, CubemapExporter.MAXIMUM_CUBEMAP_FACE_WIDTH);
                     }
+                    else
+                    {
+                        _customCubemapWidth.intValue = Mathf.Clamp(_customCubemapWidth.intValue, 1, CubemapExporter.MAXIMUM_CUDA_TEXTURE_WIDTH);
+                    }
                 }
                 else
                 {
