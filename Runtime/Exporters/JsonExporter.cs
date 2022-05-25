@@ -15,6 +15,13 @@ namespace Treasured.UnitySdk
         };
 
         public Newtonsoft.Json.Formatting formatting = Formatting.Indented;
+        
+        [UnityEngine.ContextMenu("Reset")]
+        private void Reset()
+        {
+            enabled = true;
+            formatting = Formatting.Indented;
+        }
 
         public override void Export()
         {

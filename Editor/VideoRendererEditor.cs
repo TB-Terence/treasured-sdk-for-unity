@@ -35,10 +35,10 @@ namespace Treasured.UnitySdk
 
             SerializedProperty lockAspectRatio = serializedObject.FindProperty("_lockAspectRatio");
             SerializedProperty aspectRatio = serializedObject.FindProperty("_aspectRatio");
-            SerializedProperty src = serializedObject.FindProperty("src");
-            SerializedProperty volume = serializedObject.FindProperty("volume");
-            SerializedProperty loop = serializedObject.FindProperty("loop");
-            SerializedProperty autoPlay = serializedObject.FindProperty("autoPlay");
+            SerializedProperty src = serializedObject.FindProperty(nameof(VideoRenderer.src));
+            SerializedProperty volume = serializedObject.FindProperty(nameof(VideoRenderer.volume));
+            SerializedProperty loop = serializedObject.FindProperty(nameof(VideoRenderer.loop));
+            SerializedProperty autoPlay = serializedObject.FindProperty(nameof(VideoRenderer.autoplay));
 
             EditorGUILayout.PropertyField(src);
             EditorGUI.BeginChangeCheck();

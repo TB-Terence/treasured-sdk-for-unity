@@ -11,6 +11,12 @@ namespace Treasured.UnitySdk
             return Directory.CreateDirectory(Path.Combine(base.CreateExprtDirectoryInfo().FullName, "icons"));
         }
 
+        [UnityEngine.ContextMenu("Reset")]
+        private void Reset()
+        {
+            enabled = true;
+        }
+
         public override void Export()
         {
             HashSet<string> iconNames = new HashSet<string>();

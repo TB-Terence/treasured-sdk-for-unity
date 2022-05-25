@@ -6,31 +6,56 @@ namespace Treasured.UnitySdk
     [CustomEditor(typeof(CubemapExporter))]
     internal class CubemapExporterEditor : UnityEditor.Editor
     {
-        private bool _isAdvancedMode;
-        private SerializedProperty _cubemapSize;
+        private SerializedProperty _useCustomWidth;
+        private SerializedProperty _customCubemapWidth;
+        private SerializedProperty _imageQuality;
         private SerializedProperty _qualityPercentage;
+        private SerializedProperty _exportAllQualities;
 
         private void OnEnable()
         {
-            _cubemapSize = serializedObject.FindProperty("_cubemapSize");
+            _useCustomWidth = serializedObject.FindProperty("_useCustomWidth");
+            _customCubemapWidth = serializedObject.FindProperty("_customCubemapWidth");
+            _imageQuality = serializedObject.FindProperty(nameof(CubemapExporter.imageQuality));
             _qualityPercentage = serializedObject.FindProperty("_qualityPercentage");
+            _exportAllQualities = serializedObject.FindProperty(nameof(CubemapExporter.exportAllQualities));
         }
 
         public override void OnInspectorGUI()
         {
             CubemapExporter cubemapExportProcess = (CubemapExporter)target;
             EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(CubemapExporter.imageFormat)));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(CubemapExporter.imageQuality)));
             EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(CubemapExporter.cubemapFormat)));
-            if (cubemapExportProcess.cubemapFormat == CubemapFormat._3x2)
+            _exportAllQualities.boolValue = EditorGUILayout.Toggle(new GUIContent("Export all Image Qualities"),
+                _exportAllQualities.boolValue);
+
+            if (!_exportAllQualities.boolValue)
             {
-                _isAdvancedMode = EditorGUILayout.Toggle(new GUIContent("Advanced"), _isAdvancedMode);
-                if (_isAdvancedMode)
+                EditorGUILayout.BeginHorizontal();
+                if (_useCustomWidth.boolValue)
                 {
-                    _cubemapSize.intValue = EditorGUILayout.IntField(new GUIContent("Cubemap Size"), _cubemapSize.intValue);
-                    _cubemapSize.intValue = Mathf.Clamp(_cubemapSize.intValue - _cubemapSize.intValue % 10, 16, CubemapExporter.MAXIMUM_CUBEMAP_FACE_WIDTH);
+                    _customCubemapWidth.intValue = EditorGUILayout.IntField(new GUIContent("Cubemap Width"), _customCubemapWidth.intValue);
+                    if (cubemapExportProcess.cubemapFormat == CubemapFormat._3x2)
+                    {
+                        // Clamp value for 3x2 format
+                        _customCubemapWidth.intValue = Mathf.Clamp(_customCubemapWidth.intValue - _customCubemapWidth.intValue % 10, 16, CubemapExporter.MAXIMUM_CUBEMAP_FACE_WIDTH);
+                    }
+                    else
+                    {
+                        _customCubemapWidth.intValue = Mathf.Clamp(_customCubemapWidth.intValue, 1, CubemapExporter.MAXIMUM_CUDA_TEXTURE_WIDTH);
+                    }
                 }
+                else
+                {
+                    EditorGUILayout.PropertyField(_imageQuality);
+                }
+                float previousLabelWidth = EditorGUIUtility.labelWidth;
+                EditorGUIUtility.labelWidth = 1;
+                _useCustomWidth.boolValue = EditorGUILayout.ToggleLeft(new GUIContent("Customize"), _useCustomWidth.boolValue);
+                EditorGUIUtility.labelWidth = previousLabelWidth;
+                EditorGUILayout.EndHorizontal();
             }
+
             if (cubemapExportProcess.imageFormat != ImageFormat.PNG && cubemapExportProcess.imageFormat != ImageFormat.Ktx2)
             {
                 using (new EditorGUILayout.HorizontalScope())

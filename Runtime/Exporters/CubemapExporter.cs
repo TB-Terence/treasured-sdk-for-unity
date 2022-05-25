@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -13,10 +14,13 @@ namespace Treasured.UnitySdk
         public const int MAXIMUM_CUBEMAP_WIDTH = 8192;
 
         public ImageFormat imageFormat = ImageFormat.Ktx2;
+        public bool exportAllQualities = true;
         public ImageQuality imageQuality = ImageQuality.High;
         public CubemapFormat cubemapFormat = CubemapFormat.IndividualFace;
         [SerializeField]
-        private int _cubemapSize = MAXIMUM_CUBEMAP_FACE_WIDTH;
+        private bool _useCustomWidth = false;
+        [SerializeField]
+        private int _customCubemapWidth = MAXIMUM_CUBEMAP_FACE_WIDTH;
         [HideInInspector]
         public bool flipY = true;
 
@@ -24,7 +28,46 @@ namespace Treasured.UnitySdk
         [HideInInspector]
         private int _qualityPercentage = 75;
 
+        [UnityEngine.ContextMenu("Reset")]
+        private void Reset()
+        {
+            enabled = true;
+            imageFormat = ImageFormat.Ktx2;
+            exportAllQualities = true;
+            imageQuality = ImageQuality.High;
+            cubemapFormat = CubemapFormat.IndividualFace;
+            _useCustomWidth = false;
+            _customCubemapWidth = MAXIMUM_CUBEMAP_FACE_WIDTH;
+            flipY = true;
+            _qualityPercentage = 75;
+        }
+
         public override void Export()
+        {
+            var imageQualities = Enum.GetValues(typeof(ImageQuality)).Cast<ImageQuality>();
+
+            if (exportAllQualities)
+            {
+                foreach (var quality in imageQualities)
+                {
+                    ExportCubemap(quality);
+                }
+            }
+            else
+            {
+                ExportCubemap(imageQuality);
+            }
+
+            if (imageFormat == ImageFormat.Ktx2)
+            {
+#if UNITY_EDITOR
+                UnityEditor.EditorUtility.DisplayProgressBar("Converting to KTX2", "Converting in progress...", 0.5f);
+#endif
+                ImageUtilies.ConvertToKTX2(Map.exportSettings.OutputDirectory);
+            }
+        }
+
+        private void ExportCubemap(ImageQuality imageQuality)
         {
             var hotspots = ValidateHotspots(Map);
             var camera = ValidateCamera(); // use default camera settings to render 360 images
@@ -35,11 +78,9 @@ namespace Treasured.UnitySdk
             Quaternion originalCameraRot = camera.transform.rotation;
             #endregion
 
-            //int size = 1024;//Mathf.Min(Mathf.NextPowerOfTwo((int)map.Quality), 8192);
-
             int count = hotspots.Length;
-
-            Cubemap cubemap = new Cubemap(cubemapFormat == CubemapFormat.IndividualFace ? (int)imageQuality : _cubemapSize, TextureFormat.ARGB32, false);
+            
+            Cubemap cubemap = new Cubemap(_useCustomWidth ? _customCubemapWidth : (int)imageQuality, TextureFormat.ARGB32, false);
             Texture2D texture = null;
             switch (cubemapFormat)
             {
@@ -58,7 +99,7 @@ namespace Treasured.UnitySdk
                 for (int index = 0; index < count; index++)
                 {
                     Hotspot current = hotspots[index];
-                    string progressTitle = $"Exporting Hotspots ({index + 1}/{count})";
+                    string progressTitle = $"Exporting {imageQuality.ToString()} quality Hotspots ({index + 1}/{count})";
                     string progressText = $"Generating data for {current.name}...";
 
                     camera.transform.SetPositionAndRotation(current.Camera.transform.position, Quaternion.identity);
@@ -67,13 +108,14 @@ namespace Treasured.UnitySdk
                     {
                         throw new System.NotSupportedException("Current graphic device/platform does not support RenderToCubemap.");
                     }
-                    var path = Directory.CreateDirectory(Path.Combine(Map.exportSettings.OutputDirectory, "images", current.Id).Replace('/', '\\'));
+                    var path = Directory.CreateDirectory(Path.Combine(Map.exportSettings.OutputDirectory, "images", imageQuality.ToString().ToLower(), current.Id).Replace('/', '\\'));
                     switch (cubemapFormat)
                     {
                         case CubemapFormat._3x2:
                             // FORMAT:
                             // RIGHT(+X) LEFT(-X) TOP(+Y)
                             // BOTTOM(-Y) FRONT(+Z) BACK(-Z)
+                            int cubemapWidth = Mathf.Clamp(_useCustomWidth ? _customCubemapWidth - _customCubemapWidth % 10 : (int)imageQuality, 16, CubemapExporter.MAXIMUM_CUBEMAP_FACE_WIDTH);
                             for (int i = 0; i < 6; i++)
                             {
 #if UNITY_EDITOR
@@ -82,8 +124,8 @@ namespace Treasured.UnitySdk
                                     throw new TreasuredException("Export canceled", "Export canceled by the user.");
                                 }
 #endif
-                                texture.SetPixels((i % 3) * _cubemapSize, MAXIMUM_CUDA_TEXTURE_WIDTH - ((i / 3) + 1) * _cubemapSize, _cubemapSize, _cubemapSize,
-                                ImageUtilies.FlipPixels(cubemap.GetPixels((CubemapFace)i), _cubemapSize, _cubemapSize, true, flipY));
+                                texture.SetPixels((i % 3) * cubemapWidth, MAXIMUM_CUDA_TEXTURE_WIDTH - ((i / 3) + 1) * cubemapWidth, cubemapWidth, cubemapWidth,
+                                ImageUtilies.FlipPixels(cubemap.GetPixels((CubemapFace)i), cubemapWidth, cubemapWidth, true, flipY));
                             }
                             ImageUtilies.Encode(texture, path.FullName, "cubemap", imageFormatParser, _qualityPercentage);
                             break;
@@ -102,13 +144,6 @@ namespace Treasured.UnitySdk
                             }
                             break;
                     }
-                }
-                if (imageFormat == ImageFormat.Ktx2)
-                {
-#if UNITY_EDITOR
-                    UnityEditor.EditorUtility.DisplayProgressBar("Converting to KTX2", "Converting in progress...", 0.5f);
-#endif
-                    ImageUtilies.ConvertToKTX2(Map.exportSettings.OutputDirectory);
                 }
             }
             catch (Exception e)

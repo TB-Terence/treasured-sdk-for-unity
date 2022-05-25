@@ -64,9 +64,9 @@ namespace Treasured.UnitySdk
             {
                 contract.Converter = new TransformConverter();
             }
-            if (objectType == typeof(IconAsset))
+            if (objectType == typeof(FloatingIcon))
             {
-                contract.Converter = new IconAssetConverter();
+                contract.Converter = new FloatingIconConverter();
             }
             if (objectType == typeof(TreasuredObject) || objectType.GetElementType() == typeof(TreasuredObject) || (objectType.GenericTypeArguments.Length == 1 && objectType.GenericTypeArguments[0] == typeof(TreasuredObject)))
             {

@@ -16,11 +16,18 @@ This package relies on [UnityMeshSimplifier](https://openupm.com/packages/com.wh
 
 Open your Unity Editor and go to `Edit > Project Settings... > Package Manager > Scoped Registries`. Create a new scope registry and enter the following:
 
-|               |                                       |
-|-              |-                                      |
-|**Name**       | `package.openupm.com`                 |
-|**URL**        | `https://package.openupm.com`         |
-|**Scope(s)**   | `com.whinarn.unitymeshsimplifier`     |
+**Name**
+```
+package.openupm.com
+```
+**URL**
+```
+https://package.openupm.com
+```
+**Scope(s)**
+```
+com.whinarn.unitymeshsimplifier
+```
 
 If you already using [OpenUPM](https://openupm.com/) simply add `com.whinarn.unitymeshsimplifier` to the scope(s) and click `Save`.
 

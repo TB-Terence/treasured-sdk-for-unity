@@ -161,5 +161,14 @@ namespace Treasured.UnitySdk
                 _templateLoader.autoCameraRotation = false;
             }
         }
+
+        private void Reset()
+        {
+            var fields = ReflectionUtils.GetSeriliazedFieldReferences(this, false).Where(x => typeof(ScriptableObject).IsAssignableFrom(x.fieldInfo.FieldType));
+            foreach (var field in fields)
+            {
+                field.SetValue(ScriptableObject.CreateInstance(field.fieldInfo.FieldType));
+            }
+        }
     }
 }

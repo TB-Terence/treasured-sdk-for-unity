@@ -2,12 +2,14 @@
     "name": "Treasured.UnitySdk.Editor",
     "rootNamespace": "Treasured",
     "references": [
-        "GUID:b04eea1a84995674cb42e9e9542bb1f3",
-        "GUID:78bd2ddd6e276394a9615c203e574844",
-        "GUID:457756d89b35d2941b3e7b37b4ece6f1",
-        "GUID:df380645f10b7bc4b97d4f5eb6303d95",
-        "GUID:3eae0364be2026648bf74846acb8a731",
-        "GUID:6055be8ebefd69e48b49212b09b47b2f"
+        "Treasured.UnitySdk.Runtime",
+        "Unity.RenderPipelines.HighDefinition.Editor",
+        "Unity.RenderPipelines.HighDefinition.Runtime",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Core.Editor",
+        "Unity.TextMeshPro",
+        "Whinarn.UnityMeshSimplifier.Runtime",
+        "Whinarn.UnityMeshSimplifier.Editor"
     ],
     "includePlatforms": [
         "Editor"

@@ -23,7 +23,7 @@ namespace Treasured.UnitySdk
         /// <summary>
         /// Auto play the video when start.
         /// </summary>
-        public bool autoPlay = true;
+        public bool autoplay = true;
         #endregion
 
         [JsonIgnore]

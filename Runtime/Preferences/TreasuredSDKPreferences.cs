@@ -62,7 +62,7 @@ namespace Treasured.UnitySdk
             if ((UnityEngine.Object)s_instance == (UnityEngine.Object)null)
             {
                 s_instance = ScriptableObject.CreateInstance<TreasuredSDKPreferences>();
-                s_instance.customExportFolder = Path.Combine(Application.dataPath, "Treasured Data").Replace("/", "\\");
+                s_instance.customExportFolder = Path.Combine(Application.dataPath, "Treasured Data").Replace("\\", "/");
             }
         }
 
@@ -83,6 +83,10 @@ namespace Treasured.UnitySdk
             // remove existing types
             foreach (var exporter in exporters)
             {
+                if ((UnityEngine.Object)exporter == (UnityEngine.Object)null)
+                {
+                    continue;
+                }
                 exporterTypes.Remove(exporter.GetType());
             }
             foreach (var missingType in exporterTypes)

@@ -1,3 +1,20 @@
+# 0.10.1
+
+### Fixed
+* Fixed transform for button still gets export when icon is null
+* Fixed game object icon not set to default when icon is set to null
+
+# 0.10.0
+
+### Added
+* Added ContextMenu for Exporter
+* Added Enabled/Disabled method for Exporter, this will trigger when enable/disable the exporter
+* Added Type Cache for Custom Editor Types
+
+### Fixes
+* Fixed context menu Reset for Treasured Map component
+* Fixed null reference for serialized field on TreasuredSDKPreferences  
+
 # 0.9.0
 
 ### Features
