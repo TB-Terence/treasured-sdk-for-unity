@@ -28,6 +28,9 @@ https://package.openupm.com
 ```
 com.whinarn.unitymeshsimplifier
 ```
+```
+com.github.siccity.xnode
+```
 
 If you already using [OpenUPM](https://openupm.com/) simply add `com.whinarn.unitymeshsimplifier` to the scope(s) and click `Save`.
 
