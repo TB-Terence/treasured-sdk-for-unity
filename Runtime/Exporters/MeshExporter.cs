@@ -328,6 +328,7 @@ namespace Treasured.UnitySdk
             if (!string.IsNullOrEmpty(Map.exportSettings.OutputDirectory))
             {
                 exporter.SaveGLB(Map.exportSettings.OutputDirectory, "scene");
+                ContentTracker.TrackFile(Path.Combine(Map.exportSettings.OutputDirectory, Path.ChangeExtension("scene", "glb")));
             }
         }
 

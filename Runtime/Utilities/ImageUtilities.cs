@@ -96,13 +96,16 @@ namespace Treasured.UnitySdk
             {
                 throw new DirectoryNotFoundException();
             }
-            string extension = format.ToString().ToLower();
+            ContentTracker.TrackFile($"{directory}/{fileName}.{format.ToString().ToLower()}");
+            // If imageFormat is KTX2 then export images as png and then later convert them to KTX2 format
+            string extension = (format == ImageFormat.Ktx2 ? ImageFormat.PNG : format).ToString().ToLower();
             string path = $"{directory}/{fileName}.{extension}";
             byte[] bytes = format == ImageFormat.JPG ? texture.EncodeToJPG(imageQualityPercentage) : texture.EncodeToPNG();
             switch (format)
             {
                 case ImageFormat.JPG:
                 case ImageFormat.PNG:
+                case ImageFormat.Ktx2:
                     File.WriteAllBytes(path, bytes);
                     break;
                 case ImageFormat.WEBP:

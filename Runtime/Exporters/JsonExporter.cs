@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Treasured.UnitySdk.Validation;
 
 namespace Treasured.UnitySdk
@@ -28,6 +29,7 @@ namespace Treasured.UnitySdk
             string jsonPath = Path.Combine(Map.exportSettings?.OutputDirectory, "data.json").Replace('/', '\\');
             string json = JsonConvert.SerializeObject(Map, formatting, JsonSettings);
             File.WriteAllText(jsonPath, json);
+            ContentTracker.TrackFile(jsonPath);
         }
 
         public override List<ValidationResult> CanExport()

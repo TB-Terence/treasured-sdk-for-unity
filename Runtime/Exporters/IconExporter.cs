@@ -32,8 +32,10 @@ namespace Treasured.UnitySdk
                 {
                     continue;
                 }
-                File.WriteAllText(Path.Combine(iconDirectory, $"{obj.icon.asset.name}.svg"), obj.icon.asset.svg);
+                string path = Path.Combine(iconDirectory, $"{obj.icon.asset.name}.svg");
+                File.WriteAllText(path, obj.icon.asset.svg);
                 iconNames.Add(obj.icon.asset.name);
+                ContentTracker.TrackFile(path);
             }
         }
     }

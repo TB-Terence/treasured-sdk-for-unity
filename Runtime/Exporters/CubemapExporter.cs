@@ -91,8 +91,6 @@ namespace Treasured.UnitySdk
                     texture = new Texture2D(cubemap.width, cubemap.height, TextureFormat.ARGB32, false);
                     break;
             };
-            //  If imageFormat is KTX2 then export images as png and then later convert them to KTX2 format  
-            ImageFormat imageFormatParser = imageFormat == ImageFormat.Ktx2 ? ImageFormat.PNG : imageFormat;
 
             try
             {
@@ -127,7 +125,7 @@ namespace Treasured.UnitySdk
                                 texture.SetPixels((i % 3) * cubemapWidth, MAXIMUM_CUDA_TEXTURE_WIDTH - ((i / 3) + 1) * cubemapWidth, cubemapWidth, cubemapWidth,
                                 ImageUtilies.FlipPixels(cubemap.GetPixels((CubemapFace)i), cubemapWidth, cubemapWidth, true, flipY));
                             }
-                            ImageUtilies.Encode(texture, path.FullName, "cubemap", imageFormatParser, _qualityPercentage);
+                            ImageUtilies.Encode(texture, path.FullName, "cubemap", imageFormat, _qualityPercentage);
                             break;
                         case CubemapFormat.IndividualFace:
                             for (int i = 0; i < 6; i++)
@@ -140,7 +138,7 @@ namespace Treasured.UnitySdk
 #endif
                                 texture.SetPixels(cubemap.GetPixels((CubemapFace)i));
                                 ImageUtilies.FlipPixels(texture, true, flipY);
-                                ImageUtilies.Encode(texture, path.FullName, SimplifyCubemapFace((CubemapFace)i), imageFormatParser, _qualityPercentage);
+                                ImageUtilies.Encode(texture, path.FullName, SimplifyCubemapFace((CubemapFace)i), imageFormat, _qualityPercentage);
                             }
                             break;
                     }
