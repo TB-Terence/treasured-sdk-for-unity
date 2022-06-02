@@ -80,6 +80,18 @@ namespace Treasured.UnitySdk
             return IsTreasuredMapSelected();
         }
 
+        [MenuItem("GameObject/Treasured/HTML Embed", false, 49)]
+        static void CreateHTMLEmbed()
+        {
+            CreateNew<HTMLEmbed>();
+        }
+
+        [MenuItem("GameObject/Treasured/HTML Embed", true, 49)]
+        static bool CanCreateHTMLEmbed()
+        {
+            return IsTreasuredMapSelected();
+        }
+
         [MenuItem("GameObject/Treasured/Empty Map", false, 49)]
         static void CreateEmptyMap()
         {

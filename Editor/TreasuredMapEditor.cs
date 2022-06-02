@@ -27,7 +27,7 @@ namespace Treasured.UnitySdk
             Client.Add("https://github.com/TB-Terence/treasured-sdk-for-unity.git#exp");
         }
 
-        private static readonly string[] selectableObjectListNames = new string[] { "Hotspots", "Interactables", "Videos", "Sounds" };
+        private static readonly string[] selectableObjectListNames = new string[] { "Hotspots", "Interactables", "Videos", "Sounds", "HTML Embeds" };
 
         class TreasuredMapGizmosSettings
         {

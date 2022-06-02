@@ -110,6 +110,14 @@ namespace Treasured.UnitySdk
                 return GetComponentsInChildren<SoundSource>();
             }
         }
+
+        public HTMLEmbed[] HTMLEmbeds
+        {
+            get
+            {
+                return GetComponentsInChildren<HTMLEmbed>();
+            }
+        }
         #endregion
 
         #region Export Settings
