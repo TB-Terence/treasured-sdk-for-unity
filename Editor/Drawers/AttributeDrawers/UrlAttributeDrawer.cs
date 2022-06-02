@@ -90,6 +90,28 @@ namespace Treasured.UnitySdk
                 serializedProperty.stringValue = GUIUtility.systemCopyBuffer;
                 GUI.FocusControl(null);
             }
+
+            [Button]
+            void ExtractSrcAndPaste()
+            {
+                string embed = GUIUtility.systemCopyBuffer;
+                int startIndex = embed.IndexOf("src=\"") + 5;
+                if (startIndex == -1 || startIndex == embed.Length)
+                {
+                    return;
+                }
+                int endIndex = embed.IndexOf('\"', startIndex);
+                if(endIndex == -1)
+                {
+                    return;
+                }
+                string src = embed.Substring(startIndex, endIndex - startIndex);
+                if (!src.Contains(" "))
+                {
+                    serializedProperty.stringValue = src;
+                    GUI.FocusControl(null);
+                }
+            }
         }
     }
 
