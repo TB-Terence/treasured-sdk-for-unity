@@ -106,7 +106,7 @@ namespace Treasured.UnitySdk
 
         void OnSceneViewFocus()
         {
-            UnityEditor.SceneView.lastActiveSceneView.LookAt(Camera.transform.position, Camera.transform.rotation, 0.01f);
+            Camera?.Preview();
         }
 #endif
         #endregion

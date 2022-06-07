@@ -468,7 +468,7 @@ namespace Treasured.UnitySdk
                                                 case 0:
                                                     if (current is Hotspot hotspot)
                                                     {
-                                                        SceneView.lastActiveSceneView?.LookAt(hotspot.Camera.transform.position, hotspot.Camera.transform.rotation, 0.01f);
+                                                        hotspot.Camera.Preview();
                                                     }
                                                     else
                                                     {

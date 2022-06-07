@@ -16,6 +16,7 @@ namespace Treasured.UnitySdk
 
         private static readonly GUIContent[] tabs = { new GUIContent("On Click"), new GUIContent("On Hover") };
         private const string k_ActionsListExpanded = "TreasuredSDK_ActionsListExpanded";
+        private const string k_RecordingText = "Recording In Progress(Click on the scene to rotate the camera)...";
 
         private ActionGroupListDrawer onClickList;
         private ActionGroupListDrawer onHoverList;
@@ -35,6 +36,7 @@ namespace Treasured.UnitySdk
 
         List<TreasuredObject> visibleTargets = new List<TreasuredObject>();
 
+        private bool isRecording;
 
         private void OnEnable()
         {
@@ -78,6 +80,19 @@ namespace Treasured.UnitySdk
             serializedObject.Update();
             if (serializedObject.targetObjects.Length == 1)
             {
+                EditorGUILayout.LabelField("Camera Rotation", EditorStyles.boldLabel);
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    if (GUILayout.Button(!isRecording ? "Start Recording" : "Stop Recording"))
+                    {
+                        isRecording = !isRecording;
+                        SceneView.lastActiveSceneView.Repaint();
+                    }
+                    if (GUILayout.Button("Preview"))
+                    {
+                        (target as Hotspot).Camera.Preview();
+                    }
+                }
                 EditorGUILayout.PropertyField(button);
                 EditorGUILayoutUtils.TransformPropertyField(serializedHitboxTransform, "Hitbox");
                 EditorGUILayoutUtils.TransformPropertyField(serializedCameraTransform, "Camera", true, true, false);
@@ -131,8 +146,46 @@ namespace Treasured.UnitySdk
             serializedObject.ApplyModifiedProperties();
         }
 
+        private void OnSceneGUI()
+        {
+            if (isRecording)
+            {
+                Color previousColor = GUI.color;
+                Handles.BeginGUI();
+                GUI.color = Color.red;
+                GUI.Label(new Rect(0, Screen.height / 2, Screen.width, EditorGUIUtility.singleLineHeight), k_RecordingText, GUIStyles.Instance["centeredLabel"]);
+                GUI.color = previousColor;
+                Handles.EndGUI();
+                Event e = Event.current;
+                switch (e.type)
+                {
+                    case EventType.MouseDown:
+                        Ray ray = HandleUtility.GUIPointToWorldRay(e.mousePosition);
+                        if (e.button == 0)
+                        {
+                            Hotspot hotspot = target as Hotspot;
+                            SetRotationFromDirection(hotspot, ray.direction);
+                            hotspot.Camera.Preview();
+                        }
+                        break;
+                    case EventType.Layout:
+                        HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
+                        break;
+                }
+            }
+        }
+
+        private void SetRotationFromDirection(Hotspot hotspot, Vector3 direction)
+        {
+            hotspot.Camera.transform.rotation = Quaternion.LookRotation(direction);
+        }
+
         private void OnSceneViewGUI(SceneView view)
         {
+            if (isRecording)
+            {
+                return;
+            }
             if (target is Hotspot hotspot && hotspot.Hitbox != null && hotspot.Camera != null)
             {
                 Transform cameraTransform = hotspot.Camera.transform;
