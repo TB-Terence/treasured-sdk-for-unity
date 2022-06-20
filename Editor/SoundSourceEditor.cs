@@ -25,16 +25,12 @@ namespace Treasured.UnitySdk
             EditorGUILayout.PropertyField(src);
             EditorGUILayout.PropertyField(volume);
             EditorGUILayout.PropertyField(loop);
-            
+
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(distance);
             if (EditorGUI.EndChangeCheck())
             {
-                if (!(serializedObject.targetObject is SoundSource soundSource))
-                {
-                    return;
-                }
-
+                var soundSource = serializedObject.targetObject as SoundSource;
                 var hitBoxTransform = soundSource.Hitbox?.transform;
                 if (hitBoxTransform)
                 {
