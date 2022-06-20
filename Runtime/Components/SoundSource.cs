@@ -11,6 +11,10 @@ namespace Treasured.UnitySdk
         [Range(0, 100)]
         public int Volume = 100;
 
-        public bool Loop = false;
+        public bool Loop = true;
+
+        [Range(0, 100)]
+        public int Distance = 3;
+        
     }
 }

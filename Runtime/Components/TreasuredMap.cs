@@ -103,7 +103,7 @@ namespace Treasured.UnitySdk
             }
         }
 
-        public SoundSource[] Sounds
+        public SoundSource[] Audios
         {
             get
             {
