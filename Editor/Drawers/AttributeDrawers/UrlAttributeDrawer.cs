@@ -55,7 +55,8 @@ namespace Treasured.UnitySdk
                     GUILayout.FlexibleSpace();
                     foreach (MethodInfo button in buttons)
                     {
-                        if (GUILayout.Button(ObjectNames.NicifyVariableName(button.Name)))
+                        ButtonAttribute attr = button.GetCustomAttribute<ButtonAttribute>();
+                        if (GUILayout.Button(ObjectNames.NicifyVariableName(string.IsNullOrWhiteSpace(attr.Text) ? button.Name : attr.Text)))
                         {
                             button.Invoke(this, null);
                         }
@@ -91,7 +92,7 @@ namespace Treasured.UnitySdk
                 GUI.FocusControl(null);
             }
 
-            [Button]
+            [Button("Extract Src & Paste")]
             void ExtractSrcAndPaste()
             {
                 string embed = GUIUtility.systemCopyBuffer;

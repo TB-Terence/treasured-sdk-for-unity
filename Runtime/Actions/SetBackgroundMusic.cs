@@ -4,7 +4,7 @@ namespace Treasured.UnitySdk
 {
     public sealed class SetBackgroundMusic : Action
     {
-        [TextArea(3, 8)]
+        [Url]
         public string src;
         [Range(0, 100)]
         public int volume = 50;

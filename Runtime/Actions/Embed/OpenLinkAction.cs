@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+﻿using UnityEngine.Serialization;
 
 namespace Treasured.UnitySdk
 {
@@ -7,9 +7,8 @@ namespace Treasured.UnitySdk
     /// </summary>
     public class OpenLinkAction : EmbedAction
     {
-        [SerializeField]
         [Url]
-        private string _src;
-        public string Src { get => _src; set => _src = value; }
+        [FormerlySerializedAs("_src")]
+        public string src;
     }
 }

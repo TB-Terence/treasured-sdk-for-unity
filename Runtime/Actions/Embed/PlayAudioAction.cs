@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Treasured.UnitySdk
 {
@@ -7,15 +8,12 @@ namespace Treasured.UnitySdk
     /// </summary>
     public class PlayAudioAction : EmbedAction
     {
-        [SerializeField]
-        [TextArea(3, 8)]
-        private string _src;
-        public string Src { get => _src; set => _src = value; }
+        [Url]
+        [FormerlySerializedAs("_src")]
+        public string src;
 
-        [SerializeField]
         [Range(0, 100)]
-        private int _volume = 100;
-
-        public int Volume { get => _volume; set => _volume = value; }
+        [FormerlySerializedAs("_volume")]
+        public int volume = 100;
     }
 }
