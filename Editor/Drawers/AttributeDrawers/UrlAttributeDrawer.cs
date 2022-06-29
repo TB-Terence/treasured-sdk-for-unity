@@ -22,7 +22,7 @@ namespace Treasured.UnitySdk
 
         private class UrlEditorWindow : EditorWindow
         {
-            private static readonly Regex RegexSrc = new Regex("<.+?src=[\"'](.+?)[\"'].*?>");
+            private static readonly Regex RegexSrc = new Regex("src=[\"'](.+?)[\"']");
 
             private SerializedProperty serializedProperty;
             private UrlAttribute attribute;
@@ -102,6 +102,7 @@ namespace Treasured.UnitySdk
                 Match match = RegexSrc.Match(embed);
                 if (!match.Success)
                 {
+                    EditorUtility.DisplayDialog("No match found", "No match found. Make sure src is enclosed in quotes.", "OK");
                     return;
                 }
                 // Groups[0] will be a string that matches the entire regular expression pattern
@@ -115,6 +116,4 @@ namespace Treasured.UnitySdk
             }
         }
     }
-
-  
 }
