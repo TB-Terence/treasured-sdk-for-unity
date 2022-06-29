@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
@@ -21,6 +22,8 @@ namespace Treasured.UnitySdk
 
         private class UrlEditorWindow : EditorWindow
         {
+            private static readonly Regex RegexSrc = new Regex("<.+?src=[\"'](.+?)[\"'].*?>");
+
             private SerializedProperty serializedProperty;
             private UrlAttribute attribute;
             private Vector2 previewScrollPosition;
@@ -96,17 +99,14 @@ namespace Treasured.UnitySdk
             void ExtractSrcAndPaste()
             {
                 string embed = GUIUtility.systemCopyBuffer;
-                int startIndex = embed.IndexOf("src=\"") + 5;
-                if (startIndex == -1 || startIndex == embed.Length)
+                Match match = RegexSrc.Match(embed);
+                if (!match.Success)
                 {
                     return;
                 }
-                int endIndex = embed.IndexOf('\"', startIndex);
-                if(endIndex == -1)
-                {
-                    return;
-                }
-                string src = embed.Substring(startIndex, endIndex - startIndex);
+                // Groups[0] will be a string that matches the entire regular expression pattern
+                // Groups[1] will be (.+?)
+                string src = match.Groups[1].Value;
                 if (!src.Contains(" "))
                 {
                     serializedProperty.stringValue = src;
