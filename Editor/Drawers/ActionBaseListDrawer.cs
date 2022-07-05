@@ -56,11 +56,19 @@ namespace Treasured.UnitySdk
             };
         }
 
-        public void OnGUI()
+        public void OnGUI(Rect rect)
+        {
+            reorderableList.serializedProperty.serializedObject.Update();
+            reorderableList.DoList(rect);
+            reorderableList.serializedProperty.serializedObject.ApplyModifiedProperties();
+        }
+
+        public void OnGUILayout()
         {
             reorderableList.serializedProperty.serializedObject.Update();
             reorderableList.DoLayoutList();
             reorderableList.serializedProperty.serializedObject.ApplyModifiedProperties();
         }
+
     }
 }

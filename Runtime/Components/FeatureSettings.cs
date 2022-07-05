@@ -6,5 +6,6 @@ namespace Treasured.UnitySdk
     public class FeatureSettings
     {
         public bool matterportStyleNavigation = false;
+        public bool guidedTour = false;
     }
 }

@@ -65,6 +65,8 @@ namespace Treasured.UnitySdk
         private bool _loop;
 
         public bool Loop { get => _loop; set => _loop = value; }
+
+        public GuidedTourGraph graph;
         #endregion
 
         #region Browser Settings

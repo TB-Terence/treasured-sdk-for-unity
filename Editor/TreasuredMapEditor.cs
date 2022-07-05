@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Treasured.UnitySdk.Utilities;
 using Treasured.UnitySdk.Validation;
 using UnityEditor;
 using UnityEditor.PackageManager;
+using UnityEditorInternal;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
@@ -191,6 +193,8 @@ namespace Treasured.UnitySdk
         private Editor[] _exporterEditors;
         private List<Hotspot> _hotspots;
 
+        private Editor graphEditor;
+
         public void OnEnable()
         {
             _selectedTabIndex = SessionState.GetInt(SelectedTabIndexKey, _selectedTabIndex);
@@ -200,6 +204,7 @@ namespace Treasured.UnitySdk
             InitializeExporters();
             InitializeTabGroups();
             InitializeObjectList();
+            InitializeGuidedTour();
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
         }
@@ -256,7 +261,7 @@ namespace Treasured.UnitySdk
             serializedObject.ApplyModifiedProperties();
         }
 
-        public void InitializeTabGroups()
+        private void InitializeTabGroups()
         {
             var guiMethods = GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(x => x.IsDefined(typeof(TabGroupAttribute))).ToArray();
             _tabGroupStates = new TabGroupState[guiMethods.Length];
@@ -271,7 +276,7 @@ namespace Treasured.UnitySdk
             }
         }
 
-        public void InitializeObjectList()
+        private void InitializeObjectList()
         {
             var types = typeof(TreasuredObject).Assembly.GetTypes().Where(x => !x.IsAbstract && typeof(TreasuredObject).IsAssignableFrom(x)).ToArray();
             _foldoutGroupStates = new FoldoutGroupState[types.Length];
@@ -290,6 +295,17 @@ namespace Treasured.UnitySdk
                     _foldoutGroupStates[i].objects.Add((TreasuredObject)objects[x]);
                 }
             }
+        }
+
+        private void InitializeGuidedTour()
+        {
+            SerializedProperty sp = serializedObject.FindProperty(nameof(TreasuredMap.graph));
+            if (sp.objectReferenceValue.IsNullOrNone())
+            {
+                sp.objectReferenceValue = ScriptableObject.CreateInstance<GuidedTourGraph>();
+                sp.serializedObject.ApplyModifiedProperties();
+            }
+            graphEditor = Editor.CreateEditor(sp.objectReferenceValue);
         }
 
         public override void OnInspectorGUI()
@@ -356,7 +372,7 @@ namespace Treasured.UnitySdk
         }
 
         [TabGroup(groupName = "Page Info")]
-        public void OnPageInfoGUI()
+        private void OnPageInfoGUI()
         {
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_author"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_title"));
@@ -372,7 +388,7 @@ namespace Treasured.UnitySdk
         }
 
         [TabGroup(groupName = "Objects")]
-        public void OnObjectsGUI()
+        private void OnObjectsGUI()
         {
             EditorGUI.indentLevel++;
             for (int i = 0; i < _foldoutGroupStates.Length; i++)
@@ -511,8 +527,22 @@ namespace Treasured.UnitySdk
             EditorGUI.indentLevel--;
         }
 
+        private string title;
+        private string description;
+
+        [TabGroup(groupName = "Guided Tour")]
+        private void OnGuidedTourGUI()
+        {
+            if (!_map.features.guidedTour)
+            {
+                EditorGUILayout.HelpBox("Guided Tour is currently disabled. You can go to Page Info > Features to turn it on.", MessageType.Warning);
+                return;
+            }
+            graphEditor.OnInspectorGUI();
+        }
+
         [TabGroup(groupName = "Export Settings")]
-        public void OnExportGUI()
+        private void OnExportGUI()
         {
             _exportSettingsEditor.serializedObject.Update();
             _exportSettingsEditor.OnInspectorGUI();
