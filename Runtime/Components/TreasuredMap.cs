@@ -65,6 +65,8 @@ namespace Treasured.UnitySdk
         private bool _loop;
 
         public bool Loop { get => _loop; set => _loop = value; }
+
+        public GuidedTourGraph graph;
         #endregion
 
         #region Browser Settings
@@ -103,11 +105,19 @@ namespace Treasured.UnitySdk
             }
         }
 
-        public SoundSource[] Sounds
+        public SoundSource[] Audios
         {
             get
             {
                 return GetComponentsInChildren<SoundSource>();
+            }
+        }
+
+        public HTMLEmbed[] HTMLEmbeds
+        {
+            get
+            {
+                return GetComponentsInChildren<HTMLEmbed>();
             }
         }
         #endregion
@@ -159,6 +169,15 @@ namespace Treasured.UnitySdk
             if (_templateLoader != null && _templateLoader.template != "modern")
             {
                 _templateLoader.autoCameraRotation = false;
+            }
+        }
+
+        private void Reset()
+        {
+            var fields = ReflectionUtils.GetSeriliazedFieldReferences(this, false).Where(x => typeof(ScriptableObject).IsAssignableFrom(x.fieldInfo.FieldType));
+            foreach (var field in fields)
+            {
+                field.SetValue(ScriptableObject.CreateInstance(field.fieldInfo.FieldType));
             }
         }
     }

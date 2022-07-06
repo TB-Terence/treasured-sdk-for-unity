@@ -33,14 +33,14 @@ namespace Treasured.UnitySdk
                 writer.WritePropertyName("type");
                 serializer.Serialize(writer, action.Type);
                 writer.WritePropertyName("content");
-                serializer.Serialize(writer, action.Content);
+                serializer.Serialize(writer, action.content);
                 writer.WritePropertyName("style");
-                serializer.Serialize(writer, action.Style);
+                serializer.Serialize(writer, action.style);
                 writer.WritePropertyName(nameof(action.duration));
                 if (action.duration <= 0)
                 {
                     string pattern = "[^\\w]";
-                    serializer.Serialize(writer, Mathf.Max(1, Regex.Split(action.Content, pattern, RegexOptions.IgnoreCase).Length / kAverageWordsReadPerSecond));
+                    serializer.Serialize(writer, Mathf.Max(1, Regex.Split(action.content, pattern, RegexOptions.IgnoreCase).Length / kAverageWordsReadPerSecond));
                 }
                 else
                 {

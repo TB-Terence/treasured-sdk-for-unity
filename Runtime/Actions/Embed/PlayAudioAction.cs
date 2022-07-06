@@ -1,21 +1,22 @@
 ﻿using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Treasured.UnitySdk
 {
     /// <summary>
     /// Action that plays audio from a source.
     /// </summary>
-    public class PlayAudioAction : EmbedAction
+    public class PlayAudioAction : Action
     {
-        [SerializeField]
-        [TextArea(3, 8)]
-        private string _src;
-        public string Src { get => _src; set => _src = value; }
+        [FormerlySerializedAs("_position")]
+        public EmbedPosition position = EmbedPosition.TopRight;
 
-        [SerializeField]
+        [Url]
+        [FormerlySerializedAs("_src")]
+        public string src;
+
         [Range(0, 100)]
-        private int _volume = 100;
-
-        public int Volume { get => _volume; set => _volume = value; }
+        [FormerlySerializedAs("_volume")]
+        public int volume = 100;
     }
 }

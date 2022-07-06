@@ -99,6 +99,13 @@ namespace Treasured.UnitySdk
             texture.SetPixels32(flippedPixels.ToArray());
             texture.Apply();
         }
+        
+        public void Preview()
+        {
+#if UNITY_EDITOR
+            UnityEditor.SceneView.lastActiveSceneView.LookAt(transform.position, transform.rotation, 0.01f);
+#endif
+        }
 
 #if UNITY_EDITOR
         void OnDrawGizmosSelected()

@@ -64,9 +64,9 @@ namespace Treasured.UnitySdk
             {
                 contract.Converter = new TransformConverter();
             }
-            if (objectType == typeof(IconAsset))
+            if (objectType == typeof(FloatingIcon))
             {
-                contract.Converter = new IconAssetConverter();
+                contract.Converter = new FloatingIconConverter();
             }
             if (objectType == typeof(TreasuredObject) || objectType.GetElementType() == typeof(TreasuredObject) || (objectType.GenericTypeArguments.Length == 1 && objectType.GenericTypeArguments[0] == typeof(TreasuredObject)))
             {
@@ -75,6 +75,10 @@ namespace Treasured.UnitySdk
             if (objectType == typeof(Exporter))
             {
                 contract.Converter = new ExporterConverter();
+            }
+            if (objectType == typeof(ActionCollection))
+            {
+                contract.Converter = new ActionCollectionConverter();
             }
             return contract;
         }
@@ -87,7 +91,7 @@ namespace Treasured.UnitySdk
                 // filter out `name` field if type is subclass of TreasuredObject OR if DeclaringType of the property is subclass of MonoBehaviour
                 properties = properties.Where(x => (x.PropertyName.Equals("name") && type.IsSubclassOf(typeof(TreasuredObject))) || x.DeclaringType.IsSubclassOf(typeof(MonoBehaviour))).ToList();
             }
-            else if (type == typeof(ActionGroup) || typeof(Exporter).IsAssignableFrom(type) || typeof(TreasuredSDKPreferences).IsAssignableFrom(type))
+            else if (type == typeof(ActionCollection) || type == typeof(GuidedTourGraph) || type == typeof(GuidedTour) || type == typeof(ActionGroup) || typeof(Exporter).IsAssignableFrom(type) || typeof(TreasuredSDKPreferences).IsAssignableFrom(type))
             {
                 properties = properties.Where(x => !x.PropertyName.Equals("name") && !x.PropertyName.Equals("hideFlags")).ToList();
             }

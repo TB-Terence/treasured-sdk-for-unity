@@ -8,16 +8,24 @@ namespace Treasured.UnitySdk
     /// </summary>
     public class SelectObjectAction : Action
     {
-        [SerializeField]
-        private TreasuredObject _target;
-
         [JsonIgnore]
-        public TreasuredObject Target => _target;
+        [SerializeField]
+        public TreasuredObject target;
 
         /// <summary>
         /// Id of the object to select.
         /// </summary>
         [JsonProperty]
-        private string targetId => _target ? _target.Id : string.Empty;
+        private string targetId => target ? target.Id : string.Empty;
+
+        [JsonProperty]
+        private string targetType
+        {
+            get
+            {
+                string typeName = target.GetType().Name;
+                return target.IsNullOrNone() ? string.Empty : char.ToLower(typeName[0]) + typeName.Substring(1);
+            }
+        }
     }
 }

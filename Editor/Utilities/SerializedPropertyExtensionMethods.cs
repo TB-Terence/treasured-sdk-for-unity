@@ -18,9 +18,8 @@ namespace Treasured.UnitySdk
 
         public static SerializedProperty AppendLast(this SerializedProperty arrayProperty)
         {
-            arrayProperty.ValidateArray();
-            arrayProperty.arraySize++;
-            return arrayProperty.GetArrayElementAtIndex(arrayProperty.arraySize - 1);
+            arrayProperty.ValidateArray();;
+            return arrayProperty.GetArrayElementAtIndex(arrayProperty.arraySize++);
         }
 
         public static bool TryAppendScriptableObject(this SerializedProperty arrayProperty, out SerializedProperty newElement, out ScriptableObject scriptableObject)
@@ -43,27 +42,19 @@ namespace Treasured.UnitySdk
             if (arrayType.IsGenericType && arrayType.GenericTypeArguments.Length == 1)
             {
                 Type elementType = arrayType.GenericTypeArguments[0];
-                if (typeof(MonoBehaviour).IsAssignableFrom(arrayProperty.serializedObject.targetObject.GetType()))
-                {
-                    newElement.objectReferenceValue = ScriptableObject.CreateInstance(elementType);
-                }
-                else
+                scriptableObject = ScriptableObject.CreateInstance(elementType);
+                if (UnityEditor.EditorUtility.IsPersistent(arrayProperty.serializedObject.targetObject))
                 {
                     string mainAssetPath = AssetDatabase.GetAssetPath(arrayProperty.serializedObject.targetObject);
-                    if (UnityEditor.EditorUtility.IsPersistent(arrayProperty.serializedObject.targetObject))
-                    {
-                        scriptableObject = ScriptableObject.CreateInstance(elementType);
-                        scriptableObject.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector;
-                        string[] names = AssetDatabase.LoadAllAssetsAtPath(mainAssetPath).Where(x => x.GetType() == elementType).Select(x => x.name).ToArray();
-                        scriptableObject.name = ObjectNames.GetUniqueName(names, elementType.Name);
-                        AssetDatabase.AddObjectToAsset(scriptableObject, mainAssetPath);
-                        AssetDatabase.SaveAssets();
-                        newElement.objectReferenceValue = scriptableObject;
-                        arrayProperty.serializedObject.ApplyModifiedProperties();
-                        return true;
-                    }
+                    scriptableObject.hideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector;
+                    string[] names = AssetDatabase.LoadAllAssetsAtPath(mainAssetPath).Where(x => x.GetType() == elementType).Select(x => x.name).ToArray();
+                    scriptableObject.name = ObjectNames.GetUniqueName(names, elementType.Name);
+                    AssetDatabase.AddObjectToAsset(scriptableObject, mainAssetPath);
+                    AssetDatabase.SaveAssets();
                 }
-                
+                newElement.objectReferenceValue = scriptableObject;
+                arrayProperty.serializedObject.ApplyModifiedProperties();
+                return true;
             }
             return false;
         }
@@ -89,39 +80,42 @@ namespace Treasured.UnitySdk
             return lastElement;
         }
 
-        public static SerializedProperty AppendManagedObject(this SerializedProperty property, Type type)
+        public static SerializedProperty AppendManagedObject(this SerializedProperty arrayProperty, Type type)
         {
-            SerializedProperty lastElement = property.AppendLast();
+            SerializedProperty lastElement = arrayProperty.AppendLast();
             if (lastElement.propertyType != SerializedPropertyType.ManagedReference)
             {
-                property.RemoveElementAtIndex(property.arraySize - 1);
-                throw new ArgumentException($"Type dismatch {property.displayName} is not type of managed reference.");
+                arrayProperty.RemoveElementAtIndex(arrayProperty.arraySize - 1);
+                throw new ArgumentException($"Type dismatch {arrayProperty.displayName} is not type of managed reference.");
             }
             lastElement.managedReferenceValue = Activator.CreateInstance(type);
-            property.serializedObject.ApplyModifiedProperties();
+            arrayProperty.serializedObject.ApplyModifiedProperties();
             return lastElement;
         }
 
-        public static void RemoveElementAtIndex(this SerializedProperty property, int index)
+        public static void RemoveElementAtIndex(this SerializedProperty arrayProperty, int index)
         {
-            property.ValidateArray();
-            SerializedProperty element = property.GetArrayElementAtIndex(index);
+            arrayProperty.ValidateArray();
+            SerializedProperty element = arrayProperty.GetArrayElementAtIndex(index);
             switch (element.propertyType)
             {
                 case SerializedPropertyType.ManagedReference:
                     element.managedReferenceValue = null;
                     break;
                 case SerializedPropertyType.ObjectReference:
-                    if (element.objectReferenceValue != null && UnityEditor.EditorUtility.IsPersistent(property.serializedObject.targetObject))
+                    if (element.objectReferenceValue != null)
                     {
-                        AssetDatabase.RemoveObjectFromAsset(element.objectReferenceValue);
-                        AssetDatabase.SaveAssets();
-                        property.DeleteArrayElementAtIndex(index);
+                        if (UnityEditor.EditorUtility.IsPersistent(arrayProperty.serializedObject.targetObject))
+                        {
+                            AssetDatabase.RemoveObjectFromAsset(element.objectReferenceValue);
+                            AssetDatabase.SaveAssets();
+                        }
+                        arrayProperty.DeleteArrayElementAtIndex(index);
                     }
                     break;
             }
-            property.DeleteArrayElementAtIndex(index);
-            property.serializedObject.ApplyModifiedProperties();
+            arrayProperty.DeleteArrayElementAtIndex(index);
+            arrayProperty.serializedObject.ApplyModifiedProperties();
         }
     }
 }

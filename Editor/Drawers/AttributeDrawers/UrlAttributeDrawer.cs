@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
@@ -21,6 +22,8 @@ namespace Treasured.UnitySdk
 
         private class UrlEditorWindow : EditorWindow
         {
+            private static readonly Regex RegexSrc = new Regex("src=[\"'](.+?)[\"']");
+
             private SerializedProperty serializedProperty;
             private UrlAttribute attribute;
             private Vector2 previewScrollPosition;
@@ -55,7 +58,8 @@ namespace Treasured.UnitySdk
                     GUILayout.FlexibleSpace();
                     foreach (MethodInfo button in buttons)
                     {
-                        if (GUILayout.Button(ObjectNames.NicifyVariableName(button.Name)))
+                        ButtonAttribute attr = button.GetCustomAttribute<ButtonAttribute>();
+                        if (GUILayout.Button(ObjectNames.NicifyVariableName(string.IsNullOrWhiteSpace(attr.Text) ? button.Name : attr.Text)))
                         {
                             button.Invoke(this, null);
                         }
@@ -90,8 +94,26 @@ namespace Treasured.UnitySdk
                 serializedProperty.stringValue = GUIUtility.systemCopyBuffer;
                 GUI.FocusControl(null);
             }
+
+            [Button("Extract Src & Paste")]
+            void ExtractSrcAndPaste()
+            {
+                string embed = GUIUtility.systemCopyBuffer;
+                Match match = RegexSrc.Match(embed);
+                if (!match.Success)
+                {
+                    EditorUtility.DisplayDialog("No match found", "No match found. Make sure src is enclosed in quotes.", "OK");
+                    return;
+                }
+                // Groups[0] will be a string that matches the entire regular expression pattern
+                // Groups[1] will be (.+?)
+                string src = match.Groups[1].Value;
+                if (!src.Contains(" "))
+                {
+                    serializedProperty.stringValue = src;
+                    GUI.FocusControl(null);
+                }
+            }
         }
     }
-
-  
 }

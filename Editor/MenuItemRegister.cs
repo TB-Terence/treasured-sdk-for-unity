@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+﻿using System.Reflection;
+using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEngine;
 
@@ -76,6 +77,18 @@ namespace Treasured.UnitySdk
 
         [MenuItem("GameObject/Treasured/Video Renderer", true, 49)]
         static bool CanCreateVideoRenderer()
+        {
+            return IsTreasuredMapSelected();
+        }
+
+        [MenuItem("GameObject/Treasured/HTML Embed", false, 49)]
+        static void CreateHTMLEmbed()
+        {
+            CreateNew<HTMLEmbed>();
+        }
+
+        [MenuItem("GameObject/Treasured/HTML Embed", true, 49)]
+        static bool CanCreateHTMLEmbed()
         {
             return IsTreasuredMapSelected();
         }

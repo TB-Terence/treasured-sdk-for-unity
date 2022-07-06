@@ -28,6 +28,9 @@ namespace Treasured.UnitySdk
             return new List<ValidationResult>();
         }
 
+        internal virtual void OnEnabled() { }
+        internal virtual void OnDisabled() { }
+
         public virtual void OnPreExport() { }
         public virtual void Export() { }
         public virtual void OnPostExport() { }

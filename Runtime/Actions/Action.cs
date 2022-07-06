@@ -34,5 +34,7 @@ namespace Treasured.UnitySdk
                 return name;
             }
         }
+
+        public virtual object[] GetArguments() { return null; }
     }
 }

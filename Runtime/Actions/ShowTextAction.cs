@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Treasured.UnitySdk
 {
@@ -14,20 +15,16 @@ namespace Treasured.UnitySdk
             Fade
         }
 
-        [SerializeField]
         [TextArea(3, 5)]
-        private string _content;
-
-        [SerializeField]
-        private TextStyles _style = TextStyles.Dialogue;
+        [FormerlySerializedAs("_content")]
+        public string content;
+        [FormerlySerializedAs("_style")]
+        public TextStyles style = TextStyles.Dialogue;
 
         /// <summary>
         /// Duration for the text in seconds.
         /// </summary>
         [Min(0)]
         public int duration;
-
-        public string Content { get => _content; set => _content = value; }
-        public TextStyles Style { get => _style; set => _style = value; }
     }
 }

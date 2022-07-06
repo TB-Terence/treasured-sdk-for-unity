@@ -1,15 +1,17 @@
-﻿using UnityEngine;
+﻿using UnityEngine.Serialization;
 
 namespace Treasured.UnitySdk
 {
     /// <summary>
     /// Action that opens a link embed page.
     /// </summary>
-    public class OpenLinkAction : EmbedAction
+    public class OpenLinkAction : Action
     {
-        [SerializeField]
+        [FormerlySerializedAs("_position")]
+        public EmbedPosition position = EmbedPosition.TopRight;
+
         [Url]
-        private string _src;
-        public string Src { get => _src; set => _src = value; }
+        [FormerlySerializedAs("_src")]
+        public string src;
     }
 }
