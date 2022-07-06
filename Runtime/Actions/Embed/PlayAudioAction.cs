@@ -6,8 +6,11 @@ namespace Treasured.UnitySdk
     /// <summary>
     /// Action that plays audio from a source.
     /// </summary>
-    public class PlayAudioAction : EmbedAction
+    public class PlayAudioAction : Action
     {
+        [FormerlySerializedAs("_position")]
+        public EmbedPosition position = EmbedPosition.TopRight;
+
         [Url]
         [FormerlySerializedAs("_src")]
         public string src;

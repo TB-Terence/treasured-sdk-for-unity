@@ -8,13 +8,12 @@ namespace Treasured.UnitySdk
     {
         [SerializeField]
         [HideInInspector]
-        private string _id;
+        private string _id = Guid.NewGuid().ToString();
         public string Id { get { return _id; } }
         public string title = "New Tour";
         [TextArea(3, 5)]
         public string description;
         public string thumbnailUrl;
-        public ActionCollection actionCollection;
-        public ActionGroup actions;
+        public ActionCollection actionScripts;
     }
 }

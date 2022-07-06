@@ -25,7 +25,16 @@ namespace Treasured.UnitySdk
                     SerializedProperty element = elements.GetArrayElementAtIndex(index);
                     using (new EditorGUI.IndentLevelScope(1))
                     {
-                        EditorGUI.PropertyField(rect, element, new GUIContent(ObjectNames.NicifyVariableName(element.managedReferenceFullTypename.Substring(element.managedReferenceFullTypename.LastIndexOf('.') + 1))), true);
+                        string name = element.managedReferenceFullTypename.Substring(element.managedReferenceFullTypename.LastIndexOf('.') + 1);
+                        if (name.EndsWith("Action") && name.Length > 6)
+                        {
+                            name = name.Substring(0, name.Length - 6);
+                        }
+                        if (name.Length > 1)
+                        {
+                            name = char.ToLower(name[0]) + name.Substring(1);
+                        }
+                        EditorGUI.PropertyField(rect, element, new GUIContent(ObjectNames.NicifyVariableName(name)), true);
                     }
                 },
                 elementHeightCallback = (int index) =>

@@ -24,9 +24,14 @@ namespace Treasured.UnitySdk
             SerializedObject serializedObject = new SerializedObject(property.objectReferenceValue);
             if (listDrawer == null)
             {
-                listDrawer = new ActionBaseListDrawer(serializedObject, serializedObject.FindProperty(nameof(ActionCollection.actions)), "Actions");
+                listDrawer = new ActionBaseListDrawer(serializedObject, serializedObject.FindProperty("_actions"), "Actions");
             }
             listDrawer.OnGUI(position);
+        }
+
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+        {
+            return listDrawer == null || listDrawer.reorderableList == null ? 0 : listDrawer.reorderableList.GetHeight();
         }
     }
 }

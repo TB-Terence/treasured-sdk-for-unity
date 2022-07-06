@@ -6,8 +6,10 @@ namespace Treasured.UnitySdk
     /// <summary>
     /// Action that runs a custom embedded code.
     /// </summary>
-    public class CustomCodeAction : EmbedAction
+    public class CustomCodeAction : Action
     {
+        [FormerlySerializedAs("_position")]
+        public EmbedPosition position = EmbedPosition.TopRight;
         [JsonIgnore]
         [Code]
         [FormerlySerializedAs("_code")]

@@ -13,39 +13,38 @@ namespace Treasured.UnitySdk
         {
             private static readonly Vector2 WINDOW_SIZE = new Vector2(500, 600);
 
-            private SerializedObject serializedObject;
-            private ActionBaseListDrawer actionDrawer;
+            private SerializedObject _serializedObject;
+            private Vector2 _scrollPosition;
 
             public static void ShowModal(UnityEngine.Object obj)
             {
+                bool isOpened = EditorWindow.HasOpenInstances<GuidedTourModalEditorWindow>();
                 var window = EditorWindow.GetWindow<GuidedTourModalEditorWindow>();
-                window.serializedObject = new SerializedObject(obj);
+                window._serializedObject = new SerializedObject(obj);
                 window.titleContent = new GUIContent("Guided Tour Editor");
                 var mainWindowPos = EditorGUIUtility.GetMainWindowPosition();
                 var windowSize = new Vector2(Math.Min(WINDOW_SIZE.x, mainWindowPos.size.x), Math.Min(WINDOW_SIZE.y, mainWindowPos.size.y));
-                window.position = new Rect(mainWindowPos.center - windowSize / 2, windowSize);
-                window.Show();
-            }
-
-            private void OnEnable()
-            {
-                if (serializedObject == null)
+                if (!isOpened)
                 {
-                    return;
+                    window.position = new Rect(mainWindowPos.center - windowSize / 2, windowSize);
                 }
-                actionDrawer = new ActionBaseListDrawer(serializedObject, serializedObject.FindProperty(nameof(ActionCollection.actions)), "Actions");
+                window.Show();
             }
 
             private void OnGUI()
             {
-                if (serializedObject == null)
+                if (_serializedObject == null)
                 {
+                    this.Close();
                     return;
                 }
-                serializedObject.Update();
-                EditorGUIUtils.DrawPropertiesExcluding(serializedObject, "m_Script", "actions");
-                actionDrawer?.OnGUILayout();
-                serializedObject.ApplyModifiedProperties();
+                _serializedObject.Update();
+                using(var scope = new EditorGUILayout.ScrollViewScope(_scrollPosition))
+                {
+                    _scrollPosition = scope.scrollPosition;
+                    EditorGUIUtils.DrawPropertiesExcluding(_serializedObject, "m_Script");
+                }
+                _serializedObject.ApplyModifiedProperties();
             }
         }
 
