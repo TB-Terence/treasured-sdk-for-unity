@@ -11,7 +11,7 @@ namespace Treasured.UnitySdk
 
         public override object[] GetArguments()
         {
-            return new object[] { target.Id };
+            return new object[] { target?.Id };
         }
     }
 }

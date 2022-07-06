@@ -46,22 +46,27 @@ namespace Treasured.UnitySdk
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < args.Length; i++)
             {
-                bool isString = args[i].GetType() == typeof(string);
+                object arg = args[i];
+                if (arg == null)
+                {
+                    sb.Append("null");
+                    continue;
+                }
+                if (i > 0)
+                {
+                    sb.Append(", ");
+                }
+                bool isString = arg.GetType() == typeof(string);
                 if(isString) sb.Append('\"');
-                if (!isString && !args[i].GetType().IsValueType)
+                if (!isString && !arg.GetType().IsValueType)
                 {
                     sb.Append("null");
                 }
                 else
                 {
-                    sb.Append(args[i].ToString());
+                    sb.Append(arg.ToString());
                 }
                 if (isString) sb.Append('\"');
-                
-                if (i < args.Length  - 1)
-                {
-                    sb.Append(", ");
-                }
             }
             return sb.ToString();
         }
