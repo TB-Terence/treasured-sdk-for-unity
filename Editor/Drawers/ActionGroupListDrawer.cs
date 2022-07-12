@@ -15,7 +15,7 @@ namespace Treasured.UnitySdk
         }
 
         private ReorderableList reorderableList;
-        private List<ActionBaseListDrawer> groupDrawers = new List<ActionBaseListDrawer>();
+        private List<ActionListDrawer<Action>> groupDrawers = new List<ActionListDrawer<Action>>();
         private bool showLabel = false;
 
         public ActionGroupListDrawer(SerializedObject serializedObject, SerializedProperty elements)
@@ -24,7 +24,7 @@ namespace Treasured.UnitySdk
             {
                 SerializedObject group = new SerializedObject(elements.GetArrayElementAtIndex(i).objectReferenceValue);
                 SerializedProperty element = group.FindProperty("_actions");
-                groupDrawers.Add(new ActionBaseListDrawer(group, element, $"Group {i + 1}"));
+                groupDrawers.Add(new ActionListDrawer<Action>(group, element, $"Group {i + 1}"));
             }
             reorderableList = new ReorderableList(serializedObject, elements)
             {
@@ -83,7 +83,7 @@ namespace Treasured.UnitySdk
         {
             reorderableList.serializedProperty.TryAppendScriptableObject(out SerializedProperty newElement, out var group);
             SerializedObject so = new SerializedObject(newElement.objectReferenceValue);
-            ActionBaseListDrawer listDrawer = new ActionBaseListDrawer(so, so.FindProperty("_actions"), $"Group {groupDrawers.Count + 1}");
+            ActionListDrawer<Action> listDrawer = new ActionListDrawer<Action>(so, so.FindProperty("_actions"), $"Group {groupDrawers.Count + 1}");
             groupDrawers.Add(listDrawer);
             reorderableList.serializedProperty.serializedObject.ApplyModifiedProperties();
         }

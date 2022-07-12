@@ -3,9 +3,8 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    [Category("v2")]
     [API("text")]
-    public class TextAction : Action
+    public class TextAction : ScriptableAction
     {
         [TextArea(3, 0)]
         public string content;

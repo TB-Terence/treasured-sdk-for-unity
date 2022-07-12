@@ -3,9 +3,8 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    [Category("v2")]
     [API("keyPress")]
-    public class KeyPressAction : Action
+    public class KeyPressAction : ScriptableAction
     {
         public KeyCode keyCode;
 

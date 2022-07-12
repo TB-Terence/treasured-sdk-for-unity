@@ -3,9 +3,8 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    [Category("v2")]
     [API("sleep")]
-    public class SleepAction : Action
+    public class SleepAction : ScriptableAction
     {
         [Min(1)]
         public int duration;

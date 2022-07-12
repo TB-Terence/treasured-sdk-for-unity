@@ -3,11 +3,8 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    /// <summary>
-    /// Base class for action
-    /// </summary>
     [Serializable]
-    public abstract class Action
+    public abstract class ScriptableAction
     {
         [SerializeField]
         [HideInInspector]
@@ -19,7 +16,8 @@ namespace Treasured.UnitySdk
         /// <summary>
         /// Actual type of the action in string format without Action suffix.
         /// </summary>
-        public string Type {
+        public string Type
+        {
             get
             {
                 string name = this.GetType().Name;
@@ -27,12 +25,14 @@ namespace Treasured.UnitySdk
                 {
                     name = name.Substring(0, name.Length - 6);
                 }
-                if(name.Length > 1)
+                if (name.Length > 1)
                 {
                     name = char.ToLower(name[0]) + name.Substring(1);
                 }
                 return name;
             }
         }
+
+        public virtual object[] GetArguments() { return null; }
     }
 }

@@ -13,7 +13,7 @@ namespace Treasured.UnitySdk
 
         public override bool CanConvert(Type objectType)
         {
-            return objectType == typeof(ActionCollection);
+            return objectType == typeof(ScriptableActionCollection);
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
@@ -23,7 +23,7 @@ namespace Treasured.UnitySdk
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            if (value is ActionCollection collection)
+            if (value is ScriptableActionCollection collection)
             {
                 StringBuilder sb = new StringBuilder();
                 foreach (var action in collection)

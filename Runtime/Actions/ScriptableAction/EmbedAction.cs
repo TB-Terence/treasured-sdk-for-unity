@@ -1,8 +1,7 @@
 ﻿namespace Treasured.UnitySdk
 {
-    [Category("v2")]
     [API("embed")]
-    public class EmbedAction : Action
+    public class EmbedAction : ScriptableAction
     {
         [Url]
         public string src;

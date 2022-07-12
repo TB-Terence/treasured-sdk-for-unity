@@ -5,16 +5,16 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    public class ActionCollection : ScriptableObject, IEnumerable<Action>
+    public class ScriptableActionCollection : ScriptableObject, IEnumerable<ScriptableAction>
     {
         [SerializeField]
         [HideInInspector]
         private string _id = Guid.NewGuid().ToString();
         public string Id => _id;
         [SerializeReference]
-        private List<Action> _actions = new List<Action>();
+        private List<ScriptableAction> _actions = new List<ScriptableAction>();
 
-        IEnumerator<Action> IEnumerable<Action>.GetEnumerator()
+        IEnumerator<ScriptableAction> IEnumerable<ScriptableAction>.GetEnumerator()
         {
             return _actions.GetEnumerator();
         }

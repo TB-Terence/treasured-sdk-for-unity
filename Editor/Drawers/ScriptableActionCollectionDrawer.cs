@@ -4,10 +4,10 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    [CustomPropertyDrawer(typeof(ActionCollection), true)]
-    public class ActionCollectionDrawer : PropertyDrawer
+    [CustomPropertyDrawer(typeof(ScriptableActionCollection), true)]
+    public class ScriptableActionCollectionDrawer : PropertyDrawer
     {
-        private ActionBaseListDrawer listDrawer;
+        private ActionListDrawer<ScriptableAction> listDrawer;
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             if (property.propertyType != SerializedPropertyType.ObjectReference)
@@ -24,7 +24,7 @@ namespace Treasured.UnitySdk
             SerializedObject serializedObject = new SerializedObject(property.objectReferenceValue);
             if (listDrawer == null)
             {
-                listDrawer = new ActionBaseListDrawer(serializedObject, serializedObject.FindProperty("_actions"), "Actions");
+                listDrawer = new ActionListDrawer<ScriptableAction>(serializedObject, serializedObject.FindProperty("_actions"), "Scriptable Actions");
             }
             listDrawer.OnGUI(position);
         }
