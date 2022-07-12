@@ -76,7 +76,7 @@ namespace Treasured.UnitySdk
             {
                 contract.Converter = new ExporterConverter();
             }
-            if (objectType == typeof(ActionCollection))
+            if (objectType == typeof(ScriptableActionCollection))
             {
                 contract.Converter = new ActionCollectionConverter();
             }
@@ -91,7 +91,7 @@ namespace Treasured.UnitySdk
                 // filter out `name` field if type is subclass of TreasuredObject OR if DeclaringType of the property is subclass of MonoBehaviour
                 properties = properties.Where(x => (x.PropertyName.Equals("name") && type.IsSubclassOf(typeof(TreasuredObject))) || x.DeclaringType.IsSubclassOf(typeof(MonoBehaviour))).ToList();
             }
-            else if (type == typeof(ActionCollection) || type == typeof(GuidedTourGraph) || type == typeof(GuidedTour) || type == typeof(ActionGroup) || typeof(Exporter).IsAssignableFrom(type) || typeof(TreasuredSDKPreferences).IsAssignableFrom(type))
+            else if (type == typeof(ScriptableActionCollection) || type == typeof(GuidedTourGraph) || type == typeof(GuidedTour) || type == typeof(ActionGroup) || typeof(Exporter).IsAssignableFrom(type) || typeof(TreasuredSDKPreferences).IsAssignableFrom(type))
             {
                 properties = properties.Where(x => !x.PropertyName.Equals("name") && !x.PropertyName.Equals("hideFlags")).ToList();
             }

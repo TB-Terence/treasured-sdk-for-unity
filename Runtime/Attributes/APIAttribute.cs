@@ -8,7 +8,6 @@ namespace Treasured.UnitySdk
         public const char Separator = '.';
         public string Domain { get; set; } = "api";
         public string MethodName { get; set; }
-        public string[] ArgumentGetters { get; set; }
         public bool IsAsync { get; set; } = true;
 
         public APIAttribute(string methodName)

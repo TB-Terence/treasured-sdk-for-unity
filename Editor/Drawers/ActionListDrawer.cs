@@ -6,12 +6,12 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    internal class ActionBaseListDrawer
+    internal class ActionListDrawer<T> where T : class
     {
         internal ReorderableList reorderableList;
         public string Header { get; set; }
 
-        public ActionBaseListDrawer(SerializedObject serializedObject, SerializedProperty elements, string header)
+        public ActionListDrawer(SerializedObject serializedObject, SerializedProperty elements, string header)
         {
             Header = header;
             reorderableList = new ReorderableList(serializedObject, elements)
@@ -43,12 +43,12 @@ namespace Treasured.UnitySdk
                 },
                 onAddDropdownCallback = (Rect buttonRect, ReorderableList list) =>
                 {
-                    var actionTypes = TypeCache.GetTypesDerivedFrom<Action>().Where(x => !x.IsAbstract);
+                    var actionTypes = TypeCache.GetTypesDerivedFrom<T>().Where(x => !x.IsAbstract);
                     GenericMenu menu = new GenericMenu();
                     foreach (var type in actionTypes)
                     {
-                        string name = ObjectNames.NicifyVariableName(type.Name);
                         CategoryAttribute attribute = (CategoryAttribute)Attribute.GetCustomAttribute(type, typeof(CategoryAttribute));
+                        string name = ObjectNames.NicifyVariableName(type.Name);
                         menu.AddItem(new GUIContent(attribute != null ? $"{attribute.Path}/{name}" : name), false, () =>
                         {
                             SerializedProperty element = elements.AppendManagedObject(type);

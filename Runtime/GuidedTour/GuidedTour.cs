@@ -14,6 +14,6 @@ namespace Treasured.UnitySdk
         [TextArea(3, 5)]
         public string description;
         public string thumbnailUrl;
-        public ActionCollection actionScripts;
+        public ScriptableActionCollection actionScripts;
     }
 }

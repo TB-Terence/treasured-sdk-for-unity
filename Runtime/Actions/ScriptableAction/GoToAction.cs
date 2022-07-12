@@ -3,9 +3,8 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    [Category("v2")]
     [API("goto")]
-    public class GoToAction : Action
+    public class GoToAction : ScriptableAction
     {
         public TreasuredObject target;
 
