@@ -23,6 +23,8 @@ namespace Treasured.UnitySdk
                 serializer.Serialize(writer, value.asset.name); // serialize only name, the actual svg data is under ./icons folder
                 writer.WritePropertyName("transform");
                 serializer.Serialize(writer, value.transform);
+                writer.WritePropertyName("preview");
+                serializer.Serialize(writer, value.preview);
                 writer.WriteEndObject();
             }
         }

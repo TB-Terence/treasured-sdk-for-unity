@@ -13,5 +13,6 @@ namespace Treasured.UnitySdk
         /// Transform of the button.
         /// </summary>
         public Transform transform;
+        public ButtonPreview preview;
     }
 }
