@@ -64,9 +64,9 @@ namespace Treasured.UnitySdk
             {
                 contract.Converter = new TransformConverter();
             }
-            if (objectType == typeof(FloatingIcon))
+            if (objectType == typeof(InteractableButton))
             {
-                contract.Converter = new FloatingIconConverter();
+                contract.Converter = new InteractableButtonConverter();
             }
             if (objectType == typeof(TreasuredObject) || objectType.GetElementType() == typeof(TreasuredObject) || (objectType.GenericTypeArguments.Length == 1 && objectType.GenericTypeArguments[0] == typeof(TreasuredObject)))
             {

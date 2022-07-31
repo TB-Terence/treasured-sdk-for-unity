@@ -1,29 +1,26 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using Treasured.UnitySdk.Utilities;
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    [CustomPropertyDrawer(typeof(FloatingIcon))]
-    internal class FloatingIconDrawer : PropertyDrawer
+    [CustomPropertyDrawer(typeof(InteractableButton))]
+    internal class InteractableButtonDrawer : PropertyDrawer
     {
-        private const string FloatingIconFoldoutKey = "TreasuredSDK_FloatingIconFoldout";
+        private const string InteractableButtonFoldoutKey = "TreasuredSDK_InteractableButtonFoldout";
 
         public static float k_SingleLineHeightWithSpace = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            SerializedProperty iconProperty = property.FindPropertyRelative(nameof(FloatingIcon.asset));
-            SerializedProperty transformProperty = property.FindPropertyRelative(nameof(FloatingIcon.transform));
+            SerializedProperty iconProperty = property.FindPropertyRelative(nameof(InteractableButton.asset));
+            SerializedProperty transformProperty = property.FindPropertyRelative(nameof(InteractableButton.transform));
+            SerializedProperty previewProperty = property.FindPropertyRelative(nameof(InteractableButton.preview));
             EditorGUI.BeginProperty(position, label, property);
             EditorGUI.BeginChangeCheck();
-            var expanded = EditorGUI.BeginFoldoutHeaderGroup(new Rect(position.x, position.y, position.width, k_SingleLineHeightWithSpace), SessionState.GetBool(FloatingIconFoldoutKey, true), label);
+            var expanded = EditorGUI.BeginFoldoutHeaderGroup(new Rect(position.x, position.y, position.width, k_SingleLineHeightWithSpace), SessionState.GetBool(InteractableButtonFoldoutKey, true), label);
             if (EditorGUI.EndChangeCheck())
             {
-                SessionState.SetBool(FloatingIconFoldoutKey, expanded);
+                SessionState.SetBool(InteractableButtonFoldoutKey, expanded);
             }
             if (expanded)
             {
@@ -79,6 +76,7 @@ namespace Treasured.UnitySdk
                                 }
                             }
                         }
+                        EditorGUI.PropertyField(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 6, position.width, k_SingleLineHeightWithSpace * 4), previewProperty, true);
                     }
                 }
             }
@@ -92,37 +90,38 @@ namespace Treasured.UnitySdk
             GenericMenu menu = new GenericMenu();
             menu.AddItem(new GUIContent("Import Custom Icon"), false , () =>
             {
-                EditorGUIUtility.PingObject(FloatingIconProvider.ImportIconAsset());
+                EditorGUIUtility.PingObject(InteractableButtonIconProvider.ImportIconAsset());
             });
             menu.AddItem(new GUIContent("Import Custom Icons from Folder"), false, () =>
             {
-                string folderPath = EditorUtility.OpenFilePanel("Select Folder", FloatingIconProvider.CustomIconFolderOfCurrentSession, "png");
+                string folderPath = EditorUtility.OpenFilePanel("Select Folder", InteractableButtonIconProvider.CustomIconFolderOfCurrentSession, "png");
                 if (!string.IsNullOrWhiteSpace(folderPath))
                 {
-                    FloatingIconProvider.ImportIconAssetsFromFolder(folderPath);
+                    InteractableButtonIconProvider.ImportIconAssetsFromFolder(folderPath);
                 }
             });
             menu.AddSeparator("");
             menu.AddItem(new GUIContent("Set Custom Icon Folder"), false, () =>
             {
-                FloatingIconProvider.CustomIconFolder = EditorUtility.OpenFolderPanel("Set Custom Icon Folder", FloatingIconProvider.CustomIconFolder, "");
+                InteractableButtonIconProvider.CustomIconFolder = EditorUtility.OpenFolderPanel("Set Custom Icon Folder", InteractableButtonIconProvider.CustomIconFolder, "");
             });
             menu.AddItem(new GUIContent("Update Icons from Custom Icon Folder"), false, () =>
             {
-                FloatingIconProvider.ImportIconAssetsFromFolder(FloatingIconProvider.CustomIconFolder);
+                InteractableButtonIconProvider.ImportIconAssetsFromFolder(InteractableButtonIconProvider.CustomIconFolder);
             });
             menu.ShowAsContext();
         }
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            if (!SessionState.GetBool(FloatingIconFoldoutKey, true))
+            if (!SessionState.GetBool(InteractableButtonFoldoutKey, true))
             {
                 return k_SingleLineHeightWithSpace;
             }
-            bool assetIsNull = property.FindPropertyRelative(nameof(FloatingIcon.asset)).objectReferenceValue.IsNullOrNone();
-            bool transformIsNull = property.FindPropertyRelative(nameof(FloatingIcon.transform)).objectReferenceValue.IsNullOrNone();
-            return k_SingleLineHeightWithSpace * (assetIsNull ? 2 : transformIsNull ? 3 : 6);
+            bool assetIsNull = property.FindPropertyRelative(nameof(InteractableButton.asset)).objectReferenceValue.IsNullOrNone();
+            bool transformIsNull = property.FindPropertyRelative(nameof(InteractableButton.transform)).objectReferenceValue.IsNullOrNone();
+            float previewHeight = EditorGUI.GetPropertyHeight(property.FindPropertyRelative(nameof(InteractableButton.preview)), true);
+            return k_SingleLineHeightWithSpace * (assetIsNull ? 2 : transformIsNull ? 3 : 6) + (transformIsNull ? 0 : previewHeight);
         }
     }
 }
