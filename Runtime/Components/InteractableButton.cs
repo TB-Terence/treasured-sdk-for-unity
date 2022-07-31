@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Treasured.UnitySdk
 {
     [Serializable]
-    public class FloatingIcon
+    public class InteractableButton
     {
         [JsonProperty("icon")]
         public IconAsset asset;

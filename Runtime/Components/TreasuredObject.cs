@@ -32,7 +32,8 @@ namespace Treasured.UnitySdk
         private string _icon;
 
         [JsonProperty("button")]
-        public FloatingIcon icon;
+        [FormerlySerializedAs("icon")]
+        public InteractableButton button;
 
         [SerializeField]
         private Hitbox _hitbox;

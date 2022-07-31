@@ -19,7 +19,7 @@ namespace Treasured.UnitySdk
         {
             map = (target as Interactable).Map;
             (target as Interactable).TryInvokeMethods("OnSelectedInHierarchy");
-            button = serializedObject.FindProperty(nameof(TreasuredObject.icon));
+            button = serializedObject.FindProperty(nameof(TreasuredObject.button));
             hitbox = serializedObject.FindProperty("_hitbox");
             serializedHitboxTransform = new SerializedObject((target as Interactable).Hitbox.transform);
             onClick = serializedObject.FindProperty("_onClick");

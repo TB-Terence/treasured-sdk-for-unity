@@ -23,17 +23,17 @@ namespace Treasured.UnitySdk
             string iconDirectory = CreateExprtDirectoryInfo().FullName;
             foreach (var obj in Map.GetComponentsInChildren<TreasuredObject>())
             {
-                if (obj.icon == null || obj.icon.asset == null || string.IsNullOrWhiteSpace(obj.icon.asset.svg))
+                if (obj.button == null || obj.button.asset == null || string.IsNullOrWhiteSpace(obj.button.asset.svg))
                 {
                     continue;
                 }
                 // TODO : Validate XML file
-                if (iconNames.Contains(obj.icon.asset.name))
+                if (iconNames.Contains(obj.button.asset.name))
                 {
                     continue;
                 }
-                File.WriteAllText(Path.Combine(iconDirectory, $"{obj.icon.asset.name}.svg"), obj.icon.asset.svg);
-                iconNames.Add(obj.icon.asset.name);
+                File.WriteAllText(Path.Combine(iconDirectory, $"{obj.button.asset.name}.svg"), obj.button.asset.svg);
+                iconNames.Add(obj.button.asset.name);
             }
         }
     }

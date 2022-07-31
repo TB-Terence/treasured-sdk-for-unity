@@ -7,9 +7,9 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    public sealed class FloatingIconProvider
+    public sealed class InteractableButtonIconProvider
     {
-        private const string k_CustomIconsFolderKey = "TreasuredSDK_FloatingIcons_CustomFolderPath";
+        private const string k_CustomIconsFolderKey = "TreasuredSDK_InteractableButtonIcons_CustomFolderPath";
 
         public const string Filter = "t:Treasured.UnitySdk.IconAsset";
         public static readonly string[] IconDirectories = new string[] { "Assets/Treasured SDK/Icons/", "Packages/com.treasured.unitysdk/Resources/Icons" };
