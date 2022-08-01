@@ -24,7 +24,14 @@ namespace Treasured.UnitySdk
                 writer.WritePropertyName("transform");
                 serializer.Serialize(writer, value.transform);
                 writer.WritePropertyName("preview");
-                serializer.Serialize(writer, value.preview);
+                if (string.IsNullOrWhiteSpace(value.preview.title) && string.IsNullOrWhiteSpace(value.preview.subtitle) && string.IsNullOrWhiteSpace(value.preview.description) && string.IsNullOrWhiteSpace(value.preview.src))
+                {
+                    writer.WriteNull();
+                }
+                else
+                {
+                    serializer.Serialize(writer, value.preview);
+                }
                 writer.WriteEndObject();
             }
         }
