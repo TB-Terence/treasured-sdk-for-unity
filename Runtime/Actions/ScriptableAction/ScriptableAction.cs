@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
@@ -10,12 +11,13 @@ namespace Treasured.UnitySdk
         [HideInInspector]
         [GUID]
         private string _id = Guid.NewGuid().ToString();
-
+        [JsonIgnore]
         public string Id { get => _id; }
 
         /// <summary>
         /// Actual type of the action in string format without Action suffix.
         /// </summary>
+        [JsonIgnore]
         public string Type
         {
             get

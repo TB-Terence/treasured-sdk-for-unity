@@ -7,7 +7,7 @@ namespace Treasured.UnitySdk
     public class SleepAction : ScriptableAction
     {
         [Min(1)]
-        public int duration;
+        public int duration = 1000;
 
         public override object[] GetArguments()
         {

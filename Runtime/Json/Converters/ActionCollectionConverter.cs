@@ -34,7 +34,7 @@ namespace Treasured.UnitySdk
                     {
                         continue;
                     }
-                    sb.AppendLine($"{(attribute.IsAsync ? "await " : "")}{attribute.Domain}.{attribute.MethodName}({GetArgumentStrings(action.GetArguments())})");
+                    sb.AppendLine($"{(attribute.IsAsync ? "await " : "")}{attribute.Domain}.{attribute.MethodName}({JsonConvert.SerializeObject(action, Formatting.None, JsonExporter.JsonSettings)})");
                 }
                 writer.WriteValue(sb.ToString());
             }
@@ -64,7 +64,7 @@ namespace Treasured.UnitySdk
                 }
                 else
                 {
-                    sb.Append(arg.ToString());
+                    sb.Append(JsonConvert.SerializeObject(arg, Formatting.None, JsonExporter.JsonSettings));
                 }
                 if (isString) sb.Append('\"');
             }

@@ -12,5 +12,6 @@ namespace Treasured.UnitySdk
         public int volume = 100;
 
         public bool loop = false;
+        public string message;
     }
 }
