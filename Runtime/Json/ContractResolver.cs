@@ -80,6 +80,14 @@ namespace Treasured.UnitySdk
             {
                 contract.Converter = new ActionCollectionConverter();
             }
+            if (objectType == typeof(GoToAction))
+            {
+                contract.Converter = new GoToActionConverter();
+            }
+            if (objectType == typeof(Quaternion))
+            {
+                contract.Converter = new QuaternionConverter();
+            }
             return contract;
         }
 

@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
@@ -7,13 +6,11 @@ namespace Treasured.UnitySdk
     public class TextAction : ScriptableAction
     {
         [TextArea(3, 0)]
-        public string content;
-        [Min(1000)]
-        public int duration = 3000;
+        public string message;
 
         public override object[] GetArguments()
         {
-            return new object[] { content, duration };
+            return new object[] { message };
         }
     }
 }
