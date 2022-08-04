@@ -121,7 +121,7 @@ namespace Treasured.UnitySdk
             bool assetIsNull = property.FindPropertyRelative(nameof(InteractableButton.asset)).objectReferenceValue.IsNullOrNone();
             bool transformIsNull = property.FindPropertyRelative(nameof(InteractableButton.transform)).objectReferenceValue.IsNullOrNone();
             float previewHeight = EditorGUI.GetPropertyHeight(property.FindPropertyRelative(nameof(InteractableButton.preview)), true);
-            return k_SingleLineHeightWithSpace * (assetIsNull ? 2 : transformIsNull ? 3 : 6) + (transformIsNull ? 0 : previewHeight);
+            return k_SingleLineHeightWithSpace * (assetIsNull ? 1 : transformIsNull ? 3 : 6) + (transformIsNull ? 0 : previewHeight);
         }
     }
 }

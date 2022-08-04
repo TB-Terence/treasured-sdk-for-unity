@@ -78,8 +78,12 @@ namespace Treasured.UnitySdk
         /// <returns></returns>
         public static IconAsset ImportIconAsset(string texturePath)
         {
+            if (string.IsNullOrEmpty(texturePath))
+            {
+                return null;
+            }
 #if !UNITY_EDITOR
-            return;
+            return null;
 #endif
             EditorUtility.DisplayProgressBar("Importing Icon", $"{texturePath}", 0);
             string name = Path.GetFileNameWithoutExtension(texturePath);
