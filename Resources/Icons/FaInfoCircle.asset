@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 349dbeb18abab754d9262e7bd4ba2cec, type: 3}
-  m_Name: FaCircleInfo
+  m_Name: FaInfoCircle
   m_EditorClassIdentifier: 
   icon: {fileID: 2800000, guid: 9f311445e68ff154381bbcab530a628c, type: 3}
   svg: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome
