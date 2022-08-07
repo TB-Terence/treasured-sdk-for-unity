@@ -52,6 +52,8 @@ namespace Treasured.UnitySdk
         [TextArea(3, 3)]
         [JsonProperty("audioUrl")]
         private string _audioUrl;
+        [Range(0, 100)]
+        public int defaultBackgroundVolume = 100;
         [SerializeField]
         [JsonProperty("muteOnStart")]
         private bool _muteOnStart;

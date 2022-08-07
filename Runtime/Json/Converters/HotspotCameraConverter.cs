@@ -28,7 +28,7 @@ namespace Treasured.UnitySdk
                 writer.WritePropertyName(nameof(camera.transform.rotation));
                 if (ThreeJsTransformConverter.ShouldConvertToThreeJsTransform)
                 {
-                    serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsQuaternion(camera.transform));
+                    serializer.Serialize(writer, camera.transform.rotation);
                 }
                 else
                 {
