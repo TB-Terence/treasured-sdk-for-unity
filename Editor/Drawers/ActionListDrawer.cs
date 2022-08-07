@@ -48,7 +48,12 @@ namespace Treasured.UnitySdk
                     foreach (var type in actionTypes)
                     {
                         CategoryAttribute attribute = (CategoryAttribute)Attribute.GetCustomAttribute(type, typeof(CategoryAttribute));
-                        string name = ObjectNames.NicifyVariableName(type.Name);
+                        string name = type.Name;
+                        if (name.EndsWith("Action") && name.Length > 6)
+                        {
+                            name = name.Substring(0, name.Length - 6);
+                        }
+                        name = ObjectNames.NicifyVariableName(name);
                         menu.AddItem(new GUIContent(attribute != null ? $"{attribute.Path}/{name}" : name), false, () =>
                         {
                             SerializedProperty element = elements.AppendManagedObject(type);

@@ -3,13 +3,13 @@ using System;
 
 namespace Treasured.UnitySdk
 {
-    internal class GoToActionConverter : JsonConverter
+    internal class ShowPreviewActionConverter : JsonConverter
     {
         public override bool CanRead => false;
 
         public override bool CanConvert(Type objectType)
         {
-            return objectType == typeof(GoToAction);
+            return objectType == typeof(ShowPreviewAction);
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
@@ -19,7 +19,7 @@ namespace Treasured.UnitySdk
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            if (value is GoToAction action)
+            if (value is ShowPreviewAction action)
             {
                 if (action.target.IsNullOrNone())
                 {
@@ -32,10 +32,8 @@ namespace Treasured.UnitySdk
                     writer.WriteValue(action.Id);
                     writer.WritePropertyName("type");
                     writer.WriteValue(action.Type);
-                    writer.WritePropertyName("hotspotId");
+                    writer.WritePropertyName("targetId");
                     writer.WriteValue(action.target.Id);
-                    writer.WritePropertyName("message");
-                    writer.WriteValue(action.message);
                     writer.WriteEndObject();
                 }
             }
