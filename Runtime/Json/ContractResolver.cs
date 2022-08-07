@@ -60,6 +60,10 @@ namespace Treasured.UnitySdk
             {
                 contract.Converter = new HitboxConverter();
             }
+            if (objectType == typeof(Quaternion))
+            {
+                contract.Converter = new QuaternionConverter();
+            }
             if (objectType == typeof(Transform))
             {
                 contract.Converter = new TransformConverter();
@@ -83,10 +87,6 @@ namespace Treasured.UnitySdk
             if (objectType == typeof(GoToAction))
             {
                 contract.Converter = new GoToActionConverter();
-            }
-            if (objectType == typeof(Quaternion))
-            {
-                contract.Converter = new QuaternionConverter();
             }
             return contract;
         }

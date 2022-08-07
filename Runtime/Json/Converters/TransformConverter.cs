@@ -32,7 +32,8 @@ namespace Treasured.UnitySdk
                     writer.WritePropertyName(nameof(transform.rotation));
                     if (ThreeJsTransformConverter.ShouldConvertToThreeJsTransform)
                     {
-                        serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsQuaternion(transform));
+                        //serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsQuaternion(transform));
+                        serializer.Serialize(writer, transform.rotation);
                     }
                     else
                     {
