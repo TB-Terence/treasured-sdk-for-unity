@@ -379,6 +379,7 @@ namespace Treasured.UnitySdk
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_description"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_audioUrl"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_muteOnStart"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(TreasuredMap.defaultBackgroundVolume)));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_templateLoader"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("headHTML"));
             SerializedProperty uiSettings = serializedObject.FindProperty("uiSettings");
