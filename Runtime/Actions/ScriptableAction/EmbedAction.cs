@@ -6,6 +6,7 @@
         [Url]
         public string src;
         public string title;
+        public EmbedPosition position = EmbedPosition.Fullscreen;
 
         public override object[] GetArguments()
         {
