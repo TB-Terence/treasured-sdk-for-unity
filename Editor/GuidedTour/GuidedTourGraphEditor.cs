@@ -8,9 +8,10 @@ using Newtonsoft.Json;
 namespace Treasured.UnitySdk
 {
     [CustomEditor(typeof(GuidedTourGraph))]
-    public class GuidedTourGraphEditor : Editor 
+    internal class GuidedTourGraphEditor : Editor 
     {
-        private sealed class GuidedTourModalEditorWindow : EditorWindow, IHasCustomMenu
+        public static GuidedTourGraph Current { get; private set; }
+        public sealed class GuidedTourModalEditorWindow : EditorWindow, IHasCustomMenu
         {
             private static readonly Vector2 WINDOW_SIZE = new Vector2(500, 600);
 
@@ -65,6 +66,7 @@ namespace Treasured.UnitySdk
 
         private void OnEnable()
         {
+            Current = target as GuidedTourGraph;
             rl = new ReorderableList(serializedObject, serializedObject.FindProperty(nameof(GuidedTourGraph.tours)));
             rl.headerHeight = 0;
             rl.drawHeaderCallback = (Rect rect) => { };
