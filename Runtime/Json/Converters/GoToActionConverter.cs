@@ -30,8 +30,6 @@ namespace Treasured.UnitySdk
                     writer.WriteStartObject();
                     writer.WritePropertyName("id");
                     writer.WriteValue(action.Id);
-                    writer.WritePropertyName("type");
-                    writer.WriteValue(action.Type);
                     writer.WritePropertyName("hotspotId");
                     writer.WriteValue(action.target.Id);
                     writer.WritePropertyName("message");
