@@ -13,7 +13,7 @@ namespace Treasured.UnitySdk
             if (property.isExpanded)
             {
                 SerializedProperty targetProperty = property.FindPropertyRelative(nameof(StartTourAction.target));
-                Rect buttonRect = EditorGUI.PrefixLabel(new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight, position.width, position.height), new GUIContent("Target"));
+                Rect buttonRect = EditorGUI.PrefixLabel(new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight, position.width, EditorGUIUtility.singleLineHeight), new GUIContent("Target"));
                 if (EditorGUI.DropdownButton(buttonRect, new GUIContent(targetProperty.objectReferenceValue ? (targetProperty.objectReferenceValue as GuidedTour)?.title : "Select Tour"), FocusType.Passive))
                 {
                     GenericMenu menu = new GenericMenu();
