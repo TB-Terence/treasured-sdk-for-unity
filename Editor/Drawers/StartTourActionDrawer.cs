@@ -33,7 +33,7 @@ namespace Treasured.UnitySdk
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            return base.GetPropertyHeight(property, label) + (property.isExpanded ? EditorGUIUtility.singleLineHeight * 2 + EditorGUIUtility.standardVerticalSpacing : 0);
+            return base.GetPropertyHeight(property, label) + (property.isExpanded ? EditorGUIUtility.singleLineHeight * 1 + EditorGUIUtility.standardVerticalSpacing : 0);
         }
     }
 }
