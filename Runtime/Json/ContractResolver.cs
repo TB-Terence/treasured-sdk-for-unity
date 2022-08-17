@@ -92,7 +92,7 @@ namespace Treasured.UnitySdk
             {
                 contract.Converter = new StartTourActionConverter();
             }
-            if (objectType == typeof(ShowPreviewAction))
+            if (objectType == typeof(ShowPreviewAction) || objectType == typeof(Actions.ShowPreviewAction))
             {
                 contract.Converter = new ShowPreviewActionConverter();
             }
