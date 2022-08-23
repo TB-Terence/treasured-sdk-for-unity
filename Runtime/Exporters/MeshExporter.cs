@@ -75,6 +75,14 @@ namespace Treasured.UnitySdk
                 return;
             }
 
+            var meshToCombineDictionary = PrepareMeshForExport();
+
+            //  Combining meshes
+            CombineAllMeshes(meshToCombineDictionary.Values.ToList(), Map.transform);
+        }
+
+        public Dictionary<int, GameObject> PrepareMeshForExport()
+        {
             Dictionary<int, GameObject> meshToCombineDictionary = new Dictionary<int, GameObject>();
             filterTag = includeTags ^ excludeTags;
 
@@ -188,8 +196,7 @@ namespace Treasured.UnitySdk
                 }
             }
 
-            //  Combining meshes
-            CombineAllMeshes(meshToCombineDictionary.Values.ToList(), Map.transform);
+            return meshToCombineDictionary;
         }
 
         private void CombineAllMeshes(List<GameObject> meshToCombine, Transform parentTransform)
