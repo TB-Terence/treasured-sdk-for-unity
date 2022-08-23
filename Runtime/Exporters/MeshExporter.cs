@@ -62,7 +62,19 @@ namespace Treasured.UnitySdk
         {
             if (!canUseTag && !canUseLayerMask)
             {
-                throw new ArgumentException("[MeshExporter] : Mesh Export Search option is not configured.GLB Mesh will not be exported.");
+                throw new ArgumentException(
+                    "[MeshExporter] : Mesh Export Search option is not configured.GLB Mesh will not be exported.");
+            }
+
+            if (canUseTag)
+            {
+                //  Check if include and exclude tags does not have common tags
+                if ((includeTags & excludeTags) != 0)
+                {
+                    throw new ArgumentException(
+                        "[MeshExporter] : Mesh Export tag for Include Tags and Exclude Tags have common tags assigned. "
+                        + "Please make sure that same tag is not selected on both.");
+                }
             }
         }
 
@@ -96,7 +108,7 @@ namespace Treasured.UnitySdk
                     meshToCombineDictionary.Add(terrain.GetInstanceID(), terrain.gameObject);
 
                     var terrainTagIndex = (int)Mathf.Pow(2, Array.IndexOf(allTags, terrain.gameObject.tag));
-                    if ((filterTag & terrainTagIndex) == terrainTagIndex)
+                    if ((includeTags & terrainTagIndex) == terrainTagIndex)
                     {
                         var exportTerrainToObj = ExportTerrainToObj(terrain);
                         meshToCombineDictionary.Add(exportTerrainToObj.GetInstanceID(), exportTerrainToObj);
@@ -116,9 +128,9 @@ namespace Treasured.UnitySdk
                 }
             }
 
-            var allGameObjectInScene = Object.FindObjectsOfType<GameObject>();
+            var rootGameObjects = SceneManager.GetActiveScene().GetRootGameObjects();
 
-            foreach (var gameObject in allGameObjectInScene)
+            foreach (var gameObject in rootGameObjects)
             {
                 if (meshToCombineDictionary.ContainsKey(gameObject.GetInstanceID()))
                 {
@@ -135,9 +147,17 @@ namespace Treasured.UnitySdk
                 {
                     //  Compare tag to see if needs to include in mesh combiner
                     var gameObjectTagIndex = (int)Mathf.Pow(2, Array.IndexOf(allTags, gameObject.tag));
-                    if ((filterTag & gameObjectTagIndex) == gameObjectTagIndex)
+                    if ((includeTags & gameObjectTagIndex) == gameObjectTagIndex)
                     {
-                        meshToCombineDictionary.Add(gameObject.GetInstanceID(), gameObject);
+                        foreach (var child in gameObject.transform.GetComponentsInChildren<Transform>())
+                        {
+                            var childGameObjectTagIndex = (int)Mathf.Pow(2, Array.IndexOf(allTags, child.tag));
+                            if ((excludeTags & childGameObjectTagIndex) != childGameObjectTagIndex)
+                            {
+                                meshToCombineDictionary.Add(child.gameObject.GetInstanceID(), child.gameObject);
+                            }
+                        }
+
                         continue;
                     }
                 }
@@ -147,7 +167,11 @@ namespace Treasured.UnitySdk
                     var layer = 1 << gameObject.layer;
                     if ((filterLayerMask & layer) == layer)
                     {
-                        meshToCombineDictionary.Add(gameObject.GetInstanceID(), gameObject);
+                        foreach (var child in gameObject.transform.GetComponentsInChildren<Transform>())
+                        {
+                            meshToCombineDictionary.Add(child.gameObject.GetInstanceID(), child.gameObject);
+                        }
+
                         continue;
                     }
                 }
@@ -170,8 +194,10 @@ namespace Treasured.UnitySdk
                         continue;
                     }
 
+                    //  TODO: Compare triangles and only include least triangles count
+
                     //  Check if length of renderers are not 0
-                    if (allLodGroups[lodCount - 1].renderers.Length != 0 && lodCount - 2 > 0)
+                    if (allLodGroups[lodCount - 1].renderers.Length > 0 && lodCount - 2 > 0)
                     {
                         //  Remove all the other lodGroup's gameObjects from meshToCombine
                         for (var i = lodCount - 2; i >= 0; i--)
@@ -181,14 +207,17 @@ namespace Treasured.UnitySdk
                             {
                                 foreach (var renderer in renderers)
                                 {
-                                    if (displayLogs)
+                                    if (meshToCombineDictionary.ContainsKey(renderer.gameObject.GetInstanceID()))
                                     {
-                                        Debug.Log(
-                                            $"[MeshExporter] : Excluded LOD - {meshToCombineDictionary[renderer.gameObject.GetInstanceID()].name}",
-                                            renderer.gameObject);
-                                    }
+                                        if (displayLogs)
+                                        {
+                                            Debug.Log(
+                                                $"[MeshExporter] : Excluded LOD - {meshToCombineDictionary[renderer.gameObject.GetInstanceID()]?.name}",
+                                                renderer.gameObject);
+                                        }
 
-                                    meshToCombineDictionary.Remove(renderer.gameObject.GetInstanceID());
+                                        meshToCombineDictionary.Remove(renderer.gameObject.GetInstanceID());
+                                    }
                                 }
                             }
                         }

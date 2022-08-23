@@ -242,9 +242,22 @@ namespace Treasured.UnitySdk
                 if (selectedObject.activeSelf)
                 {
                     var childTrianglesCount = 0;
-                    foreach (var child in selectedObject.transform.GetComponentsInChildren<Transform>())
+                    if (_selectionMode)
                     {
-                        if (child.TryGetComponent(out MeshFilter meshFilter))
+                        foreach (var child in selectedObject.transform.GetComponentsInChildren<Transform>())
+                        {
+                            if (child.TryGetComponent(out MeshFilter meshFilter))
+                            {
+                                if (meshFilter.sharedMesh != null)
+                                {
+                                    childTrianglesCount += meshFilter.sharedMesh.triangles.Length;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (selectedObject.TryGetComponent(out MeshFilter meshFilter))
                         {
                             if (meshFilter.sharedMesh != null)
                             {
