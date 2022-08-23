@@ -10,11 +10,13 @@ namespace Treasured.UnitySdk
     {
         public readonly string GameObjectName;
         public readonly int Triangles;
+        public readonly GameObject GameObject;
 
-        public GameObjectTriangle(string gameObjectName, int triangles)
+        public GameObjectTriangle(string gameObjectName, int triangles, GameObject gameObject)
         {
             GameObjectName = string.IsNullOrWhiteSpace(gameObjectName) ? string.Empty : gameObjectName;
             Triangles = triangles;
+            GameObject = gameObject;
         }
     }
 
@@ -55,7 +57,7 @@ namespace Treasured.UnitySdk
                     alignment = TextAnchor.UpperCenter
                 };
             }
-
+            
             if (_boldLabelStyle == null)
             {
                 _boldLabelStyle = new GUIStyle(EditorStyles.boldLabel)
@@ -80,7 +82,7 @@ namespace Treasured.UnitySdk
 
         private void OnDisable()
         {
-            Selection.selectionChanged += SelectionChanged;
+            Selection.selectionChanged -= SelectionChanged;
         }
 
         private void OnGUI()
@@ -192,7 +194,17 @@ namespace Treasured.UnitySdk
                 foreach (var selectedObjectName in _selectedGameObjectDict.Values)
                 {
                     EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
-                    EditorGUILayout.LabelField(selectedObjectName.GameObjectName, _labelStyle);
+                    if (!_selectionMode)
+                    {
+                        if (GUILayout.Button(selectedObjectName.GameObjectName, _labelStyle))
+                        {
+                            EditorGUIUtility.PingObject(selectedObjectName.GameObject);
+                        }
+                    }
+                    else
+                    {
+                        EditorGUILayout.LabelField(selectedObjectName.GameObjectName, _labelStyle);
+                    }
                 }
 
                 EditorGUILayout.EndVertical();
@@ -201,7 +213,17 @@ namespace Treasured.UnitySdk
                 foreach (var selectedObjectTriangle in _selectedGameObjectDict.Values)
                 {
                     EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
-                    EditorGUILayout.LabelField(selectedObjectTriangle.Triangles.ToString(), _labelStyle);
+                    if (!_selectionMode)
+                    {
+                        if (GUILayout.Button(selectedObjectTriangle.Triangles.ToString(), _labelStyle))
+                        {
+                            EditorGUIUtility.PingObject(selectedObjectTriangle.GameObject);
+                        }
+                    }
+                    else
+                    {
+                        EditorGUILayout.LabelField(selectedObjectTriangle.Triangles.ToString(), _labelStyle);
+                    }
                 }
 
                 EditorGUILayout.EndVertical();
@@ -267,13 +289,13 @@ namespace Treasured.UnitySdk
                     }
 
                     _selectedGameObjectDict.Add(selectedObject.GetInstanceID(),
-                        new GameObjectTriangle(selectedObject.name, childTrianglesCount));
+                        new GameObjectTriangle(selectedObject.name, childTrianglesCount, selectedObject));
                 }
                 //  Object is not active in scene
                 else
                 {
                     _selectedGameObjectDict.Add(selectedObject.GetInstanceID(),
-                        new GameObjectTriangle($"{selectedObject.name}-[DISABLED]", 0));
+                        new GameObjectTriangle($"{selectedObject.name}-[DISABLED]", 0, selectedObject));
                 }
             }
         }
