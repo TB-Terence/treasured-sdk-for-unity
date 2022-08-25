@@ -31,7 +31,7 @@ com.whinarn.unitymeshsimplifier
 
 If you already using [OpenUPM](https://openupm.com/) simply add `com.whinarn.unitymeshsimplifier` to the scope(s) and click `Save`.
 
-Next, go to `Edit > Project Settings... > Player > Api Compatibility Level` and set it to `.NET 4.x`.
+Next, go to `Edit > Project Settings... > Player > Api Compatibility Level` and set it to `.NET 4.x` or `.NET Framework`.
 
 ## Installing the Package
 Currently the package can only be installed using git. Eventually the package will be move to scoped registry (e.g., [OpenUPM](https://openupm.com/)) or asset store.
