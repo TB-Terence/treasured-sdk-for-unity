@@ -475,7 +475,7 @@ namespace Treasured.UnitySdk
             }
 
             // Export to .obj
-            var sw = new StreamWriter(_terrainObjSavePath);
+            var sw = new StreamWriter(_terrainObjSavePath.ToOSSpecificPath());
             try
             {
                 sw.WriteLine("# Unity terrain OBJ File");
