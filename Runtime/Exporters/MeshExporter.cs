@@ -363,7 +363,7 @@ namespace Treasured.UnitySdk
 
             if (!string.IsNullOrEmpty(Map.exportSettings.OutputDirectory))
             {
-                exporter.SaveGLB(Map.exportSettings.OutputDirectory, "scene");
+                exporter.SaveGLB(Map.exportSettings.OutputDirectory.ToOSSpecificPath(), "scene");
             }
         }
 
@@ -475,7 +475,7 @@ namespace Treasured.UnitySdk
             }
 
             // Export to .obj
-            var sw = new StreamWriter(_terrainObjSavePath.ToOSSpecificPath());
+            var sw = new StreamWriter(_terrainObjSavePath);
             try
             {
                 sw.WriteLine("# Unity terrain OBJ File");
