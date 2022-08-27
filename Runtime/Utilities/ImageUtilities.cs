@@ -14,11 +14,26 @@ namespace Treasured.UnitySdk
 {
     internal class ImageUtilies
     {
+#if UNITY_STANDALONE_WIN
         private static string processName = "cmd.exe";
-        private static readonly string TreasuredPluginsFolder = Path.GetFullPath("Packages/com.treasured.unitysdk/Plugins");
+
+        private static readonly string TreasuredPluginsFolder = Path.GetFullPath("Packages/com.treasured.unitysdk/Plugins/Win");
+
         private static string ktx2Converter = Path.Combine(TreasuredPluginsFolder,
-                                                           "Ktx2Converter.bat").Replace(" ", "^ ");
+            "Ktx2Converter.bat").Replace(" ", "^ ");
+
         private static string toktx = Path.Combine(TreasuredPluginsFolder, "toktx.exe").Replace(" ", "^ ");
+
+#elif UNITY_STANDALONE_OSX
+        private static string processName = "sh";
+
+        private static readonly string TreasuredPluginsFolder = Path.GetFullPath("Packages/com.treasured.unitysdk/Plugins/OSX");
+
+        private static string ktx2Converter = Path.Combine(TreasuredPluginsFolder,
+                                                           "Ktx2Converter.sh").Replace(" ", "^ ");
+
+        private static string toktx = Path.Combine(TreasuredPluginsFolder, "toktx").Replace(" ", "^ ");
+#endif
 
         /// <summary>
         /// Encode Image in WebP format
@@ -66,19 +81,24 @@ namespace Treasured.UnitySdk
             var modifiedDirectory = rootDirectory.Replace(" ", "^ ");
 
             var argumentBuilder = new StringBuilder();
-            argumentBuilder.Append("/K ");
-            argumentBuilder.Append(ktx2Converter);
-            argumentBuilder.Append($" \"{toktx}\"");
-            argumentBuilder.Append($" \"{modifiedDirectory}\"");
+            // argumentBuilder.Append("/K ");
+            // argumentBuilder.Append(ktx2Converter);
+            // argumentBuilder.Append($" \"{toktx}\"");
+            // argumentBuilder.Append($" \"{modifiedDirectory}\"");
+            // argumentBuilder.Append("'");
 
-            var startInfo = new ProcessStartInfo(processName, argumentBuilder.ToString());
-            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            var startInfo = new ProcessStartInfo("/bin/sh", ktx2Converter + " " + toktx + " " + modifiedDirectory);
+            startInfo.WindowStyle = ProcessWindowStyle.Normal;
+            startInfo.RedirectStandardOutput = true;
+            startInfo.UseShellExecute = false;
 
             using var ktxProcess = new Process() { StartInfo = startInfo };
             ktxProcess.Start();
+            string stdOutput = ktxProcess.StandardOutput.ReadToEnd();
             try
             {
                 ktxProcess.WaitForExit();
+                UnityEngine.Debug.Log(stdOutput);
             }
             catch (Exception e)
             {
