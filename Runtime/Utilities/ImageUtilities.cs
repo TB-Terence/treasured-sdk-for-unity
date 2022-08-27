@@ -25,7 +25,7 @@ namespace Treasured.UnitySdk
         private static string toktx = Path.Combine(TreasuredPluginsFolder, "toktx.exe").Replace(" ", "^ ");
 
 #elif UNITY_STANDALONE_OSX
-        private static string processName = "sh";
+        private static string processName = "/bin/sh";
 
         private static readonly string TreasuredPluginsFolder = Path.GetFullPath("Packages/com.treasured.unitysdk/Plugins/OSX");
 
@@ -81,14 +81,15 @@ namespace Treasured.UnitySdk
             var modifiedDirectory = rootDirectory.Replace(" ", "^ ");
 
             var argumentBuilder = new StringBuilder();
-            // argumentBuilder.Append("/K ");
-            // argumentBuilder.Append(ktx2Converter);
-            // argumentBuilder.Append($" \"{toktx}\"");
-            // argumentBuilder.Append($" \"{modifiedDirectory}\"");
-            // argumentBuilder.Append("'");
+#if UNITY_STANDALONE_WIN
+            argumentBuilder.Append("/K ");
+#endif
+            argumentBuilder.Append(ktx2Converter);
+            argumentBuilder.Append($" \"{toktx}\"");
+            argumentBuilder.Append($" \"{modifiedDirectory}\"");
 
-            var startInfo = new ProcessStartInfo("/bin/sh", ktx2Converter + " " + toktx + " " + modifiedDirectory);
-            startInfo.WindowStyle = ProcessWindowStyle.Normal;
+            var startInfo = new ProcessStartInfo(processName, argumentBuilder.ToString());
+            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
             startInfo.RedirectStandardOutput = true;
             startInfo.UseShellExecute = false;
 
