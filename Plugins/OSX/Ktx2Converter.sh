@@ -30,6 +30,8 @@ FILES=$(find $build_root -name "*.png")
 
 for file in $FILES; do
 	echo "Converting $file"
-	sh -c "$executable --bcmp ${file%.*} $file"
+	sh -c "$executable --bcmp ${file%.*}.ktx2 $file"
 	rm $file
 done
+
+exit 0
