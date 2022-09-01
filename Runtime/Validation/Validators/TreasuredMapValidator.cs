@@ -20,6 +20,7 @@ namespace Treasured.UnitySdk.Validation
             results.AddRange(s_requiredFieldValidator_map.GetValidationResults());
             results.AddRange(GetSelectObjectReferenceValidationResults());
             results.AddRange(GetHotspotPathValidationResult());
+            results.AddRange(GetGuidedTourSrcValidationResult());
             return results;
         }
 
@@ -121,6 +122,35 @@ namespace Treasured.UnitySdk.Validation
                             type = ValidationResult.ValidationResultType.Warning
                         });
                     }
+                }
+            }
+            return results;
+        }
+
+        List<ValidationResult> GetGuidedTourSrcValidationResult()
+        {
+            if (!_map.features.guidedTour)
+            {
+                return null;
+            }
+            List<ValidationResult> results = new List<ValidationResult>();
+            var tours = _map.graph.tours;
+            foreach (var tour in tours)
+            {
+                foreach (var action in tour.actionScripts)
+                {
+                    
+                    if ((action is AudioAction audioAction && string.IsNullOrWhiteSpace(audioAction.src)) || (action is EmbedAction embedAction && string.IsNullOrWhiteSpace(embedAction.src)))
+                    {
+                        ValidationResult validationResult = new ValidationResult()
+                        {
+                            name = "Required Field",
+                            description = $"Src is not provided for [{action.Type} action] in [{tour.title}] tour.",
+                            type = ValidationResult.ValidationResultType.Error
+                        };
+                        results.Add(validationResult);
+                    }
+                    
                 }
             }
             return results;
