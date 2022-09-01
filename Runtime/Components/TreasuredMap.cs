@@ -68,6 +68,7 @@ namespace Treasured.UnitySdk
 
         public bool Loop { get => _loop; set => _loop = value; }
 
+        [JsonProperty("guidedTours")]
         public GuidedTourGraph graph;
         #endregion
 
