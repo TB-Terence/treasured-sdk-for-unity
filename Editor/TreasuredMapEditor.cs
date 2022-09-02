@@ -74,7 +74,21 @@ namespace Treasured.UnitySdk
             {
                 margin = new RectOffset(0, 0, 0, 8),
                 fixedHeight = 24,
-                fontStyle = FontStyle.Bold
+                fontStyle = FontStyle.Bold,
+            };
+
+            public static readonly GUIStyle dataDisplayBox = new GUIStyle("box")
+            {
+                margin = new RectOffset(0, 0, 0, 0),
+                padding = new RectOffset(8, 8, 8, 8),
+                alignment = TextAnchor.UpperLeft,
+                fontSize = 10
+            };
+
+            public static readonly GUIStyle centeredLabel = new GUIStyle("label")
+            {
+                alignment = TextAnchor.UpperCenter,
+                wordWrap = true,
             };
 
             public static readonly GUIStyle exportButton = new GUIStyle("button")
@@ -328,7 +342,7 @@ namespace Treasured.UnitySdk
             serializedObject.Update();
 
             Texture2D TreasuredLogo = Resources.Load<Texture2D>("Treasured_Logo");
-            GUILayout.Space(10);
+            GUILayout.Space(12);
             using (new EditorGUILayout.HorizontalScope())
             {
                 GUILayout.FlexibleSpace();
@@ -343,118 +357,153 @@ namespace Treasured.UnitySdk
                 GUILayout.FlexibleSpace();
             }
 
-            GUILayout.Space(10);
-            GUILayout.Label("Treasured is a tool to help you create and export your Unity scenes to the web. For more information, visit treasured.dev for more info", EditorStyles.wordWrappedLabel);
-            GUILayout.Space(10);
+            GUILayout.Space(8);
+            
+            GUILayout.Label("Treasured is a tool to help you create and export your Unity scenes to the web. Visit treasured.dev for more info.", Styles.centeredLabel, GUILayout.ExpandWidth(true));
+            
+            GUILayout.Space(16);
 
-            // Draw Directory, VS Code, and Export buttons
-            using (new EditorGUILayout.HorizontalScope())
+            _map.projectFolder = EditorGUILayout.TextField(new GUIContent("Project folder"), _map.projectFolder);
+            var projectPath = $"{TreasuredSDKPreferences.Instance.customExportFolder}/{_map.projectFolder}";
+            var isValidProjectFolder = !String.IsNullOrWhiteSpace(_map.projectFolder);
+            var isProjectSetup = isValidProjectFolder && Directory.Exists(projectPath);
+
+            using (var group = new EditorGUILayout.FadeGroupScope(Convert.ToSingle(!isProjectSetup)))
             {
-                GUILayout.FlexibleSpace();
-                using(new EditorGUI.DisabledGroupScope(!Directory.Exists(_map.exportSettings.OutputDirectory)))
+                if (group.visible) 
                 {
-                    if (GUILayout.Button(EditorGUIUtility.TrTextContent("Directory ↗", "Open the current output folder in the File Explorer. This function is enabled when the directory exist."), Styles.exportButton, GUILayout.MaxWidth(150)))
+                    GUILayout.Space(4);
+
+                    GUILayout.Box(projectPath, Styles.dataDisplayBox, GUILayout.ExpandWidth(true));
+
+                    GUILayout.Space(4);
+
+                    using(new EditorGUI.DisabledGroupScope(!isValidProjectFolder))
                     {
-                        EditorUtility.RevealInFinder(_map.exportSettings.OutputDirectory);
-                    }
-                }
-                GUILayout.Space(10f);
-                if (GUILayout.Button(EditorGUIUtility.TrTextContent("Install CLI", "Installs the Treasured CLI from npm"), Styles.exportButton, GUILayout.MaxWidth(150)))
-                {
-                    EditorUtility.DisplayProgressBar("Installing Treasured CLI", "Installing the Treasured CLI from npm", 0.5f);
-                    
-                    try
-                    {
-                        using (Process process = new Process()) {
-                            process.StartInfo.FileName = "npm";
-                            process.StartInfo.Arguments = "install -g @treasured/cli";
-                            process.StartInfo.UseShellExecute = false;
-                            process.StartInfo.RedirectStandardOutput = true;
-                            
-                            process.Start();
-                    
-                            process.WaitForExit();
-                            string output = process.StandardOutput.ReadToEnd();
-                            UnityEngine.Debug.Log(output);
+                        if (GUILayout.Button(EditorGUIUtility.TrTextContent("Generate project", $"Clicking this button will generate a new project in {projectPath}"), Styles.exportButton, GUILayout.ExpandWidth(true))) {
+                            // Create project folder
+                            Directory.CreateDirectory(projectPath);
                         }
                     }
-                    catch (Exception e)
+                }
+            }
+
+            using (var group = new EditorGUILayout.FadeGroupScope(Convert.ToSingle(isProjectSetup)))
+            {
+                if (group.visible) 
+                {
+                    GUILayout.Space(8);
+
+                    // Draw Directory, VS Code, and Export buttons
+                    using (new EditorGUILayout.HorizontalScope())
                     {
-                        UnityEngine.Debug.LogError(e.Message);
+                        GUILayout.FlexibleSpace();
+                        using(new EditorGUI.DisabledGroupScope(!Directory.Exists(projectPath)))
+                        {
+                            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Directory ↗", "Open the current output folder in the File Explorer. This function is enabled when the directory exist."), Styles.exportButton, GUILayout.MaxWidth(150)))
+                            {
+                                EditorUtility.RevealInFinder(projectPath);
+                            }
+                        }
+                        GUILayout.Space(10f);
+                        if (GUILayout.Button(EditorGUIUtility.TrTextContent("Install CLI", "Installs the Treasured CLI from npm"), Styles.exportButton, GUILayout.MaxWidth(150)))
+                        {
+                            EditorUtility.DisplayProgressBar("Installing Treasured CLI", "Installing the Treasured CLI from npm", 0.5f);
+                            
+                            try
+                            {
+                                using (Process process = new Process()) {
+                                    process.StartInfo.FileName = "npm";
+                                    process.StartInfo.Arguments = "install -g @treasured/cli";
+                                    process.StartInfo.UseShellExecute = false;
+                                    process.StartInfo.RedirectStandardOutput = true;
+                                    
+                                    process.Start();
+                            
+                                    process.WaitForExit();
+                                    string output = process.StandardOutput.ReadToEnd();
+                                    UnityEngine.Debug.Log(output);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                UnityEngine.Debug.LogError(e.Message);
+                            }
+
+                            EditorUtility.DisplayProgressBar("Installing Treasured CLI", "Installing the Treasured CLI from npm", 1f);
+                            EditorUtility.ClearProgressBar();
+
+                            // Get version of Treasured CLI
+                            string version = "";
+                            try
+                            {
+                                using (Process process = new Process()) {
+                                    process.StartInfo.FileName = "treasured";
+                                    process.StartInfo.Arguments = "--version";
+                                    process.StartInfo.UseShellExecute = false;
+                                    process.StartInfo.RedirectStandardOutput = true;
+                                    
+                                    process.Start();
+                                    
+                                    process.WaitForExit();
+                                    version = process.StandardOutput.ReadToEnd();
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                UnityEngine.Debug.LogError(e.Message);
+                            }
+
+                            // Show message
+                            if (!string.IsNullOrEmpty(version))
+                            {
+                                EditorUtility.DisplayDialog("Treasured CLI installed", "Treasured CLI version " + version + " installed successfully", "OK");
+                            }
+                            else
+                            {
+                                EditorUtility.DisplayDialog("Treasured CLI installation failed", "Treasured CLI installation failed. Please try again.", "OK");
+                            }
+                        }
+                        GUILayout.Space(10f);
+                        Color oldColor = GUI.backgroundColor;
+                        GUI.backgroundColor = new Color(0.3f, 1.0f, 0.6f);
+                        if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Export", $"Export scene to {TreasuredSDKPreferences.Instance.customExportFolder}/{_map.exportSettings.folderName}", "SceneLoadIn"), Styles.exportButton, GUILayout.MaxWidth(150)))
+                        {
+                            try
+                            {
+                                Exporter.Export(_map);
+                            }
+                            catch (ValidationException e)
+                            {
+                                MapExporterWindow.Show(_map, e);
+                            }
+                        }
+                        GUI.backgroundColor = oldColor;
+                        GUILayout.FlexibleSpace();
                     }
 
-                    EditorUtility.DisplayProgressBar("Installing Treasured CLI", "Installing the Treasured CLI from npm", 1f);
-                    EditorUtility.ClearProgressBar();
+                    GUILayout.Space(20);
 
-                    // Get version of Treasured CLI
-                    string version = "";
-                    try
+                    using(var scope = new EditorGUI.ChangeCheckScope())
                     {
-                        using (Process process = new Process()) {
-                            process.StartInfo.FileName = "treasured";
-                            process.StartInfo.Arguments = "--version";
-                            process.StartInfo.UseShellExecute = false;
-                            process.StartInfo.RedirectStandardOutput = true;
-                            
-                            process.Start();
-                            
-                            process.WaitForExit();
-                            version = process.StandardOutput.ReadToEnd();
+                        _selectedTabIndex = GUILayout.SelectionGrid(_selectedTabIndex, _tabGroupStates.Select(x => x.attribute.groupName).ToArray(), _tabGroupStates.Length, Styles.TabButton);
+                        if (scope.changed)
+                        {
+                            SessionState.SetInt(SelectedTabIndexKey, _selectedTabIndex);
                         }
                     }
-                    catch (Exception e)
+                    for (int i = 0; i < _tabGroupStates.Length; i++)
                     {
-                        UnityEngine.Debug.LogError(e.Message);
+                        var state = _tabGroupStates[i];
+                        if (state.tabIndex != _selectedTabIndex)
+                        {
+                            continue;
+                        }
+                        state.gui.Invoke(this, null);
                     }
-
-                    // Show message
-                    if (!string.IsNullOrEmpty(version))
-                    {
-                        EditorUtility.DisplayDialog("Treasured CLI installed", "Treasured CLI version " + version + " installed successfully", "OK");
-                    }
-                    else
-                    {
-                        EditorUtility.DisplayDialog("Treasured CLI installation failed", "Treasured CLI installation failed. Please try again.", "OK");
-                    }
-                }
-                GUILayout.Space(10f);
-                Color oldColor = GUI.backgroundColor;
-                GUI.backgroundColor = new Color(0.3f, 1.0f, 0.6f);
-                if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Export", $"Export scene to {TreasuredSDKPreferences.Instance.customExportFolder}/{_map.exportSettings.folderName}", "SceneLoadIn"), Styles.exportButton, GUILayout.MaxWidth(150)))
-                {
-                    try
-                    {
-                        Exporter.Export(_map);
-                    }
-                    catch (ValidationException e)
-                    {
-                        MapExporterWindow.Show(_map, e);
-                    }
-                }
-                GUI.backgroundColor = oldColor;
-                GUILayout.FlexibleSpace();
-            }
-
-            GUILayout.Space(20);
-
-            using(var scope = new EditorGUI.ChangeCheckScope())
-            {
-                _selectedTabIndex = GUILayout.SelectionGrid(_selectedTabIndex, _tabGroupStates.Select(x => x.attribute.groupName).ToArray(), _tabGroupStates.Length, Styles.TabButton);
-                if (scope.changed)
-                {
-                    SessionState.SetInt(SelectedTabIndexKey, _selectedTabIndex);
+                    serializedObject.ApplyModifiedProperties();
                 }
             }
-            for (int i = 0; i < _tabGroupStates.Length; i++)
-            {
-                var state = _tabGroupStates[i];
-                if (state.tabIndex != _selectedTabIndex)
-                {
-                    continue;
-                }
-                state.gui.Invoke(this, null);
-            }
-            serializedObject.ApplyModifiedProperties();
         }
 
         [TabGroup(groupName = "Page Info")]
