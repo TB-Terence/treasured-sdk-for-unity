@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Treasured.UnitySdk.Utilities;
@@ -50,6 +51,14 @@ namespace Treasured.UnitySdk
             public static readonly GUIContent plus = EditorGUIUtility.TrIconContent("Toolbar Plus");
             public static readonly GUIContent minus = EditorGUIUtility.TrIconContent("Toolbar Minus", "Remove");
 
+            public static readonly GUIStyle logoText = new GUIStyle(EditorStyles.boldLabel)
+            {
+                wordWrap = false,
+                fontSize = 18,
+                alignment = TextAnchor.UpperCenter,
+                normal = { textColor = Color.white }
+            };
+
             public static readonly GUIStyle objectLabel = new GUIStyle("label")
             {
                 fontStyle = FontStyle.Bold
@@ -61,11 +70,17 @@ namespace Treasured.UnitySdk
                 padding = new RectOffset(),
             };
 
-            public static readonly GUIStyle exportButton = new GUIStyle("button")
+            public static readonly GUIStyle iconButton = new GUIStyle("button")
             {
                 margin = new RectOffset(0, 0, 0, 8),
                 fixedHeight = 24,
                 fontStyle = FontStyle.Bold
+            };
+
+            public static readonly GUIStyle exportButton = new GUIStyle("button")
+            {
+                padding = new RectOffset(8, 8, 8, 8),
+                fontStyle = FontStyle.Bold,
             };
 
             public static readonly GUIStyle noLabel = new GUIStyle("label")
@@ -311,9 +326,101 @@ namespace Treasured.UnitySdk
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
+
+            Texture2D TreasuredLogo = Resources.Load<Texture2D>("Treasured_Logo");
+            GUILayout.Space(10);
             using (new EditorGUILayout.HorizontalScope())
             {
-                if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Export", $"Export scene to {TreasuredSDKPreferences.Instance.customExportFolder}/{_map.exportSettings.folderName}", "SceneLoadIn"), Styles.exportButton))
+                GUILayout.FlexibleSpace();
+                GUILayout.Label(TreasuredLogo, GUILayout.Width(42f), GUILayout.Height(42f));
+                GUILayout.Space(4);
+                using (new EditorGUILayout.VerticalScope())
+                {   
+                    GUILayout.Space(12);
+                    GUILayout.Label("Treasured Unity SDK", Styles.logoText);
+                    GUILayout.Space(12);
+                }
+                GUILayout.FlexibleSpace();
+            }
+
+            GUILayout.Space(10);
+            GUILayout.Label("Treasured is a tool to help you create and export your Unity scenes to the web. For more information, visit treasured.dev for more info", EditorStyles.wordWrappedLabel);
+            GUILayout.Space(10);
+
+            // Draw Directory, VS Code, and Export buttons
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.FlexibleSpace();
+                using(new EditorGUI.DisabledGroupScope(!Directory.Exists(_map.exportSettings.OutputDirectory)))
+                {
+                    if (GUILayout.Button(EditorGUIUtility.TrTextContent("Directory ↗", "Open the current output folder in the File Explorer. This function is enabled when the directory exist."), Styles.exportButton, GUILayout.MaxWidth(150)))
+                    {
+                        EditorUtility.RevealInFinder(_map.exportSettings.OutputDirectory);
+                    }
+                }
+                GUILayout.Space(10f);
+                if (GUILayout.Button(EditorGUIUtility.TrTextContent("Install CLI", "Installs the Treasured CLI from npm"), Styles.exportButton, GUILayout.MaxWidth(150)))
+                {
+                    EditorUtility.DisplayProgressBar("Installing Treasured CLI", "Installing the Treasured CLI from npm", 0.5f);
+                    
+                    try
+                    {
+                        using (Process process = new Process()) {
+                            process.StartInfo.FileName = "npm";
+                            process.StartInfo.Arguments = "install -g @treasured/cli";
+                            process.StartInfo.UseShellExecute = false;
+                            process.StartInfo.RedirectStandardOutput = true;
+                            
+                            process.Start();
+                    
+                            process.WaitForExit();
+                            string output = process.StandardOutput.ReadToEnd();
+                            UnityEngine.Debug.Log(output);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        UnityEngine.Debug.LogError(e.Message);
+                    }
+
+                    EditorUtility.DisplayProgressBar("Installing Treasured CLI", "Installing the Treasured CLI from npm", 1f);
+                    EditorUtility.ClearProgressBar();
+
+                    // Get version of Treasured CLI
+                    string version = "";
+                    try
+                    {
+                        using (Process process = new Process()) {
+                            process.StartInfo.FileName = "treasured";
+                            process.StartInfo.Arguments = "--version";
+                            process.StartInfo.UseShellExecute = false;
+                            process.StartInfo.RedirectStandardOutput = true;
+                            
+                            process.Start();
+                            
+                            process.WaitForExit();
+                            version = process.StandardOutput.ReadToEnd();
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        UnityEngine.Debug.LogError(e.Message);
+                    }
+
+                    // Show message
+                    if (!string.IsNullOrEmpty(version))
+                    {
+                        EditorUtility.DisplayDialog("Treasured CLI installed", "Treasured CLI version " + version + " installed successfully", "OK");
+                    }
+                    else
+                    {
+                        EditorUtility.DisplayDialog("Treasured CLI installation failed", "Treasured CLI installation failed. Please try again.", "OK");
+                    }
+                }
+                GUILayout.Space(10f);
+                Color oldColor = GUI.backgroundColor;
+                GUI.backgroundColor = new Color(0.3f, 1.0f, 0.6f);
+                if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Export", $"Export scene to {TreasuredSDKPreferences.Instance.customExportFolder}/{_map.exportSettings.folderName}", "SceneLoadIn"), Styles.exportButton, GUILayout.MaxWidth(150)))
                 {
                     try
                     {
@@ -324,33 +431,12 @@ namespace Treasured.UnitySdk
                         MapExporterWindow.Show(_map, e);
                     }
                 }
-                using(new EditorGUI.DisabledGroupScope(!Directory.Exists(_map.exportSettings.OutputDirectory)))
-                {
-                    if (GUILayout.Button(EditorGUIUtility.TrIconContent("FolderOpened On Icon", "Open the current output folder in the File Explorer. This function is enabled when the directory exist."), Styles.exportButton, GUILayout.MaxWidth(24)))
-                    {
-                        EditorUtility.RevealInFinder(_map.exportSettings.OutputDirectory);
-                    }
-                }
-                if (GUILayout.Button(EditorGUIUtility.TrIconContent("icon dropdown"), Styles.exportButton, GUILayout.MaxWidth(24)))
-                {
-                    GenericMenu menu = new GenericMenu();
-                    menu.AddItem(new GUIContent("Open Custom Export Folder", "Open custom export folder in the File Explorer. The default folder will be the path in your Unity project/Treasured Data"), false, () =>
-                    {
-                        if (Directory.Exists(TreasuredSDKPreferences.Instance.customExportFolder))
-                        {
-                            EditorUtility.RevealInFinder(TreasuredSDKPreferences.Instance.customExportFolder);
-                        }
-                        else
-                        {
-                            if(EditorUtility.DisplayDialog("Error", "Custom export folder does not exist.", "Config", "Cancel"))
-                            {
-                                SettingsService.OpenUserPreferences("Preferences/Treasured SDK");
-                            }
-                        }
-                    });
-                    menu.ShowAsContext();
-                }
+                GUI.backgroundColor = oldColor;
+                GUILayout.FlexibleSpace();
             }
+
+            GUILayout.Space(20);
+
             using(var scope = new EditorGUI.ChangeCheckScope())
             {
                 _selectedTabIndex = GUILayout.SelectionGrid(_selectedTabIndex, _tabGroupStates.Select(x => x.attribute.groupName).ToArray(), _tabGroupStates.Length, Styles.TabButton);
@@ -553,7 +639,7 @@ namespace Treasured.UnitySdk
                 EditorGUILayout.BeginHorizontal();
                 EditorGUILayout.LabelField("Exporter Settings", EditorStyles.boldLabel);
                 GUILayout.FlexibleSpace();
-                if (GUILayout.Button(new GUIContent("Overwrite", "Overwrite all exporter settings from Preferences")))
+                if (GUILayout.Button(new GUIContent("Reset to Default", "Reset all exporter settings to Default Preferences")))
                 {
                     foreach (var editor in _exporterEditors)
                     {
@@ -596,16 +682,16 @@ namespace Treasured.UnitySdk
             catch (ContextException e)
             {
                 EditorGUIUtility.PingObject(e.Context);
-                Debug.LogException(e);
+                UnityEngine.Debug.LogException(e);
             }
             catch (TreasuredException e)
             {
                 EditorGUIUtility.PingObject(_map);
-                Debug.LogException(e);
+                UnityEngine.Debug.LogException(e);
             }
             catch (Exception e)
             {
-                Debug.LogException(e);
+                UnityEngine.Debug.LogException(e);
             }
             finally
             {
