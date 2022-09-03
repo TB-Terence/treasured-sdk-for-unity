@@ -1,4 +1,6 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
+using System.Diagnostics;
 using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEngine;
@@ -10,6 +12,66 @@ namespace Treasured.UnitySdk
     /// </summary>
     internal static class MenuItemRegister
     {
+        [MenuItem("Tools/Treasured/Upgrade Treasured CLI", priority = 99)]
+        static void UpgradeTreasuredCLI()
+        {
+            EditorUtility.DisplayProgressBar("Installing Treasured CLI", "Installing the Treasured CLI from npm", 0.5f);
+                            
+            try
+            {
+                using (Process process = new Process()) {
+                    process.StartInfo.FileName = "npm";
+                    process.StartInfo.Arguments = "install -g @treasured/cli";
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.RedirectStandardOutput = true;
+                    
+                    process.Start();
+            
+                    process.WaitForExit();
+                    string output = process.StandardOutput.ReadToEnd();
+                    UnityEngine.Debug.Log(output);
+                }
+            }
+            catch (Exception e)
+            {
+                UnityEngine.Debug.LogError(e.Message);
+            }
+
+            EditorUtility.DisplayProgressBar("Installing Treasured CLI", "Installing the Treasured CLI from npm", 1f);
+            EditorUtility.ClearProgressBar();
+
+            // Get version of Treasured CLI
+            string version = "";
+            try
+            {
+                using (Process process = new Process()) {
+                    process.StartInfo.FileName = "treasured";
+                    process.StartInfo.Arguments = "--version";
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.RedirectStandardOutput = true;
+                    
+                    process.Start();
+                    
+                    process.WaitForExit();
+                    version = process.StandardOutput.ReadToEnd();
+                }
+            }
+            catch (Exception e)
+            {
+                UnityEngine.Debug.LogError(e.Message);
+            }
+
+            // Show message
+            if (!string.IsNullOrEmpty(version))
+            {
+                EditorUtility.DisplayDialog("Treasured CLI installed", "Treasured CLI version " + version + " installed successfully", "OK");
+            }
+            else
+            {
+                EditorUtility.DisplayDialog("Treasured CLI installation failed", "Treasured CLI installation failed. Please try again.", "OK");
+            }
+        }
+
         [MenuItem("Tools/Treasured/Upgrade to Latest(Stable)", priority = 99)]
         static void UpgradeToStableVersion()
         {

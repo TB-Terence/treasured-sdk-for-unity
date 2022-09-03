@@ -25,7 +25,7 @@ namespace Treasured.UnitySdk
 
         public override void Export()
         {
-            string jsonPath = Path.Combine(Map.exportSettings?.OutputDirectory, "data.json").ToOSSpecificPath();
+            string jsonPath = Path.Combine(Map.projectFolder, ".treasured", Map.projectFolder, "data.json").ToOSSpecificPath();
             string json = JsonConvert.SerializeObject(Map, formatting, JsonSettings);
             File.WriteAllText(jsonPath, json);
         }
