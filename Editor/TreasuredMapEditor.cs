@@ -292,7 +292,7 @@ namespace Treasured.UnitySdk
         }
 
         private void OnExportCompleted(object sender, EventArgs args) {
-            var projectPath = $"{System.IO.Directory.GetCurrentDirectory()}/{_map.projectFolder}";
+            var projectPath = $"{TreasuredSDKPreferences.Instance.customExportFolder}/{_map.projectFolder}";
             // Create a reload.lock file to trigger a reload in the Treasured web app
             try
             {
@@ -380,7 +380,7 @@ namespace Treasured.UnitySdk
             GUILayout.Space(16);
 
             _map.projectFolder = EditorGUILayout.TextField(new GUIContent("Project folder"), _map.projectFolder);
-            var projectPath = $"{System.IO.Directory.GetCurrentDirectory()}/{_map.projectFolder}";
+            var projectPath = $"{TreasuredSDKPreferences.Instance.customExportFolder}/{_map.projectFolder}";
             var isValidProjectFolder = !String.IsNullOrWhiteSpace(_map.projectFolder);
             var isProjectSetup = isValidProjectFolder && Directory.Exists(projectPath);
 
@@ -407,6 +407,7 @@ namespace Treasured.UnitySdk
                                     process.StartInfo.Arguments = $"init {_map.projectFolder}";
                                     process.StartInfo.UseShellExecute = false;
                                     process.StartInfo.RedirectStandardOutput = true;
+                                    process.StartInfo.WorkingDirectory = TreasuredSDKPreferences.Instance.customExportFolder;
                                     
                                     process.Start();
                                     
