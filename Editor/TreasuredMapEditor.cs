@@ -93,6 +93,7 @@ namespace Treasured.UnitySdk
 
             public static readonly GUIStyle exportButton = new GUIStyle("button")
             {
+                margin = new RectOffset(0, 0, 0, 0),
                 padding = new RectOffset(8, 8, 8, 8),
                 fontStyle = FontStyle.Bold,
             };
@@ -218,7 +219,6 @@ namespace Treasured.UnitySdk
         private int _selectedTabIndex = 1;
         private FoldoutGroupState[] _foldoutGroupStates;
         private TreasuredMap _map;
-        private Editor _exportSettingsEditor;
         private Editor[] _exporterEditors;
         private List<Hotspot> _hotspots;
 
@@ -231,37 +231,32 @@ namespace Treasured.UnitySdk
             _selectedTabIndex = SessionState.GetInt(SelectedTabIndexKey, _selectedTabIndex);
             _map = target as TreasuredMap;
             _hotspots = new List<Hotspot>(_map.Hotspots);
-            InitializeSettings();
             InitializeExporters();
             InitializeTabGroups();
             InitializeObjectList();
             InitializeGuidedTour();
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
+            try {
+                _npmProcess = Process.GetProcessById(_map.processId);
+            } catch (Exception e) {
+            }
+
+            UnityEditor.SceneManagement.EditorSceneManager.sceneSaved -= OnSceneSaved;
+            UnityEditor.SceneManagement.EditorSceneManager.sceneSaved += OnSceneSaved;
         }
 
         private void OnDisable()
         {
             SceneView.duringSceneGui -= OnSceneViewGUI;
+            UnityEditor.SceneManagement.EditorSceneManager.sceneSaved -= OnSceneSaved;
         }
 
-        private void InitializeSettings()
+        private void OnSceneSaved(UnityEngine.SceneManagement.Scene scene)
         {
-            SerializedProperty exportSettings = serializedObject.FindProperty(nameof(TreasuredMap.exportSettings));
-            if (exportSettings.objectReferenceValue == null)
-            {
-                exportSettings.objectReferenceValue = ScriptableObject.CreateInstance<ExportSettings>();
+            if (_map.exportOnSave) {
+                Exporter.Export(_map);
             }
-            SerializedObject settings = new SerializedObject(exportSettings.objectReferenceValue);
-            SerializedProperty previousFoldername = serializedObject.FindProperty("_outputFolderName");
-            if (!string.IsNullOrEmpty(previousFoldername.stringValue))
-            {
-                settings.FindProperty("folderName").stringValue = previousFoldername.stringValue;
-                previousFoldername.stringValue = "";
-            }
-            Editor.CreateCachedEditor(exportSettings.objectReferenceValue, null, ref _exportSettingsEditor);
-            settings.ApplyModifiedProperties();
-            serializedObject.ApplyModifiedProperties();
         }
 
         private void InitializeExporters()
@@ -290,6 +285,25 @@ namespace Treasured.UnitySdk
                 Editor.CreateCachedEditor(exporterProperty.objectReferenceValue, null, ref _exporterEditors[i]);
             }
             serializedObject.ApplyModifiedProperties();
+
+            // Register export event
+            Exporter.ExportCompleted -= OnExportCompleted;
+            Exporter.ExportCompleted += OnExportCompleted;
+        }
+
+        private void OnExportCompleted(object sender, EventArgs args) {
+            var projectPath = $"{System.IO.Directory.GetCurrentDirectory()}/{_map.projectFolder}";
+            // Create a reload.lock file to trigger a reload in the Treasured web app
+            try
+            {
+                using (StreamWriter sw = File.CreateText($"{projectPath}/.treasured/reload.lock")) {
+                    sw.WriteLine(DateTime.Now);
+                }
+            }
+            catch (Exception e)
+            {
+                UnityEngine.Debug.LogError(e.Message);
+            }
         }
 
         private void InitializeTabGroups()
@@ -373,7 +387,7 @@ namespace Treasured.UnitySdk
             using (var group = new EditorGUILayout.FadeGroupScope(Convert.ToSingle(!isProjectSetup)))
             {
                 if (group.visible) 
-                {
+                {                    
                     GUILayout.Space(4);
 
                     GUILayout.Box(projectPath, Styles.dataDisplayBox, GUILayout.ExpandWidth(true));
@@ -439,9 +453,11 @@ namespace Treasured.UnitySdk
             {
                 if (group.visible) 
                 {
-                    GUILayout.Space(8);
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty("exportOnSave"));
 
-                    // Draw Directory, VS Code, and Export buttons
+                    GUILayout.Space(8f);
+
+                    // Draw Directory, Export, and Play buttons
                     using (new EditorGUILayout.HorizontalScope())
                     {
                         GUILayout.FlexibleSpace();
@@ -452,10 +468,11 @@ namespace Treasured.UnitySdk
                                 EditorUtility.RevealInFinder(projectPath);
                             }
                         }
-                        GUILayout.Space(10f);
+                        GUILayout.Space(8f);
                         
                         if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Export", $"Export scene to {System.IO.Directory.GetCurrentDirectory()}/{_map.projectFolder}", "SceneLoadIn"), Styles.exportButton, GUILayout.MaxWidth(150)))
                         {
+                            // Export scene
                             try
                             {
                                 Exporter.Export(_map);
@@ -466,7 +483,7 @@ namespace Treasured.UnitySdk
                             }
                         }
                         
-                        GUILayout.Space(10f);
+                        GUILayout.Space(8f);
                         
                         using (var playButtonGroup = new EditorGUILayout.FadeGroupScope(Convert.ToSingle(_npmProcess == null)))
                         {
@@ -487,6 +504,9 @@ namespace Treasured.UnitySdk
                                         _npmProcess.StartInfo.WorkingDirectory = projectPath;
                                         
                                         _npmProcess.Start();
+
+
+                                        _map.processId = _npmProcess.Id;
                                     }
                                     catch (Exception e)
                                     {
@@ -538,7 +558,30 @@ namespace Treasured.UnitySdk
                         GUILayout.FlexibleSpace();
                     }
 
-                    GUILayout.Space(20);
+                    GUILayout.Space(8f);
+
+                    // Draw Build and Deploy button
+                    if (GUILayout.Button(EditorGUIUtility.TrTextContent("Build & Deploy", "Build the project and deploy to S3"), Styles.exportButton))
+                    {
+                        // Run `npm run build` to build the project
+                        try
+                        {
+                            var buildProcess = new Process();
+                            buildProcess.StartInfo.FileName = "npm";
+                            buildProcess.StartInfo.Arguments = "run build";
+                            buildProcess.StartInfo.UseShellExecute = false;
+                            buildProcess.StartInfo.RedirectStandardOutput = true;
+                            buildProcess.StartInfo.WorkingDirectory = projectPath;
+                            
+                            buildProcess.Start();
+                        }
+                        catch (Exception e)
+                        {
+                            UnityEngine.Debug.LogError(e.Message);
+                        }
+                    }
+
+                    GUILayout.Space(20f);
 
                     using(var scope = new EditorGUI.ChangeCheckScope())
                     {
@@ -548,6 +591,9 @@ namespace Treasured.UnitySdk
                             SessionState.SetInt(SelectedTabIndexKey, _selectedTabIndex);
                         }
                     }
+
+                    GUILayout.Space(16f);
+
                     for (int i = 0; i < _tabGroupStates.Length; i++)
                     {
                         var state = _tabGroupStates[i];
@@ -736,9 +782,6 @@ namespace Treasured.UnitySdk
         [TabGroup(groupName = "Export Settings")]
         private void OnExportGUI()
         {
-            _exportSettingsEditor.serializedObject.Update();
-            _exportSettingsEditor.OnInspectorGUI();
-            _exportSettingsEditor.serializedObject.ApplyModifiedProperties();
             try
             {
                 EditorGUILayout.BeginHorizontal();

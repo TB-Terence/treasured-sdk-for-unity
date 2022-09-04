@@ -125,15 +125,15 @@ namespace Treasured.UnitySdk
         }
         #endregion
 
-        #region Export Settings
-        [SerializeField]
-        private string _outputFolderName;
+        #region Project Folder
+        [JsonIgnore]
+        public string projectFolder;
+
+        [JsonIgnore]
+        public bool exportOnSave = true;
         #endregion
 
-        #region Project Folder
-        [SerializeField]
-        public string projectFolder;
-        #endregion
+        public int processId;
 
         [Code]
         public string headHTML;
@@ -155,9 +155,6 @@ namespace Treasured.UnitySdk
         //        return svgData;
         //    }
         //}
-
-        [JsonIgnore]
-        public ExportSettings exportSettings;
 
         [JsonIgnore]
         public JsonExporter jsonExporter;

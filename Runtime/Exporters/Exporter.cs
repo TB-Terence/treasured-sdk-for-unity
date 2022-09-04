@@ -35,6 +35,8 @@ namespace Treasured.UnitySdk
         public virtual void Export() { }
         public virtual void OnPostExport() { }
 
+        public static event EventHandler ExportCompleted = delegate { };
+
         public virtual DirectoryInfo CreateExportDirectoryInfo()
         {
             return Directory.CreateDirectory(Path.Combine(Map.projectFolder, ".treasured", Map.projectFolder));
@@ -52,7 +54,7 @@ namespace Treasured.UnitySdk
                     validationResults.AddRange(results);
                 }
             }
-            if((!TreasuredSDKPreferences.Instance.ignoreWarnings && validationResults.Count > 0) || (TreasuredSDKPreferences.Instance.ignoreWarnings && validationResults.Any(result => result.type == ValidationResult.ValidationResultType.Error)))
+            if(!map.exportOnSave && ((!TreasuredSDKPreferences.Instance.ignoreWarnings && validationResults.Count > 0) || (TreasuredSDKPreferences.Instance.ignoreWarnings && validationResults.Any(result => result.type == ValidationResult.ValidationResultType.Error))))
             {
                 throw new ValidationException(validationResults);
             }
@@ -81,6 +83,8 @@ namespace Treasured.UnitySdk
                     exporter.OnPostExport();
                 }
             }
+
+            ExportCompleted?.Invoke(null, EventArgs.Empty);
         }
     }
 }
