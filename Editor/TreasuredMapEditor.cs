@@ -403,10 +403,17 @@ namespace Treasured.UnitySdk
                             try
                             {
                                 using (Process process = new Process()) {
+#if UNITY_STANDALONE_WIN
+                                    process.StartInfo.FileName = "cmd.exe";
+                                    process.StartInfo.Arguments = $"/C treasured init {_map.projectFolder}";
+                                    process.StartInfo.CreateNoWindow = true;
+#elif UNITY_STANDALONE_OSX
                                     process.StartInfo.FileName = "treasured";
                                     process.StartInfo.Arguments = $"init {_map.projectFolder}";
+#endif
                                     process.StartInfo.UseShellExecute = false;
                                     process.StartInfo.RedirectStandardOutput = true;
+                                    process.StartInfo.RedirectStandardError = true;
                                     process.StartInfo.WorkingDirectory = TreasuredSDKPreferences.Instance.customExportFolder;
                                     
                                     process.Start();
@@ -425,12 +432,19 @@ namespace Treasured.UnitySdk
                             try
                             {
                                 using (Process process = new Process()) {
+#if UNITY_STANDALONE_WIN
+                                    process.StartInfo.FileName = "cmd.exe";
+                                    process.StartInfo.Arguments = "/C npm install";
+                                    process.StartInfo.CreateNoWindow = true;
+#elif UNITY_STANDALONE_OSX
                                     process.StartInfo.FileName = "npm";
                                     process.StartInfo.Arguments = "install";
+#endif
                                     process.StartInfo.UseShellExecute = false;
                                     process.StartInfo.RedirectStandardOutput = true;
+                                    process.StartInfo.RedirectStandardError = true;
                                     process.StartInfo.WorkingDirectory = projectPath;
-                                    
+                    
                                     process.Start();
                                     
                                     process.WaitForExit();
@@ -498,8 +512,14 @@ namespace Treasured.UnitySdk
                                     try
                                     {
                                         _npmProcess = new Process();
+#if UNITY_STANDALONE_WIN
+                                        _npmProcess.StartInfo.FileName = "cmd.exe";
+                                        _npmProcess.StartInfo.Arguments = "/C npm run dev";
+                                        _npmProcess.StartInfo.CreateNoWindow = true;
+#elif UNITY_STANDALONE_OSX
                                         _npmProcess.StartInfo.FileName = "npm";
                                         _npmProcess.StartInfo.Arguments = "run dev";
+#endif
                                         _npmProcess.StartInfo.UseShellExecute = false;
                                         _npmProcess.StartInfo.RedirectStandardOutput = true;
                                         _npmProcess.StartInfo.WorkingDirectory = projectPath;
@@ -534,8 +554,9 @@ namespace Treasured.UnitySdk
                                         UnityEngine.Debug.Log($"Killing process {pid}");
                                         ProcessStartInfo startInfo = new ProcessStartInfo();
 #if UNITY_STANDALONE_WIN
-                                        startInfo.FileName = "taskkill";
-                                        startInfo.Arguments = $"/pid {pid} /f";
+                                        startInfo.FileName = "cmd.exe";
+                                        startInfo.Arguments = $"/C taskkill /pid {pid} /f";
+                                        startInfo.CreateNoWindow = true;
 #elif UNITY_STANDALONE_OSX
                                         startInfo.FileName = "pkill";
                                         startInfo.Arguments = $"-P {pid}";
@@ -543,7 +564,6 @@ namespace Treasured.UnitySdk
                                         startInfo.UseShellExecute = false;
                                         startInfo.RedirectStandardOutput = true;
                                         startInfo.RedirectStandardError = true;
-                                        startInfo.CreateNoWindow = true;
                                         Process process = Process.Start(startInfo);
                                         process.WaitForExit();
                                         _npmProcess = null;
@@ -568,8 +588,14 @@ namespace Treasured.UnitySdk
                         try
                         {
                             var buildProcess = new Process();
+#if UNITY_STANDALONE_WIN
+                            buildProcess.StartInfo.FileName = "cmd.exe";
+                            buildProcess.StartInfo.Arguments = $"/C npm run build";
+                            buildProcess.StartInfo.CreateNoWindow = true;
+#elif UNITY_STANDALONE_OSX
                             buildProcess.StartInfo.FileName = "npm";
                             buildProcess.StartInfo.Arguments = "run build";
+#endif
                             buildProcess.StartInfo.UseShellExecute = false;
                             buildProcess.StartInfo.RedirectStandardOutput = true;
                             buildProcess.StartInfo.WorkingDirectory = projectPath;
