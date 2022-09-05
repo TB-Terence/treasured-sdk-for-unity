@@ -240,6 +240,7 @@ namespace Treasured.UnitySdk
             try {
                 _npmProcess = Process.GetProcessById(_map.processId);
             } catch (Exception e) {
+                UnityEngine.Debug.Log(e);
             }
 
             UnityEditor.SceneManagement.EditorSceneManager.sceneSaved -= OnSceneSaved;
@@ -584,6 +585,7 @@ namespace Treasured.UnitySdk
                     // Draw Build and Deploy button
                     if (GUILayout.Button(EditorGUIUtility.TrTextContent("Build & Deploy", "Build the project and deploy to S3"), Styles.exportButton))
                     {
+                        EditorUtility.DisplayProgressBar("Generating project", $"Generating project in {projectPath}", 0.5f);
                         // Run `npm run build` to build the project
                         try
                         {
@@ -601,11 +603,17 @@ namespace Treasured.UnitySdk
                             buildProcess.StartInfo.WorkingDirectory = projectPath;
                             
                             buildProcess.Start();
+
+                            buildProcess.WaitForExit();
+
+                            EditorUtility.DisplayProgressBar("Generating project", $"Generating project in {projectPath}", 1f);
                         }
                         catch (Exception e)
                         {
                             UnityEngine.Debug.LogError(e.Message);
                         }
+
+                        EditorUtility.ClearProgressBar();
                     }
 
                     GUILayout.Space(20f);
