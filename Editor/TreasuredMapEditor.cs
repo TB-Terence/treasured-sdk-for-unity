@@ -369,7 +369,7 @@ namespace Treasured.UnitySdk
                     }
                 }
                 GUILayout.Space(10f);
-                using(new EditorGUI.DisabledGroupScope(String.IsNullOrEmpty(_map.exportSettings.OutputDirectory) || Regex.Match(_map.exportSettings.OutputDirectory, @"[a-zA-Z0-9\-]").Success))
+                using(new EditorGUI.DisabledGroupScope(String.IsNullOrEmpty(_map.exportSettings.OutputDirectory) || !Regex.Match(_map.exportSettings.OutputDirectory, @"[a-zA-Z0-9\-]").Success))
                 {
                     if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Export", $"Export scene to {TreasuredSDKPreferences.Instance.customExportFolder}/{_map.exportSettings.folderName}", "SceneLoadIn"), Styles.exportButton, GUILayout.MaxWidth(150)))
                     {
@@ -390,32 +390,35 @@ namespace Treasured.UnitySdk
                     {
                         Color oldColor = GUI.backgroundColor;
                         GUI.backgroundColor = new Color(0.3f, 1.0f, 0.6f);
-                        if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Play", "Run in browser", "d_PlayButton On"), Styles.exportButton, GUILayout.MaxWidth(150)))
+                        using(new EditorGUI.DisabledGroupScope(!Directory.Exists(_map.exportSettings.OutputDirectory)))
                         {
-                            // Run `npm run dev` to start dev server
-                            try
+                            if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Play", "Run in browser", "d_PlayButton On"), Styles.exportButton, GUILayout.MaxWidth(150)))
                             {
-                                _npmProcess = new Process();
+                                // Run `npm run dev` to start dev server
+                                try
+                                {
+                                    _npmProcess = new Process();
 #if UNITY_STANDALONE_WIN
-                                _npmProcess.StartInfo.FileName = "cmd.exe";
-                                _npmProcess.StartInfo.Arguments = $"/C treasured dev {_map.exportSettings.folderName}";
-                                _npmProcess.StartInfo.CreateNoWindow = true;
+                                    _npmProcess.StartInfo.FileName = "cmd.exe";
+                                    _npmProcess.StartInfo.Arguments = $"/C treasured dev {_map.exportSettings.folderName}";
+                                    _npmProcess.StartInfo.CreateNoWindow = true;
 #elif UNITY_STANDALONE_OSX
-                                _npmProcess.StartInfo.FileName = "treasured";
-                                _npmProcess.StartInfo.Arguments = $"dev {_map.exportSettings.folderName}";
+                                    _npmProcess.StartInfo.FileName = "treasured";
+                                    _npmProcess.StartInfo.Arguments = $"dev {_map.exportSettings.folderName}";
 #endif
-                                _npmProcess.StartInfo.UseShellExecute = false;
-                                _npmProcess.StartInfo.RedirectStandardOutput = true;
-                                _npmProcess.StartInfo.WorkingDirectory = TreasuredSDKPreferences.Instance.customExportFolder;
+                                    _npmProcess.StartInfo.UseShellExecute = false;
+                                    _npmProcess.StartInfo.RedirectStandardOutput = true;
+                                    _npmProcess.StartInfo.WorkingDirectory = TreasuredSDKPreferences.Instance.customExportFolder;
 
-                                _npmProcess.Start();
+                                    _npmProcess.Start();
 
 
-                                _map.processId = _npmProcess.Id;
-                            }
-                            catch (Exception e)
-                            {
-                                UnityEngine.Debug.LogError(e.Message);
+                                    _map.processId = _npmProcess.Id;
+                                }
+                                catch (Exception e)
+                                {
+                                    UnityEngine.Debug.LogError(e.Message);
+                                }
                             }
                         }
                         GUI.backgroundColor = oldColor;
