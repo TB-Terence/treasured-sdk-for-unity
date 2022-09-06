@@ -89,6 +89,13 @@ namespace Treasured.UnitySdk
                 fixedWidth = 1
             };
 
+            public static readonly GUIStyle centeredLabel = new GUIStyle("label")
+            {
+                alignment = TextAnchor.UpperCenter,
+                wordWrap = true,
+            };
+
+
             private static GUIStyle tabButton;
             public static GUIStyle TabButton
             {
@@ -347,7 +354,7 @@ namespace Treasured.UnitySdk
             }
 
             GUILayout.Space(10);
-            GUILayout.Label("Treasured is a tool to help you create and export your Unity scenes to the web. For more information, visit treasured.dev for more info", EditorStyles.wordWrappedLabel);
+            GUILayout.Label("Treasured is a tool to help you create and export your Unity scenes to the web. For more information, visit treasured.dev for more info", Styles.centeredLabel);
             GUILayout.Space(10);
 
             // Draw Directory, Export and Play buttons
