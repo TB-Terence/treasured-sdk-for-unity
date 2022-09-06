@@ -108,7 +108,7 @@ namespace Treasured.UnitySdk
                     {
                         throw new System.NotSupportedException("Current graphic device/platform does not support RenderToCubemap.");
                     }
-                    var path = Directory.CreateDirectory(Path.Combine(Map.exportSettings.OutputDirectory, "images", exportAllQualities ? imageQuality.ToString().ToLower() : "", current.Id).Replace('/', '\\'));
+                    var path = Directory.CreateDirectory(Path.Combine(Map.exportSettings.OutputDirectory, "images", exportAllQualities ? imageQuality.ToString().ToLower() : "", current.Id).ToOSSpecificPath());
                     switch (cubemapFormat)
                     {
                         case CubemapFormat._3x2:

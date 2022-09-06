@@ -6,9 +6,9 @@ namespace Treasured.UnitySdk
 {
     public class IconExporter : Exporter
     {
-        public override DirectoryInfo CreateExprtDirectoryInfo()
+        public override DirectoryInfo CreateExportDirectoryInfo()
         {
-            return Directory.CreateDirectory(Path.Combine(base.CreateExprtDirectoryInfo().FullName, "icons"));
+            return Directory.CreateDirectory(Path.Combine(base.CreateExportDirectoryInfo().FullName, "icons"));
         }
 
         [UnityEngine.ContextMenu("Reset")]
@@ -20,7 +20,7 @@ namespace Treasured.UnitySdk
         public override void Export()
         {
             HashSet<string> iconNames = new HashSet<string>();
-            string iconDirectory = CreateExprtDirectoryInfo().FullName;
+            string iconDirectory = CreateExportDirectoryInfo().FullName;
             foreach (var obj in Map.GetComponentsInChildren<TreasuredObject>())
             {
                 if (obj.button == null || obj.button.asset == null || string.IsNullOrWhiteSpace(obj.button.asset.svg))
@@ -32,7 +32,7 @@ namespace Treasured.UnitySdk
                 {
                     continue;
                 }
-                File.WriteAllText(Path.Combine(iconDirectory, $"{obj.button.asset.name}.svg"), obj.button.asset.svg);
+                File.WriteAllText(Path.Combine(iconDirectory, $"{obj.button.asset.name}.svg").ToOSSpecificPath(), obj.button.asset.svg);
                 iconNames.Add(obj.button.asset.name);
             }
         }

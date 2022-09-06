@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEditor;
+using System.Linq;
 
 namespace Treasured.UnitySdk
 {
@@ -11,6 +12,25 @@ namespace Treasured.UnitySdk
             EditorGUI.BeginProperty(position, label, property);
             SerializedProperty targetProperty = property.FindPropertyRelative(nameof(GoToAction.target));
             SerializedProperty messageProperty = property.FindPropertyRelative(nameof(GoToAction.message));
+            if(GUI.Button(new Rect(position.xMax - 20, position.y, 20, EditorGUIUtility.singleLineHeight), EditorGUIUtility.TrIconContent("d_SceneViewCamera", "Preview"), EditorStyles.label))
+            {
+                if(targetProperty.objectReferenceValue is Hotspot hotspot)
+                {
+                    hotspot.Camera?.Preview();
+                }
+            }
+            EditorGUILayoutUtils.CreateComponentDropZone<Hotspot>(position, (hotspots) =>
+            {
+                if (hotspots.Count > 0)
+                {
+                    var hotspot = hotspots[0];
+                    if (!hotspot.IsNullOrNone())
+                    {
+                        targetProperty.objectReferenceValue = hotspot;
+                        targetProperty.serializedObject.ApplyModifiedProperties();
+                    }
+                }
+            });
             property.isExpanded = EditorGUI.Foldout(new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight), property.isExpanded, new GUIContent(label.text + (targetProperty.objectReferenceValue.IsNullOrNone() ? " (Not selected)" : $" ({targetProperty.objectReferenceValue.name})")), true);
             if (property.isExpanded)
             {

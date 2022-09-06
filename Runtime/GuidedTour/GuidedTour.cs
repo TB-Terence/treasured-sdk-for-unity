@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
@@ -14,6 +15,7 @@ namespace Treasured.UnitySdk
         [TextArea(3, 5)]
         public string description;
         public string thumbnailUrl;
+        [JsonProperty("code")]
         public ScriptableActionCollection actionScripts;
     }
 }

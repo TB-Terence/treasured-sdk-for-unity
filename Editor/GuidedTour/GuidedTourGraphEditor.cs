@@ -84,6 +84,14 @@ namespace Treasured.UnitySdk
             rl.onAddCallback = (ReorderableList list) =>
             {
                 list.serializedProperty.TryAppendScriptableObject(out SerializedProperty elementProperty, out ScriptableObject tour);
+                if (list.count == 1)
+                {
+                    tour.name = "default";
+                    if (tour is GuidedTour guidedTour)
+                    {
+                        guidedTour.title = "default";
+                    }
+                }
             };
             rl.onRemoveCallback = (ReorderableList list) =>
             {

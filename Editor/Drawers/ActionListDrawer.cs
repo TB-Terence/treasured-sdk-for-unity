@@ -39,7 +39,7 @@ namespace Treasured.UnitySdk
                 },
                 elementHeightCallback = (int index) =>
                 {
-                    return EditorGUI.GetPropertyHeight(elements.GetArrayElementAtIndex(index));
+                    return EditorGUI.GetPropertyHeight(elements.GetArrayElementAtIndex(index), true);
                 },
                 onAddDropdownCallback = (Rect buttonRect, ReorderableList list) =>
                 {
@@ -57,7 +57,7 @@ namespace Treasured.UnitySdk
                         menu.AddItem(new GUIContent(attribute != null ? $"{attribute.Path}/{name}" : name), false, () =>
                         {
                             SerializedProperty element = elements.AppendManagedObject(type);
-                            element.isExpanded = false;
+                            element.isExpanded = true;
                             element.serializedObject.ApplyModifiedProperties();
                         });
                     }

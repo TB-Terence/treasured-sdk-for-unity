@@ -328,7 +328,7 @@ namespace Treasured.UnitySdk
                 {
                     if (GUILayout.Button(EditorGUIUtility.TrIconContent("FolderOpened On Icon", "Open the current output folder in the File Explorer. This function is enabled when the directory exist."), Styles.exportButton, GUILayout.MaxWidth(24)))
                     {
-                        Application.OpenURL(_map.exportSettings.OutputDirectory);
+                        EditorUtility.RevealInFinder(_map.exportSettings.OutputDirectory);
                     }
                 }
                 if (GUILayout.Button(EditorGUIUtility.TrIconContent("icon dropdown"), Styles.exportButton, GUILayout.MaxWidth(24)))
@@ -338,7 +338,7 @@ namespace Treasured.UnitySdk
                     {
                         if (Directory.Exists(TreasuredSDKPreferences.Instance.customExportFolder))
                         {
-                            Application.OpenURL(TreasuredSDKPreferences.Instance.customExportFolder);
+                            EditorUtility.RevealInFinder(TreasuredSDKPreferences.Instance.customExportFolder);
                         }
                         else
                         {
