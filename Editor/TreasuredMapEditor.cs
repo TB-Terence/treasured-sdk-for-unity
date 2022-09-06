@@ -431,7 +431,7 @@ namespace Treasured.UnitySdk
                     {
                         Color oldColor = GUI.backgroundColor;
                         GUI.backgroundColor = new Color(1.0f, 0.1f, 0.2f);
-                        if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Stop", "Stop running server", "d_PauseButton On"), Styles.exportButton, GUILayout.MaxWidth(150)))
+                        if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Stop", "Stop running server", "d_PreMatQuad"), Styles.exportButton, GUILayout.MaxWidth(150)))
                         {
                             try
                             {
