@@ -130,6 +130,8 @@ namespace Treasured.UnitySdk
         private string _outputFolderName;
         #endregion
 
+        public int processId;
+
         [Code]
         public string headHTML;
 

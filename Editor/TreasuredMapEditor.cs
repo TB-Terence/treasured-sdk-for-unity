@@ -4,6 +4,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Treasured.UnitySdk.Utilities;
 using Treasured.UnitySdk.Validation;
 using UnityEditor;
@@ -210,6 +211,8 @@ namespace Treasured.UnitySdk
 
         private Editor graphEditor;
 
+        private Process _npmProcess;
+
         public void OnEnable()
         {
             _selectedTabIndex = SessionState.GetInt(SelectedTabIndexKey, _selectedTabIndex);
@@ -347,7 +350,7 @@ namespace Treasured.UnitySdk
             GUILayout.Label("Treasured is a tool to help you create and export your Unity scenes to the web. For more information, visit treasured.dev for more info", EditorStyles.wordWrappedLabel);
             GUILayout.Space(10);
 
-            // Draw Directory, VS Code, and Export buttons
+            // Draw Directory, Export and Play buttons
             using (new EditorGUILayout.HorizontalScope())
             {
                 GUILayout.FlexibleSpace();
@@ -359,79 +362,97 @@ namespace Treasured.UnitySdk
                     }
                 }
                 GUILayout.Space(10f);
-                if (GUILayout.Button(EditorGUIUtility.TrTextContent("Install CLI", "Installs the Treasured CLI from npm"), Styles.exportButton, GUILayout.MaxWidth(150)))
+                using(new EditorGUI.DisabledGroupScope(String.IsNullOrEmpty(_map.exportSettings.OutputDirectory) || Regex.Match(_map.exportSettings.OutputDirectory, @"[a-zA-Z0-9\-]").Success))
                 {
-                    EditorUtility.DisplayProgressBar("Installing Treasured CLI", "Installing the Treasured CLI from npm", 0.5f);
-                    
-                    try
+                    if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Export", $"Export scene to {TreasuredSDKPreferences.Instance.customExportFolder}/{_map.exportSettings.folderName}", "SceneLoadIn"), Styles.exportButton, GUILayout.MaxWidth(150)))
                     {
-                        using (Process process = new Process()) {
-                            process.StartInfo.FileName = "npm";
-                            process.StartInfo.Arguments = "install -g @treasured/cli";
-                            process.StartInfo.UseShellExecute = false;
-                            process.StartInfo.RedirectStandardOutput = true;
-                            
-                            process.Start();
-                    
-                            process.WaitForExit();
-                            string output = process.StandardOutput.ReadToEnd();
-                            UnityEngine.Debug.Log(output);
+                        try
+                        {
+                            Exporter.Export(_map);
                         }
-                    }
-                    catch (Exception e)
-                    {
-                        UnityEngine.Debug.LogError(e.Message);
-                    }
-
-                    EditorUtility.DisplayProgressBar("Installing Treasured CLI", "Installing the Treasured CLI from npm", 1f);
-                    EditorUtility.ClearProgressBar();
-
-                    // Get version of Treasured CLI
-                    string version = "";
-                    try
-                    {
-                        using (Process process = new Process()) {
-                            process.StartInfo.FileName = "treasured";
-                            process.StartInfo.Arguments = "--version";
-                            process.StartInfo.UseShellExecute = false;
-                            process.StartInfo.RedirectStandardOutput = true;
-                            
-                            process.Start();
-                            
-                            process.WaitForExit();
-                            version = process.StandardOutput.ReadToEnd();
+                        catch (ValidationException e)
+                        {
+                            MapExporterWindow.Show(_map, e);
                         }
-                    }
-                    catch (Exception e)
-                    {
-                        UnityEngine.Debug.LogError(e.Message);
-                    }
-
-                    // Show message
-                    if (!string.IsNullOrEmpty(version))
-                    {
-                        EditorUtility.DisplayDialog("Treasured CLI installed", "Treasured CLI version " + version + " installed successfully", "OK");
-                    }
-                    else
-                    {
-                        EditorUtility.DisplayDialog("Treasured CLI installation failed", "Treasured CLI installation failed. Please try again.", "OK");
                     }
                 }
                 GUILayout.Space(10f);
-                Color oldColor = GUI.backgroundColor;
-                GUI.backgroundColor = new Color(0.3f, 1.0f, 0.6f);
-                if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Export", $"Export scene to {TreasuredSDKPreferences.Instance.customExportFolder}/{_map.exportSettings.folderName}", "SceneLoadIn"), Styles.exportButton, GUILayout.MaxWidth(150)))
+                using (var playButtonGroup = new EditorGUILayout.FadeGroupScope(Convert.ToSingle(_npmProcess == null)))
                 {
-                    try
+                    if (playButtonGroup.visible) 
                     {
-                        Exporter.Export(_map);
-                    }
-                    catch (ValidationException e)
-                    {
-                        MapExporterWindow.Show(_map, e);
+                        Color oldColor = GUI.backgroundColor;
+                        GUI.backgroundColor = new Color(0.3f, 1.0f, 0.6f);
+                        if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Play", "Run in browser", "d_PlayButton On"), Styles.exportButton, GUILayout.MaxWidth(150)))
+                        {
+                            // Run `npm run dev` to start dev server
+                            try
+                            {
+                                _npmProcess = new Process();
+#if UNITY_STANDALONE_WIN
+                                _npmProcess.StartInfo.FileName = "cmd.exe";
+                                _npmProcess.StartInfo.Arguments = $"/C treasured dev {_map.exportSettings.folderName}";
+                                _npmProcess.StartInfo.CreateNoWindow = true;
+#elif UNITY_STANDALONE_OSX
+                                _npmProcess.StartInfo.FileName = "treasured";
+                                _npmProcess.StartInfo.Arguments = $"dev {_map.exportSettings.folderName}";
+#endif
+                                _npmProcess.StartInfo.UseShellExecute = false;
+                                _npmProcess.StartInfo.RedirectStandardOutput = true;
+                                _npmProcess.StartInfo.WorkingDirectory = TreasuredSDKPreferences.Instance.customExportFolder;
+
+                                _npmProcess.Start();
+
+
+                                _map.processId = _npmProcess.Id;
+                            }
+                            catch (Exception e)
+                            {
+                                UnityEngine.Debug.LogError(e.Message);
+                            }
+                        }
+                        GUI.backgroundColor = oldColor;
                     }
                 }
-                GUI.backgroundColor = oldColor;
+
+                using (var playButtonGroup = new EditorGUILayout.FadeGroupScope(Convert.ToSingle(_npmProcess != null)))
+                {
+                    if (playButtonGroup.visible) 
+                    {
+                        Color oldColor = GUI.backgroundColor;
+                        GUI.backgroundColor = new Color(1.0f, 0.1f, 0.2f);
+                        if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Stop", "Stop running server", "d_PauseButton On"), Styles.exportButton, GUILayout.MaxWidth(150)))
+                        {
+                            try
+                            {
+                                // Kill the process
+                                string pid = _npmProcess.Id.ToString();
+
+                                UnityEngine.Debug.Log($"Killing process {pid}");
+                                ProcessStartInfo startInfo = new ProcessStartInfo();
+#if UNITY_STANDALONE_WIN
+                                startInfo.FileName = "cmd.exe";
+                                startInfo.Arguments = $"/C taskkill /pid {pid} /f";
+                                startInfo.CreateNoWindow = true;
+#elif UNITY_STANDALONE_OSX
+                                startInfo.FileName = "pkill";
+                                startInfo.Arguments = $"-P {pid}";
+#endif
+                                startInfo.UseShellExecute = false;
+                                startInfo.RedirectStandardOutput = true;
+                                startInfo.RedirectStandardError = true;
+                                Process process = Process.Start(startInfo);
+                                process.WaitForExit();
+                                _npmProcess = null;
+                            }
+                            catch (Exception e)
+                            {
+                                UnityEngine.Debug.LogError(e.Message);
+                            }
+                        }
+                        GUI.backgroundColor = oldColor;
+                    }
+                }
                 GUILayout.FlexibleSpace();
             }
 
