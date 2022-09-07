@@ -408,7 +408,7 @@ namespace Treasured.UnitySdk
 #endif
                                     _npmProcess.StartInfo.UseShellExecute = false;
                                     _npmProcess.StartInfo.RedirectStandardOutput = true;
-                                    _npmProcess.StartInfo.WorkingDirectory = TreasuredSDKPreferences.Instance.customExportFolder;
+                                    _npmProcess.StartInfo.WorkingDirectory = Path.Combine(TreasuredSDKPreferences.Instance.customExportFolder, ".treasured");
 
                                     _npmProcess.Start();
 
