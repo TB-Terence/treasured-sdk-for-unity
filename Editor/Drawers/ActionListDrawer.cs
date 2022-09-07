@@ -11,6 +11,8 @@ namespace Treasured.UnitySdk
         internal ReorderableList reorderableList;
         public string Header { get; set; }
 
+        private bool enabled = false;
+
         public ActionListDrawer(SerializedObject serializedObject, SerializedProperty elements, string header)
         {
             Header = header;
@@ -18,7 +20,24 @@ namespace Treasured.UnitySdk
             {
                 drawHeaderCallback = (Rect rect) =>
                 {
-                    EditorGUI.LabelField(rect, Header);
+                    if (typeof(ScriptableAction).IsAssignableFrom(typeof(T))) // TODO: Remove this after migrate to GuidedTourV2
+                    {
+                        EditorGUI.BeginChangeCheck();
+                        enabled = EditorGUI.ToggleLeft(rect, new GUIContent(Header, $"{(enabled ? "Disable" : "Enable")} all"), enabled);
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            for (int i = 0; i < elements.arraySize; i++)
+                            {
+                                SerializedProperty element = elements.GetArrayElementAtIndex(i);
+                                SerializedProperty enabledProperty = element.FindPropertyRelative("enabled");
+                                enabledProperty.boolValue = enabled;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        EditorGUI.LabelField(rect, Header);
+                    }
                 },
                 drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
                 {
@@ -34,7 +53,17 @@ namespace Treasured.UnitySdk
                         {
                             name = char.ToLower(name[0]) + name.Substring(1);
                         }
-                        EditorGUI.PropertyField(rect, element, new GUIContent(ObjectNames.NicifyVariableName(name)), true);
+                        if (typeof(ScriptableAction).IsAssignableFrom(typeof(T))) // TODO: Remove this after migrate to GuidedTourV2
+                        {
+                            Rect buttonRect = new Rect(rect.x, rect.y, 25, EditorGUIUtility.singleLineHeight);
+                            SerializedProperty enabled = element.FindPropertyRelative("enabled");
+                            enabled.boolValue = EditorGUI.ToggleLeft(buttonRect, new GUIContent(ObjectNames.NicifyVariableName(name)), enabled.boolValue);
+                            EditorGUI.PropertyField(new Rect(rect.x + 25, rect.y, rect.width - 25, rect.height), element, new GUIContent(ObjectNames.NicifyVariableName(name)), true);
+                        }
+                        else
+                        {
+                            EditorGUI.PropertyField(rect, element, new GUIContent(ObjectNames.NicifyVariableName(name)), true);
+                        }
                     }
                 },
                 elementHeightCallback = (int index) =>
