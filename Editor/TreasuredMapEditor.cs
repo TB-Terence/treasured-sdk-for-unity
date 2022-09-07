@@ -394,7 +394,7 @@ namespace Treasured.UnitySdk
                         {
                             if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Play", "Run in browser", "d_PlayButton On"), Styles.exportButton, GUILayout.MaxWidth(150)))
                             {
-                                // Run `npm run dev` to start dev server
+                                // Run `treasured dev` to start dev server
                                 try
                                 {
                                     _npmProcess = new Process();
@@ -408,7 +408,7 @@ namespace Treasured.UnitySdk
 #endif
                                     _npmProcess.StartInfo.UseShellExecute = false;
                                     _npmProcess.StartInfo.RedirectStandardOutput = true;
-                                    _npmProcess.StartInfo.WorkingDirectory = Path.Combine(TreasuredSDKPreferences.Instance.customExportFolder, ".treasured");
+                                    _npmProcess.StartInfo.WorkingDirectory = TreasuredSDKPreferences.Instance.customExportFolder;
 
                                     _npmProcess.Start();
 
