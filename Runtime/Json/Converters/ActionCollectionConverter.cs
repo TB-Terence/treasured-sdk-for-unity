@@ -28,6 +28,10 @@ namespace Treasured.UnitySdk
                 StringBuilder sb = new StringBuilder();
                 foreach (var action in collection)
                 {
+                    if (!action.enabled)
+                    {
+                        continue;
+                    }
                     Type type = action.GetType();
                     APIAttribute attribute = type.GetCustomAttributes<APIAttribute>().FirstOrDefault();
                     if (attribute == null)
