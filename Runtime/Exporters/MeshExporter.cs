@@ -361,9 +361,9 @@ namespace Treasured.UnitySdk
             var exportOptions = new ExportOptions { TexturePathRetriever = RetrieveTexturePath };
             var exporter = new GLTFSceneExporter(export, exportOptions);
 
-            if (!string.IsNullOrEmpty(Path.Combine(Map.projectFolder, ".treasured", Map.projectFolder)))
+            if (!string.IsNullOrEmpty(Path.Combine(Map.exportSettings.folderName, ".treasured", Map.exportSettings.folderName)))
             {
-                exporter.SaveGLB(Path.Combine(Map.projectFolder, ".treasured", Map.projectFolder).ToOSSpecificPath(), "scene");
+                exporter.SaveGLB(Path.Combine(Map.exportSettings.folderName, ".treasured", Map.exportSettings.folderName).ToOSSpecificPath(), "scene");
             }
         }
 

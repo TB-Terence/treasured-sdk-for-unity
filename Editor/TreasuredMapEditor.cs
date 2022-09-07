@@ -98,21 +98,9 @@ namespace Treasured.UnitySdk
                 fontStyle = FontStyle.Bold,
             };
 
-            public static readonly GUIStyle exportButton = new GUIStyle("button")
-            {
-                padding = new RectOffset(8, 8, 8, 8),
-                fontStyle = FontStyle.Bold,
-            };
-
             public static readonly GUIStyle noLabel = new GUIStyle("label")
             {
                 fixedWidth = 1
-            };
-
-            public static readonly GUIStyle centeredLabel = new GUIStyle("label")
-            {
-                alignment = TextAnchor.UpperCenter,
-                wordWrap = true,
             };
 
 
@@ -386,10 +374,6 @@ namespace Treasured.UnitySdk
                     if (GUILayout.Button(EditorGUIUtility.TrTextContent("Directory ↗", "Open the current output folder in the File Explorer. This function is enabled when the directory exist."), Styles.exportButton, GUILayout.MaxWidth(150)))
                     {
                         EditorUtility.RevealInFinder(_map.exportSettings.OutputDirectory);
-                    }
-                    finally
-                    {
-                        EditorUtility.ClearProgressBar();
                     }
                 }
                 GUILayout.Space(10f);
