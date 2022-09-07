@@ -4,6 +4,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Treasured.UnitySdk.Utilities;
 using Treasured.UnitySdk.Validation;
 using UnityEditor;
@@ -97,10 +98,23 @@ namespace Treasured.UnitySdk
                 fontStyle = FontStyle.Bold,
             };
 
+            public static readonly GUIStyle exportButton = new GUIStyle("button")
+            {
+                padding = new RectOffset(8, 8, 8, 8),
+                fontStyle = FontStyle.Bold,
+            };
+
             public static readonly GUIStyle noLabel = new GUIStyle("label")
             {
                 fixedWidth = 1
             };
+
+            public static readonly GUIStyle centeredLabel = new GUIStyle("label")
+            {
+                alignment = TextAnchor.UpperCenter,
+                wordWrap = true,
+            };
+
 
             private static GUIStyle tabButton;
             public static GUIStyle TabButton
@@ -344,7 +358,7 @@ namespace Treasured.UnitySdk
             serializedObject.Update();
 
             Texture2D TreasuredLogo = Resources.Load<Texture2D>("Treasured_Logo");
-            GUILayout.Space(12);
+            GUILayout.Space(10);
             using (new EditorGUILayout.HorizontalScope())
             {
                 GUILayout.FlexibleSpace();
@@ -359,207 +373,143 @@ namespace Treasured.UnitySdk
                 GUILayout.FlexibleSpace();
             }
 
-            GUILayout.Space(8);
-            
-            GUILayout.Label("Treasured is a tool to help you create and export your Unity scenes to the web. Visit treasured.dev for more info.", Styles.centeredLabel, GUILayout.ExpandWidth(true));
-            
-            GUILayout.Space(16);
+            GUILayout.Space(10);
+            GUILayout.Label("Treasured is a tool to help you create and export your Unity scenes to the web. For more information, visit treasured.dev for more info", Styles.centeredLabel);
+            GUILayout.Space(10);
 
-            _map.projectFolder = EditorGUILayout.TextField(new GUIContent("Project folder"), _map.projectFolder);
-            var projectPath = $"{System.IO.Directory.GetCurrentDirectory()}/{_map.projectFolder}";
-            var isValidProjectFolder = !String.IsNullOrWhiteSpace(_map.projectFolder);
-            var isProjectSetup = isValidProjectFolder && Directory.Exists(projectPath);
-
-            using (var group = new EditorGUILayout.FadeGroupScope(Convert.ToSingle(!isProjectSetup)))
+            // Draw Directory, Export and Play buttons
+            using (new EditorGUILayout.HorizontalScope())
             {
-                if (group.visible) 
+                GUILayout.FlexibleSpace();
+                using(new EditorGUI.DisabledGroupScope(!Directory.Exists(_map.exportSettings.OutputDirectory)))
                 {
-                    GUILayout.Space(4);
-
-                    GUILayout.Box(projectPath, Styles.dataDisplayBox, GUILayout.ExpandWidth(true));
-
-                    GUILayout.Space(4);
-
-                    using(new EditorGUI.DisabledGroupScope(!isValidProjectFolder))
+                    if (GUILayout.Button(EditorGUIUtility.TrTextContent("Directory ↗", "Open the current output folder in the File Explorer. This function is enabled when the directory exist."), Styles.exportButton, GUILayout.MaxWidth(150)))
                     {
-                        if (GUILayout.Button(EditorGUIUtility.TrTextContent("Generate project", $"Clicking this button will generate a new project in {projectPath}"), Styles.exportButton, GUILayout.ExpandWidth(true))) {
-                            EditorUtility.DisplayProgressBar("Generating project", $"Generating project in {projectPath}", 0.33f);
-
-                            // Run `treasured init` to create project folder
-                            try
-                            {
-                                using (Process process = new Process()) {
-                                    process.StartInfo.FileName = "treasured";
-                                    process.StartInfo.Arguments = $"init {_map.projectFolder}";
-                                    process.StartInfo.UseShellExecute = false;
-                                    process.StartInfo.RedirectStandardOutput = true;
-                                    
-                                    process.Start();
-                                    
-                                    process.WaitForExit();
-                                }
-
-                                EditorUtility.DisplayProgressBar("Generating project", $"Generating project in {projectPath}", 0.66f);
-                            }
-                            catch (Exception e)
-                            {
-                                UnityEngine.Debug.LogError(e.Message);
-                            }
-
-                            // Run `npm install` to install dependencies in project folder
-                            try
-                            {
-                                using (Process process = new Process()) {
-                                    process.StartInfo.FileName = "npm";
-                                    process.StartInfo.Arguments = "install";
-                                    process.StartInfo.UseShellExecute = false;
-                                    process.StartInfo.RedirectStandardOutput = true;
-                                    process.StartInfo.WorkingDirectory = projectPath;
-                                    
-                                    process.Start();
-                                    
-                                    process.WaitForExit();
-                                }
-
-                                EditorUtility.DisplayProgressBar("Generating project", $"Generating project in {projectPath}", 1f);
-                            }
-                            catch (Exception e)
-                            {
-                                UnityEngine.Debug.LogError(e.Message);
-                            }
-
-                            EditorUtility.ClearProgressBar();
-                            
+                        EditorUtility.RevealInFinder(_map.exportSettings.OutputDirectory);
+                    }
+                    finally
+                    {
+                        EditorUtility.ClearProgressBar();
+                    }
+                }
+                GUILayout.Space(10f);
+                using(new EditorGUI.DisabledGroupScope(String.IsNullOrEmpty(_map.exportSettings.OutputDirectory) || !Regex.Match(_map.exportSettings.OutputDirectory, @"[a-zA-Z0-9\-]").Success))
+                {
+                    if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Export", $"Export scene to {TreasuredSDKPreferences.Instance.customExportFolder}/{_map.exportSettings.folderName}", "SceneLoadIn"), Styles.exportButton, GUILayout.MaxWidth(150)))
+                    {
+                        try
+                        {
+                            Exporter.Export(_map);
+                        }
+                        catch (ValidationException e)
+                        {
+                            MapExporterWindow.Show(_map, e);
                         }
                     }
                 }
-            }
-
-            using (var group = new EditorGUILayout.FadeGroupScope(Convert.ToSingle(isProjectSetup)))
-            {
-                if (group.visible) 
+                GUILayout.Space(10f);
+                using (var playButtonGroup = new EditorGUILayout.FadeGroupScope(Convert.ToSingle(_npmProcess == null)))
                 {
-                    GUILayout.Space(8);
-
-                    // Draw Directory, VS Code, and Export buttons
-                    using (new EditorGUILayout.HorizontalScope())
+                    if (playButtonGroup.visible) 
                     {
-                        GUILayout.FlexibleSpace();
-                        using(new EditorGUI.DisabledGroupScope(!Directory.Exists(projectPath)))
+                        Color oldColor = GUI.backgroundColor;
+                        GUI.backgroundColor = new Color(0.3f, 1.0f, 0.6f);
+                        using(new EditorGUI.DisabledGroupScope(!Directory.Exists(_map.exportSettings.OutputDirectory)))
                         {
-                            if (GUILayout.Button(EditorGUIUtility.TrTextContent("Directory ↗", "Open the current output folder in the File Explorer. This function is enabled when the directory exist."), Styles.exportButton, GUILayout.MaxWidth(150)))
+                            if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Play", "Run in browser", "d_PlayButton On"), Styles.exportButton, GUILayout.MaxWidth(150)))
                             {
-                                EditorUtility.RevealInFinder(projectPath);
-                            }
-                        }
-                        GUILayout.Space(10f);
-                        
-                        if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Export", $"Export scene to {System.IO.Directory.GetCurrentDirectory()}/{_map.projectFolder}", "SceneLoadIn"), Styles.exportButton, GUILayout.MaxWidth(150)))
-                        {
-                            try
-                            {
-                                Exporter.Export(_map);
-                            }
-                            catch (ValidationException e)
-                            {
-                                MapExporterWindow.Show(_map, e);
-                            }
-                        }
-                        
-                        GUILayout.Space(10f);
-                        
-                        using (var playButtonGroup = new EditorGUILayout.FadeGroupScope(Convert.ToSingle(_npmProcess == null)))
-                        {
-                            if (playButtonGroup.visible) 
-                            {
-                                Color oldColor = GUI.backgroundColor;
-                                GUI.backgroundColor = new Color(0.3f, 1.0f, 0.6f);
-                                if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Play", "Run in browser", "d_PlayButton On"), Styles.exportButton, GUILayout.MaxWidth(150)))
+                                // Run `npm run dev` to start dev server
+                                try
                                 {
-                                    // Run `npm run dev` to start dev server
-                                    try
-                                    {
-                                        _npmProcess = new Process();
-                                        _npmProcess.StartInfo.FileName = "npm";
-                                        _npmProcess.StartInfo.Arguments = "run dev";
-                                        _npmProcess.StartInfo.UseShellExecute = false;
-                                        _npmProcess.StartInfo.RedirectStandardOutput = true;
-                                        _npmProcess.StartInfo.WorkingDirectory = projectPath;
-                                        
-                                        _npmProcess.Start();
-                                    }
-                                    catch (Exception e)
-                                    {
-                                        UnityEngine.Debug.LogError(e.Message);
-                                    }
-                                }
-                                GUI.backgroundColor = oldColor;
-                            }
-                        }
-
-                        using (var playButtonGroup = new EditorGUILayout.FadeGroupScope(Convert.ToSingle(_npmProcess != null)))
-                        {
-                            if (playButtonGroup.visible) 
-                            {
-                                Color oldColor = GUI.backgroundColor;
-                                GUI.backgroundColor = new Color(1.0f, 0.1f, 0.2f);
-                                if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Stop", "Stop running server", "d_PauseButton On"), Styles.exportButton, GUILayout.MaxWidth(150)))
-                                {
-                                    try
-                                    {
-                                        // Kill the process
-                                        string pid = _npmProcess.Id.ToString();
-
-                                        UnityEngine.Debug.Log($"Killing process {pid}");
-                                        ProcessStartInfo startInfo = new ProcessStartInfo();
+                                    _npmProcess = new Process();
 #if UNITY_STANDALONE_WIN
-                                        startInfo.FileName = "taskkill";
-                                        startInfo.Arguments = $"/pid {pid} /f";
+                                    _npmProcess.StartInfo.FileName = "cmd.exe";
+                                    _npmProcess.StartInfo.Arguments = $"/C treasured dev {_map.exportSettings.folderName}";
+                                    _npmProcess.StartInfo.CreateNoWindow = true;
 #elif UNITY_STANDALONE_OSX
-                                        startInfo.FileName = "pkill";
-                                        startInfo.Arguments = $"-P {pid}";
+                                    _npmProcess.StartInfo.FileName = "treasured";
+                                    _npmProcess.StartInfo.Arguments = $"dev {_map.exportSettings.folderName}";
 #endif
-                                        startInfo.UseShellExecute = false;
-                                        startInfo.RedirectStandardOutput = true;
-                                        startInfo.RedirectStandardError = true;
-                                        startInfo.CreateNoWindow = true;
-                                        Process process = Process.Start(startInfo);
-                                        process.WaitForExit();
-                                        _npmProcess = null;
-                                    }
-                                    catch (Exception e)
-                                    {
-                                        UnityEngine.Debug.LogError(e.Message);
-                                    }
+                                    _npmProcess.StartInfo.UseShellExecute = false;
+                                    _npmProcess.StartInfo.RedirectStandardOutput = true;
+                                    _npmProcess.StartInfo.WorkingDirectory = TreasuredSDKPreferences.Instance.customExportFolder;
+
+                                    _npmProcess.Start();
+
+
+                                    _map.processId = _npmProcess.Id;
                                 }
-                                GUI.backgroundColor = oldColor;
+                                catch (Exception e)
+                                {
+                                    UnityEngine.Debug.LogError(e.Message);
+                                }
                             }
                         }
-                        GUILayout.FlexibleSpace();
+                        GUI.backgroundColor = oldColor;
                     }
+                }
 
-                    GUILayout.Space(20);
+                using (var playButtonGroup = new EditorGUILayout.FadeGroupScope(Convert.ToSingle(_npmProcess != null)))
+                {
+                    if (playButtonGroup.visible) 
+                    {
+                        Color oldColor = GUI.backgroundColor;
+                        GUI.backgroundColor = new Color(1.0f, 0.1f, 0.2f);
+                        if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Stop", "Stop running server", "d_PreMatQuad"), Styles.exportButton, GUILayout.MaxWidth(150)))
+                        {
+                            try
+                            {
+                                // Kill the process
+                                string pid = _npmProcess.Id.ToString();
 
-                    using(var scope = new EditorGUI.ChangeCheckScope())
-                    {
-                        _selectedTabIndex = GUILayout.SelectionGrid(_selectedTabIndex, _tabGroupStates.Select(x => x.attribute.groupName).ToArray(), _tabGroupStates.Length, Styles.TabButton);
-                        if (scope.changed)
-                        {
-                            SessionState.SetInt(SelectedTabIndexKey, _selectedTabIndex);
+                                UnityEngine.Debug.Log($"Killing process {pid}");
+                                ProcessStartInfo startInfo = new ProcessStartInfo();
+#if UNITY_STANDALONE_WIN
+                                startInfo.FileName = "cmd.exe";
+                                startInfo.Arguments = $"/C taskkill /pid {pid} /f";
+                                startInfo.CreateNoWindow = true;
+#elif UNITY_STANDALONE_OSX
+                                startInfo.FileName = "pkill";
+                                startInfo.Arguments = $"-P {pid}";
+#endif
+                                startInfo.UseShellExecute = false;
+                                startInfo.RedirectStandardOutput = true;
+                                startInfo.RedirectStandardError = true;
+                                Process process = Process.Start(startInfo);
+                                process.WaitForExit();
+                                _npmProcess = null;
+                            }
+                            catch (Exception e)
+                            {
+                                UnityEngine.Debug.LogError(e.Message);
+                            }
                         }
+                        GUI.backgroundColor = oldColor;
                     }
-                    for (int i = 0; i < _tabGroupStates.Length; i++)
-                    {
-                        var state = _tabGroupStates[i];
-                        if (state.tabIndex != _selectedTabIndex)
-                        {
-                            continue;
-                        }
-                        state.gui.Invoke(this, null);
-                    }
-                    serializedObject.ApplyModifiedProperties();
+                }
+                GUILayout.FlexibleSpace();
+            }
+
+            GUILayout.Space(20);
+
+            using(var scope = new EditorGUI.ChangeCheckScope())
+            {
+                _selectedTabIndex = GUILayout.SelectionGrid(_selectedTabIndex, _tabGroupStates.Select(x => x.attribute.groupName).ToArray(), _tabGroupStates.Length, Styles.TabButton);
+                if (scope.changed)
+                {
+                    SessionState.SetInt(SelectedTabIndexKey, _selectedTabIndex);
                 }
             }
+            for (int i = 0; i < _tabGroupStates.Length; i++)
+            {
+                var state = _tabGroupStates[i];
+                if (state.tabIndex != _selectedTabIndex)
+                {
+                    continue;
+                }
+                state.gui.Invoke(this, null);
+            }
+            serializedObject.ApplyModifiedProperties();
         }
 
         [TabGroup(groupName = "Page Info")]
@@ -614,19 +564,16 @@ namespace Treasured.UnitySdk
                                 }
                                 using (new EditorGUILayout.HorizontalScope())
                                 {
-                                    if (state.objects.All(x => !x.gameObject.activeSelf))
+                                    int activeCount = state.objects.Count(x => x.gameObject.activeSelf);
+                                    if (activeCount == state.objects.Count)
                                     {
-                                        state.enableAll = false;
-                                        state.toggleState = GroupToggleState.None;
-                                    }
-                                    else if (state.objects.Any(x => !x.gameObject.activeSelf))
-                                    {
-                                        state.toggleState = GroupToggleState.Mixed;
+                                        state.toggleState = TreasuredMapEditor.GroupToggleState.All;
+                                        state.enableAll = true;
                                     }
                                     else
                                     {
-                                        state.enableAll = true;
-                                        state.toggleState = GroupToggleState.All;
+                                        state.toggleState = activeCount == 0 ? GroupToggleState.None : GroupToggleState.Mixed;
+                                        state.enableAll = false;
                                     }
                                     EditorGUI.showMixedValue = state.toggleState == GroupToggleState.Mixed;
                                     GUILayout.Space(3);
@@ -718,9 +665,6 @@ namespace Treasured.UnitySdk
             }
             EditorGUI.indentLevel--;
         }
-
-        private string title;
-        private string description;
 
         [TabGroup(groupName = "Guided Tour")]
         private void OnGuidedTourGUI()

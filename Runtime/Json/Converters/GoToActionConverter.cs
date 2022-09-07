@@ -21,6 +21,10 @@ namespace Treasured.UnitySdk
         {
             if (value is GoToAction action)
             {
+                if (!action.enabled)
+                {
+                    return;
+                }
                 if (action.target.IsNullOrNone())
                 {
                     writer.WriteNull();

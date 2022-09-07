@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Treasured.UnitySdk.Validation
@@ -24,7 +25,7 @@ namespace Treasured.UnitySdk.Validation
             return results;
         }
 
-        List<ValidationResult> GetSelectObjectReferenceValidationResults()
+        IEnumerable<ValidationResult> GetSelectObjectReferenceValidationResults()
         {
             List<ValidationResult> results = new List<ValidationResult>();
             var treasuredObjects = _map.GetComponentsInChildren<TreasuredObject>();
@@ -102,7 +103,7 @@ namespace Treasured.UnitySdk.Validation
             return results;
         }
 
-        List<ValidationResult> GetHotspotPathValidationResult(){
+        IEnumerable<ValidationResult> GetHotspotPathValidationResult(){
             List<ValidationResult> results = new List<ValidationResult>();
             var hotspots = _map.Hotspots;
             if (hotspots.Length > 2)
@@ -127,11 +128,11 @@ namespace Treasured.UnitySdk.Validation
             return results;
         }
 
-        List<ValidationResult> GetGuidedTourSrcValidationResult()
+        IEnumerable<ValidationResult> GetGuidedTourSrcValidationResult()
         {
             if (!_map.features.guidedTour)
             {
-                return null;
+                return Enumerable.Empty<ValidationResult>();
             }
             List<ValidationResult> results = new List<ValidationResult>();
             var tours = _map.graph.tours;

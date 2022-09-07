@@ -21,6 +21,10 @@ namespace Treasured.UnitySdk
         {
             if (value is Actions.ShowPreviewAction newAction)
             {
+                if (!newAction.enabled)
+                {
+                    return;
+                }
                 if (newAction.target.IsNullOrNone())
                 {
                     writer.WriteNull();

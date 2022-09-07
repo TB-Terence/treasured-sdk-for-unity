@@ -130,10 +130,7 @@ namespace Treasured.UnitySdk
         private string _outputFolderName;
         #endregion
 
-        #region Project Folder
-        [SerializeField]
-        public string projectFolder;
-        #endregion
+        public int processId;
 
         [Code]
         public string headHTML;
