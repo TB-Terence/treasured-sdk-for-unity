@@ -18,7 +18,10 @@ namespace Treasured.UnitySdk
         public ActionListDrawer(SerializedObject serializedObject, SerializedProperty elements, string header)
         {
             Header = header;
-            UpdateToggleState(elements);
+            if (typeof(ScriptableAction).IsAssignableFrom(typeof(T))) // TODO: Remove this after migrate to GuidedTourV2
+            {
+                UpdateToggleState(elements);
+            }
             reorderableList = new ReorderableList(serializedObject, elements)
             {
                 drawHeaderCallback = (Rect rect) =>
