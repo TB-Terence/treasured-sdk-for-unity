@@ -132,6 +132,12 @@ namespace Treasured.UnitySdk
 
             foreach (var gameObject in rootGameObjects)
             {
+                //  If gameObject is disabled then skip adding it to export
+                if (!gameObject.activeInHierarchy)
+                {
+                    continue;
+                }
+                
                 if (meshToCombineDictionary.ContainsKey(gameObject.GetInstanceID()))
                 {
                     if (displayLogs)
@@ -151,6 +157,11 @@ namespace Treasured.UnitySdk
                     {
                         foreach (var child in gameObject.transform.GetComponentsInChildren<Transform>())
                         {
+                            if (!child.gameObject.activeInHierarchy)
+                            {
+                                continue;
+                            }
+
                             var childGameObjectTagIndex = (int)Mathf.Pow(2, Array.IndexOf(allTags, child.tag));
                             if ((excludeTags & childGameObjectTagIndex) != childGameObjectTagIndex)
                             {
@@ -169,6 +180,11 @@ namespace Treasured.UnitySdk
                     {
                         foreach (var child in gameObject.transform.GetComponentsInChildren<Transform>())
                         {
+                            if (!child.gameObject.activeInHierarchy)
+                            {
+                                continue;
+                            }
+                            
                             meshToCombineDictionary.Add(child.gameObject.GetInstanceID(), child.gameObject);
                         }
 

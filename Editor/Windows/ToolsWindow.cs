@@ -32,7 +32,7 @@ namespace Treasured.UnitySdk
         private MeshExporter _meshExporter;
         private int _totalTriangles = 0;
 
-        [MenuItem("Tools/Treasured/Tools", priority = 0)]
+        [MenuItem("Tools/Treasured/MeshAnalyzer", priority = 0)]
         public static void ShowToolsWindow()
         {
             var window = GetWindow<ToolsWindow>();
@@ -261,7 +261,7 @@ namespace Treasured.UnitySdk
             foreach (var selectedObject in gameObjects)
             {
                 //  Only calculate if the object is active in scene
-                if (selectedObject.activeSelf)
+                if (selectedObject.activeInHierarchy)
                 {
                     var childTrianglesCount = 0;
                     if (_selectionMode)
@@ -288,8 +288,12 @@ namespace Treasured.UnitySdk
                         }
                     }
 
-                    _selectedGameObjectDict.Add(selectedObject.GetInstanceID(),
-                        new GameObjectTriangle(selectedObject.name, childTrianglesCount, selectedObject));
+                    //  If Triangles count in the gameObject is more than 0 then only add it to dictionary
+                    if (childTrianglesCount > 0)
+                    {
+                        _selectedGameObjectDict.Add(selectedObject.GetInstanceID(),
+                            new GameObjectTriangle(selectedObject.name, childTrianglesCount, selectedObject));
+                    }
                 }
                 //  Object is not active in scene
                 else
