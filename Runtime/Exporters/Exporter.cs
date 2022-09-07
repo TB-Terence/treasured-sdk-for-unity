@@ -37,7 +37,7 @@ namespace Treasured.UnitySdk
 
         public virtual DirectoryInfo CreateExportDirectoryInfo()
         {
-            return Directory.CreateDirectory(Path.Combine(Map.exportSettings.folderName, ".treasured", Map.exportSettings.folderName));
+            return Directory.CreateDirectory(Path.Combine(Map.exportSettings.OutputDirectory));
         }
 
         public static void Export(TreasuredMap map)
@@ -67,7 +67,7 @@ namespace Treasured.UnitySdk
             }
             var exporters = ReflectionUtils.GetSerializedFieldValuesOfType<Exporter>(map);
             DataValidator.ValidateMap(map);
-            var exportPath = Path.Combine(map.exportSettings.folderName, ".treasured", map.exportSettings.folderName);
+            var exportPath = Path.Combine(map.exportSettings.OutputDirectory);
             if (!Directory.Exists(exportPath))
             {
                 Directory.CreateDirectory(exportPath); // try create the directory if not exist.

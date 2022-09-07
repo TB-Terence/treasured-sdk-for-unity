@@ -373,7 +373,7 @@ namespace Treasured.UnitySdk
                 {
                     if (GUILayout.Button(EditorGUIUtility.TrTextContent("Directory ↗", "Open the current output folder in the File Explorer. This function is enabled when the directory exist."), Styles.exportButton, GUILayout.MaxWidth(150)))
                     {
-                        EditorUtility.RevealInFinder(_map.exportSettings.OutputDirectory);
+                        EditorUtility.OpenWithDefaultApp(_map.exportSettings.OutputDirectory);
                     }
                 }
                 GUILayout.Space(10f);

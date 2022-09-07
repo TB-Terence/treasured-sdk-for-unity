@@ -125,33 +125,10 @@ namespace Treasured.UnitySdk
         }
         #endregion
 
-        #region Export Settings
-        [SerializeField]
-        private string _outputFolderName;
-        #endregion
-
         public int processId;
 
         [Code]
         public string headHTML;
-
-        //public Dictionary<string, string> SvgData
-        //{
-        //    get
-        //    {
-        //        Dictionary<string, string> svgData = new Dictionary<string, string>();
-        //        foreach (var obj in GetComponentsInChildren<TreasuredObject>())
-        //        {
-        //            if (obj.button == null || obj.button.icon2 == null || svgData.ContainsKey(obj.button.icon2.name) || string.IsNullOrWhiteSpace(obj.button.icon2.svg))
-        //            {
-        //                continue;
-        //            }
-        //            // TODO : Validate XML file
-        //            svgData.Add(obj.button.icon2.name, obj.button.icon2.svg);
-        //        }
-        //        return svgData;
-        //    }
-        //}
 
         [JsonIgnore]
         public ExportSettings exportSettings;
