@@ -3,14 +3,15 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    [API("keyPress")]
+    [API("button")]
+    [Obsolete]
     public class KeyPressAction : ScriptableAction
     {
-        public KeyCode keyCode;
+        public KeyCode key;
 
         public override object[] GetArguments()
         {
-            return new object[] { Enum.GetName(typeof(KeyCode), keyCode) };
+            return new object[] { key };
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Treasured.UnitySdk.Validation
@@ -20,10 +21,11 @@ namespace Treasured.UnitySdk.Validation
             results.AddRange(s_requiredFieldValidator_map.GetValidationResults());
             results.AddRange(GetSelectObjectReferenceValidationResults());
             results.AddRange(GetHotspotPathValidationResult());
+            results.AddRange(GetGuidedTourSrcValidationResult());
             return results;
         }
 
-        List<ValidationResult> GetSelectObjectReferenceValidationResults()
+        IEnumerable<ValidationResult> GetSelectObjectReferenceValidationResults()
         {
             List<ValidationResult> results = new List<ValidationResult>();
             var treasuredObjects = _map.GetComponentsInChildren<TreasuredObject>();
@@ -101,7 +103,7 @@ namespace Treasured.UnitySdk.Validation
             return results;
         }
 
-        List<ValidationResult> GetHotspotPathValidationResult(){
+        IEnumerable<ValidationResult> GetHotspotPathValidationResult(){
             List<ValidationResult> results = new List<ValidationResult>();
             var hotspots = _map.Hotspots;
             if (hotspots.Length > 2)
@@ -121,6 +123,35 @@ namespace Treasured.UnitySdk.Validation
                             type = ValidationResult.ValidationResultType.Warning
                         });
                     }
+                }
+            }
+            return results;
+        }
+
+        IEnumerable<ValidationResult> GetGuidedTourSrcValidationResult()
+        {
+            if (!_map.features.guidedTour)
+            {
+                return Enumerable.Empty<ValidationResult>();
+            }
+            List<ValidationResult> results = new List<ValidationResult>();
+            var tours = _map.graph.tours;
+            foreach (var tour in tours)
+            {
+                foreach (var action in tour.actionScripts)
+                {
+                    
+                    if ((action is AudioAction audioAction && string.IsNullOrWhiteSpace(audioAction.src)) || (action is EmbedAction embedAction && string.IsNullOrWhiteSpace(embedAction.src)))
+                    {
+                        ValidationResult validationResult = new ValidationResult()
+                        {
+                            name = "Required Field",
+                            description = $"Src is not provided for [{action.Type} action] in [{tour.title}] tour.",
+                            type = ValidationResult.ValidationResultType.Error
+                        };
+                        results.Add(validationResult);
+                    }
+                    
                 }
             }
             return results;

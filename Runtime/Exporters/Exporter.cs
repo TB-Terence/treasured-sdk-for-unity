@@ -35,7 +35,7 @@ namespace Treasured.UnitySdk
         public virtual void Export() { }
         public virtual void OnPostExport() { }
 
-        public virtual DirectoryInfo CreateExprtDirectoryInfo()
+        public virtual DirectoryInfo CreateExportDirectoryInfo()
         {
             return Directory.CreateDirectory(Path.Combine(Map.exportSettings.OutputDirectory));
         }

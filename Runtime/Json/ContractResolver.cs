@@ -60,6 +60,10 @@ namespace Treasured.UnitySdk
             {
                 contract.Converter = new HitboxConverter();
             }
+            if (objectType == typeof(Quaternion))
+            {
+                contract.Converter = new QuaternionConverter();
+            }
             if (objectType == typeof(Transform))
             {
                 contract.Converter = new TransformConverter();
@@ -79,6 +83,22 @@ namespace Treasured.UnitySdk
             if (objectType == typeof(ScriptableActionCollection))
             {
                 contract.Converter = new ActionCollectionConverter();
+            }
+            if (objectType == typeof(GoToAction))
+            {
+                contract.Converter = new GoToActionConverter();
+            }
+            if (objectType == typeof(StartTourAction))
+            {
+                contract.Converter = new StartTourActionConverter();
+            }
+            if (objectType == typeof(ShowPreviewAction) || objectType == typeof(Actions.ShowPreviewAction))
+            {
+                contract.Converter = new ShowPreviewActionConverter();
+            }
+            if (objectType == typeof(GuidedTourGraph))
+            {
+                contract.Converter = new GuidedTourGraphConverter();
             }
             return contract;
         }

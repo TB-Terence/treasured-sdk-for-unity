@@ -28,7 +28,7 @@ namespace Treasured.UnitySdk
                 writer.WritePropertyName(nameof(hitbox.transform.rotation));
                 if (ThreeJsTransformConverter.ShouldConvertToThreeJsTransform)
                 {
-                    serializer.Serialize(writer, ThreeJsTransformConverter.ToThreeJsQuaternion(hitbox.transform));
+                    serializer.Serialize(writer, hitbox.transform.rotation);
                 }
                 else
                 {

@@ -6,7 +6,7 @@ namespace Treasured.UnitySdk
     {
         public static bool IsNullOrNone(this UnityEngine.Object obj)
         {
-            return obj is null || obj.GetInstanceID() == -1;
+            return obj is null || obj.GetInstanceID() == -1 || obj.GetInstanceID() == 0;
         }
     }
     internal static class GameObjectExtensionMethods

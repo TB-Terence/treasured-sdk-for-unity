@@ -323,12 +323,16 @@ namespace Treasured.UnitySdk
                     {
                         MapExporterWindow.Show(_map, e);
                     }
+                    finally
+                    {
+                        EditorUtility.ClearProgressBar();
+                    }
                 }
                 using(new EditorGUI.DisabledGroupScope(!Directory.Exists(_map.exportSettings.OutputDirectory)))
                 {
                     if (GUILayout.Button(EditorGUIUtility.TrIconContent("FolderOpened On Icon", "Open the current output folder in the File Explorer. This function is enabled when the directory exist."), Styles.exportButton, GUILayout.MaxWidth(24)))
                     {
-                        Application.OpenURL(_map.exportSettings.OutputDirectory);
+                        EditorUtility.RevealInFinder(_map.exportSettings.OutputDirectory);
                     }
                 }
                 if (GUILayout.Button(EditorGUIUtility.TrIconContent("icon dropdown"), Styles.exportButton, GUILayout.MaxWidth(24)))
@@ -338,7 +342,7 @@ namespace Treasured.UnitySdk
                     {
                         if (Directory.Exists(TreasuredSDKPreferences.Instance.customExportFolder))
                         {
-                            Application.OpenURL(TreasuredSDKPreferences.Instance.customExportFolder);
+                            EditorUtility.RevealInFinder(TreasuredSDKPreferences.Instance.customExportFolder);
                         }
                         else
                         {
@@ -379,6 +383,7 @@ namespace Treasured.UnitySdk
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_description"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_audioUrl"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_muteOnStart"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(TreasuredMap.defaultBackgroundVolume)));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_templateLoader"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("headHTML"));
             SerializedProperty uiSettings = serializedObject.FindProperty("uiSettings");
@@ -422,19 +427,16 @@ namespace Treasured.UnitySdk
                                 }
                                 using (new EditorGUILayout.HorizontalScope())
                                 {
-                                    if (state.objects.All(x => !x.gameObject.activeSelf))
+                                    int activeCount = state.objects.Count(x => x.gameObject.activeSelf);
+                                    if (activeCount == state.objects.Count)
                                     {
-                                        state.enableAll = false;
-                                        state.toggleState = GroupToggleState.None;
-                                    }
-                                    else if (state.objects.Any(x => !x.gameObject.activeSelf))
-                                    {
-                                        state.toggleState = GroupToggleState.Mixed;
+                                        state.toggleState = TreasuredMapEditor.GroupToggleState.All;
+                                        state.enableAll = true;
                                     }
                                     else
                                     {
-                                        state.enableAll = true;
-                                        state.toggleState = GroupToggleState.All;
+                                        state.toggleState = activeCount == 0 ? GroupToggleState.None : GroupToggleState.Mixed;
+                                        state.enableAll = false;
                                     }
                                     EditorGUI.showMixedValue = state.toggleState == GroupToggleState.Mixed;
                                     GUILayout.Space(3);
@@ -527,9 +529,6 @@ namespace Treasured.UnitySdk
             EditorGUI.indentLevel--;
         }
 
-        private string title;
-        private string description;
-
         [TabGroup(groupName = "Guided Tour")]
         private void OnGuidedTourGUI()
         {
@@ -605,10 +604,6 @@ namespace Treasured.UnitySdk
             catch (Exception e)
             {
                 Debug.LogException(e);
-            }
-            finally
-            {
-                UnityEditor.EditorUtility.ClearProgressBar();
             }
         }
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -65,6 +66,30 @@ namespace Treasured.UnitySdk
                 {
                     DragAndDrop.AcceptDrag();
                     onDrop.Invoke(DragAndDrop.objectReferences);
+                    Event.current.Use();
+                }
+            }
+        }
+
+        public static void CreateComponentDropZone<T>(Rect rect, Action<List<T>> onDrop)
+        {
+            Event e = Event.current;
+            if (rect.Contains(e.mousePosition) && (e.type == EventType.DragUpdated || e.type == EventType.DragPerform))
+            {
+                List<T> components = new List<T>();
+                foreach (var go in DragAndDrop.objectReferences.OfType<GameObject>())
+                {
+                    if(go.TryGetComponent<T>(out T component))
+                    {
+                        components.Add(component);
+                    }
+                }
+                bool hasComponent = components.Count > 0;
+                DragAndDrop.visualMode = hasComponent ? DragAndDropVisualMode.Link : DragAndDropVisualMode.Rejected;
+                if (e.type == EventType.DragPerform && hasComponent)
+                {
+                    DragAndDrop.AcceptDrag();
+                    onDrop.Invoke(components);
                     Event.current.Use();
                 }
             }

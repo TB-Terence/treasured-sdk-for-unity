@@ -13,7 +13,7 @@ namespace Treasured.UnitySdk
 
         public const string Filter = "t:Treasured.UnitySdk.IconAsset";
         public static readonly string[] IconDirectories = new string[] { "Assets/Treasured SDK/Icons/", "Packages/com.treasured.unitysdk/Resources/Icons" };
-        private static Dictionary<string, IconAsset> s_icons = new Dictionary<string, IconAsset>();
+        private static Dictionary<string, (IconAsset, GUIContent)> s_icons = new Dictionary<string, (IconAsset, GUIContent)>();
 
 
         /// <summary>
@@ -23,7 +23,7 @@ namespace Treasured.UnitySdk
         /// <param name="asset"></param>
         public static void TryGetIconAssetByName(string name, out IconAsset asset)
         {
-            asset = s_icons.Values.FirstOrDefault(asset => asset.name.Equals(name));
+            asset = s_icons.Values.FirstOrDefault(asset => asset.Item1.name.Equals(name)).Item1;
         }
 
         /// <summary>
@@ -69,6 +69,16 @@ namespace Treasured.UnitySdk
         {
             CreateCusomtIconDirectoryIfNotExist();
             LoadIconAssets(IconDirectories);
+            EditorApplication.hierarchyWindowItemOnGUI -= OnHierarchyWindowItemOnGUI;
+            EditorApplication.hierarchyWindowItemOnGUI += OnHierarchyWindowItemOnGUI;
+        }
+
+        static void OnHierarchyWindowItemOnGUI(int instanceID, Rect selectionRect)
+        {
+            if (EditorUtility.InstanceIDToObject(instanceID) is GameObject go && go.TryGetComponent<TreasuredObject>(out var to) && to.button != null && !to.button.asset.IsNullOrNone() && !to.button.asset.icon.IsNullOrNone())
+            {
+                EditorGUI.LabelField(new Rect(selectionRect.xMax - EditorGUIUtility.singleLineHeight, selectionRect.y, EditorGUIUtility.singleLineHeight, EditorGUIUtility.singleLineHeight), new GUIContent(to.button.asset.icon));
+            }
         }
 
         /// <summary>
@@ -78,8 +88,12 @@ namespace Treasured.UnitySdk
         /// <returns></returns>
         public static IconAsset ImportIconAsset(string texturePath)
         {
+            if (string.IsNullOrEmpty(texturePath))
+            {
+                return null;
+            }
 #if !UNITY_EDITOR
-            return;
+            return null;
 #endif
             EditorUtility.DisplayProgressBar("Importing Icon", $"{texturePath}", 0);
             string name = Path.GetFileNameWithoutExtension(texturePath);
@@ -94,7 +108,7 @@ namespace Treasured.UnitySdk
                 throw new Exception($"Unable to Import Icon due to {e.Message}");
             }
             // Skip icon with same content
-            if (s_icons.Values.Any(asset => asset.icon.imageContentsHash.Equals(texture.imageContentsHash)))
+            if (s_icons.Values.Any(asset => asset.Item1.icon.imageContentsHash.Equals(texture.imageContentsHash)))
             {
                 return null;
             }
@@ -103,7 +117,7 @@ namespace Treasured.UnitySdk
             AssetDatabase.CreateAsset(iconAsset, @$"Assets\Treasured SDK\Icons\{name}.asset");
             AssetDatabase.AddObjectToAsset(texture, iconAsset);
             EditorUtility.ClearProgressBar();
-            s_icons.Add(AssetDatabase.GetAssetPath(iconAsset), iconAsset);
+            s_icons.Add(AssetDatabase.GetAssetPath(iconAsset), (iconAsset, new GUIContent(iconAsset.icon)));
             return iconAsset;
         }
 
@@ -142,7 +156,7 @@ namespace Treasured.UnitySdk
 
         private static void LoadIconAssets(string[] directories)
         {
-            s_icons ??= new Dictionary<string, IconAsset>();
+            s_icons ??= new Dictionary<string, (IconAsset, GUIContent)>();
             s_icons.Clear();
             var guids = AssetDatabase.FindAssets(Filter, directories);
             for (int i = 0; i < guids.Length; i++)
@@ -155,7 +169,7 @@ namespace Treasured.UnitySdk
                 {
                     Default = asset;
                 }
-                s_icons.Add(AssetDatabase.GetAssetPath(asset), asset);
+                s_icons.Add(AssetDatabase.GetAssetPath(asset), (asset, new GUIContent(asset.icon)));
             }
         }
 

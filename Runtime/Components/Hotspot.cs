@@ -1,6 +1,4 @@
-﻿using System;
-using Newtonsoft.Json;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace Treasured.UnitySdk

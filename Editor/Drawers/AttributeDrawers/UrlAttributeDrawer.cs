@@ -9,110 +9,83 @@ namespace Treasured.UnitySdk
     [CustomPropertyDrawer(typeof(UrlAttribute))]
     public class UrlAttributeDrawer : PropertyDrawer
     {
-        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
+        public class Styles
         {
-            position.xMax -= 40;
-            EditorGUI.LabelField(position, label, new GUIContent(property.stringValue, property.stringValue), EditorStyles.linkLabel);
-            Rect buttonRect = new Rect(position.xMax, position.y, 40, position.height);
-            if (GUI.Button(buttonRect, new GUIContent("Edit")))
-            {
-                UrlEditorWindow.Show(property, (UrlAttribute)attribute);
-            }
+            public static GUIContent menu = EditorGUIUtility.TrIconContent("_menu");
         }
 
-        private class UrlEditorWindow : EditorWindow
+        private static readonly Regex RegexSrc = new Regex("src=[\"'](.+?)[\"']");
+
+        private static float kSingleLineHeight = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
+       
+        public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            private static readonly Regex RegexSrc = new Regex("src=[\"'](.+?)[\"']");
-
-            private SerializedProperty serializedProperty;
-            private UrlAttribute attribute;
-            private Vector2 previewScrollPosition;
-            private Vector2 textScrollPosition;
-
-            public static void Show(SerializedProperty serializedProperty, UrlAttribute attribute)
+            EditorGUI.BeginProperty(position, label, property);
+            EditorGUI.LabelField(new Rect(position.x, position.y, position.width - 20, kSingleLineHeight), label);
+            if (GUI.Button(new Rect(position.xMax - 20, position.y, 20, EditorGUIUtility.singleLineHeight), Styles.menu, EditorStyles.label))
             {
-                UrlEditorWindow window = EditorWindow.GetWindow<UrlEditorWindow>(true, "Url Editor");
-                window.minSize = new Vector2(500, 200);
-                window.serializedProperty = serializedProperty;
-                window.attribute = attribute;
-                window.Show();
+                ShowMenu(property);
             }
+            property.stringValue = EditorGUI.TextArea(new Rect(position.x, position.y + kSingleLineHeight, position.width, kSingleLineHeight * 2), property.stringValue, EditorStyles.textArea);
+            EditorGUI.EndProperty();
+        }
 
-            private void OnGUI()
+        public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
+        {
+            return (kSingleLineHeight) * 3;
+        }
+
+        private void ShowMenu(SerializedProperty serializedProperty)
+        {
+            GenericMenu menu = new GenericMenu();
+            var buttons = this.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(x => x.GetParameters().Length == 1 && x.IsDefined(typeof(ButtonAttribute)));
+            foreach (MethodInfo button in buttons)
             {
-                if (serializedProperty == null || serializedProperty.propertyType != SerializedPropertyType.String)
+                ButtonAttribute attr = button.GetCustomAttribute<ButtonAttribute>();
+                menu.AddItem(new GUIContent(ObjectNames.NicifyVariableName(string.IsNullOrWhiteSpace(attr.Text) ? button.Name : attr.Text)), false, () =>
                 {
-                    return;
-                }
-                EditorGUI.BeginChangeCheck();
-                EditorStyles.textArea.wordWrap = true;
-                EditorStyles.textArea.richText = false;
-                Rect rect = EditorGUILayout.GetControlRect(GUILayout.ExpandHeight(true));
-                var args = new object[] { rect, serializedProperty.stringValue, textScrollPosition, EditorStyles.textArea };
-                serializedProperty.stringValue = (string)typeof(EditorGUI).GetMethod("ScrollableTextAreaInternal", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, args);
-                textScrollPosition = (Vector2)args[2]; // set the value of scroll position
-
-                var buttons = typeof(UrlEditorWindow).GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(x => x.GetParameters().Length == 0 && x.IsDefined(typeof(ButtonAttribute)));
-                using (new EditorGUILayout.HorizontalScope())
-                {
-                    GUILayout.FlexibleSpace();
-                    foreach (MethodInfo button in buttons)
-                    {
-                        ButtonAttribute attr = button.GetCustomAttribute<ButtonAttribute>();
-                        if (GUILayout.Button(ObjectNames.NicifyVariableName(string.IsNullOrWhiteSpace(attr.Text) ? button.Name : attr.Text)))
-                        {
-                            button.Invoke(this, null);
-                        }
-                    }
-                }    
-                if (EditorGUI.EndChangeCheck())
-                {
-                    serializedProperty.serializedObject.ApplyModifiedProperties();
-                }
+                    button.Invoke(this, new object[] { serializedProperty });
+                });
             }
+            menu.ShowAsContext();
+        }
 
-            private void OnLostFocus()
+        [Button]
+        void OpenInBrowser(SerializedProperty serializedProperty)
+        {
+            Application.OpenURL(serializedProperty.stringValue);
+        }
+
+        [Button]
+        void Copy(SerializedProperty serializedProperty)
+        {
+            GUIUtility.systemCopyBuffer = serializedProperty.stringValue;
+        }
+
+        [Button]
+        void Paste(SerializedProperty serializedProperty)
+        {
+            serializedProperty.stringValue = GUIUtility.systemCopyBuffer;
+            GUI.FocusControl(null);
+        }
+
+        [Button("Extract Src and Paste")]
+        void ExtractSrcAndPaste(SerializedProperty serializedProperty)
+        {
+            string embed = GUIUtility.systemCopyBuffer;
+            Match match = RegexSrc.Match(embed);
+            if (!match.Success)
             {
-                Close();
+                EditorUtility.DisplayDialog("No match found", "No match found. Make sure src is enclosed in quotes.", "OK");
+                return;
             }
-
-            [Button]
-            void OpenInBrowser()
+            // Groups[0] will be a string that matches the entire regular expression pattern
+            // Groups[1] will be (.+?)
+            string src = match.Groups[1].Value;
+            if (!src.Contains(" "))
             {
-                Application.OpenURL(serializedProperty.stringValue);
-            }
-
-            [Button]
-            void Copy()
-            {
-                GUIUtility.systemCopyBuffer = serializedProperty.stringValue;
-            }
-
-            [Button]
-            void Paste()
-            {
-                serializedProperty.stringValue = GUIUtility.systemCopyBuffer;
+                serializedProperty.stringValue = src;
                 GUI.FocusControl(null);
-            }
-
-            [Button("Extract Src & Paste")]
-            void ExtractSrcAndPaste()
-            {
-                string embed = GUIUtility.systemCopyBuffer;
-                Match match = RegexSrc.Match(embed);
-                if (!match.Success)
-                {
-                    EditorUtility.DisplayDialog("No match found", "No match found. Make sure src is enclosed in quotes.", "OK");
-                    return;
-                }
-                // Groups[0] will be a string that matches the entire regular expression pattern
-                // Groups[1] will be (.+?)
-                string src = match.Groups[1].Value;
-                if (!src.Contains(" "))
-                {
-                    serializedProperty.stringValue = src;
-                    GUI.FocusControl(null);
-                }
             }
         }
     }

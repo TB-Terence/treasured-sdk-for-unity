@@ -28,13 +28,17 @@ namespace Treasured.UnitySdk
                 StringBuilder sb = new StringBuilder();
                 foreach (var action in collection)
                 {
+                    if (!action.enabled)
+                    {
+                        continue;
+                    }
                     Type type = action.GetType();
                     APIAttribute attribute = type.GetCustomAttributes<APIAttribute>().FirstOrDefault();
                     if (attribute == null)
                     {
                         continue;
                     }
-                    sb.AppendLine($"{(attribute.IsAsync ? "await " : "")}{attribute.Domain}.{attribute.MethodName}({GetArgumentStrings(action.GetArguments())})");
+                    sb.AppendLine($"{(attribute.IsAsync ? "await " : "")}{attribute.Domain}.{attribute.MethodName}({JsonConvert.SerializeObject(action, Formatting.None, JsonExporter.JsonSettings)})");
                 }
                 writer.WriteValue(sb.ToString());
             }
@@ -64,7 +68,7 @@ namespace Treasured.UnitySdk
                 }
                 else
                 {
-                    sb.Append(arg.ToString());
+                    sb.Append(JsonConvert.SerializeObject(arg, Formatting.None, JsonExporter.JsonSettings));
                 }
                 if (isString) sb.Append('\"');
             }

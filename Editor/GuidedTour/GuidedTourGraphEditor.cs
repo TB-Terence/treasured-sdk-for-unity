@@ -3,13 +3,15 @@ using UnityEngine;
 using UnityEditor;
 using Treasured.UnitySdk.Utilities;
 using UnityEditorInternal;
+using Newtonsoft.Json;
 
 namespace Treasured.UnitySdk
 {
     [CustomEditor(typeof(GuidedTourGraph))]
-    public class GuidedTourGraphEditor : Editor 
+    internal class GuidedTourGraphEditor : Editor 
     {
-        private sealed class GuidedTourModalEditorWindow : EditorWindow
+        public static GuidedTourGraph Current { get; private set; }
+        public sealed class GuidedTourModalEditorWindow : EditorWindow, IHasCustomMenu
         {
             private static readonly Vector2 WINDOW_SIZE = new Vector2(500, 600);
 
@@ -29,6 +31,18 @@ namespace Treasured.UnitySdk
                     window.position = new Rect(mainWindowPos.center - windowSize / 2, windowSize);
                 }
                 window.Show();
+            }
+
+            public void AddItemsToMenu(GenericMenu menu)
+            {
+                if (this._serializedObject.targetObject is GuidedTour gt)
+                {
+                    menu.AddItem(new GUIContent("Generate and Copy Action Scripts"), false, () =>
+                    {
+                        string script = JsonConvert.SerializeObject(gt.actionScripts, Formatting.None, JsonExporter.JsonSettings);
+                        GUIUtility.systemCopyBuffer = script.Substring(1, script.Length - 2);
+                    });
+                }
             }
 
             private void OnGUI()
@@ -52,6 +66,7 @@ namespace Treasured.UnitySdk
 
         private void OnEnable()
         {
+            Current = target as GuidedTourGraph;
             rl = new ReorderableList(serializedObject, serializedObject.FindProperty(nameof(GuidedTourGraph.tours)));
             rl.headerHeight = 0;
             rl.drawHeaderCallback = (Rect rect) => { };
@@ -69,6 +84,14 @@ namespace Treasured.UnitySdk
             rl.onAddCallback = (ReorderableList list) =>
             {
                 list.serializedProperty.TryAppendScriptableObject(out SerializedProperty elementProperty, out ScriptableObject tour);
+                if (list.count == 1)
+                {
+                    tour.name = "default";
+                    if (tour is GuidedTour guidedTour)
+                    {
+                        guidedTour.title = "default";
+                    }
+                }
             };
             rl.onRemoveCallback = (ReorderableList list) =>
             {
