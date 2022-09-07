@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Treasured.UnitySdk.Utilities;
 using Treasured.UnitySdk.Validation;
 using UnityEditor;
@@ -50,6 +52,14 @@ namespace Treasured.UnitySdk
             public static readonly GUIContent plus = EditorGUIUtility.TrIconContent("Toolbar Plus");
             public static readonly GUIContent minus = EditorGUIUtility.TrIconContent("Toolbar Minus", "Remove");
 
+            public static readonly GUIStyle logoText = new GUIStyle(EditorStyles.boldLabel)
+            {
+                wordWrap = false,
+                fontSize = 18,
+                alignment = TextAnchor.UpperCenter,
+                normal = { textColor = Color.white }
+            };
+
             public static readonly GUIStyle objectLabel = new GUIStyle("label")
             {
                 fontStyle = FontStyle.Bold
@@ -61,17 +71,38 @@ namespace Treasured.UnitySdk
                 padding = new RectOffset(),
             };
 
-            public static readonly GUIStyle exportButton = new GUIStyle("button")
+            public static readonly GUIStyle iconButton = new GUIStyle("button")
             {
                 margin = new RectOffset(0, 0, 0, 8),
                 fixedHeight = 24,
-                fontStyle = FontStyle.Bold
+                fontStyle = FontStyle.Bold,
+            };
+
+            public static readonly GUIStyle dataDisplayBox = new GUIStyle("box")
+            {
+                margin = new RectOffset(0, 0, 0, 0),
+                padding = new RectOffset(8, 8, 8, 8),
+                alignment = TextAnchor.UpperLeft,
+                fontSize = 10
+            };
+
+            public static readonly GUIStyle centeredLabel = new GUIStyle("label")
+            {
+                alignment = TextAnchor.UpperCenter,
+                wordWrap = true,
+            };
+
+            public static readonly GUIStyle exportButton = new GUIStyle("button")
+            {
+                padding = new RectOffset(8, 8, 8, 8),
+                fontStyle = FontStyle.Bold,
             };
 
             public static readonly GUIStyle noLabel = new GUIStyle("label")
             {
                 fixedWidth = 1
             };
+
 
             private static GUIStyle tabButton;
             public static GUIStyle TabButton
@@ -195,6 +226,8 @@ namespace Treasured.UnitySdk
 
         private Editor graphEditor;
 
+        private Process _npmProcess;
+
         public void OnEnable()
         {
             _selectedTabIndex = SessionState.GetInt(SelectedTabIndexKey, _selectedTabIndex);
@@ -311,50 +344,138 @@ namespace Treasured.UnitySdk
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
+
+            Texture2D TreasuredLogo = Resources.Load<Texture2D>("Treasured_Logo");
+            GUILayout.Space(10);
             using (new EditorGUILayout.HorizontalScope())
             {
-                if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Export", $"Export scene to {TreasuredSDKPreferences.Instance.customExportFolder}/{_map.exportSettings.folderName}", "SceneLoadIn"), Styles.exportButton))
-                {
-                    try
-                    {
-                        Exporter.Export(_map);
-                    }
-                    catch (ValidationException e)
-                    {
-                        MapExporterWindow.Show(_map, e);
-                    }
-                    finally
-                    {
-                        EditorUtility.ClearProgressBar();
-                    }
+                GUILayout.FlexibleSpace();
+                GUILayout.Label(TreasuredLogo, GUILayout.Width(42f), GUILayout.Height(42f));
+                GUILayout.Space(4);
+                using (new EditorGUILayout.VerticalScope())
+                {   
+                    GUILayout.Space(12);
+                    GUILayout.Label("Treasured Unity SDK", Styles.logoText);
+                    GUILayout.Space(12);
                 }
+                GUILayout.FlexibleSpace();
+            }
+
+            GUILayout.Space(10);
+            GUILayout.Label("Treasured is a tool to help you create and export your Unity scenes to the web. For more information, visit treasured.dev for more info", Styles.centeredLabel);
+            GUILayout.Space(10);
+
+            // Draw Directory, Export and Play buttons
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.FlexibleSpace();
                 using(new EditorGUI.DisabledGroupScope(!Directory.Exists(_map.exportSettings.OutputDirectory)))
                 {
-                    if (GUILayout.Button(EditorGUIUtility.TrIconContent("FolderOpened On Icon", "Open the current output folder in the File Explorer. This function is enabled when the directory exist."), Styles.exportButton, GUILayout.MaxWidth(24)))
+                    if (GUILayout.Button(EditorGUIUtility.TrTextContent("Directory ↗", "Open the current output folder in the File Explorer. This function is enabled when the directory exist."), Styles.exportButton, GUILayout.MaxWidth(150)))
                     {
-                        EditorUtility.RevealInFinder(_map.exportSettings.OutputDirectory);
+                        EditorUtility.OpenWithDefaultApp(_map.exportSettings.OutputDirectory);
                     }
                 }
-                if (GUILayout.Button(EditorGUIUtility.TrIconContent("icon dropdown"), Styles.exportButton, GUILayout.MaxWidth(24)))
+                GUILayout.Space(10f);
+                using(new EditorGUI.DisabledGroupScope(String.IsNullOrEmpty(_map.exportSettings.OutputDirectory) || !Regex.Match(_map.exportSettings.OutputDirectory, @"[a-zA-Z0-9\-]").Success))
                 {
-                    GenericMenu menu = new GenericMenu();
-                    menu.AddItem(new GUIContent("Open Custom Export Folder", "Open custom export folder in the File Explorer. The default folder will be the path in your Unity project/Treasured Data"), false, () =>
+                    if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Export", $"Export scene to {TreasuredSDKPreferences.Instance.customExportFolder}/{_map.exportSettings.folderName}", "SceneLoadIn"), Styles.exportButton, GUILayout.MaxWidth(150)))
                     {
-                        if (Directory.Exists(TreasuredSDKPreferences.Instance.customExportFolder))
+                        try
                         {
-                            EditorUtility.RevealInFinder(TreasuredSDKPreferences.Instance.customExportFolder);
+                            Exporter.Export(_map);
                         }
-                        else
+                        catch (ValidationException e)
                         {
-                            if(EditorUtility.DisplayDialog("Error", "Custom export folder does not exist.", "Config", "Cancel"))
+                            MapExporterWindow.Show(_map, e);
+                        }
+                    }
+                }
+                GUILayout.Space(10f);
+                using (var playButtonGroup = new EditorGUILayout.FadeGroupScope(Convert.ToSingle(_npmProcess == null)))
+                {
+                    if (playButtonGroup.visible) 
+                    {
+                        Color oldColor = GUI.backgroundColor;
+                        GUI.backgroundColor = new Color(0.3f, 1.0f, 0.6f);
+                        using(new EditorGUI.DisabledGroupScope(!Directory.Exists(_map.exportSettings.OutputDirectory)))
+                        {
+                            if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Play", "Run in browser", "d_PlayButton On"), Styles.exportButton, GUILayout.MaxWidth(150)))
                             {
-                                SettingsService.OpenUserPreferences("Preferences/Treasured SDK");
+                                // Run `npm run dev` to start dev server
+                                try
+                                {
+                                    _npmProcess = new Process();
+#if UNITY_STANDALONE_WIN
+                                    _npmProcess.StartInfo.FileName = "cmd.exe";
+                                    _npmProcess.StartInfo.Arguments = $"/C treasured dev {_map.exportSettings.folderName}";
+                                    _npmProcess.StartInfo.CreateNoWindow = true;
+#elif UNITY_STANDALONE_OSX
+                                    _npmProcess.StartInfo.FileName = "treasured";
+                                    _npmProcess.StartInfo.Arguments = $"dev {_map.exportSettings.folderName}";
+#endif
+                                    _npmProcess.StartInfo.UseShellExecute = false;
+                                    _npmProcess.StartInfo.RedirectStandardOutput = true;
+                                    _npmProcess.StartInfo.WorkingDirectory = TreasuredSDKPreferences.Instance.customExportFolder;
+
+                                    _npmProcess.Start();
+
+
+                                    _map.processId = _npmProcess.Id;
+                                }
+                                catch (Exception e)
+                                {
+                                    UnityEngine.Debug.LogError(e.Message);
+                                }
                             }
                         }
-                    });
-                    menu.ShowAsContext();
+                        GUI.backgroundColor = oldColor;
+                    }
                 }
+
+                using (var playButtonGroup = new EditorGUILayout.FadeGroupScope(Convert.ToSingle(_npmProcess != null)))
+                {
+                    if (playButtonGroup.visible) 
+                    {
+                        Color oldColor = GUI.backgroundColor;
+                        GUI.backgroundColor = new Color(1.0f, 0.1f, 0.2f);
+                        if (GUILayout.Button(EditorGUIUtility.TrTextContentWithIcon("Stop", "Stop running server", "d_PreMatQuad"), Styles.exportButton, GUILayout.MaxWidth(150)))
+                        {
+                            try
+                            {
+                                // Kill the process
+                                string pid = _npmProcess.Id.ToString();
+
+                                UnityEngine.Debug.Log($"Killing process {pid}");
+                                ProcessStartInfo startInfo = new ProcessStartInfo();
+#if UNITY_STANDALONE_WIN
+                                startInfo.FileName = "cmd.exe";
+                                startInfo.Arguments = $"/C taskkill /pid {pid} /f";
+                                startInfo.CreateNoWindow = true;
+#elif UNITY_STANDALONE_OSX
+                                startInfo.FileName = "pkill";
+                                startInfo.Arguments = $"-P {pid}";
+#endif
+                                startInfo.UseShellExecute = false;
+                                startInfo.RedirectStandardOutput = true;
+                                startInfo.RedirectStandardError = true;
+                                Process process = Process.Start(startInfo);
+                                process.WaitForExit();
+                                _npmProcess = null;
+                            }
+                            catch (Exception e)
+                            {
+                                UnityEngine.Debug.LogError(e.Message);
+                            }
+                        }
+                        GUI.backgroundColor = oldColor;
+                    }
+                }
+                GUILayout.FlexibleSpace();
             }
+
+            GUILayout.Space(20);
+
             using(var scope = new EditorGUI.ChangeCheckScope())
             {
                 _selectedTabIndex = GUILayout.SelectionGrid(_selectedTabIndex, _tabGroupStates.Select(x => x.attribute.groupName).ToArray(), _tabGroupStates.Length, Styles.TabButton);
@@ -551,7 +672,7 @@ namespace Treasured.UnitySdk
                 EditorGUILayout.BeginHorizontal();
                 EditorGUILayout.LabelField("Exporter Settings", EditorStyles.boldLabel);
                 GUILayout.FlexibleSpace();
-                if (GUILayout.Button(new GUIContent("Overwrite", "Overwrite all exporter settings from Preferences")))
+                if (GUILayout.Button(new GUIContent("Reset to Default", "Reset all exporter settings to Default Preferences")))
                 {
                     foreach (var editor in _exporterEditors)
                     {
@@ -594,16 +715,20 @@ namespace Treasured.UnitySdk
             catch (ContextException e)
             {
                 EditorGUIUtility.PingObject(e.Context);
-                Debug.LogException(e);
+                UnityEngine.Debug.LogException(e);
             }
             catch (TreasuredException e)
             {
                 EditorGUIUtility.PingObject(_map);
-                Debug.LogException(e);
+                UnityEngine.Debug.LogException(e);
             }
             catch (Exception e)
             {
-                Debug.LogException(e);
+                UnityEngine.Debug.LogException(e);
+            }
+            finally
+            {
+                UnityEditor.EditorUtility.ClearProgressBar();
             }
         }
 

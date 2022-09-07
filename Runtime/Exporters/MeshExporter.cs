@@ -363,7 +363,7 @@ namespace Treasured.UnitySdk
 
             if (!string.IsNullOrEmpty(Map.exportSettings.OutputDirectory))
             {
-                exporter.SaveGLB(Map.exportSettings.OutputDirectory.ToOSSpecificPath(), "scene");
+                exporter.SaveGLB(Path.Combine(Map.exportSettings.OutputDirectory), "scene");
             }
         }
 
