@@ -14,6 +14,10 @@ namespace Treasured.UnitySdk
         [JsonIgnore]
         public string Id { get => _id; }
 
+        [JsonIgnore]
+        [HideInInspector]
+        public bool enabled = true;
+
         /// <summary>
         /// Actual type of the action in string format without Action suffix.
         /// </summary>

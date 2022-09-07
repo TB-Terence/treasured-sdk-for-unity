@@ -367,6 +367,10 @@ namespace Treasured.UnitySdk
                     {
                         EditorUtility.RevealInFinder(_map.exportSettings.OutputDirectory);
                     }
+                    finally
+                    {
+                        EditorUtility.ClearProgressBar();
+                    }
                 }
                 GUILayout.Space(10f);
                 using(new EditorGUI.DisabledGroupScope(String.IsNullOrEmpty(_map.exportSettings.OutputDirectory) || !Regex.Match(_map.exportSettings.OutputDirectory, @"[a-zA-Z0-9\-]").Success))
@@ -540,19 +544,16 @@ namespace Treasured.UnitySdk
                                 }
                                 using (new EditorGUILayout.HorizontalScope())
                                 {
-                                    if (state.objects.All(x => !x.gameObject.activeSelf))
+                                    int activeCount = state.objects.Count(x => x.gameObject.activeSelf);
+                                    if (activeCount == state.objects.Count)
                                     {
-                                        state.enableAll = false;
-                                        state.toggleState = GroupToggleState.None;
-                                    }
-                                    else if (state.objects.Any(x => !x.gameObject.activeSelf))
-                                    {
-                                        state.toggleState = GroupToggleState.Mixed;
+                                        state.toggleState = TreasuredMapEditor.GroupToggleState.All;
+                                        state.enableAll = true;
                                     }
                                     else
                                     {
-                                        state.enableAll = true;
-                                        state.toggleState = GroupToggleState.All;
+                                        state.toggleState = activeCount == 0 ? GroupToggleState.None : GroupToggleState.Mixed;
+                                        state.enableAll = false;
                                     }
                                     EditorGUI.showMixedValue = state.toggleState == GroupToggleState.Mixed;
                                     GUILayout.Space(3);
@@ -645,9 +646,6 @@ namespace Treasured.UnitySdk
             EditorGUI.indentLevel--;
         }
 
-        private string title;
-        private string description;
-
         [TabGroup(groupName = "Guided Tour")]
         private void OnGuidedTourGUI()
         {
@@ -723,10 +721,6 @@ namespace Treasured.UnitySdk
             catch (Exception e)
             {
                 UnityEngine.Debug.LogException(e);
-            }
-            finally
-            {
-                UnityEditor.EditorUtility.ClearProgressBar();
             }
         }
 
