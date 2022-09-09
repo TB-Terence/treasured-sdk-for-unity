@@ -28,7 +28,7 @@ namespace Treasured.UnitySdk
                 {
                     return "";
                 }
-                return Path.Combine(TreasuredSDKPreferences.Instance.customExportFolder, folderName);
+                return Path.Combine(TreasuredSDKPreferences.Instance.customExportFolder, folderName).ToOSSpecificPath();
             }
         }
     }

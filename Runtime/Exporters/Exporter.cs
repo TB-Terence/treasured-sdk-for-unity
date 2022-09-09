@@ -67,11 +67,11 @@ namespace Treasured.UnitySdk
             }
             var exporters = ReflectionUtils.GetSerializedFieldValuesOfType<Exporter>(map);
             DataValidator.ValidateMap(map);
-            if (Directory.Exists(map.exportSettings.OutputDirectory))
+            var exportPath = Path.Combine(map.exportSettings.OutputDirectory);
+            if (!Directory.Exists(exportPath))
             {
-                Directory.Delete(map.exportSettings.OutputDirectory, true);
+                Directory.CreateDirectory(exportPath); // try create the directory if not exist.
             }
-            Directory.CreateDirectory(map.exportSettings.OutputDirectory); // try create the directory if not exist.
             foreach (var exporter in exporters)
             {
                 if (exporter != null && exporter.enabled)

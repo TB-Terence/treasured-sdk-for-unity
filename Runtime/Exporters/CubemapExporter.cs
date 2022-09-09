@@ -63,7 +63,7 @@ namespace Treasured.UnitySdk
 #if UNITY_EDITOR
                 UnityEditor.EditorUtility.DisplayProgressBar("Converting to KTX2", "Converting in progress...", 0.5f);
 #endif
-                ImageUtilies.ConvertToKTX2(Map.exportSettings.OutputDirectory);
+                ImageUtilies.ConvertToKTX2(Path.Combine(Map.exportSettings.OutputDirectory));
             }
         }
 
