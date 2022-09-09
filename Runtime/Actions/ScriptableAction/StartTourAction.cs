@@ -6,10 +6,5 @@ namespace Treasured.UnitySdk
     public class StartTourAction : ScriptableAction
     {
         public GuidedTour target;
-
-        public override object[] GetArguments()
-        {
-            return new object[] { target.Id };
-        }
     }
 }

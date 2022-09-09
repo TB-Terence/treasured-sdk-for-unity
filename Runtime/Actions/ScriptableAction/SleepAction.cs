@@ -8,10 +8,5 @@ namespace Treasured.UnitySdk
     {
         [Min(1)]
         public int duration = 1000;
-
-        public override object[] GetArguments()
-        {
-            return new object[] { duration };
-        }
     }
 }
