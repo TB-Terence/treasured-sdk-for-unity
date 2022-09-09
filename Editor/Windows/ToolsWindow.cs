@@ -32,7 +32,7 @@ namespace Treasured.UnitySdk
         private MeshExporter _meshExporter;
         private int _totalTriangles = 0;
 
-        [MenuItem("Tools/Treasured/MeshAnalyzer", priority = 0)]
+        [MenuItem("Tools/Treasured/Mesh Analyzer", priority = 0)]
         public static void ShowToolsWindow()
         {
             var window = GetWindow<ToolsWindow>();
