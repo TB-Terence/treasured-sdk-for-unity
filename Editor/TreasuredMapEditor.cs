@@ -410,10 +410,13 @@ namespace Treasured.UnitySdk
                                     _npmProcess.StartInfo.RedirectStandardOutput = true;
                                     _npmProcess.StartInfo.WorkingDirectory = TreasuredSDKPreferences.Instance.customExportFolder;
 
+                                    _map.processId = _npmProcess.Id;
+
                                     _npmProcess.Start();
 
+                                    UnityEditor.EditorApplication.quitting -= KillProcess;
+                                    UnityEditor.EditorApplication.quitting += KillProcess;
 
-                                    _map.processId = _npmProcess.Id;
                                 }
                                 catch (Exception e)
                                 {
@@ -435,24 +438,7 @@ namespace Treasured.UnitySdk
                         {
                             try
                             {
-                                // Kill the process
-                                string pid = _npmProcess.Id.ToString();
-
-                                UnityEngine.Debug.Log($"Killing process {pid}");
-                                ProcessStartInfo startInfo = new ProcessStartInfo();
-#if UNITY_STANDALONE_WIN
-                                startInfo.FileName = "cmd.exe";
-                                startInfo.Arguments = $"/C taskkill /pid {pid} /f";
-                                startInfo.CreateNoWindow = true;
-#elif UNITY_STANDALONE_OSX
-                                startInfo.FileName = "pkill";
-                                startInfo.Arguments = $"-P {pid}";
-#endif
-                                startInfo.UseShellExecute = false;
-                                startInfo.RedirectStandardOutput = true;
-                                startInfo.RedirectStandardError = true;
-                                Process process = Process.Start(startInfo);
-                                process.WaitForExit();
+                                
                                 _npmProcess = null;
                             }
                             catch (Exception e)
@@ -486,6 +472,28 @@ namespace Treasured.UnitySdk
                 state.gui.Invoke(this, null);
             }
             serializedObject.ApplyModifiedProperties();
+        }
+
+        void KillProcess()
+        {
+            // Kill the process
+            string pid = _map.processId.ToString(); // TODO: This might kill the new process with same handle after domain reload.
+
+
+            ProcessStartInfo startInfo = new ProcessStartInfo();
+#if UNITY_STANDALONE_WIN
+            startInfo.FileName = "cmd.exe";
+            startInfo.Arguments = $"/C taskkill /pid {pid} /f";
+            startInfo.CreateNoWindow = true;
+#elif UNITY_STANDALONE_OSX
+                                startInfo.FileName = "pkill";
+                                startInfo.Arguments = $"-P {pid}";
+#endif
+            startInfo.UseShellExecute = false;
+            startInfo.RedirectStandardOutput = true;
+            startInfo.RedirectStandardError = true;
+            Process process = Process.Start(startInfo);
+            process.WaitForExit();
         }
 
         [TabGroup(groupName = "Page Info")]
