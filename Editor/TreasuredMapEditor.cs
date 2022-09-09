@@ -367,10 +367,6 @@ namespace Treasured.UnitySdk
                     {
                         EditorUtility.OpenWithDefaultApp(_map.exportSettings.OutputDirectory);
                     }
-                    finally
-                    {
-                        EditorUtility.ClearProgressBar();
-                    }
                 }
                 GUILayout.Space(10f);
                 using(new EditorGUI.DisabledGroupScope(String.IsNullOrEmpty(_map.exportSettings.OutputDirectory) || !Regex.Match(_map.exportSettings.OutputDirectory, @"[a-zA-Z0-9\-]").Success))
