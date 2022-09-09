@@ -13,6 +13,7 @@ namespace Treasured.UnitySdk
             if (property.isExpanded)
             {
                 SerializedProperty rotationProperty = property.FindPropertyRelative(nameof(SetCameraRotationAction.rotation));
+                SerializedProperty speedProperty = property.FindPropertyRelative(nameof(SetCameraRotationAction.speedFactor));
                 EditorGUI.BeginChangeCheck();
                 EditorGUI.PropertyField(new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight, position.width, position.height), rotationProperty, new GUIContent("Rotation"));
                 if (EditorGUI.EndChangeCheck())
@@ -28,13 +29,14 @@ namespace Treasured.UnitySdk
                 {
                     SceneView.lastActiveSceneView.LookAt(SceneView.lastActiveSceneView.pivot, rotationProperty.quaternionValue);
                 }
+                EditorGUI.PropertyField(new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight * 3 + EditorGUIUtility.standardVerticalSpacing, position.width, EditorGUIUtility.singleLineHeight), speedProperty, new GUIContent("Speed Factor"));
             }
             EditorGUI.EndProperty();
         }
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            return base.GetPropertyHeight(property, label) + (property.isExpanded ? EditorGUIUtility.singleLineHeight * 2 + EditorGUIUtility.standardVerticalSpacing : 0);
+            return base.GetPropertyHeight(property, label) + (property.isExpanded ? EditorGUIUtility.singleLineHeight * 3 + EditorGUIUtility.standardVerticalSpacing : 0);
         }
     }
 }

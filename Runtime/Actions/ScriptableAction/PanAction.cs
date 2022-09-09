@@ -6,10 +6,5 @@ namespace Treasured.UnitySdk
     public class PanAction : ScriptableAction
     {
         public float amount = 0.1f;
-
-        public override object[] GetArguments()
-        {
-            return new object[] { amount };
-        }
     }
 }
