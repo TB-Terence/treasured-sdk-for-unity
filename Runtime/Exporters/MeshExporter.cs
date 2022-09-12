@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,7 @@ using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityGLTF;
 using UnityMeshSimplifier;
+using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 #if UNITY_EDITOR
 using UnityEditor;
@@ -27,6 +29,7 @@ namespace Treasured.UnitySdk
         private int _progressCounter;
         private int _totalTerrainCount;
         private int _progressUpdateInterval = 10000;
+        private GLTFSceneExporter _gltfSceneExporter;
 
         public static string[] allTags;
         public int includeTags = 1;
@@ -44,6 +47,9 @@ namespace Treasured.UnitySdk
 
         [Tooltip("Display detailed mesh exporter logs")]
         public bool displayLogs;
+
+        [Tooltip("Optimize Glb Mesh to lower the glb mesh size")]
+        public bool shouldOptimizeMesh;
 
         [UnityEngine.ContextMenu("Reset")]
         private void Reset()
@@ -137,7 +143,7 @@ namespace Treasured.UnitySdk
                 {
                     continue;
                 }
-                
+
                 if (meshToCombineDictionary.ContainsKey(gameObject.GetInstanceID()))
                 {
                     if (displayLogs)
@@ -184,7 +190,7 @@ namespace Treasured.UnitySdk
                             {
                                 continue;
                             }
-                            
+
                             meshToCombineDictionary.Add(child.gameObject.GetInstanceID(), child.gameObject);
                         }
 
@@ -375,11 +381,63 @@ namespace Treasured.UnitySdk
         private void CreateGLB(Transform[] export)
         {
             var exportOptions = new ExportOptions { TexturePathRetriever = RetrieveTexturePath };
-            var exporter = new GLTFSceneExporter(export, exportOptions);
+            _gltfSceneExporter = new GLTFSceneExporter(export, exportOptions);
 
             if (!string.IsNullOrEmpty(Map.exportSettings.OutputDirectory))
             {
-                exporter.SaveGLB(Path.Combine(Map.exportSettings.OutputDirectory), "scene");
+                _gltfSceneExporter.GLBSaved += OnGLBSaved;
+
+                _gltfSceneExporter.SaveGLB(Path.Combine(Map.exportSettings.OutputDirectory), "scene");
+            }
+        }
+
+        private void OnGLBSaved()
+        {
+            _gltfSceneExporter.GLBSaved -= OnGLBSaved;
+
+            //  Check if the exported glb should be optimized
+            if (shouldOptimizeMesh)
+            {
+                var glbFilePath = Path.Combine(Map.exportSettings.OutputDirectory, "scene.glb");
+
+                //  Check if scene.glb file is present
+                if (!File.Exists(glbFilePath))
+                {
+                    Debug.LogError("Scene.glb file does not exists. Mesh will not be optimized.");
+                    return;
+                }
+
+                // Run `treasured optimize` to optimize the glb file
+                var npmProcess = new Process();
+#if UNITY_STANDALONE_WIN
+                npmProcess.StartInfo.FileName = "cmd.exe";
+                npmProcess.StartInfo.Arguments =
+                    "/K treasured optimize scene.glb";
+                npmProcess.StartInfo.CreateNoWindow = false;
+#elif UNITY_STANDALONE_OSX
+                _npmProcess.StartInfo.FileName = "treasured";
+                _npmProcess.StartInfo.Arguments =
+                    $"optimize scene.glb";
+#endif
+                npmProcess.StartInfo.UseShellExecute = false;
+                npmProcess.StartInfo.RedirectStandardOutput = true;
+                npmProcess.StartInfo.WorkingDirectory = Map.exportSettings.OutputDirectory;
+
+                try
+                {
+                    npmProcess.Start();
+                    var stdOutput = npmProcess.StandardOutput.ReadToEnd();
+                    npmProcess.WaitForExit();
+                    Debug.Log(stdOutput);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(e.Message);
+                }
+                finally
+                {
+                    npmProcess.Dispose();
+                }
             }
         }
 
