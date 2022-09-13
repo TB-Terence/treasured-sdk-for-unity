@@ -410,9 +410,10 @@ namespace Treasured.UnitySdk
                                     _npmProcess.StartInfo.RedirectStandardOutput = true;
                                     _npmProcess.StartInfo.WorkingDirectory = TreasuredSDKPreferences.Instance.customExportFolder;
 
-                                    _map.processId = _npmProcess.Id;
 
                                     _npmProcess.Start();
+
+                                    _map.processId = _npmProcess.Id;
 
                                     UnityEditor.EditorApplication.quitting -= KillProcess;
                                     UnityEditor.EditorApplication.quitting += KillProcess;
