@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
@@ -391,7 +392,7 @@ namespace Treasured.UnitySdk
             }
         }
 
-        private void OnGLBSaved()
+        private async void OnGLBSaved()
         {
             _gltfSceneExporter.GLBSaved -= OnGLBSaved;
 
@@ -406,6 +407,9 @@ namespace Treasured.UnitySdk
                     Debug.LogError("Scene.glb file does not exists. Mesh will not be optimized.");
                     return;
                 }
+
+                //  Wait for 1 sec to finish writing scene.glb file
+                await Task.Delay(1000);
 
                 // Run `treasured optimize` to optimize the glb file
                 var npmProcess = new Process();
