@@ -8,10 +8,5 @@ namespace Treasured.UnitySdk
     public class KeyPressAction : ScriptableAction
     {
         public KeyCode key;
-
-        public override object[] GetArguments()
-        {
-            return new object[] { key };
-        }
     }
 }

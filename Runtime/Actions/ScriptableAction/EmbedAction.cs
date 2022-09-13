@@ -13,10 +13,5 @@ namespace Treasured.UnitySdk
         [Url]
         public string previewUrl;
         public EmbedPosition position = EmbedPosition.Fullscreen;
-
-        public override object[] GetArguments()
-        {
-            return new object[] { src, title };
-        }
     }
 }

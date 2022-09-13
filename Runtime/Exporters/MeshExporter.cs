@@ -168,7 +168,6 @@ namespace Treasured.UnitySdk
                             {
                                 continue;
                             }
-
                             var childGameObjectTagIndex = (int)Mathf.Pow(2, Array.IndexOf(allTags, child.tag));
                             if ((excludeTags & childGameObjectTagIndex) != childGameObjectTagIndex)
                             {
@@ -191,7 +190,6 @@ namespace Treasured.UnitySdk
                             {
                                 continue;
                             }
-
                             meshToCombineDictionary.Add(child.gameObject.GetInstanceID(), child.gameObject);
                         }
 

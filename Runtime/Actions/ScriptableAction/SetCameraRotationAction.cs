@@ -6,10 +6,7 @@ namespace Treasured.UnitySdk
     public class SetCameraRotationAction : ScriptableAction
     {
         public Quaternion rotation;
-
-        public override object[] GetArguments()
-        {
-            return new object[] { rotation };
-        }
+        [Range(1, 10)]
+        public int speedFactor = 1;
     }
 }
