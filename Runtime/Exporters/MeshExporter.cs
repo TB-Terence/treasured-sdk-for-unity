@@ -168,6 +168,7 @@ namespace Treasured.UnitySdk
                             {
                                 continue;
                             }
+
                             var childGameObjectTagIndex = (int)Mathf.Pow(2, Array.IndexOf(allTags, child.tag));
                             if ((excludeTags & childGameObjectTagIndex) != childGameObjectTagIndex)
                             {
@@ -190,6 +191,7 @@ namespace Treasured.UnitySdk
                             {
                                 continue;
                             }
+
                             meshToCombineDictionary.Add(child.gameObject.GetInstanceID(), child.gameObject);
                         }
 
@@ -459,12 +461,13 @@ namespace Treasured.UnitySdk
 
         private bool ContainsValidRenderer(GameObject gameObject)
         {
-            return gameObject.GetComponent<ReflectionProbe>() == null
-                   && (gameObject.GetComponent<MeshFilter>() != null && gameObject.GetComponent<MeshRenderer>() != null
-                       || gameObject.GetComponent<SkinnedMeshRenderer>() != null)
+            return
 #if TEXTMESHPRO_3_0_6_OR_NEWER
-                   && gameObject.GetComponent<TMPro.TextMeshPro>() == null;
+                gameObject.GetComponent<TMPro.TextMeshPro>() == null &&
 #endif
+                gameObject.GetComponent<ReflectionProbe>() == null
+                && (gameObject.GetComponent<MeshFilter>() != null && gameObject.GetComponent<MeshRenderer>() != null
+                    || gameObject.GetComponent<SkinnedMeshRenderer>() != null);
         }
 
         private GameObject ExportTerrainToObj(Terrain terrain)
