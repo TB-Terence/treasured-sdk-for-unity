@@ -415,20 +415,23 @@ namespace Treasured.UnitySdk
                     "/K treasured optimize scene.glb";
                 npmProcess.StartInfo.CreateNoWindow = false;
 #elif UNITY_STANDALONE_OSX
-                _npmProcess.StartInfo.FileName = "treasured";
-                _npmProcess.StartInfo.Arguments =
+                npmProcess.StartInfo.FileName = "treasured";
+                npmProcess.StartInfo.Arguments =
                     $"optimize scene.glb";
 #endif
                 npmProcess.StartInfo.UseShellExecute = false;
                 npmProcess.StartInfo.RedirectStandardOutput = true;
+                npmProcess.StartInfo.RedirectStandardError = true;
                 npmProcess.StartInfo.WorkingDirectory = Map.exportSettings.OutputDirectory;
 
+                string stdOutput = "";
+                string stdError = "";
                 try
                 {
                     npmProcess.Start();
-                    var stdOutput = npmProcess.StandardOutput.ReadToEnd();
+                    stdOutput = npmProcess.StandardOutput.ReadToEnd();
+                    stdError = npmProcess.StandardError.ReadToEnd();
                     npmProcess.WaitForExit();
-                    Debug.Log(stdOutput);
                 }
                 catch (Exception e)
                 {
@@ -436,6 +439,8 @@ namespace Treasured.UnitySdk
                 }
                 finally
                 {
+                    Debug.Log(stdOutput);
+                    Debug.LogError(stdError);
                     npmProcess.Dispose();
                 }
             }
