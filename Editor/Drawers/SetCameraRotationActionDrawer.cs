@@ -8,7 +8,6 @@ namespace Treasured.UnitySdk
     [CustomPropertyDrawer(typeof(SetCameraRotationAction))]
     public class SetCameraRotationActionDrawer : PropertyDrawer
     {
-        private static readonly string[] speedFactors = Enum.GetNames(typeof(SetCameraRotationAction.Speed)).Select(x => x.Replace("_", ".")).ToArray();
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             EditorGUI.BeginProperty(position, label, property);
@@ -16,7 +15,7 @@ namespace Treasured.UnitySdk
             if (property.isExpanded)
             {
                 SerializedProperty rotationProperty = property.FindPropertyRelative(nameof(SetCameraRotationAction.rotation));
-                SerializedProperty speedProperty = property.FindPropertyRelative(nameof(SetCameraRotationAction.speed));
+                SerializedProperty speedProperty = property.FindPropertyRelative(nameof(SetCameraRotationAction.speedFactor));
                 EditorGUI.BeginChangeCheck();
                 EditorGUI.PropertyField(new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight, position.width, position.height), rotationProperty, new GUIContent("Rotation"));
                 if (EditorGUI.EndChangeCheck())
@@ -32,7 +31,7 @@ namespace Treasured.UnitySdk
                 {
                     SceneView.lastActiveSceneView.LookAt(SceneView.lastActiveSceneView.pivot, rotationProperty.quaternionValue);
                 }
-                speedProperty.enumValueIndex = EditorGUI.Popup(new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight * 3 + EditorGUIUtility.standardVerticalSpacing * 2, position.width, EditorGUIUtility.singleLineHeight), speedProperty.displayName, speedProperty.enumValueIndex, speedFactors);
+                speedProperty.floatValue = Mathf.Clamp(EditorGUI.FloatField(new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight * 3 + EditorGUIUtility.standardVerticalSpacing * 2, position.width, EditorGUIUtility.singleLineHeight), speedProperty.displayName, speedProperty.floatValue), 0, 10);
             }
             EditorGUI.EndProperty();
         }
