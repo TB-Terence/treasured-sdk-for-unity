@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq;
+using System.Reflection;
+using System.Text;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -8,6 +10,22 @@ namespace Treasured.UnitySdk
 {
     internal class ActionListDrawer<T> where T : class
     {
+        class Styles
+        {
+            public static readonly GUIStyle ToolbarButton = new GUIStyle(EditorStyles.boldLabel)
+            {
+                margin = new RectOffset(4, 4, 0, 0),
+                padding = new RectOffset(4, 4, 0, 0),
+                hover = new GUIStyleState()
+                {
+                    textColor = Color.red
+                },
+                normal = new GUIStyleState()
+                {
+                    textColor = Color.white
+                }
+            };
+        }
         internal ReorderableList reorderableList;
         public string Header { get; set; }
 
@@ -30,7 +48,7 @@ namespace Treasured.UnitySdk
                     {
                         EditorGUI.BeginChangeCheck();
                         EditorGUI.showMixedValue = _toggleState == TreasuredMapEditor.GroupToggleState.Mixed;
-                        _enabledAll = EditorGUI.ToggleLeft(rect, new GUIContent(Header, $"{(_enabledAll ? "Disable" : "Enable")} all"), _enabledAll);
+                        _enabledAll = EditorGUI.ToggleLeft(new Rect(rect.x, rect.y, rect.xMax - 40, rect.height), new GUIContent(Header, $"{(_enabledAll ? "Disable" : "Enable")} all"), _enabledAll);
                         if (EditorGUI.EndChangeCheck())
                         {
                             for (int i = 0; i < elements.arraySize; i++)
@@ -40,6 +58,12 @@ namespace Treasured.UnitySdk
                                 enabledProperty.boolValue = _enabledAll;
                             }
                             UpdateToggleState(elements);
+                        }
+                        if (GUI.Button(new Rect(rect.xMax - 40, rect.y, 40, rect.height), new GUIContent("Clear", "Remove all actions"), Styles.ToolbarButton))
+                        {
+                            elements.ClearArray();
+                            elements.serializedObject.ApplyModifiedProperties();
+                            reorderableList.DoLayoutList(); // hacky way of resolving array index out of bounds error after clear.
                         }
                     }
                     else
@@ -90,18 +114,40 @@ namespace Treasured.UnitySdk
                     foreach (var type in actionTypes)
                     {
                         CategoryAttribute attribute = (CategoryAttribute)Attribute.GetCustomAttribute(type, typeof(CategoryAttribute));
-                        string name = type.Name;
-                        if (name.EndsWith("Action") && name.Length > 6)
-                        {
-                            name = name.Substring(0, name.Length - 6);
-                        }
-                        name = ObjectNames.NicifyVariableName(name);
-                        menu.AddItem(new GUIContent(attribute != null ? $"{attribute.Path}/{name}" : name), false, () =>
+                        string nicfyName = GetNicifyActionName(type);
+                        menu.AddItem(new GUIContent(attribute != null ? $"{attribute.Path}/{nicfyName}" : nicfyName), false, () =>
                         {
                             SerializedProperty element = elements.AppendManagedObject(type);
                             element.isExpanded = true;
                             element.serializedObject.ApplyModifiedProperties();
                         });
+                        LinkedActionAttribute[] linkedActionAttributes = (LinkedActionAttribute[])Attribute.GetCustomAttributes(type, typeof(LinkedActionAttribute));
+                        if (linkedActionAttributes != null && linkedActionAttributes.Length > 0)
+                        {
+                            foreach (var linkedActionAttribute in linkedActionAttributes)
+                            {
+                                StringBuilder pathBuilder = new StringBuilder();
+                                pathBuilder.Append(attribute != null ? $"{attribute.Path}/{nicfyName}(Linked)" : $"{nicfyName}(Linked)/");
+                                for (int i = 0; i < linkedActionAttribute.Types.Length; i++)
+                                {
+                                    if (i > 0)
+                                    {
+                                        pathBuilder.Append(", ");
+                                    }
+                                    pathBuilder.Append(GetNicifyActionName(linkedActionAttribute.Types[i]));
+                                }
+                                menu.AddItem(new GUIContent(pathBuilder.ToString()), false, () =>
+                                {
+                                    SerializedProperty element = elements.AppendManagedObject(type);
+                                    foreach (var linkedType in linkedActionAttribute.Types)
+                                    {
+                                        elements.AppendManagedObject(linkedType);
+                                    }
+                                    element.isExpanded = true;
+                                    element.serializedObject.ApplyModifiedProperties();
+                                });
+                            }
+                        }
                     }
                     menu.ShowAsContext();
                 },
@@ -110,6 +156,16 @@ namespace Treasured.UnitySdk
                     elements.RemoveElementAtIndex(list.index);
                 }
             };
+        }
+
+        private string GetNicifyActionName(Type type)
+        {
+            string name = type.Name;
+            if (name.EndsWith("Action") && name.Length > 6)
+            {
+                name = name.Substring(0, name.Length - 6);
+            }
+            return ObjectNames.NicifyVariableName(name);
         }
 
         public void OnGUI(Rect rect)
