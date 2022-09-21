@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 13966, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: TreasuredSceneTemplate
+  m_EditorClassIdentifier: 
+  templateScene: {fileID: 102900000, guid: 106d3efbfbaadc348b12e1a130192bc6, type: 3}
+  templateName: Treasured - Get Started
+  description: Get started with the Treasured minimal scene setup to help you get
+    started with the setup.
+  preview: {fileID: 2800000, guid: 4893f6ffe6430c14c83fa32019dd7940, type: 3}
+  dependencies:
+  - dependency: {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17, type: 2}
+    instantiationMode: 0
+  - dependency: {fileID: 2800000, guid: 31f47d3807109374ab564767abda71ab, type: 3}
+    instantiationMode: 0
+  templatePipeline: {fileID: 11500000, guid: 566b63d026167394193e97658f35c898, type: 3}
+  addToDefaults: 0
