@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using Newtonsoft.Json;
+using System;
+using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
@@ -6,7 +8,7 @@ namespace Treasured.UnitySdk
     public class SetCameraRotationAction : ScriptableAction
     {
         public Quaternion rotation;
-        [Range(1, 10)]
-        public int speedFactor = 1;
+        [Tooltip("Value between 0 to 100, where value less than 1 reduce the camera speed.")]
+        public float speedFactor = 1;
     }
 }
