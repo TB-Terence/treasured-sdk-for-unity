@@ -46,6 +46,10 @@ https://github.com/TB-Terence/treasured-sdk-for-unity.git#upm
 https://github.com/TB-Terence/treasured-sdk-for-unity.git#exp
 ```
 
+### Install via Installer
+
+The SDK can be installed using [treasured-sdk-installer](https://github.com/treasured-team/sdk-installer). The installer will setup the project and download all the dependencies the package is using.
+
 ### Install via GIT URL
 The guide on how to add a package from a git URL to your project can be found [here](https://docs.unity3d.com/Manual/upm-ui-giturl.html). Use the GIT URL above for different version.
 

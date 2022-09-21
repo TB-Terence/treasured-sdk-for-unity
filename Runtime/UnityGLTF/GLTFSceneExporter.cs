@@ -7,6 +7,7 @@ using Treasured.UnitySdk;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityGLTF.Extensions;
+using Action = System.Action;
 using CameraType = GLTF.Schema.CameraType;
 using WrapMode = GLTF.Schema.WrapMode;
 
@@ -84,6 +85,7 @@ namespace UnityGLTF
 		public static bool ExportNames = true;
 		public static bool ExportFullPath = true;
 		public static bool RequireExtensions = false;
+		public Action GLBSaved;
 
 		/// <summary>
 		/// Create a GLTFExporter that exports out a transform
@@ -237,6 +239,9 @@ namespace UnityGLTF
 			CopyStream(binStream, writer);
 
 			writer.Flush();
+			
+			//	GLB saved callback event
+			GLBSaved?.Invoke();
 		}
 
 		/// <summary>

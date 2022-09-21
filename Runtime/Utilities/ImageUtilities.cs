@@ -89,7 +89,7 @@ namespace Treasured.UnitySdk
             argumentBuilder.Append($" \"{modifiedDirectory}\"");
 
             var startInfo = new ProcessStartInfo(processName, argumentBuilder.ToString());
-            startInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            startInfo.CreateNoWindow = true;
             startInfo.RedirectStandardOutput = true;
             startInfo.UseShellExecute = false;
 

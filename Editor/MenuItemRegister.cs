@@ -39,12 +39,12 @@ namespace Treasured.UnitySdk
                     process.WaitForExit();
 
                     string output = process.StandardOutput.ReadToEnd();
-                    if (!String.IsNullOrEmpty(output)) {
+                    if (!string.IsNullOrEmpty(output)) {
                         UnityEngine.Debug.Log(output);
                     }
 
                     string error = process.StandardError.ReadToEnd();
-                    if (!String.IsNullOrEmpty(error)) {
+                    if (!string.IsNullOrEmpty(error)) {
                         UnityEngine.Debug.LogError(error);
                     }
                 }
@@ -82,7 +82,7 @@ namespace Treasured.UnitySdk
                     version = process.StandardOutput.ReadToEnd();
 
                     string error = process.StandardError.ReadToEnd();
-                    if (!String.IsNullOrEmpty(error)) {
+                    if (!string.IsNullOrEmpty(error)) {
                         UnityEngine.Debug.LogError(error);
                     }
                 }
