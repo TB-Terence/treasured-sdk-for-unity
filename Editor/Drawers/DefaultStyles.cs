@@ -31,6 +31,18 @@ namespace Treasured.UnitySdk
         public static GUIStyle Panel { get; private set; }
         public static GUIStyle CenterWordWrappedLabel { get; private set; }
 
+        public static GUIStyle ClearButton = new GUIStyle(EditorStyles.boldLabel)
+        {
+            hover = new GUIStyleState()
+            {
+                textColor = Color.red
+            },
+            normal = new GUIStyleState()
+            {
+                textColor = Color.white
+            }
+        };
+
         public static void Init()
         {
             if (s_initialized)
