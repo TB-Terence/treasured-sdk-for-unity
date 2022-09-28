@@ -74,21 +74,22 @@ namespace Treasured.UnitySdk
                         {
                             name = char.ToLower(name[0]) + name.Substring(1);
                         }
+                        name = ObjectNames.NicifyVariableName(name);
                         if (typeof(ScriptableAction).IsAssignableFrom(typeof(T))) // TODO: Remove this after migrate to GuidedTourV2
                         {
                             Rect buttonRect = new Rect(rect.x, rect.y, 25, EditorGUIUtility.singleLineHeight);
                             SerializedProperty enabled = element.FindPropertyRelative("enabled");
                             EditorGUI.BeginChangeCheck();
-                            enabled.boolValue = EditorGUI.ToggleLeft(buttonRect, new GUIContent(ObjectNames.NicifyVariableName(name)), enabled.boolValue);
+                            enabled.boolValue = EditorGUI.ToggleLeft(buttonRect, new GUIContent(name), enabled.boolValue);
                             if (EditorGUI.EndChangeCheck())
                             {
                                 UpdateToggleState(elements);
                             }
-                            EditorGUI.PropertyField(new Rect(rect.x + 25, rect.y, rect.width - 25, rect.height), element, new GUIContent(ObjectNames.NicifyVariableName(name)), true);
+                            EditorGUI.PropertyField(new Rect(rect.x + 25, rect.y, rect.width - 25, rect.height), element, new GUIContent(name), true);
                         }
                         else
                         {
-                            EditorGUI.PropertyField(rect, element, new GUIContent(ObjectNames.NicifyVariableName(name)), true);
+                            EditorGUI.PropertyField(rect, element, new GUIContent(name), true);
                         }
                     }
                 },
@@ -106,7 +107,7 @@ namespace Treasured.UnitySdk
                         string nicfyName = GetNicifyActionName(type);
                         menu.AddItem(new GUIContent(attribute != null ? $"{attribute.Path}/{nicfyName}" : nicfyName), false, () =>
                         {
-                            SerializedProperty element = elements.AppendManagedObject(type);
+                            SerializedProperty element = elements.InsertManagedObject(type, list.index);
                             element.isExpanded = true;
                             element.serializedObject.ApplyModifiedProperties();
                         });
