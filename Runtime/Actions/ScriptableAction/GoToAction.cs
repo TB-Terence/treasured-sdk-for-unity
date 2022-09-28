@@ -1,8 +1,8 @@
 ﻿namespace Treasured.UnitySdk
 {
     [API("goto")]
-    [LinkedAction(typeof(SetCameraRotationAction))]
-    [LinkedAction(typeof(PanAction))]
+    [CreateActionGroup(typeof(SetCameraRotationAction))]
+    [CreateActionGroup(typeof(PanAction))]
     public class GoToAction : ScriptableAction
     {
         public Hotspot target;

@@ -331,6 +331,10 @@ namespace Treasured.UnitySdk
                 sp.serializedObject.ApplyModifiedProperties();
             }
             graphEditor = Editor.CreateEditor(sp.objectReferenceValue);
+            if(graphEditor is GuidedTourGraphEditor editor)
+            {
+                editor.Map = _map;
+            }
         }
 
         public override void OnInspectorGUI()

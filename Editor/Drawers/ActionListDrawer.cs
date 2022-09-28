@@ -10,22 +10,6 @@ namespace Treasured.UnitySdk
 {
     internal class ActionListDrawer<T> where T : class
     {
-        class Styles
-        {
-            public static readonly GUIStyle ToolbarButton = new GUIStyle(EditorStyles.boldLabel)
-            {
-                margin = new RectOffset(4, 4, 0, 0),
-                padding = new RectOffset(4, 4, 0, 0),
-                hover = new GUIStyleState()
-                {
-                    textColor = Color.red
-                },
-                normal = new GUIStyleState()
-                {
-                    textColor = Color.white
-                }
-            };
-        }
         internal ReorderableList reorderableList;
         public string Header { get; set; }
 
@@ -48,7 +32,7 @@ namespace Treasured.UnitySdk
                     {
                         EditorGUI.BeginChangeCheck();
                         EditorGUI.showMixedValue = _toggleState == TreasuredMapEditor.GroupToggleState.Mixed;
-                        _enabledAll = EditorGUI.ToggleLeft(new Rect(rect.x, rect.y, rect.xMax - 40, rect.height), new GUIContent(Header, $"{(_enabledAll ? "Disable" : "Enable")} all"), _enabledAll);
+                        _enabledAll = EditorGUI.ToggleLeft(new Rect(rect.x, rect.y, rect.xMax - 120, rect.height), new GUIContent(Header, $"{(_enabledAll ? "Disable" : "Enable")} all"), _enabledAll);
                         if (EditorGUI.EndChangeCheck())
                         {
                             for (int i = 0; i < elements.arraySize; i++)
@@ -59,12 +43,17 @@ namespace Treasured.UnitySdk
                             }
                             UpdateToggleState(elements);
                         }
-                        if (GUI.Button(new Rect(rect.xMax - 40, rect.y, 40, rect.height), new GUIContent("Clear", "Remove all actions"), Styles.ToolbarButton))
+                        bool disabled = elements.arraySize == 0;
+                        using (new EditorGUI.DisabledGroupScope(disabled))
                         {
-                            elements.ClearArray();
-                            elements.serializedObject.ApplyModifiedProperties();
-                            reorderableList.DoLayoutList(); // hacky way of resolving array index out of bounds error after clear.
+                            if (GUI.Button(new Rect(rect.xMax - 40, rect.y, 40, rect.height), new GUIContent("Clear", "Remove all actions"), disabled ? EditorStyles.boldLabel : DefaultStyles.ClearButton))
+                            {
+                                elements.ClearArray();
+                                elements.serializedObject.ApplyModifiedProperties();
+                                reorderableList.DoLayoutList(); // hacky way of resolving array index out of bounds error after clear.
+                            }
                         }
+                        
                     }
                     else
                     {
@@ -121,13 +110,13 @@ namespace Treasured.UnitySdk
                             element.isExpanded = true;
                             element.serializedObject.ApplyModifiedProperties();
                         });
-                        LinkedActionAttribute[] linkedActionAttributes = (LinkedActionAttribute[])Attribute.GetCustomAttributes(type, typeof(LinkedActionAttribute));
+                        CreateActionGroupAttribute[] linkedActionAttributes = (CreateActionGroupAttribute[])Attribute.GetCustomAttributes(type, typeof(CreateActionGroupAttribute));
                         if (linkedActionAttributes != null && linkedActionAttributes.Length > 0)
                         {
                             foreach (var linkedActionAttribute in linkedActionAttributes)
                             {
                                 StringBuilder pathBuilder = new StringBuilder();
-                                pathBuilder.Append(attribute != null ? $"{attribute.Path}/{nicfyName}(Linked)" : $"{nicfyName}(Linked)/");
+                                pathBuilder.Append(attribute != null ? $"{attribute.Path}/{nicfyName}(Group)" : $"{nicfyName}(Group)/");
                                 for (int i = 0; i < linkedActionAttribute.Types.Length; i++)
                                 {
                                     if (i > 0)

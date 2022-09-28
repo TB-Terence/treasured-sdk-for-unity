@@ -4,6 +4,7 @@ using UnityEditor;
 using Treasured.UnitySdk.Utilities;
 using UnityEditorInternal;
 using Newtonsoft.Json;
+using System.Linq;
 
 namespace Treasured.UnitySdk
 {
@@ -11,18 +12,19 @@ namespace Treasured.UnitySdk
     internal class GuidedTourGraphEditor : Editor 
     {
         public static GuidedTourGraph Current { get; private set; }
-        public sealed class GuidedTourModalEditorWindow : EditorWindow, IHasCustomMenu
+        public TreasuredMap Map { get; set; }
+        public sealed class GuidedTourModalEditorWindow : EditorWindow
         {
             private static readonly Vector2 WINDOW_SIZE = new Vector2(500, 600);
 
-            private SerializedObject _serializedObject;
+            public SerializedObject serializedObject;
             private Vector2 _scrollPosition;
 
             public static void ShowModal(UnityEngine.Object obj)
             {
                 bool isOpened = EditorWindow.HasOpenInstances<GuidedTourModalEditorWindow>();
                 var window = EditorWindow.GetWindow<GuidedTourModalEditorWindow>();
-                window._serializedObject = new SerializedObject(obj);
+                window.serializedObject = new SerializedObject(obj);
                 window.titleContent = new GUIContent("Guided Tour Editor");
                 var mainWindowPos = EditorGUIUtility.GetMainWindowPosition();
                 var windowSize = new Vector2(Math.Min(WINDOW_SIZE.x, mainWindowPos.size.x), Math.Min(WINDOW_SIZE.y, mainWindowPos.size.y));
@@ -33,32 +35,20 @@ namespace Treasured.UnitySdk
                 window.Show();
             }
 
-            public void AddItemsToMenu(GenericMenu menu)
-            {
-                if (this._serializedObject.targetObject is GuidedTour gt)
-                {
-                    menu.AddItem(new GUIContent("Generate and Copy Action Scripts"), false, () =>
-                    {
-                        string script = JsonConvert.SerializeObject(gt.actionScripts, Formatting.None, JsonExporter.JsonSettings);
-                        GUIUtility.systemCopyBuffer = script.Substring(1, script.Length - 2);
-                    });
-                }
-            }
-
             private void OnGUI()
             {
-                if (_serializedObject == null)
+                if (serializedObject == null)
                 {
                     this.Close();
                     return;
                 }
-                _serializedObject.Update();
+                serializedObject.Update();
                 using(var scope = new EditorGUILayout.ScrollViewScope(_scrollPosition))
                 {
                     _scrollPosition = scope.scrollPosition;
-                    EditorGUIUtils.DrawPropertiesExcluding(_serializedObject, "m_Script");
+                    EditorGUIUtils.DrawPropertiesExcluding(serializedObject, "m_Script");
                 }
-                _serializedObject.ApplyModifiedProperties();
+                serializedObject.ApplyModifiedProperties();
             }
         }
 
@@ -68,36 +58,89 @@ namespace Treasured.UnitySdk
         {
             Current = target as GuidedTourGraph;
             rl = new ReorderableList(serializedObject, serializedObject.FindProperty(nameof(GuidedTourGraph.tours)));
-            rl.headerHeight = 0;
-            rl.drawHeaderCallback = (Rect rect) => { };
+            rl.drawHeaderCallback = (Rect rect) =>
+            {
+                using (new EditorGUI.DisabledGroupScope(rl.serializedProperty.arraySize == 0))
+                {
+                    if (GUI.Button(new Rect(rect.xMax - 40, rect.y, 40, rect.height), new GUIContent("Clear", "Remove all tours"), EditorStyles.boldLabel))
+                    {
+                        if (EditorUtility.DisplayDialog("Warning", "You are about to remove all tours. This cannot be undone.", "Confirm", "Cancel"))
+                        {
+                            rl.serializedProperty.ClearArray();
+                            rl.serializedProperty.serializedObject.ApplyModifiedProperties();
+                            rl.DoLayoutList(); // hacky way of resolving array index out of bounds error after clear.
+                        }
+                    }
+                }
+            };
+            rl.onSelectCallback = (ReorderableList list) =>
+            {
+                SerializedProperty element = list.serializedProperty.GetArrayElementAtIndex(list.index);
+                GuidedTourModalEditorWindow.ShowModal(element.objectReferenceValue);
+            };
             rl.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
             {
                 SerializedProperty element = rl.serializedProperty.GetArrayElementAtIndex(index);
                 GuidedTour gt = element.objectReferenceValue as GuidedTour;
                 Rect labelRect = new Rect(rect.x, rect.y, rect.width, rect.height);
-                EditorGUI.LabelField(rect, new GUIContent(gt.title));
-                if (GUI.Button(new Rect(rect.xMax - 20, rect.y, 20, rect.height), EditorGUIUtility.TrIconContent("editicon.sml", "Edit"), EditorStyles.label))
-                {
-                    GuidedTourModalEditorWindow.ShowModal(gt);
-                }
+                EditorGUI.LabelField(rect, new GUIContent(gt.title), EditorStyles.boldLabel);
             };
-            rl.onAddCallback = (ReorderableList list) =>
+            rl.onAddDropdownCallback = (Rect buttonRect, ReorderableList list) =>
             {
-                list.serializedProperty.TryAppendScriptableObject(out SerializedProperty elementProperty, out ScriptableObject tour);
-                if (list.count == 1)
+                GenericMenu menu = new GenericMenu();
+                menu.AddItem(new GUIContent("New"), false, () =>
                 {
-                    tour.name = "default";
-                    if (tour is GuidedTour guidedTour)
+                    CreateNew(list, "New Tour");
+                });
+                menu.AddItem(new GUIContent("Quick Tour/Hotspots"), false, () =>
+                {
+                    GuidedTour tour = CreateNew(list, "Quick Tour/Hotspots");
+                    tour.actionScripts = ScriptableObject.CreateInstance<ScriptableActionCollection>();
+                    foreach (var hotspot in Map.Hotspots)
                     {
-                        guidedTour.title = "default";
+                        tour.actionScripts.Add(new GoToAction()
+                        {
+                            target = hotspot,
+                            message = hotspot.name
+                        });
+                        if (!hotspot.Camera.IsNullOrNone())
+                        {
+                            tour.actionScripts.Add(new SetCameraRotationAction()
+                            {
+                                rotation = hotspot.Camera.transform.rotation
+                            });
+                        }
                     }
-                }
+                    serializedObject.Update();
+                });
+                menu.ShowAsContext();
             };
             rl.onRemoveCallback = (ReorderableList list) =>
             {
                 list.serializedProperty.RemoveElementAtIndex(list.index);
             };
         }
+
+        private GuidedTour CreateNew(ReorderableList list, string defaultName = "")
+        {
+            list.serializedProperty.TryAppendScriptableObject(out SerializedProperty elementProperty, out ScriptableObject tour);
+            GuidedTour guidedTour = tour as GuidedTour;
+            if (list.count == 1)
+            {
+                guidedTour.name = guidedTour.title = "default";
+            }
+            else
+            {
+                string[] tourNames = (serializedObject.targetObject as GuidedTourGraph)?.tours.Select(tour => tour.name).ToArray();
+                guidedTour.title = guidedTour.name = ObjectNames.GetUniqueName(tourNames, defaultName);
+            }
+            elementProperty.serializedObject.Update();
+            elementProperty.serializedObject.ApplyModifiedProperties();
+            GuidedTourModalEditorWindow.ShowModal(tour);
+            list.index = list.count - 1;
+            return tour as GuidedTour;
+        }
+
         public override void OnInspectorGUI()
         {
             rl.DoLayoutList();
