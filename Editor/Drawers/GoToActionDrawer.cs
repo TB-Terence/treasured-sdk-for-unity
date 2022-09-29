@@ -24,14 +24,14 @@ namespace Treasured.UnitySdk
                 if (hotspots.Count > 0)
                 {
                     var hotspot = hotspots[0];
-                    if (!hotspot.IsNullOrNone())
+                    if (hotspot != null)
                     {
-                        targetProperty.objectReferenceValue = hotspot;
+                        targetProperty.objectReferenceValue = (Object)hotspot;
                         targetProperty.serializedObject.ApplyModifiedProperties();
                     }
                 }
             });
-            property.isExpanded = EditorGUI.Foldout(new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight), property.isExpanded, new GUIContent(label.text + (targetProperty.objectReferenceValue.IsNullOrNone() ? " (Not selected)" : $" ({targetProperty.objectReferenceValue.name})")), true);
+            property.isExpanded = EditorGUI.Foldout(new Rect(position.x, position.y, position.width, EditorGUIUtility.singleLineHeight), property.isExpanded, label, true);
             if (property.isExpanded)
             {
                 EditorGUI.indentLevel++;

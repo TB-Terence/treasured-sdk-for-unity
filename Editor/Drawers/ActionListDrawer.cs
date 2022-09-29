@@ -75,6 +75,30 @@ namespace Treasured.UnitySdk
                             name = char.ToLower(name[0]) + name.Substring(1);
                         }
                         name = ObjectNames.NicifyVariableName(name);
+                        SerializedProperty targetProperty = element.FindPropertyRelative("target");
+                        if (targetProperty != null && targetProperty.propertyType == SerializedPropertyType.ObjectReference)
+                        {
+                            if (!targetProperty.objectReferenceValue.IsNullOrNone())
+                            {
+                                name += $" ({targetProperty.objectReferenceValue.name})";;
+                            }
+                            else
+                            {
+                                name += $" (Not selected)";
+                            }
+                            EditorGUILayoutUtils.CreateDropZone(rect, DragAndDropVisualMode.Link, (targets) =>
+                            {
+                                if (targets.Length > 0)
+                                {
+                                    var target = targets[0];
+                                    if (!target.IsNullOrNone())
+                                    {
+                                        targetProperty.objectReferenceValue = target;
+                                        targetProperty.serializedObject.ApplyModifiedProperties();
+                                    }
+                                }
+                            });
+                        }
                         if (typeof(ScriptableAction).IsAssignableFrom(typeof(T))) // TODO: Remove this after migrate to GuidedTourV2
                         {
                             Rect buttonRect = new Rect(rect.x, rect.y, 25, EditorGUIUtility.singleLineHeight);
