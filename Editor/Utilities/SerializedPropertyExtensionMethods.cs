@@ -19,13 +19,14 @@ namespace Treasured.UnitySdk
         public static SerializedProperty InsertElement(this SerializedProperty arrayProperty, int index)
         {
             arrayProperty.ValidateArray();
-            arrayProperty.InsertArrayElementAtIndex(index);
-            return arrayProperty.GetArrayElementAtIndex(index + 1);
+            int indexToInsert = index < 0 || index >= arrayProperty.arraySize ? arrayProperty.arraySize : index;
+            arrayProperty.InsertArrayElementAtIndex(indexToInsert);
+            return arrayProperty.GetArrayElementAtIndex(indexToInsert + 1 < arrayProperty.arraySize ? indexToInsert + 1 : arrayProperty.arraySize - 1);
         }
 
         public static SerializedProperty AppendLast(this SerializedProperty arrayProperty)
         {
-            arrayProperty.ValidateArray(); ;
+            arrayProperty.ValidateArray();
             return arrayProperty.GetArrayElementAtIndex(arrayProperty.arraySize++);
         }
 
@@ -102,7 +103,7 @@ namespace Treasured.UnitySdk
 
         public static SerializedProperty InsertManagedObject(this SerializedProperty arrayProperty, Type type, int index)
         {
-            SerializedProperty insertedElement = arrayProperty.InsertElement(index < 0 ? arrayProperty.arraySize : index);
+            SerializedProperty insertedElement = arrayProperty.InsertElement(index);
             if (insertedElement.propertyType != SerializedPropertyType.ManagedReference)
             {
                 arrayProperty.RemoveElementAtIndex(index);

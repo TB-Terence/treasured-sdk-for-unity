@@ -44,6 +44,16 @@ namespace Treasured.UnitySdk
                             UpdateToggleState(elements);
                         }
                         bool disabled = elements.arraySize == 0;
+                        //if (GUI.Button(new Rect(rect.xMax - 190, rect.y, 80, rect.height), new GUIContent("Expand All"), EditorStyles.boldLabel))
+                        //{
+                        //    ChangeExpandedState(true);
+                        //    reorderableList.DoLayoutList();
+                        //}
+                        //if (GUI.Button(new Rect(rect.xMax - 120, rect.y, 80, rect.height), new GUIContent("Collapse All"), EditorStyles.boldLabel))
+                        //{
+                        //    ChangeExpandedState(false);
+                        //    reorderableList.DoLayoutList();
+                        //}
                         using (new EditorGUI.DisabledGroupScope(disabled))
                         {
                             if (GUI.Button(new Rect(rect.xMax - 40, rect.y, 40, rect.height), new GUIContent("Clear", "Remove all actions"), disabled ? EditorStyles.boldLabel : DefaultStyles.ClearButton))
@@ -109,11 +119,20 @@ namespace Treasured.UnitySdk
                             {
                                 UpdateToggleState(elements);
                             }
-                            EditorGUI.PropertyField(new Rect(rect.x + 25, rect.y, rect.width - 25, rect.height), element, new GUIContent(name), true);
+                            EditorGUI.PropertyField(new Rect(rect.x + 25, rect.y, rect.width - 64, rect.height), element, new GUIContent(name), true);
                         }
                         else
                         {
                             EditorGUI.PropertyField(rect, element, new GUIContent(name), true);
+                        }
+                        if (GUI.Button(new Rect(rect.xMax - 40, rect.y, 20, EditorGUIUtility.singleLineHeight), EditorGUIUtility.TrIconContent("Toolbar Plus More", "Insert After"), EditorStyles.label))
+                        {
+                            ShowAddMenu();
+                        }
+                        if (GUI.Button(new Rect(rect.xMax - 20, rect.y, 20, EditorGUIUtility.singleLineHeight), EditorGUIUtility.TrIconContent("Toolbar Minus", "Remove"), EditorStyles.label))
+                        {
+                            elements.RemoveElementAtIndex(index);
+                            reorderableList.DoLayoutList();
                         }
                     }
                 },
@@ -123,53 +142,68 @@ namespace Treasured.UnitySdk
                 },
                 onAddDropdownCallback = (Rect buttonRect, ReorderableList list) =>
                 {
-                    var actionTypes = TypeCache.GetTypesDerivedFrom<T>().Where(x => !x.IsAbstract && !x.IsDefined(typeof(ObsoleteAttribute), true));
-                    GenericMenu menu = new GenericMenu();
-                    foreach (var type in actionTypes)
-                    {
-                        CategoryAttribute attribute = (CategoryAttribute)Attribute.GetCustomAttribute(type, typeof(CategoryAttribute));
-                        string nicfyName = GetNicifyActionName(type);
-                        menu.AddItem(new GUIContent(attribute != null ? $"{attribute.Path}/{nicfyName}" : nicfyName), false, () =>
-                        {
-                            SerializedProperty element = elements.InsertManagedObject(type, list.index);
-                            element.isExpanded = true;
-                            element.serializedObject.ApplyModifiedProperties();
-                        });
-                        CreateActionGroupAttribute[] linkedActionAttributes = (CreateActionGroupAttribute[])Attribute.GetCustomAttributes(type, typeof(CreateActionGroupAttribute));
-                        if (linkedActionAttributes != null && linkedActionAttributes.Length > 0)
-                        {
-                            foreach (var linkedActionAttribute in linkedActionAttributes)
-                            {
-                                StringBuilder pathBuilder = new StringBuilder();
-                                pathBuilder.Append(attribute != null ? $"{attribute.Path}/{nicfyName}(Group)" : $"{nicfyName}(Group)/");
-                                for (int i = 0; i < linkedActionAttribute.Types.Length; i++)
-                                {
-                                    if (i > 0)
-                                    {
-                                        pathBuilder.Append(", ");
-                                    }
-                                    pathBuilder.Append(GetNicifyActionName(linkedActionAttribute.Types[i]));
-                                }
-                                menu.AddItem(new GUIContent(pathBuilder.ToString()), false, () =>
-                                {
-                                    SerializedProperty element = elements.AppendManagedObject(type);
-                                    foreach (var linkedType in linkedActionAttribute.Types)
-                                    {
-                                        elements.AppendManagedObject(linkedType);
-                                    }
-                                    element.isExpanded = true;
-                                    element.serializedObject.ApplyModifiedProperties();
-                                });
-                            }
-                        }
-                    }
-                    menu.ShowAsContext();
+                    ShowAddMenu();
                 },
                 onRemoveCallback = (ReorderableList list) =>
                 {
                     elements.RemoveElementAtIndex(list.index);
                 }
             };
+        }
+
+        private void ChangeExpandedState(bool expanded)
+        {
+            for (int i = 0; i < reorderableList.serializedProperty.arraySize; i++)
+            {
+                SerializedProperty element = reorderableList.serializedProperty.GetArrayElementAtIndex(i);
+                element.isExpanded = expanded;
+            }
+        }
+
+        private void ShowAddMenu()
+        {
+            var actionTypes = TypeCache.GetTypesDerivedFrom<T>().Where(x => !x.IsAbstract && !x.IsDefined(typeof(ObsoleteAttribute), true));
+            GenericMenu menu = new GenericMenu();
+            foreach (var type in actionTypes)
+            {
+                CategoryAttribute attribute = (CategoryAttribute)Attribute.GetCustomAttribute(type, typeof(CategoryAttribute));
+                string nicfyName = GetNicifyActionName(type);
+                menu.AddItem(new GUIContent(attribute != null ? $"{attribute.Path}/{nicfyName}" : nicfyName), false, () =>
+                {
+                    SerializedProperty element = reorderableList.serializedProperty.InsertManagedObject(type, reorderableList.index);
+                    element.isExpanded = true;
+                    element.serializedObject.ApplyModifiedProperties();
+                });
+                CreateActionGroupAttribute[] linkedActionAttributes = (CreateActionGroupAttribute[])Attribute.GetCustomAttributes(type, typeof(CreateActionGroupAttribute));
+                if (linkedActionAttributes != null && linkedActionAttributes.Length > 0)
+                {
+                    foreach (var linkedActionAttribute in linkedActionAttributes)
+                    {
+                        StringBuilder pathBuilder = new StringBuilder();
+                        pathBuilder.Append(attribute != null ? $"{attribute.Path}/{nicfyName}(Group)" : $"{nicfyName}(Group)/");
+                        for (int i = 0; i < linkedActionAttribute.Types.Length; i++)
+                        {
+                            if (i > 0)
+                            {
+                                pathBuilder.Append(", ");
+                            }
+                            pathBuilder.Append(GetNicifyActionName(linkedActionAttribute.Types[i]));
+                        }
+                        menu.AddItem(new GUIContent(pathBuilder.ToString()), false, () =>
+                        {
+                            int index = reorderableList.index;
+                            SerializedProperty element = reorderableList.serializedProperty.InsertManagedObject(type, index);
+                            foreach (var linkedType in linkedActionAttribute.Types)
+                            {
+                                reorderableList.serializedProperty.InsertManagedObject(linkedType, ++index);
+                            }
+                            element.isExpanded = true;
+                            element.serializedObject.ApplyModifiedProperties();
+                        });
+                    }
+                }
+            }
+            menu.ShowAsContext();
         }
 
         private string GetNicifyActionName(Type type)
