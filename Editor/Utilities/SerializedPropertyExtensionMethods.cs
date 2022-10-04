@@ -16,9 +16,17 @@ namespace Treasured.UnitySdk
             }
         }
 
+        public static SerializedProperty InsertElement(this SerializedProperty arrayProperty, int index)
+        {
+            arrayProperty.ValidateArray();
+            int indexToInsert = index < 0 || index >= arrayProperty.arraySize ? arrayProperty.arraySize : index;
+            arrayProperty.InsertArrayElementAtIndex(indexToInsert);
+            return arrayProperty.GetArrayElementAtIndex(indexToInsert + 1 < arrayProperty.arraySize ? indexToInsert + 1 : arrayProperty.arraySize - 1);
+        }
+
         public static SerializedProperty AppendLast(this SerializedProperty arrayProperty)
         {
-            arrayProperty.ValidateArray();;
+            arrayProperty.ValidateArray();
             return arrayProperty.GetArrayElementAtIndex(arrayProperty.arraySize++);
         }
 
@@ -91,6 +99,19 @@ namespace Treasured.UnitySdk
             lastElement.managedReferenceValue = Activator.CreateInstance(type);
             arrayProperty.serializedObject.ApplyModifiedProperties();
             return lastElement;
+        }
+
+        public static SerializedProperty InsertManagedObject(this SerializedProperty arrayProperty, Type type, int index)
+        {
+            SerializedProperty insertedElement = arrayProperty.InsertElement(index);
+            if (insertedElement.propertyType != SerializedPropertyType.ManagedReference)
+            {
+                arrayProperty.RemoveElementAtIndex(index);
+                throw new ArgumentException($"Type dismatch {arrayProperty.displayName} is not type of managed reference.");
+            }
+            insertedElement.managedReferenceValue = Activator.CreateInstance(type);
+            arrayProperty.serializedObject.ApplyModifiedProperties();
+            return insertedElement;
         }
 
         public static void RemoveElementAtIndex(this SerializedProperty arrayProperty, int index)
