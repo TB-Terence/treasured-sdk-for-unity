@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -25,22 +26,26 @@ namespace Treasured.UnitySdk
         {
             if (value is ScriptableActionCollection collection)
             {
-                StringBuilder sb = new StringBuilder();
+                writer.WriteStartArray();
                 foreach (var action in collection)
                 {
                     if (!action.enabled)
                     {
                         continue;
                     }
-                    Type type = action.GetType();
-                    APIAttribute attribute = type.GetCustomAttributes<APIAttribute>().FirstOrDefault();
-                    if (attribute == null)
-                    {
-                        continue;
-                    }
-                    sb.AppendLine($"{(attribute.IsAsync ? "await " : "")}{attribute.Domain}.{attribute.MethodName}({JsonConvert.SerializeObject(action, Formatting.None, JsonExporter.JsonSettings)})");
+                    writer.WriteStartObject();
+                    writer.WritePropertyName("id");
+                    writer.WriteValue(action.Id);
+                    writer.WritePropertyName("function");
+                    APIAttribute apiAttribute = GetType().GetCustomAttributes<APIAttribute>().FirstOrDefault();
+                    string functionName = apiAttribute != null ? apiAttribute.FunctionName : action.Type;
+                    writer.WriteValue(functionName);
+                    writer.WritePropertyName("params");
+                    JObject jAction = JObject.FromObject(action, serializer);
+                    jAction.WriteTo(writer);
+                    writer.WriteEndObject();
                 }
-                writer.WriteValue(sb.ToString());
+                writer.WriteEndArray();
             }
         }
 

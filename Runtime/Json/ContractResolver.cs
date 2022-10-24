@@ -20,6 +20,7 @@ namespace Treasured.UnitySdk
             "created",
             "name",
             "type",
+            "function",
             "author",
             "title",
             "description",
