@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -71,15 +72,20 @@ namespace Treasured.UnitySdk
             }
         }
 
-        public static void CreateComponentDropZone<T>(Rect rect, Action<List<T>> onDrop)
+        public static void CreateComponentDropZone<T>(Rect rect, Action<IList<UnityEngine.Object>> onDrop)
+        {
+            CreateComponentDropZone(rect, typeof(T), onDrop);
+        }
+
+        public static void CreateComponentDropZone(Rect rect, Type type, Action<IList<UnityEngine.Object>> onDrop)
         {
             Event e = Event.current;
             if (rect.Contains(e.mousePosition) && (e.type == EventType.DragUpdated || e.type == EventType.DragPerform))
             {
-                List<T> components = new List<T>();
+                IList components = new ArrayList();
                 foreach (var go in DragAndDrop.objectReferences.OfType<GameObject>())
                 {
-                    if(go.TryGetComponent<T>(out T component))
+                    if (go.TryGetComponent(type, out Component component))
                     {
                         components.Add(component);
                     }
@@ -89,7 +95,7 @@ namespace Treasured.UnitySdk
                 if (e.type == EventType.DragPerform && hasComponent)
                 {
                     DragAndDrop.AcceptDrag();
-                    onDrop.Invoke(components);
+                    onDrop.Invoke((IList<UnityEngine.Object>)components);
                     Event.current.Use();
                 }
             }
