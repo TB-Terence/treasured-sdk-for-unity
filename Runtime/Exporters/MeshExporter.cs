@@ -230,6 +230,12 @@ namespace Treasured.UnitySdk
                             {
                                 foreach (var renderer in renderers)
                                 {
+                                    if (renderer == null)
+                                    {
+                                        Debug.LogError($"[MeshExporter] : Broken LOD. {lodGroup.gameObject.name}'s mesh will not be exported.", lodGroup.gameObject);
+                                        break;
+                                    }
+
                                     if (meshToCombineDictionary.ContainsKey(renderer.gameObject.GetInstanceID()))
                                     {
                                         if (displayLogs)
