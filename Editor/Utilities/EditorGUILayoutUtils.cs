@@ -29,11 +29,14 @@ namespace Treasured.UnitySdk
         {
             public static GUIStyle Link = new GUIStyle() { stretchWidth = false, normal = { textColor = new Color(0f, 0.47f, 0.85f) } };
             public static readonly GUIContent requiredField = EditorGUIUtility.TrIconContent("Error", "Required field");
+            public static readonly GUIContent transformLabel = new GUIContent("Transform");
         }
 
         private static object transformRotationGUI;
         private static MethodInfo transformRotationOnEnableMethodInfo;
         private static MethodInfo transformRotationGUIMethodInfo;
+
+        private const string InteractableButtonFoldoutKey = "TreasuredSDK_InteractableButtonFoldout";
 
         public static bool Link(GUIContent label, GUIContent url)
         {
@@ -160,46 +163,129 @@ namespace Treasured.UnitySdk
             return missingData;
         }
 
-        public static void TransformPropertyField(SerializedObject serializedTransform, string name, bool showPosition = true, bool showRotation = true, bool showScale = true)
+        public static void ComponentTransformPropertyField(SerializedProperty component, SerializedObject serializedTransform, string name, bool showPosition = true, bool showRotation = true, bool showScale = true)
         {
-            SerializedProperty property = serializedTransform.GetIterator();
-            if (serializedTransform != null && property != null)
+            if (serializedTransform == null)
             {
-                property.isExpanded = EditorGUILayout.BeginFoldoutHeaderGroup(property.isExpanded, name);
-                if (property.isExpanded)
+                return;
+            }
+            EditorGUILayout.ObjectField(component, new GUIContent(name));
+            serializedTransform.Update();
+            EditorGUILayout.LabelField(Styles.transformLabel);
+            using (new EditorGUI.IndentLevelScope(1))
+            {
+                SerializedProperty localPosition = serializedTransform.FindProperty("m_LocalPosition");
+                SerializedProperty localRotation = serializedTransform.FindProperty("m_LocalRotation");
+                SerializedProperty localScale = serializedTransform.FindProperty("m_LocalScale");
+                TransformPropertyFields(localPosition, localRotation, localScale, showPosition, showRotation, showScale);
+            }
+            serializedTransform.ApplyModifiedProperties();
+        }
+
+        public static void TransformPropertyField(SerializedProperty serializedProperty, string name, bool showPosition = true, bool showRotation = true, bool showScale = true)
+        {
+            if (serializedProperty == null)
+            {
+                return;
+            }
+            EditorGUILayout.ObjectField(serializedProperty, new GUIContent(serializedProperty.displayName));
+            if (serializedProperty.objectReferenceValue.IsNullOrNone())
+            {
+                return;
+            }
+            SerializedObject serializedObject = new SerializedObject(serializedProperty.objectReferenceValue);
+            SerializedProperty localPosition = serializedObject.FindProperty("m_LocalPosition");
+            SerializedProperty localRotation = serializedObject.FindProperty("m_LocalRotation");
+            SerializedProperty localScale = serializedObject.FindProperty("m_LocalScale");
+            serializedObject.Update();
+            TransformPropertyFields(localPosition, localRotation, localScale, showPosition, showRotation, showScale);
+            serializedObject.ApplyModifiedProperties();
+        }
+
+        private static void TransformPropertyFields(SerializedProperty localPosition, SerializedProperty localRotation, SerializedProperty localScale, bool showPosition = true, bool showRotation = true, bool showScale = true)
+        {
+            using (new EditorGUI.IndentLevelScope())
+            {
+                if (showPosition && localPosition != null)
                 {
-                    using (new EditorGUI.IndentLevelScope(1))
+                    EditorGUILayout.PropertyField(localPosition);
+                }
+                if (showRotation && localRotation != null)
+                {
+                    if (transformRotationGUI == null)
                     {
-                        EditorGUI.BeginChangeCheck();
-                        serializedTransform.Update();
-                        SerializedProperty localPosition = serializedTransform.FindProperty("m_LocalPosition");
-                        SerializedProperty localRotation = serializedTransform.FindProperty("m_LocalRotation");
-                        SerializedProperty localScale = serializedTransform.FindProperty("m_LocalScale");
-                        if (showPosition && localPosition != null)
+                        var transformRotationGUIType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.TransformRotationGUI");
+                        transformRotationGUI = Activator.CreateInstance(transformRotationGUIType);
+                        transformRotationOnEnableMethodInfo = transformRotationGUIType.GetMethod("OnEnable");
+                        transformRotationGUIMethodInfo = transformRotationGUIType.GetMethods().FirstOrDefault(x => x.Name == "RotationField" && x.GetParameters().Length == 0);
+                    }
+                    transformRotationOnEnableMethodInfo.Invoke(transformRotationGUI, new object[] { localRotation, new GUIContent("Local Rotation") });
+                    transformRotationGUIMethodInfo.Invoke(transformRotationGUI, null);
+                }
+                if (showScale && localScale != null)
+                {
+                    EditorGUILayout.PropertyField(localScale);
+                }
+            }
+        }
+
+        public static void InteractbleButtonPropertyField(SerializedProperty property)
+        {
+            if (property != null)
+            {
+                property.serializedObject.Update();
+                EditorGUI.BeginChangeCheck();
+                var expanded = EditorGUILayout.BeginFoldoutHeaderGroup(SessionState.GetBool(InteractableButtonFoldoutKey, true), new GUIContent(property.displayName));
+                if (EditorGUI.EndChangeCheck())
+                {
+                    SessionState.SetBool(InteractableButtonFoldoutKey, expanded);
+                }
+                if (expanded)
+                {
+                    SerializedProperty assetProperty = property.FindPropertyRelative("asset");
+                    SerializedProperty transformProperty = property.FindPropertyRelative("transform");
+                    SerializedProperty buttonPreview = property.FindPropertyRelative("preview");
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.PropertyField(assetProperty);
+                    if (EditorGUI.EndChangeCheck() && !property.serializedObject.isEditingMultipleObjects)
+                    {
+                        var buttonTransform = CreateButtonTransform(property.serializedObject.targetObject as TreasuredObject);
+                        transformProperty.objectReferenceValue = buttonTransform;
+                    }
+                    if (property.serializedObject.isEditingMultipleObjects)
+                    {
+                        EditorGUILayout.HelpBox(new GUIContent("Multi-Editing for Transform and Preview is disabled."));
+                    }
+                    else
+                    {
+                        if (!assetProperty.objectReferenceValue.IsNullOrNone())
                         {
-                            EditorGUILayout.PropertyField(localPosition);
+                            TransformPropertyField(transformProperty, "Transform", true, true, true);
+                            EditorGUILayout.PropertyField(buttonPreview);
                         }
-                        if (showRotation && localRotation != null)
-                        {
-                            if (transformRotationGUI == null)
-                            {
-                                var transformRotationGUIType = typeof(UnityEditor.Editor).Assembly.GetType("UnityEditor.TransformRotationGUI");
-                                transformRotationGUI = Activator.CreateInstance(transformRotationGUIType);
-                                transformRotationOnEnableMethodInfo = transformRotationGUIType.GetMethod("OnEnable");
-                                transformRotationGUIMethodInfo = transformRotationGUIType.GetMethods().FirstOrDefault(x => x.Name == "RotationField" && x.GetParameters().Length == 0);
-                            }
-                            transformRotationOnEnableMethodInfo.Invoke(transformRotationGUI, new object[] { serializedTransform.FindProperty("m_LocalRotation"), new GUIContent("Local Rotation") });
-                            transformRotationGUIMethodInfo.Invoke(transformRotationGUI, null);
-                        }
-                        if (showScale && localScale != null)
-                        {
-                            EditorGUILayout.PropertyField(serializedTransform.FindProperty("m_LocalScale"));
-                        }
-                        serializedTransform.ApplyModifiedProperties();
                     }
                 }
-                EditorGUILayout.EndFoldoutHeaderGroup();
+                property.serializedObject.ApplyModifiedProperties();
             }
+        }
+
+        private static Transform CreateButtonTransform(TreasuredObject parent)
+        {
+            if (parent == null)
+            {
+                return null;
+            }
+            var transform = parent.transform.Find("Button");
+            if (transform == null || parent.transform != transform.parent.transform)
+            {
+                GameObject go = new GameObject("Button");
+                transform = go.transform;
+                transform.SetParent(parent.transform);
+                transform.localPosition = Vector3.zero;
+                transform.localRotation = Quaternion.identity;
+                transform.localScale = Vector3.one;
+            }
+            return transform;
         }
 
         /// <summary>

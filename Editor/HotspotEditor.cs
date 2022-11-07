@@ -94,8 +94,9 @@ namespace Treasured.UnitySdk
                     }
                 }
                 EditorGUILayout.PropertyField(button);
-                EditorGUILayoutUtils.TransformPropertyField(serializedHitboxTransform, "Hitbox");
-                EditorGUILayoutUtils.TransformPropertyField(serializedCameraTransform, "Camera", true, true, false);
+               // EditorGUILayoutUtils.TransformPropertyField(serializedHitboxTransform, "Hitbox");
+                EditorGUILayoutUtils.TransformPropertyField(hitbox, "Hitbox");
+               // EditorGUILayoutUtils.TransformPropertyField(serializedCameraTransform, "Camera", true, true, false);
                 EditorGUI.BeginChangeCheck();
                 bool isExpanded = EditorGUILayout.BeginFoldoutHeaderGroup(SessionState.GetBool(k_ActionsListExpanded, true), "Actions");
                 if(EditorGUI.EndChangeCheck())

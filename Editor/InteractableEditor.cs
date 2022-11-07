@@ -41,8 +41,8 @@ namespace Treasured.UnitySdk
                 return;
             }
             serializedObject.Update();
-            EditorGUILayout.PropertyField(button);
-            EditorGUILayoutUtils.TransformPropertyField(serializedHitboxTransform, "Hitbox");
+            EditorGUILayoutUtils.InteractbleButtonPropertyField(button);
+            EditorGUILayoutUtils.ComponentTransformPropertyField(hitbox, serializedHitboxTransform, "Hitbox");
             if (targets.Length == 1)
             {
                 onClickList.OnGUI(true);
