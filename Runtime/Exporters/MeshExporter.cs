@@ -119,6 +119,13 @@ namespace Treasured.UnitySdk
                     {
                         var exportTerrainToObj = ExportTerrainToObj(terrain);
                         meshToCombineDictionary.Add(exportTerrainToObj.GetInstanceID(), exportTerrainToObj);
+                        foreach (var child in exportTerrainToObj.transform.GetComponentsInChildren<Transform>())
+                        {
+                            if (!meshToCombineDictionary.ContainsKey(child.gameObject.GetInstanceID()))
+                            {
+                                meshToCombineDictionary.Add(child.gameObject.GetInstanceID(), child.gameObject);
+                            }
+                        }
                     }
                 }
                 else if (canUseLayerMask)
@@ -130,6 +137,13 @@ namespace Treasured.UnitySdk
                         {
                             var exportTerrainToObj = ExportTerrainToObj(terrain);
                             meshToCombineDictionary.Add(exportTerrainToObj.GetInstanceID(), exportTerrainToObj);
+                            foreach (var child in exportTerrainToObj.transform.GetComponentsInChildren<Transform>())
+                            {
+                                if (!meshToCombineDictionary.ContainsKey(child.gameObject.GetInstanceID()))
+                                {
+                                    meshToCombineDictionary.Add(child.gameObject.GetInstanceID(), child.gameObject);
+                                }
+                            }
                         }
                     }
                 }
@@ -230,6 +244,14 @@ namespace Treasured.UnitySdk
                             {
                                 foreach (var renderer in renderers)
                                 {
+                                    if (renderer == null)
+                                    {
+                                        Debug.LogError(
+                                            $"[MeshExporter] : Broken LOD. {lodGroup.gameObject.name}'s mesh will not be exported.",
+                                            lodGroup.gameObject);
+                                        break;
+                                    }
+
                                     if (meshToCombineDictionary.ContainsKey(renderer.gameObject.GetInstanceID()))
                                     {
                                         if (displayLogs)
