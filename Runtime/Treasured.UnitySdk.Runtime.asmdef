@@ -16,7 +16,8 @@
         "ImageProcessor.dll",
         "ImageProcessor.Plugins.WebP.dll",
         "GLTFSerialization.dll",
-        "System.Drawing.dll"
+        "System.Drawing.dll",
+        "HtmlAgilityPack.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],
