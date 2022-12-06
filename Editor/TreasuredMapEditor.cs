@@ -512,6 +512,7 @@ namespace Treasured.UnitySdk
             EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(TreasuredMap.defaultBackgroundVolume)));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_templateLoader"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("headHTML"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("pageEmbeds"));
             SerializedProperty uiSettings = serializedObject.FindProperty("uiSettings");
             EditorGUILayout.PropertyField(uiSettings);
             SerializedProperty features = serializedObject.FindProperty("features");

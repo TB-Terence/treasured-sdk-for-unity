@@ -44,6 +44,8 @@ namespace Treasured.UnitySdk
 
         [SerializeReference]
         private List<ActionGroup> _onHover = new List<ActionGroup>();
+
+        public Actions.ActionGroup actions;
         #endregion
 
         #region Properties

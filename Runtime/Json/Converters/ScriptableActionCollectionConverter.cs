@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    internal class ActionCollectionConverter : JsonConverter
+    internal class ScriptableActionCollectionConverter : JsonConverter
     {
         public override bool CanRead => false;
 
@@ -24,27 +24,31 @@ namespace Treasured.UnitySdk
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            if (value is ScriptableActionCollection collection)
+            ScriptableActionCollection collection = value as ScriptableActionCollection;
+            if (collection)
             {
+                //writer.WriteStartObject();
+                //// v1
+                //writer.WritePropertyName("v1");
+                //StringBuilder sb = new StringBuilder();
+                //foreach (var action in collection)
+                //{
+                //    if (!action.enabled)
+                //    {
+                //        continue;
+                //    }
+                //    Type type = action.GetType();
+                //    APIAttribute attribute = type.GetCustomAttributes<APIAttribute>().FirstOrDefault();
+                //    if (attribute == null)
+                //    {
+                //        continue;
+                //    }
+                //    sb.AppendLine($"{(attribute.IsAsync ? "await " : "")}{attribute.Domain}.{attribute.FunctionName}({JsonConvert.SerializeObject(action, Formatting.None, JsonExporter.JsonSettings)})");
+                //}
+                //writer.WriteValue(sb.ToString());
+                //// v2
+                //writer.WritePropertyName("v2");
                 writer.WriteStartArray();
-                // v1
-                StringBuilder sb = new StringBuilder();
-                foreach (var action in collection)
-                {
-                    if (!action.enabled)
-                    {
-                        continue;
-                    }
-                    Type type = action.GetType();
-                    APIAttribute attribute = type.GetCustomAttributes<APIAttribute>().FirstOrDefault();
-                    if (attribute == null)
-                    {
-                        continue;
-                    }
-                    sb.AppendLine($"{(attribute.IsAsync ? "await " : "")}{attribute.Domain}.{attribute.FunctionName}({JsonConvert.SerializeObject(action, Formatting.None, JsonExporter.JsonSettings)})");
-                }
-                writer.WriteValue(sb.ToString());
-                // v2
                 foreach (var action in collection)
                 {
                     if (!action.enabled)
@@ -54,15 +58,22 @@ namespace Treasured.UnitySdk
                     writer.WriteStartObject();
                     writer.WritePropertyName("id");
                     writer.WriteValue(action.Id);
-                    writer.WritePropertyName("function");
+                    writer.WritePropertyName("method");
                     APIAttribute apiAttribute = GetType().GetCustomAttributes<APIAttribute>().FirstOrDefault();
                     string functionName = apiAttribute != null ? apiAttribute.FunctionName : action.Type;
                     writer.WriteValue(functionName);
-                    writer.WritePropertyName("params");
+                    writer.WritePropertyName("args");
                     JObject jAction = JObject.FromObject(action, serializer);
                     jAction.WriteTo(writer);
                     writer.WriteEndObject();
                 }
+                writer.WriteEndArray();
+                //writer.WriteEndObject();
+            }
+            else
+            {
+                writer.WriteStartArray();
+                writer.WriteValue("a");
                 writer.WriteEndArray();
             }
         }
