@@ -127,9 +127,14 @@ namespace Treasured.UnitySdk
         {
             JsonProperty property = base.CreateProperty(member, memberSerialization);
             property.Order = GetOrder(property); // Manually assign the order since we can't add JsonProperty(order) to the `name` field of UnityEngine.Object
-            if (typeof(ScriptableActionCollection).IsAssignableFrom(property.PropertyType))
+            Type type = property.PropertyType;
+            if (typeof(ScriptableActionCollection).IsAssignableFrom(type))
             {
-                property.ValueProvider = new EmptyArrayValueProvider(CreateMemberValueProvider(member), typeof(ScriptableActionCollection));
+                property.ValueProvider = new ScriptableObjectValueProvider(CreateMemberValueProvider(member), type);
+            }
+            else if (property.PropertyType == typeof(CustomEmbed))
+            {
+                property.ValueProvider = new ObjectValueProvider(CreateMemberValueProvider(member), type);
             }
             return property;
         }
@@ -143,12 +148,34 @@ namespace Treasured.UnitySdk
             return property.Order == null ? 0 : (int)property.Order;
         }
 
-        class EmptyArrayValueProvider : IValueProvider
+        class ScriptableObjectValueProvider : IValueProvider
         {
             private IValueProvider innerProvider;
             private object defaultValue;
 
-            public EmptyArrayValueProvider(IValueProvider innerProvider, Type type)
+            public ScriptableObjectValueProvider(IValueProvider innerProvider, Type type)
+            {
+                this.innerProvider = innerProvider;
+                defaultValue = ScriptableObject.CreateInstance(type);
+            }
+
+            public void SetValue(object target, object value)
+            {
+                innerProvider.SetValue(target, value ?? defaultValue);
+            }
+
+            public object GetValue(object target)
+            {
+                return innerProvider.GetValue(target) ?? defaultValue;
+            }
+        }
+
+        class ObjectValueProvider : IValueProvider
+        {
+            private IValueProvider innerProvider;
+            private object defaultValue;
+
+            public ObjectValueProvider(IValueProvider innerProvider, Type type)
             {
                 this.innerProvider = innerProvider;
                 defaultValue = Activator.CreateInstance(type);
@@ -164,5 +191,6 @@ namespace Treasured.UnitySdk
                 return innerProvider.GetValue(target) ?? defaultValue;
             }
         }
+
     }
 }

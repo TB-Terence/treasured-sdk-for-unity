@@ -63,6 +63,7 @@ namespace Treasured.UnitySdk
                     string functionName = apiAttribute != null ? apiAttribute.FunctionName : action.Type;
                     writer.WriteValue(functionName);
                     writer.WritePropertyName("args");
+                    serializer.ContractResolver = ContractResolver.Instance;
                     JObject jAction = JObject.FromObject(action, serializer);
                     jAction.WriteTo(writer);
                     writer.WriteEndObject();
@@ -73,7 +74,6 @@ namespace Treasured.UnitySdk
             else
             {
                 writer.WriteStartArray();
-                writer.WriteValue("a");
                 writer.WriteEndArray();
             }
         }

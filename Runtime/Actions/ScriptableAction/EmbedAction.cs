@@ -36,6 +36,7 @@ namespace Treasured.UnitySdk
         [TextArea(3, 5)]
         public string code;
         [JsonIgnore]
+        [HideInInspector]
         public string[] scripts = new string[0];
         [JsonProperty("scripts")]
         public string[] Scripts

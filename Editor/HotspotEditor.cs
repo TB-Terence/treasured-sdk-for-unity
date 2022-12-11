@@ -23,7 +23,9 @@ namespace Treasured.UnitySdk
         private SerializedProperty button;
         private SerializedProperty hitbox;
         private SerializedProperty camera;
+        private SerializedProperty _onClick;
         private SerializedProperty onClick;
+        private SerializedProperty _onHover;
         private SerializedProperty onHover;
 
         private TreasuredMap map;
@@ -41,12 +43,22 @@ namespace Treasured.UnitySdk
         private void OnEnable()
         {
             var hotspot = target as Hotspot;
+            if (hotspot.onClick.IsNullOrNone())
+            {
+                hotspot.onClick = CreateInstance<ScriptableActionCollection>();
+            }
+            if (hotspot.onHover.IsNullOrNone())
+            {
+                hotspot.onHover = CreateInstance<ScriptableActionCollection>();
+            }
             map = (target as Hotspot).Map;
             button = serializedObject.FindProperty(nameof(TreasuredObject.button));
             hitbox = serializedObject.FindProperty("_hitbox");
             camera = serializedObject.FindProperty("_camera");
-            onClick = serializedObject.FindProperty("_onClick");
-            onHover = serializedObject.FindProperty("_onHover");
+            _onClick = serializedObject.FindProperty("_onClick");
+            onClick = serializedObject.FindProperty("onClick");
+            _onHover = serializedObject.FindProperty("_onHover");
+            onHover = serializedObject.FindProperty("onHover");
             if (hotspot.Hitbox)
             {
                 serializedHitboxTransform = new SerializedObject(hotspot.Hitbox.transform);
@@ -57,8 +69,8 @@ namespace Treasured.UnitySdk
             }
             if (serializedObject.targetObjects.Length == 1)
             {
-                onClickList = new ActionGroupListDrawer(serializedObject, onClick);
-                onHoverList = new ActionGroupListDrawer(serializedObject, onHover);
+                onClickList = new ActionGroupListDrawer(serializedObject, _onClick);
+                onHoverList = new ActionGroupListDrawer(serializedObject, _onHover);
             }
             hotspot?.TryInvokeMethods("OnSelectedInHierarchy");
             SceneView.duringSceneGui -= OnSceneViewGUI;
@@ -110,9 +122,11 @@ namespace Treasured.UnitySdk
                     {
                         case 0:
                             onClickList?.OnGUI();
+                            EditorGUILayout.PropertyField(onClick);
                             break;
                         case 1:
                             onHoverList?.OnGUI();
+                            EditorGUILayout.PropertyField(onHover);
                             break;
                     }
                 }

@@ -23,9 +23,9 @@ namespace Treasured.UnitySdk
             button = serializedObject.FindProperty(nameof(TreasuredObject.button));
             hitbox = serializedObject.FindProperty("_hitbox");
             serializedHitboxTransform = new SerializedObject((target as Interactable).Hitbox.transform);
-            onClick = serializedObject.FindProperty("_onClick");
-            actions = serializedObject.FindProperty("actions");
-            onClickList = new ActionGroupListDrawer(serializedObject, onClick);
+            actions = serializedObject.FindProperty("_onClick");
+            onClick = serializedObject.FindProperty("onClick");
+            onClickList = new ActionGroupListDrawer(serializedObject, actions);
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
         }
@@ -49,6 +49,7 @@ namespace Treasured.UnitySdk
             {
                 onClickList.OnGUI(true);
                 EditorGUILayout.PropertyField(actions);
+                EditorGUILayout.PropertyField(onClick);
             }
             serializedObject.ApplyModifiedProperties();
         }
