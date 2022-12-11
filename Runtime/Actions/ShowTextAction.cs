@@ -26,5 +26,13 @@ namespace Treasured.UnitySdk
         /// </summary>
         [Min(0)]
         public int duration;
+
+        internal override ScriptableAction ConvertToScriptableAction()
+        {
+            TextAction action = new TextAction();
+            action.message = content;
+            action.duration = duration;
+            return action;
+        }
     }
 }

@@ -11,6 +11,7 @@ namespace Treasured.UnitySdk
         private SerializedProperty button;
         private SerializedProperty hitbox;
         private SerializedProperty onClick;
+        private SerializedProperty actions;
 
         private TreasuredMap map;
         private SerializedObject serializedHitboxTransform;
@@ -22,8 +23,9 @@ namespace Treasured.UnitySdk
             button = serializedObject.FindProperty(nameof(TreasuredObject.button));
             hitbox = serializedObject.FindProperty("_hitbox");
             serializedHitboxTransform = new SerializedObject((target as Interactable).Hitbox.transform);
-            onClick = serializedObject.FindProperty("_onClick");
-            onClickList = new ActionGroupListDrawer(serializedObject, onClick);
+            actions = serializedObject.FindProperty("_onClick");
+            onClick = serializedObject.FindProperty("onClick");
+            onClickList = new ActionGroupListDrawer(serializedObject, actions);
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
         }
@@ -41,11 +43,13 @@ namespace Treasured.UnitySdk
                 return;
             }
             serializedObject.Update();
-            EditorGUILayout.PropertyField(button);
-            EditorGUILayoutUtils.TransformPropertyField(serializedHitboxTransform, "Hitbox");
+            EditorGUILayoutUtils.InteractbleButtonPropertyField(button);
+            EditorGUILayoutUtils.ComponentTransformPropertyField(hitbox, serializedHitboxTransform, "Hitbox");
             if (targets.Length == 1)
             {
                 onClickList.OnGUI(true);
+                EditorGUILayout.PropertyField(actions);
+                EditorGUILayout.PropertyField(onClick);
             }
             serializedObject.ApplyModifiedProperties();
         }

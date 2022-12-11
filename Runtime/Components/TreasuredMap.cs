@@ -130,6 +130,8 @@ namespace Treasured.UnitySdk
         [Code]
         public string headHTML;
 
+        public CustomEmbed[] pageEmbeds;
+
         [JsonIgnore]
         public ExportSettings exportSettings;
 
@@ -144,6 +146,8 @@ namespace Treasured.UnitySdk
 
         [JsonIgnore]
         public MeshExporter meshExporter;
+
+        public bool versionUpgradeChecked = false;
 
         private void OnValidate()
         {

@@ -240,11 +240,92 @@ namespace Treasured.UnitySdk
             InitializeGuidedTour();
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
+            VersionUpgradeCheck();
         }
 
         private void OnDisable()
         {
             SceneView.duringSceneGui -= OnSceneViewGUI;
+        }
+
+        private void VersionUpgradeCheck()
+        {
+            CheckAction();
+        }
+
+        private void CheckAction()
+        {
+            if (_map.versionUpgradeChecked)
+            {
+                return;
+            }
+            TreasuredObject[] objects = _map.GetComponentsInChildren<TreasuredObject>();
+            UnityEngine.Debug.LogError(objects.Length);
+            foreach (TreasuredObject obj in objects)
+            {
+                obj.onClick?.Clear();
+                if (obj.onClick == null)
+                {
+                    obj.onClick = CreateInstance<ScriptableActionCollection>();
+                }
+                foreach (var actionGroup in obj.OnClick)
+                {
+                    foreach (var action in actionGroup.Actions)
+                    {
+                        ScriptableAction scriptableAction = action.ConvertToScriptableAction();
+                        if (scriptableAction != null)
+                        {
+                            obj.onClick.Add(scriptableAction);
+                        }
+                    }
+                }
+                obj.onHover?.Clear();
+                if (obj.onHover == null)
+                {
+                    obj.onHover = CreateInstance<ScriptableActionCollection>();
+                }
+                foreach (var actionGroup in obj.OnHover)
+                {
+                    foreach (var action in actionGroup.Actions)
+                    {
+                        ScriptableAction scriptableAction = action.ConvertToScriptableAction();
+                        if (scriptableAction != null)
+                        {
+                            obj.onClick.Add(scriptableAction);
+                        }
+                    }
+                }
+                _map.versionUpgradeChecked = true;
+                serializedObject.Update();
+            }
+            //TreasuredObject target = serializedObject.targetObject as TreasuredObject;
+            //if (target)
+            //{
+            //    target.onClick?.Clear();
+            //    foreach (var actionGroup in target.OnClick)
+            //    {
+            //        foreach (var action in actionGroup.Actions)
+            //        {
+            //            ScriptableAction scriptableAction = action.ConvertToScriptableAction();
+            //            if (scriptableAction != null)
+            //            {
+            //                target.onClick.Add(scriptableAction);
+            //            }
+            //        }
+            //    }
+            //    target.onHover?.Clear();
+            //    foreach (var actionGroup in target.OnHover)
+            //    {
+            //        foreach (var action in actionGroup.Actions)
+            //        {
+            //            ScriptableAction scriptableAction = action.ConvertToScriptableAction();
+            //            if (scriptableAction != null)
+            //            {
+            //                target.onClick.Add(scriptableAction);
+            //            }
+            //        }
+            //    }
+            //}
         }
 
         private void InitializeSettings()
@@ -512,6 +593,7 @@ namespace Treasured.UnitySdk
             EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(TreasuredMap.defaultBackgroundVolume)));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_templateLoader"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("headHTML"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("pageEmbeds"));
             SerializedProperty uiSettings = serializedObject.FindProperty("uiSettings");
             EditorGUILayout.PropertyField(uiSettings);
             SerializedProperty features = serializedObject.FindProperty("features");

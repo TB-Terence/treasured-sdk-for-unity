@@ -1,4 +1,5 @@
-﻿using UnityEngine.Serialization;
+﻿using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Treasured.UnitySdk
 {
@@ -13,5 +14,12 @@ namespace Treasured.UnitySdk
         [Url]
         [FormerlySerializedAs("_src")]
         public string src;
+
+        internal override ScriptableAction ConvertToScriptableAction()
+        {
+            EmbedAction action = new EmbedAction();
+            action.src = src;
+            return action;
+        }
     }
 }

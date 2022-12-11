@@ -18,5 +18,13 @@ namespace Treasured.UnitySdk
         [Range(0, 100)]
         [FormerlySerializedAs("_volume")]
         public int volume = 100;
+
+        internal override ScriptableAction ConvertToScriptableAction()
+        {
+            AudioAction action = new AudioAction();
+            action.src = src;
+            action.volume = volume;
+            return action;
+        }
     }
 }
