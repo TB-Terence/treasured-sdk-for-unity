@@ -145,6 +145,12 @@ namespace Treasured.UnitySdk
         [JsonIgnore]
         public MeshExporter meshExporter;
 
+        [JsonIgnore]
+        public AudioExporter audioExporter;
+
+        [JsonIgnore]
+        public VideoExporter VideoExporter;
+
         private void OnValidate()
         {
             //  Set default Auto Camera Rotation to false for all except for modern loader template 

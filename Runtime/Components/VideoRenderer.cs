@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.Serialization;
+using UnityEngine.Video;
 
 namespace Treasured.UnitySdk
 {
@@ -12,6 +13,10 @@ namespace Treasured.UnitySdk
         private bool _lockAspectRatio;
         [SerializeField]
         private string _aspectRatio = "16:9";
+
+        [JsonIgnore]
+        public VideoClip VideoClip;
+
         [Url]
         [FormerlySerializedAs("Src")]
         public string src;
