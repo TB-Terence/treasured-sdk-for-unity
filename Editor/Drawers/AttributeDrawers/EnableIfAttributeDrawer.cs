@@ -13,16 +13,9 @@ namespace Treasured.UnitySdk
         {
             var attribute = (EnableIfAttribute)base.attribute;
             var canEnable = CompareValues(attribute, property);
-            if (canEnable)
+            using (new EditorGUI.DisabledScope(!canEnable))
             {
                 EditorGUI.PropertyField(position, property, label, true);
-            }
-            else
-            {
-                using (new EditorGUI.DisabledScope(true))
-                {
-                    EditorGUI.PropertyField(position, property, label, true);
-                }
             }
         }
 

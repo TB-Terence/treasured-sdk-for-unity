@@ -15,7 +15,7 @@ namespace Treasured.UnitySdk
         [JsonIgnore][OnValueChanged("AudioClipChanged")]
         public AudioClip audioClip;
         
-        [Url]
+        //[Url]
         [EnableIf("audioClip")]
         [FormerlySerializedAs("_src")]
         public string src;
@@ -26,7 +26,7 @@ namespace Treasured.UnitySdk
 
         public void AudioClipChanged()
         {
-            if (audioClip != null)
+            if (!audioClip.IsNullOrNone())
             {
                 src = "audios/" + audioClip.name;
             }
@@ -34,8 +34,6 @@ namespace Treasured.UnitySdk
             {
                 src = string.Empty;
             }
-
-            Debug.Log("Audio clip changed");
         }
     }
 }
