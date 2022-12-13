@@ -49,7 +49,7 @@ namespace Treasured.UnitySdk
             if (EditorGUI.EndChangeCheck())
             {
                 src.stringValue = !videoClip.objectReferenceValue.IsNullOrNone()
-                    ? "videos/" + Path.GetFileName(AssetDatabase.GetAssetPath(videoRenderer.VideoClip))
+                    ? "videos/" + Path.GetFileName(AssetDatabase.GetAssetPath(videoClip.objectReferenceValue))
                     : string.Empty;
                 
                 src.serializedObject.ApplyModifiedProperties();

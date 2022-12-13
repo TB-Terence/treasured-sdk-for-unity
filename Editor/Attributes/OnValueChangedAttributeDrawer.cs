@@ -20,6 +20,8 @@ namespace Treasured.UnitySdk
                 if (callbackMethod != null && callbackMethod.ReturnType == typeof(void)
                                            && callbackMethod.GetParameters().Length == 0)
                 {
+                    property.serializedObject.ApplyModifiedProperties();
+                    property.serializedObject.Update();
                     callbackMethod.Invoke(target, new object[] { });
                 }
                 else
@@ -30,7 +32,6 @@ namespace Treasured.UnitySdk
 
                     Debug.LogWarning(warning, property.serializedObject.targetObject);
                 }
-
             }
         }
     }
