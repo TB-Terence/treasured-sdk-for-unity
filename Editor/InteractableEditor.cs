@@ -7,11 +7,10 @@ namespace Treasured.UnitySdk
     [CanEditMultipleObjects]
     internal class InteractableEditor : UnityEditor.Editor
     {
-        private ActionGroupListDrawer onClickList;
+        private ActionGroupListDrawer onClickActionGroupDrawer;
         private SerializedProperty button;
         private SerializedProperty hitbox;
         private SerializedProperty onClick;
-        private SerializedProperty actions;
 
         private TreasuredMap map;
         private SerializedObject serializedHitboxTransform;
@@ -23,9 +22,8 @@ namespace Treasured.UnitySdk
             button = serializedObject.FindProperty(nameof(TreasuredObject.button));
             hitbox = serializedObject.FindProperty("_hitbox");
             serializedHitboxTransform = new SerializedObject((target as Interactable).Hitbox.transform);
-            actions = serializedObject.FindProperty("_onClick");
+            onClickActionGroupDrawer = new ActionGroupListDrawer(serializedObject, serializedObject.FindProperty("_onClick"));
             onClick = serializedObject.FindProperty("onClick");
-            onClickList = new ActionGroupListDrawer(serializedObject, actions);
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
         }
@@ -47,8 +45,7 @@ namespace Treasured.UnitySdk
             EditorGUILayoutUtils.ComponentTransformPropertyField(hitbox, serializedHitboxTransform, "Hitbox");
             if (targets.Length == 1)
             {
-                onClickList.OnGUI(true);
-                EditorGUILayout.PropertyField(actions);
+                onClickActionGroupDrawer.OnGUI(true);
                 EditorGUILayout.PropertyField(onClick);
             }
             serializedObject.ApplyModifiedProperties();

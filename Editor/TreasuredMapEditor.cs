@@ -31,6 +31,13 @@ namespace Treasured.UnitySdk
             Client.Add("https://github.com/TB-Terence/treasured-sdk-for-unity.git#exp");
         }
 
+        [MenuItem("CONTEXT/TreasuredMap/Reset Migrate Info")]
+        static void DoubleMass(MenuCommand command)
+        {
+            TreasuredMap map = (TreasuredMap)command.context;
+            map.migrateInfo.shouldMigrate = true;
+        }
+
         private static readonly string[] selectableObjectListNames = new string[] { "Hotspots", "Interactables", "Videos", "Sounds", "HTML Embeds" };
 
         class TreasuredMapGizmosSettings
@@ -240,7 +247,7 @@ namespace Treasured.UnitySdk
             InitializeGuidedTour();
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
-            VersionUpgradeCheck();
+            Migrate();
         }
 
         private void OnDisable()
@@ -248,19 +255,13 @@ namespace Treasured.UnitySdk
             SceneView.duringSceneGui -= OnSceneViewGUI;
         }
 
-        private void VersionUpgradeCheck()
+        private void Migrate()
         {
-            CheckAction();
-        }
-
-        private void CheckAction()
-        {
-            if (_map.versionUpgradeChecked)
+            if (!_map.migrateInfo.shouldMigrate)
             {
                 return;
             }
-            TreasuredObject[] objects = _map.GetComponentsInChildren<TreasuredObject>();
-            UnityEngine.Debug.LogError(objects.Length);
+            TreasuredObject[] objects = _map.GetComponentsInChildren<TreasuredObject>(true);
             foreach (TreasuredObject obj in objects)
             {
                 obj.onClick?.Clear();
@@ -295,37 +296,10 @@ namespace Treasured.UnitySdk
                         }
                     }
                 }
-                _map.versionUpgradeChecked = true;
-                serializedObject.Update();
             }
-            //TreasuredObject target = serializedObject.targetObject as TreasuredObject;
-            //if (target)
-            //{
-            //    target.onClick?.Clear();
-            //    foreach (var actionGroup in target.OnClick)
-            //    {
-            //        foreach (var action in actionGroup.Actions)
-            //        {
-            //            ScriptableAction scriptableAction = action.ConvertToScriptableAction();
-            //            if (scriptableAction != null)
-            //            {
-            //                target.onClick.Add(scriptableAction);
-            //            }
-            //        }
-            //    }
-            //    target.onHover?.Clear();
-            //    foreach (var actionGroup in target.OnHover)
-            //    {
-            //        foreach (var action in actionGroup.Actions)
-            //        {
-            //            ScriptableAction scriptableAction = action.ConvertToScriptableAction();
-            //            if (scriptableAction != null)
-            //            {
-            //                target.onClick.Add(scriptableAction);
-            //            }
-            //        }
-            //    }
-            //}
+            _map.migrateInfo.shouldMigrate = false;
+            serializedObject.ApplyModifiedProperties();
+            serializedObject.Update();
         }
 
         private void InitializeSettings()
