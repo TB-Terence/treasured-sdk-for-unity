@@ -1,4 +1,5 @@
-﻿using UnityEditor;
+using System.IO;
+using UnityEditor;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
@@ -39,9 +40,30 @@ namespace Treasured.UnitySdk
             SerializedProperty volume = serializedObject.FindProperty(nameof(VideoRenderer.volume));
             SerializedProperty loop = serializedObject.FindProperty(nameof(VideoRenderer.loop));
             SerializedProperty autoPlay = serializedObject.FindProperty(nameof(VideoRenderer.autoplay));
+            SerializedProperty videoClip = serializedObject.FindProperty(nameof(VideoRenderer.VideoClip));
             SerializedProperty onClick = serializedObject.FindProperty(nameof(VideoRenderer.onClick));
+            
+            var videoRenderer = (VideoRenderer)target;
 
-            EditorGUILayout.PropertyField(src);
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(videoClip);
+            if (EditorGUI.EndChangeCheck())
+            {
+                src.stringValue = !videoClip.objectReferenceValue.IsNullOrNone()
+                    ? "videos/" + Path.GetFileName(AssetDatabase.GetAssetPath(videoClip.objectReferenceValue))
+                    : string.Empty;
+                
+                src.serializedObject.ApplyModifiedProperties();
+                src.serializedObject.Update();
+            }
+
+            using (new EditorGUI.DisabledScope(!videoRenderer.VideoClip.IsNullOrNone()))
+            {
+                EditorGUILayout.PropertyField(src);
+            }
+            
+            EditorGUILayout.PropertyField(onClick);
+
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(lockAspectRatio);
             if (EditorGUI.EndChangeCheck())

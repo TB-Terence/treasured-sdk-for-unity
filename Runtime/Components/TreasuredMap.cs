@@ -147,6 +147,12 @@ namespace Treasured.UnitySdk
         [JsonIgnore]
         public MeshExporter meshExporter;
 
+        [JsonIgnore]
+        public AudioExporter audioExporter;
+
+        [JsonIgnore]
+        public VideoExporter VideoExporter;
+        
         [SerializeField]
         internal MigrateInfo migrateInfo;
 
