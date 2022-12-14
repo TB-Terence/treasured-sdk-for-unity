@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -34,6 +34,13 @@ namespace Treasured.UnitySdk
             {
                 src = string.Empty;
             }
+            
+        internal override ScriptableAction ConvertToScriptableAction()
+        {
+            AudioAction action = new AudioAction();
+            action.src = src;
+            action.volume = volume;
+            return action;
         }
     }
 }

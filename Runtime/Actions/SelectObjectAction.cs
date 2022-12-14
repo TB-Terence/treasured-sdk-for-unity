@@ -23,9 +23,24 @@ namespace Treasured.UnitySdk
         {
             get
             {
+                if (target.IsNullOrNone())
+                {
+                    return string.Empty;
+                }
                 string typeName = target.GetType().Name;
-                return target.IsNullOrNone() ? string.Empty : char.ToLower(typeName[0]) + typeName.Substring(1);
+                return char.ToLower(typeName[0]) + typeName.Substring(1);
             }
+        }
+
+        internal override ScriptableAction ConvertToScriptableAction()
+        {
+            if (!(target is Hotspot))
+            {
+                return null;
+            }
+            GoToAction action = new GoToAction();
+            action.target = target as Hotspot;
+            return action;
         }
     }
 }

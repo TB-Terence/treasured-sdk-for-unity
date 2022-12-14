@@ -44,6 +44,9 @@ namespace Treasured.UnitySdk
 
         [SerializeReference]
         private List<ActionGroup> _onHover = new List<ActionGroup>();
+
+        public ScriptableActionCollection onClick;
+        public ScriptableActionCollection onHover;
         #endregion
 
         #region Properties
@@ -81,6 +84,7 @@ namespace Treasured.UnitySdk
         /// <summary>
         /// Group of action to perform when the user hovers over the object.
         /// </summary>
+        [JsonIgnore]
         public List<ActionGroup> OnHover => _onHover;
 
         //public Color ObjectId

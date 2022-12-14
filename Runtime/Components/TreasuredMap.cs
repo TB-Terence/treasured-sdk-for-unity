@@ -130,6 +130,8 @@ namespace Treasured.UnitySdk
         [Code]
         public string headHTML;
 
+        public CustomEmbed[] pageEmbeds;
+
         [JsonIgnore]
         public ExportSettings exportSettings;
 
@@ -150,6 +152,9 @@ namespace Treasured.UnitySdk
 
         [JsonIgnore]
         public VideoExporter VideoExporter;
+        
+        [SerializeField]
+        internal MigrateInfo migrateInfo;
 
         private void OnValidate()
         {

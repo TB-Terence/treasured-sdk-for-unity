@@ -20,6 +20,7 @@ namespace Treasured.UnitySdk
             "created",
             "name",
             "type",
+            "function",
             "author",
             "title",
             "description",
@@ -82,7 +83,7 @@ namespace Treasured.UnitySdk
             }
             if (objectType == typeof(ScriptableActionCollection))
             {
-                contract.Converter = new ActionCollectionConverter();
+                contract.Converter = new ScriptableActionCollectionConverter();
             }
             if (objectType == typeof(GoToAction))
             {
@@ -132,6 +133,15 @@ namespace Treasured.UnitySdk
         {
             JsonProperty property = base.CreateProperty(member, memberSerialization);
             property.Order = GetOrder(property); // Manually assign the order since we can't add JsonProperty(order) to the `name` field of UnityEngine.Object
+            Type type = property.PropertyType;
+            if (typeof(ScriptableActionCollection).IsAssignableFrom(type))
+            {
+                property.ValueProvider = new ScriptableObjectValueProvider(CreateMemberValueProvider(member), type);
+            }
+            else if (property.PropertyType == typeof(CustomEmbed))
+            {
+                property.ValueProvider = new ObjectValueProvider(CreateMemberValueProvider(member), type);
+            }
             return property;
         }
 
@@ -143,5 +153,50 @@ namespace Treasured.UnitySdk
             }
             return property.Order == null ? 0 : (int)property.Order;
         }
+
+        class ScriptableObjectValueProvider : IValueProvider
+        {
+            private IValueProvider innerProvider;
+            private object defaultValue;
+
+            public ScriptableObjectValueProvider(IValueProvider innerProvider, Type type)
+            {
+                this.innerProvider = innerProvider;
+                defaultValue = ScriptableObject.CreateInstance(type);
+            }
+
+            public void SetValue(object target, object value)
+            {
+                innerProvider.SetValue(target, value ?? defaultValue);
+            }
+
+            public object GetValue(object target)
+            {
+                return innerProvider.GetValue(target) ?? defaultValue;
+            }
+        }
+
+        class ObjectValueProvider : IValueProvider
+        {
+            private IValueProvider innerProvider;
+            private object defaultValue;
+
+            public ObjectValueProvider(IValueProvider innerProvider, Type type)
+            {
+                this.innerProvider = innerProvider;
+                defaultValue = Activator.CreateInstance(type);
+            }
+
+            public void SetValue(object target, object value)
+            {
+                innerProvider.SetValue(target, value ?? defaultValue);
+            }
+
+            public object GetValue(object target)
+            {
+                return innerProvider.GetValue(target) ?? defaultValue;
+            }
+        }
+
     }
 }

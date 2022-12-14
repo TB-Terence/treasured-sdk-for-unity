@@ -36,5 +36,6 @@ namespace Treasured.UnitySdk
         }
 
         public virtual object[] GetArguments() { return null; }
+        internal virtual ScriptableAction ConvertToScriptableAction() { return null; }
     }
 }
