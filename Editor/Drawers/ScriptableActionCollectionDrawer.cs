@@ -24,7 +24,7 @@ namespace Treasured.UnitySdk
             SerializedObject serializedObject = new SerializedObject(property.objectReferenceValue);
             if (listDrawer == null)
             {
-                listDrawer = new ActionListDrawer<ScriptableAction>(serializedObject, serializedObject.FindProperty("_actions"), "Scriptable Actions");
+                listDrawer = new ActionListDrawer<ScriptableAction>(serializedObject, serializedObject.FindProperty("_actions"), property.displayName);
             }
             listDrawer.OnGUI(position);
         }

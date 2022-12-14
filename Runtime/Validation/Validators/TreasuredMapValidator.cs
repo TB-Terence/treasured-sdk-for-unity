@@ -41,35 +41,35 @@ namespace Treasured.UnitySdk.Validation
                         target = obj
                     });
                 }
-                foreach (var group in obj.OnClick)
-                {
-                    foreach (var action in group.Actions)
-                    {
-                        if (action is SelectObjectAction soa)
-                        {
-                            if (soa.target == null || (soa.target != null && !soa.target.gameObject.activeSelf))
-                            {
-                                results.Add(new ValidationResult()
-                                {
-                                    name = "Missing reference",
-                                    description = $"The target for Select-Object action is inactive OR is not assigned for {obj.name}.",
-                                    type = ValidationResult.ValidationResultType.Error,
-                                    target = soa.target,
-                                });
-                            }
-                            else if (soa.target.GetComponentInParent<TreasuredMap>() != obj.GetComponentInParent<TreasuredMap>())
-                            {
-                                results.Add(new ValidationResult()
-                                {
-                                    name = "Invalid reference",
-                                    description = $"The target set for Select-Object action does not belong to the same map.",
-                                    type = ValidationResult.ValidationResultType.Error,
-                                    target = soa.target,
-                                });
-                            }
-                        }
-                    }
-                }
+                //foreach (var group in obj.OnClick)
+                //{
+                //    foreach (var action in group.Actions)
+                //    {
+                //        if (action is SelectObjectAction soa)
+                //        {
+                //            if (soa.target == null || (soa.target != null && !soa.target.gameObject.activeSelf))
+                //            {
+                //                results.Add(new ValidationResult()
+                //                {
+                //                    name = "Missing reference",
+                //                    description = $"The target for Select-Object action is inactive OR is not assigned for {obj.name}.",
+                //                    type = ValidationResult.ValidationResultType.Error,
+                //                    target = soa.target,
+                //                });
+                //            }
+                //            else if (soa.target.GetComponentInParent<TreasuredMap>() != obj.GetComponentInParent<TreasuredMap>())
+                //            {
+                //                results.Add(new ValidationResult()
+                //                {
+                //                    name = "Invalid reference",
+                //                    description = $"The target set for Select-Object action does not belong to the same map.",
+                //                    type = ValidationResult.ValidationResultType.Error,
+                //                    target = soa.target,
+                //                });
+                //            }
+                //        }
+                //    }
+                //}
                 foreach (var group in obj.OnHover)
                 {
                     foreach (var action in group.Actions)
@@ -141,7 +141,7 @@ namespace Treasured.UnitySdk.Validation
                 foreach (var action in tour.actionScripts)
                 {
                     
-                    if ((action is AudioAction audioAction && string.IsNullOrWhiteSpace(audioAction.src)) || (action is EmbedAction embedAction && string.IsNullOrWhiteSpace(embedAction.src)))
+                    if ((action is AudioAction audioAction && string.IsNullOrWhiteSpace(audioAction.src)) || (action is Actions.EmbedAction embedAction && string.IsNullOrWhiteSpace(embedAction.src)))
                     {
                         ValidationResult validationResult = new ValidationResult()
                         {

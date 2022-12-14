@@ -15,6 +15,5 @@ namespace Treasured.UnitySdk
 
         [Range(0, 100)]
         public int Distance = 3;
-        
     }
 }
