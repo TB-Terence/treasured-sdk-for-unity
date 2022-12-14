@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.Serialization;
+using Treasured.UnitySdk.Actions;
 
 namespace Treasured.UnitySdk
 {
@@ -19,6 +20,7 @@ namespace Treasured.UnitySdk
         {
             EmbedAction action = new EmbedAction();
             action.src = src;
+            action.position = position;
             return action;
         }
     }

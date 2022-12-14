@@ -147,7 +147,8 @@ namespace Treasured.UnitySdk
         [JsonIgnore]
         public MeshExporter meshExporter;
 
-        public bool versionUpgradeChecked = false;
+        [SerializeField]
+        internal MigrateInfo migrateInfo;
 
         private void OnValidate()
         {

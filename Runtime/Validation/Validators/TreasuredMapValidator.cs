@@ -141,7 +141,7 @@ namespace Treasured.UnitySdk.Validation
                 foreach (var action in tour.actionScripts)
                 {
                     
-                    if ((action is AudioAction audioAction && string.IsNullOrWhiteSpace(audioAction.src)) || (action is EmbedAction embedAction && string.IsNullOrWhiteSpace(embedAction.src)))
+                    if ((action is AudioAction audioAction && string.IsNullOrWhiteSpace(audioAction.src)) || (action is Actions.EmbedAction embedAction && string.IsNullOrWhiteSpace(embedAction.src)))
                     {
                         ValidationResult validationResult = new ValidationResult()
                         {
