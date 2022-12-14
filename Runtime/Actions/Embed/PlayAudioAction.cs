@@ -34,6 +34,7 @@ namespace Treasured.UnitySdk
             {
                 src = string.Empty;
             }
+        }
             
         internal override ScriptableAction ConvertToScriptableAction()
         {
