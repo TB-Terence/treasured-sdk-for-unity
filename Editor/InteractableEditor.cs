@@ -41,12 +41,21 @@ namespace Treasured.UnitySdk
                 return;
             }
             serializedObject.Update();
-            EditorGUILayoutUtils.InteractbleButtonPropertyField(button);
+            EditorGUILayout.PropertyField(button);
             EditorGUILayoutUtils.ComponentTransformPropertyField(hitbox, serializedHitboxTransform, "Hitbox");
             if (targets.Length == 1)
             {
-                onClickActionGroupDrawer.OnGUI(true);
+                bool showDeprecatedActions = SessionState.GetBool(SessionKeys.ShowDeprecatedActions, false);
+                SessionState.SetBool(SessionKeys.ShowDeprecatedActions, EditorGUILayout.ToggleLeft("Show Deprecated Actions", showDeprecatedActions));
+                if(showDeprecatedActions)
+                {
+                    onClickActionGroupDrawer.OnGUI(true);
+                }
                 EditorGUILayout.PropertyField(onClick);
+            }
+            else
+            {
+                EditorGUILayout.HelpBox($"Multi-Editing for Actions is disabled.", MessageType.None);
             }
             serializedObject.ApplyModifiedProperties();
         }

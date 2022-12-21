@@ -61,8 +61,6 @@ namespace Treasured.UnitySdk
             {
                 EditorGUILayout.PropertyField(src);
             }
-            
-            EditorGUILayout.PropertyField(onClick);
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(lockAspectRatio);

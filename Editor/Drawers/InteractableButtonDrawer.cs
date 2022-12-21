@@ -4,10 +4,10 @@ using UnityEngine;
 namespace Treasured.UnitySdk
 {
     [CustomPropertyDrawer(typeof(InteractableButton))]
+    [CanEditMultipleObjects]
     internal class InteractableButtonDrawer : PropertyDrawer
     {
-        private const string InteractableButtonFoldoutKey = "TreasuredSDK_InteractableButtonFoldout";
-
+        private const string Text_MultiEditingDisabled = "Multi-Editing for Transform and Preview is disabled.";
         public static float k_SingleLineHeightWithSpace = EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
@@ -17,10 +17,10 @@ namespace Treasured.UnitySdk
             SerializedProperty previewProperty = property.FindPropertyRelative(nameof(InteractableButton.preview));
             EditorGUI.BeginProperty(position, label, property);
             EditorGUI.BeginChangeCheck();
-            var expanded = EditorGUI.BeginFoldoutHeaderGroup(new Rect(position.x, position.y, position.width, k_SingleLineHeightWithSpace), SessionState.GetBool(InteractableButtonFoldoutKey, true), label);
+            var expanded = EditorGUI.Foldout(new Rect(position.x, position.y, position.width, k_SingleLineHeightWithSpace), SessionState.GetBool(SessionKeys.ShowInteractableButtonFoldout, true), label);
             if (EditorGUI.EndChangeCheck())
             {
-                SessionState.SetBool(InteractableButtonFoldoutKey, expanded);
+                SessionState.SetBool(SessionKeys.ShowInteractableButtonFoldout, expanded);
             }
             if (expanded)
             {
@@ -29,24 +29,10 @@ namespace Treasured.UnitySdk
                     using (var assetChangeScope = new EditorGUI.ChangeCheckScope())
                     {
                         EditorGUI.PropertyField(new Rect(position.x, position.y + k_SingleLineHeightWithSpace, position.width - 20, EditorGUIUtility.singleLineHeight), iconProperty);
-                        if (assetChangeScope.changed)
+                        if (assetChangeScope.changed && !property.serializedObject.isEditingMultipleObjects)
                         {
-                            var obj = property.serializedObject.targetObject as MonoBehaviour;
-                            if (transformProperty.objectReferenceValue.IsNullOrNone())
-                            {
-                                var buttonTransform = obj.transform.Find("Button");
-                                if (buttonTransform == null)
-                                {
-                                    GameObject go = new GameObject("Button");
-                                    buttonTransform = go.transform;
-                                }
-                                buttonTransform.SetParent(obj.transform);
-                                buttonTransform.localPosition = Vector3.zero;
-                                buttonTransform.localRotation = Quaternion.identity;
-                                buttonTransform.localScale = Vector3.one;
-                                transformProperty.objectReferenceValue = buttonTransform;
-                                property.serializedObject.ApplyModifiedProperties();
-                            }
+                            var buttonTransform = GameObjectUtils.GetOrCreateChild((property.serializedObject.targetObject as TreasuredObject).transform, "Button", Vector3.zero, Quaternion.identity, Vector3.zero);
+                            transformProperty.objectReferenceValue = buttonTransform;
                             IconAsset iconAsset = iconProperty.objectReferenceValue as IconAsset;
                             ((transformProperty.objectReferenceValue) as Transform).gameObject.SetIcon(!iconAsset.IsNullOrNone() && !transformProperty.objectReferenceValue.IsNullOrNone() ? iconAsset.icon : null);
                             property.serializedObject.ApplyModifiedProperties();
@@ -56,34 +42,39 @@ namespace Treasured.UnitySdk
                             ShowMenu(property);
                         }
                     }
-                    if (!iconProperty.objectReferenceValue.IsNullOrNone())
+                    if (property.serializedObject.isEditingMultipleObjects)
                     {
-                        EditorGUI.PropertyField(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 2, position.width, EditorGUIUtility.singleLineHeight), transformProperty);
-                        if (!transformProperty.objectReferenceValue.IsNullOrNone())
+                        EditorGUI.HelpBox(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 2, position.width, EditorGUIUtility.singleLineHeight), Text_MultiEditingDisabled, MessageType.Info);
+                    }
+                    else
+                    {
+                        if (!iconProperty.objectReferenceValue.IsNullOrNone())
                         {
-                            using (new EditorGUI.IndentLevelScope(1))
+                            EditorGUI.PropertyField(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 2, position.width, EditorGUIUtility.singleLineHeight), transformProperty);
+                            if (!transformProperty.objectReferenceValue.IsNullOrNone())
                             {
-                                using (var scope = new EditorGUI.ChangeCheckScope())
+                                using (new EditorGUI.IndentLevelScope(1))
                                 {
-                                    Transform transform = transformProperty.objectReferenceValue as Transform;
-                                    transform.localPosition = EditorGUI.Vector3Field(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 3, position.width, EditorGUIUtility.singleLineHeight), "Position", transform.localPosition);
-                                    transform.localEulerAngles = EditorGUI.Vector3Field(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 4, position.width, EditorGUIUtility.singleLineHeight), "Rotation", transform.localEulerAngles);
-                                    transform.localScale = EditorGUI.Vector3Field(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 5, position.width, EditorGUIUtility.singleLineHeight), "Size", transform.localScale);
-                                    if (scope.changed)
+                                    using (var scope = new EditorGUI.ChangeCheckScope())
                                     {
-                                        transformProperty.serializedObject.ApplyModifiedProperties();
+                                        Transform transform = transformProperty.objectReferenceValue as Transform;
+                                        transform.localPosition = EditorGUI.Vector3Field(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 3, position.width, EditorGUIUtility.singleLineHeight), "Position", transform.localPosition);
+                                        transform.localEulerAngles = EditorGUI.Vector3Field(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 4, position.width, EditorGUIUtility.singleLineHeight), "Rotation", transform.localEulerAngles);
+                                        transform.localScale = EditorGUI.Vector3Field(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 5, position.width, EditorGUIUtility.singleLineHeight), "Size", transform.localScale);
+                                        if (scope.changed)
+                                        {
+                                            transformProperty.serializedObject.ApplyModifiedProperties();
+                                        }
                                     }
                                 }
                             }
+                            EditorGUI.PropertyField(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 6, position.width, k_SingleLineHeightWithSpace * 4), previewProperty, true);
                         }
-                        EditorGUI.PropertyField(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 6, position.width, k_SingleLineHeightWithSpace * 4), previewProperty, true);
                     }
                 }
             }
-            EditorGUI.EndFoldoutHeaderGroup();
             EditorGUI.EndProperty();
         }
-
 
         private void ShowMenu(SerializedProperty property)
         {
@@ -114,9 +105,13 @@ namespace Treasured.UnitySdk
 
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            if (!SessionState.GetBool(InteractableButtonFoldoutKey, true))
+            if (!SessionState.GetBool(SessionKeys.ShowInteractableButtonFoldout, true))
             {
                 return k_SingleLineHeightWithSpace;
+            }
+            if (property.serializedObject.isEditingMultipleObjects)
+            {
+                return k_SingleLineHeightWithSpace * 3;
             }
             bool assetIsNull = property.FindPropertyRelative(nameof(InteractableButton.asset)).objectReferenceValue.IsNullOrNone();
             bool transformIsNull = property.FindPropertyRelative(nameof(InteractableButton.transform)).objectReferenceValue.IsNullOrNone();
