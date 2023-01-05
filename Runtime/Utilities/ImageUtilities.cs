@@ -89,17 +89,17 @@ namespace Treasured.UnitySdk
             argumentBuilder.Append($" \"{modifiedDirectory}\"");
 
             var startInfo = new ProcessStartInfo(processName, argumentBuilder.ToString());
-            startInfo.CreateNoWindow = true;
-            startInfo.RedirectStandardOutput = true;
-            startInfo.UseShellExecute = false;
+            startInfo.CreateNoWindow = false;
+            //startInfo.RedirectStandardOutput = true;
+            //startInfo.UseShellExecute = false;
 
             using var ktxProcess = new Process() { StartInfo = startInfo };
             ktxProcess.Start();
-            string stdOutput = ktxProcess.StandardOutput.ReadToEnd();
+            //string stdOutput = ktxProcess.StandardOutput.ReadToEnd();
             try
             {
                 ktxProcess.WaitForExit();
-                UnityEngine.Debug.Log(stdOutput);
+                //UnityEngine.Debug.Log(stdOutput);
             }
             catch (Exception e)
             {
