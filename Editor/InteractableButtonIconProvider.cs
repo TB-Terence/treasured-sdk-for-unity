@@ -9,8 +9,6 @@ namespace Treasured.UnitySdk
 {
     public sealed class InteractableButtonIconProvider
     {
-        private const string k_CustomIconsFolderKey = "TreasuredSDK_InteractableButtonIcons_CustomFolderPath";
-
         public const string Filter = "t:Treasured.UnitySdk.IconAsset";
         public static readonly string[] IconDirectories = new string[] { "Assets/Treasured SDK/Icons/", "Packages/com.treasured.unitysdk/Resources/Icons" };
         private static Dictionary<string, (IconAsset, GUIContent)> s_icons = new Dictionary<string, (IconAsset, GUIContent)>();
@@ -33,11 +31,11 @@ namespace Treasured.UnitySdk
         {
             get
             {
-                return SessionState.GetString(k_CustomIconsFolderKey, CustomIconFolder);
+                return SessionState.GetString(SessionKeys.CustomIconsFolder, CustomIconFolder);
             }
             set
             {
-                SessionState.SetString(k_CustomIconsFolderKey, value);
+                SessionState.SetString(SessionKeys.CustomIconsFolder, value);
             }
         }
 
@@ -48,11 +46,11 @@ namespace Treasured.UnitySdk
         {
             get
             {
-                return EditorPrefs.GetString(k_CustomIconsFolderKey, Application.dataPath);
+                return EditorPrefs.GetString(SessionKeys.CustomIconsFolder, Application.dataPath);
             }
             set
             {
-                EditorPrefs.SetString(k_CustomIconsFolderKey, value);
+                EditorPrefs.SetString(SessionKeys.CustomIconsFolder, value);
             }
         }
 

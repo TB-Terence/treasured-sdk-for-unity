@@ -113,13 +113,20 @@ namespace Treasured.UnitySdk
                         {
                             Rect buttonRect = new Rect(rect.x, rect.y, 25, EditorGUIUtility.singleLineHeight);
                             SerializedProperty enabled = element.FindPropertyRelative("enabled");
-                            EditorGUI.BeginChangeCheck();
-                            enabled.boolValue = EditorGUI.ToggleLeft(buttonRect, new GUIContent(name), enabled.boolValue);
-                            if (EditorGUI.EndChangeCheck())
+                            if(enabled != null)
                             {
-                                UpdateToggleState(elements);
+                                EditorGUI.BeginChangeCheck();
+                                enabled.boolValue = EditorGUI.ToggleLeft(buttonRect, new GUIContent(name), enabled.boolValue);
+                                if (EditorGUI.EndChangeCheck())
+                                {
+                                    UpdateToggleState(elements);
+                                }
+                                EditorGUI.PropertyField(new Rect(rect.x + 25, rect.y, rect.width - 64, rect.height), element, new GUIContent(name), true);
                             }
-                            EditorGUI.PropertyField(new Rect(rect.x + 25, rect.y, rect.width - 64, rect.height), element, new GUIContent(name), true);
+                            else
+                            {
+                                EditorGUI.LabelField(new Rect(rect.x + 25, rect.y, rect.width - 64, rect.height), "Unknown Type. You should remove this item.");
+                            }
                         }
                         else
                         {
@@ -237,6 +244,10 @@ namespace Treasured.UnitySdk
             {
                 SerializedProperty element = elements.GetArrayElementAtIndex(i);
                 SerializedProperty enabledProperty = element.FindPropertyRelative("enabled");
+                if (enabledProperty == null)
+                {
+                    continue;
+                }
                 enabled[i] = enabledProperty.boolValue;
             }
             int enabledCount = enabled.Count(x => x == true);

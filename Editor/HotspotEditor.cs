@@ -15,7 +15,6 @@ namespace Treasured.UnitySdk
         }
 
         private static readonly GUIContent[] tabs = { new GUIContent("On Click"), new GUIContent("On Hover") };
-        private const string k_ActionsListExpanded = "TreasuredSDK_ActionsListExpanded";
         private const string k_RecordingText = "Recording In Progress(Click on the scene to rotate the camera)...";
 
         private ActionGroupListDrawer onClickList;
@@ -106,14 +105,14 @@ namespace Treasured.UnitySdk
                     }
                 }
                 EditorGUILayout.PropertyField(button);
-               // EditorGUILayoutUtils.TransformPropertyField(serializedHitboxTransform, "Hitbox");
                 EditorGUILayoutUtils.TransformPropertyField(hitbox, "Hitbox");
-               // EditorGUILayoutUtils.TransformPropertyField(serializedCameraTransform, "Camera", true, true, false);
+                bool showDeprecatedActions = SessionState.GetBool(SessionKeys.ShowDeprecatedActions, false);
+                SessionState.SetBool(SessionKeys.ShowDeprecatedActions, EditorGUILayout.ToggleLeft("Show Deprecated Actions", showDeprecatedActions));
                 EditorGUI.BeginChangeCheck();
-                bool isExpanded = EditorGUILayout.BeginFoldoutHeaderGroup(SessionState.GetBool(k_ActionsListExpanded, true), "Actions");
-                if(EditorGUI.EndChangeCheck())
+                bool isExpanded = EditorGUILayout.BeginFoldoutHeaderGroup(SessionState.GetBool(SessionKeys.ShowActionList, true), "Actions");
+                if (EditorGUI.EndChangeCheck())
                 {
-                    SessionState.SetBool(k_ActionsListExpanded, isExpanded);
+                    SessionState.SetBool(SessionKeys.ShowActionList, isExpanded);
                 }
                 if (isExpanded)
                 {
@@ -121,16 +120,26 @@ namespace Treasured.UnitySdk
                     switch (selectedTabIndex)
                     {
                         case 0:
-                            onClickList?.OnGUI();
+                            if (showDeprecatedActions)
+                            {
+                                onClickList?.OnGUI();
+                            }
                             EditorGUILayout.PropertyField(onClick);
                             break;
                         case 1:
-                            onHoverList?.OnGUI();
+                            if (showDeprecatedActions)
+                            {
+                                onHoverList?.OnGUI();
+                            }
                             EditorGUILayout.PropertyField(onHover);
                             break;
                     }
                 }
                 EditorGUILayout.EndFoldoutHeaderGroup();
+            }
+            else
+            {
+                EditorGUILayout.HelpBox($"Multi-Editing is disabled.", MessageType.Info);
             }
             if (GUILayout.Button(Styles.snapToGround, GUILayout.Height(24)))
             {

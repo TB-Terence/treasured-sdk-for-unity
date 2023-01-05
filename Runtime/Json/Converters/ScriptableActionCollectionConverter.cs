@@ -51,7 +51,7 @@ namespace Treasured.UnitySdk
                 writer.WriteStartArray();
                 foreach (var action in collection)
                 {
-                    if (!action.enabled)
+                    if (action == null || !action.enabled)
                     {
                         continue;
                     }

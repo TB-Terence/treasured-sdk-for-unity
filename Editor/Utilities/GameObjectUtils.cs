@@ -169,6 +169,25 @@ namespace Treasured.UnitySdk
             return (Texture2D)(getIconForObjectMethodInfo?.Invoke(null, new object[] { go }));
         }
 
+        public static Transform GetOrCreateChild(Transform parent, string name, Vector3 localPosition, Quaternion localRotation, Vector3 localScale)
+        {
+            if (parent == null)
+            {
+                return null;
+            }
+            var transform = parent.transform.Find(name);
+            if (transform == null || parent.transform != transform.parent.transform)
+            {
+                GameObject go = new GameObject(name);
+                transform = go.transform;
+                transform.SetParent(parent.transform);
+                transform.localPosition = localPosition;
+                transform.localRotation = localRotation;
+                transform.localScale = localScale;
+            }
+            return transform;
+        }
+
 #if UNITY_2020_3_OR_NEWER
         public static void FrameAndRenameNewGameObject()
         {

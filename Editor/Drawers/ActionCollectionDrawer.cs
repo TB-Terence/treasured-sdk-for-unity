@@ -15,6 +15,11 @@ namespace Treasured.UnitySdk
                 EditorGUI.HelpBox(position, $"{property.propertyPath} is not a collection.", MessageType.Error);
                 return;
             }
+            if (property.serializedObject.isEditingMultipleObjects)
+            {
+                EditorGUI.HelpBox(position, $"Multi-Editing for {property.propertyPath} is disabled.", MessageType.None);
+                return;
+            }
             Type type = fieldInfo.FieldType;
             if (property.objectReferenceValue == null && typeof(ScriptableObject).IsAssignableFrom(type))
             {

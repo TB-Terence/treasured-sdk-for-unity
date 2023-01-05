@@ -36,8 +36,6 @@ namespace Treasured.UnitySdk
         private static MethodInfo transformRotationOnEnableMethodInfo;
         private static MethodInfo transformRotationGUIMethodInfo;
 
-        private const string InteractableButtonFoldoutKey = "TreasuredSDK_InteractableButtonFoldout";
-
         public static bool Link(GUIContent label, GUIContent url)
         {
             EditorGUILayout.BeginHorizontal();
@@ -235,10 +233,10 @@ namespace Treasured.UnitySdk
             {
                 property.serializedObject.Update();
                 EditorGUI.BeginChangeCheck();
-                var expanded = EditorGUILayout.BeginFoldoutHeaderGroup(SessionState.GetBool(InteractableButtonFoldoutKey, true), new GUIContent(property.displayName));
+                var expanded = EditorGUILayout.BeginFoldoutHeaderGroup(SessionState.GetBool(SessionKeys.ShowInteractableButtonFoldout, true), new GUIContent(property.displayName));
                 if (EditorGUI.EndChangeCheck())
                 {
-                    SessionState.SetBool(InteractableButtonFoldoutKey, expanded);
+                    SessionState.SetBool(SessionKeys.ShowInteractableButtonFoldout, expanded);
                 }
                 if (expanded)
                 {
@@ -254,7 +252,7 @@ namespace Treasured.UnitySdk
                     }
                     if (property.serializedObject.isEditingMultipleObjects)
                     {
-                        EditorGUILayout.HelpBox(new GUIContent("Multi-Editing for Transform and Preview is disabled."));
+                        EditorGUILayout.HelpBox("Multi-Editing for Transform and Preview is disabled.", MessageType.Info);
                     }
                     else
                     {
