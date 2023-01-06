@@ -14,18 +14,16 @@ namespace Treasured.UnitySdk
             public static readonly GUIContent missingMapComponent = EditorGUIUtility.TrTextContent("Missing Treasured Map Component in parent.", "", "Warning");
         }
 
-        private static readonly GUIContent[] tabs = { new GUIContent("On Click"), new GUIContent("On Hover") };
+        private static readonly GUIContent[] tabs = { new GUIContent("On Click"), new GUIContent("On Enter") };
         private const string k_RecordingText = "Recording In Progress(Click on the scene to rotate the camera)...";
 
         private ActionGroupListDrawer onClickList;
-        private ActionGroupListDrawer onHoverList;
         private SerializedProperty button;
         private SerializedProperty hitbox;
         private SerializedProperty camera;
         private SerializedProperty _onClick;
         private SerializedProperty onClick;
-        private SerializedProperty _onHover;
-        private SerializedProperty onHover;
+        private SerializedProperty onEnter;
 
         private TreasuredMap map;
         private SerializedObject serializedHitboxTransform;
@@ -56,8 +54,7 @@ namespace Treasured.UnitySdk
             camera = serializedObject.FindProperty("_camera");
             _onClick = serializedObject.FindProperty("_onClick");
             onClick = serializedObject.FindProperty("onClick");
-            _onHover = serializedObject.FindProperty("_onHover");
-            onHover = serializedObject.FindProperty("onHover");
+            onEnter = serializedObject.FindProperty(nameof(hotspot.onEnter));
             if (hotspot.Hitbox)
             {
                 serializedHitboxTransform = new SerializedObject(hotspot.Hitbox.transform);
@@ -69,7 +66,6 @@ namespace Treasured.UnitySdk
             if (serializedObject.targetObjects.Length == 1)
             {
                 onClickList = new ActionGroupListDrawer(serializedObject, _onClick);
-                onHoverList = new ActionGroupListDrawer(serializedObject, _onHover);
             }
             hotspot?.TryInvokeMethods("OnSelectedInHierarchy");
             SceneView.duringSceneGui -= OnSceneViewGUI;
@@ -127,11 +123,7 @@ namespace Treasured.UnitySdk
                             EditorGUILayout.PropertyField(onClick);
                             break;
                         case 1:
-                            if (showDeprecatedActions)
-                            {
-                                onHoverList?.OnGUI();
-                            }
-                            EditorGUILayout.PropertyField(onHover);
+                            EditorGUILayout.PropertyField(onEnter);
                             break;
                     }
                 }
