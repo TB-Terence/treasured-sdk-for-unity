@@ -271,9 +271,22 @@ namespace Treasured.UnitySdk
                 }
                 foreach (var actionGroup in obj.OnClick)
                 {
-                    foreach (var action in actionGroup.Actions)
+                    if (actionGroup.Actions.Count > 1)
                     {
-                        ScriptableAction scriptableAction = action.ConvertToScriptableAction();
+                        GroupAction group = new GroupAction();
+                        foreach (var action in actionGroup.Actions)
+                        {
+                            ScriptableAction scriptableAction = action.ConvertToScriptableAction();
+                            if (scriptableAction != null)
+                            {
+                                group.actions.Add(scriptableAction);
+                            }
+                        }
+                        obj.onClick.Add(group);
+                    }
+                    else if (actionGroup.Actions.Count == 1)
+                    {
+                        ScriptableAction scriptableAction = actionGroup.Actions[0].ConvertToScriptableAction();
                         if (scriptableAction != null)
                         {
                             obj.onClick.Add(scriptableAction);
@@ -287,12 +300,25 @@ namespace Treasured.UnitySdk
                 }
                 foreach (var actionGroup in obj.OnHover)
                 {
-                    foreach (var action in actionGroup.Actions)
+                    if (actionGroup.Actions.Count > 1)
                     {
-                        ScriptableAction scriptableAction = action.ConvertToScriptableAction();
+                        GroupAction group = new GroupAction();
+                        foreach (var action in actionGroup.Actions)
+                        {
+                            ScriptableAction scriptableAction = action.ConvertToScriptableAction();
+                            if (scriptableAction != null)
+                            {
+                                group.actions.Add(scriptableAction);
+                            }
+                        }
+                        obj.onHover.Add(group);
+                    }
+                    else if (actionGroup.Actions.Count == 1)
+                    {
+                        ScriptableAction scriptableAction = actionGroup.Actions[0].ConvertToScriptableAction();
                         if (scriptableAction != null)
                         {
-                            obj.onClick.Add(scriptableAction);
+                            obj.onHover.Add(scriptableAction);
                         }
                     }
                 }
@@ -709,6 +735,12 @@ namespace Treasured.UnitySdk
                 }
             }
             EditorGUI.indentLevel--;
+        }
+
+        [TabGroup(groupName = "Actions")]
+        private void OnActionsGUI()
+        {
+            EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(TreasuredMap.onSceneLoad)));
         }
 
         [TabGroup(groupName = "Guided Tour")]

@@ -84,6 +84,10 @@ namespace Treasured.UnitySdk
         public ImageFormat Format { get => cubemapExporter.imageFormat; }
         #endregion
 
+        #region Actions
+        public ScriptableActionCollection onSceneLoad;
+        #endregion
+
         #region Objects
         public Hotspot[] Hotspots
         {
