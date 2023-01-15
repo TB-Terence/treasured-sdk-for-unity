@@ -24,7 +24,7 @@ namespace Treasured.Actions
         public override bool CanRemove(XNode.Node node)
         {
             var eventNodeTypes = ReflectionUtils.GetAttributes<CreateEventNodeAttribute>(graph.GetType()).SelectMany(x => x.Types);
-            if (eventNodeTypes.Contains(node.GetType()))
+            if (eventNodeTypes.Any(t => t == node.GetType()))
             {
                 Debug.LogError($"Removing {node.GetType().Name} is prohibited.");
                 return false;

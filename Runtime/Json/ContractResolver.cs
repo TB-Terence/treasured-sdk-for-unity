@@ -13,6 +13,7 @@ namespace Treasured.UnitySdk
     internal class ContractResolver : DefaultContractResolver
     {
         public static readonly ContractResolver Instance = new ContractResolver();
+        private static JsonConverter[] s_customJsonConverters;
 
         private static readonly string[] propertyNameOrder = new string[]
         {
@@ -37,79 +38,19 @@ namespace Treasured.UnitySdk
                 ProcessDictionaryKeys = true,
                 OverrideSpecifiedNames = true
             };
+            s_customJsonConverters = Assembly.GetExecutingAssembly().GetTypes().Where(t => t.IsClass && !t.IsAbstract && typeof(JsonConverter).IsAssignableFrom(t)).Select(t => (JsonConverter)Activator.CreateInstance(t)).ToArray();
         }
 
         protected override JsonContract CreateContract(Type objectType)
         {
             JsonContract contract = base.CreateContract(objectType);
-            if (objectType == typeof(Vector3))
+            foreach (var converter in s_customJsonConverters)
             {
-                contract.Converter = new Vector3Converter();
-            }
-            if (objectType == typeof(string))
-            {
-                contract.Converter = new StringConverter();
-            }
-            if (objectType.BaseType == typeof(Enum))
-            {
-                contract.Converter = new StringEnumConverter(new KebabCaseNamingStrategy());
-            }
-            if (objectType == typeof(HotspotCamera))
-            {
-                contract.Converter = new HotspotCameraConverter();
-            }
-            if (objectType == typeof(Hitbox))
-            {
-                contract.Converter = new HitboxConverter();
-            }
-            if (objectType == typeof(Quaternion))
-            {
-                contract.Converter = new QuaternionConverter();
-            }
-            if (objectType == typeof(Transform))
-            {
-                contract.Converter = new TransformConverter();
-            }
-            if (objectType == typeof(InteractableButton))
-            {
-                contract.Converter = new InteractableButtonConverter();
-            }
-            if (objectType == typeof(TreasuredObject) || objectType.GetElementType() == typeof(TreasuredObject) || (objectType.GenericTypeArguments.Length == 1 && objectType.GenericTypeArguments[0] == typeof(TreasuredObject)))
-            {
-                contract.Converter = new TreasuredObjectConverter();
-            }
-            if (objectType == typeof(Exporter))
-            {
-                contract.Converter = new ExporterConverter();
-            }
-            if (objectType == typeof(ScriptableActionCollection))
-            {
-                contract.Converter = new ScriptableActionCollectionConverter();
-            }
-            if (objectType == typeof(GoToAction) || objectType == typeof(GoToNode))
-            {
-                contract.Converter = new GoToActionConverter();
-            }
-            if (objectType == typeof(StartTourAction))
-            {
-                contract.Converter = new StartTourActionConverter();
-            }
-            if (objectType == typeof(ShowPreviewAction) || objectType == typeof(Actions.ShowPreviewAction) || objectType == typeof(ShowPreviewNode))
-            {
-                contract.Converter = new ShowPreviewActionConverter();
-            }
-            if (objectType == typeof(GuidedTourGraph))
-            {
-                contract.Converter = new GuidedTourGraphConverter();
-            }
-
-            if (objectType == typeof(PlayAudioAction))
-            {
-                contract.Converter = new PlayAudioActionConverter();
-            }
-            if(objectType == typeof(ActionGraph))
-            {
-                contract.Converter = new ActionGraphConverter();
+                if (converter.CanConvert(objectType))
+                {
+                    contract.Converter = converter;
+                    break;
+                }
             }
             return contract;
         }
