@@ -19,6 +19,8 @@ namespace Treasured.Actions
             owner = (TreasuredObject)graph.Owner;
             //this.window.titleContent = new GUIContent($"{base.window.titleContent.text}/Action Graph - {graph.name}");
             CreateEventNodes();
+            // Work around for create node menu for choice node
+            XNodeEditor.NodeEditorPreferences.GetSettings().createFilter = false;
         }
 
         public override bool CanRemove(XNode.Node node)
@@ -35,7 +37,7 @@ namespace Treasured.Actions
         public override string GetNodeMenuName(System.Type type)
         {
             // Hide the options to create event nodes
-            if (type.Namespace.Equals("Treasured.Events"))
+            if (!type.Namespace.StartsWith("Treasured") || type.Namespace.Equals("Treasured.Events"))
             {
                 return null;
             }

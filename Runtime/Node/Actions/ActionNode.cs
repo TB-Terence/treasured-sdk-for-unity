@@ -5,7 +5,7 @@ using XNode;
 
 namespace Treasured.Actions
 {
-    [NodeWidth(280)]
+    [NodeWidth(240)]
     public abstract class ActionNode : Node
     {
         [SerializeField]
@@ -13,8 +13,10 @@ namespace Treasured.Actions
         private string _id = Guid.NewGuid().ToString();
         public string Id { get { return _id; } }
         [Input(ShowBackingValue.Never)]
+        [HideInInspector]
         public ActionNode previous;
         [Output(ShowBackingValue.Never)]
+        [HideInInspector]
         public ActionNode next;
 
         /// <summary>
