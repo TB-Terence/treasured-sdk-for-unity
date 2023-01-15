@@ -44,6 +44,7 @@ namespace Treasured.UnitySdk
         protected override JsonContract CreateContract(Type objectType)
         {
             JsonContract contract = base.CreateContract(objectType);
+            // TODO: Refactor this. this is beening called multiple times
             foreach (var converter in s_customJsonConverters)
             {
                 if (converter.CanConvert(objectType))

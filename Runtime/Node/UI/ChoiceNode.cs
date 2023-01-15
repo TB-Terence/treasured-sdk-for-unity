@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using UnityEngine;
 
 namespace Treasured.Actions
@@ -17,6 +18,7 @@ namespace Treasured.Actions
 
         [Output(dynamicPortList = true)]
         [ChoiceOption]
+        [JsonIgnore]
         public string[] choices;
     }
 }

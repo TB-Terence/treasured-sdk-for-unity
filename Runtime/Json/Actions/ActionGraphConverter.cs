@@ -12,7 +12,7 @@ namespace Treasured
 {
     public class ActionGraphConverter : JsonConverter<ActionGraph>
     {
-        private static Dictionary<Type, Type[]> s_cachedEventNodes = new Dictionary<Type, Type[]>();
+        private static Dictionary<Type, Type[]> s_cachedRequiredEventNodes = new Dictionary<Type, Type[]>();
         public override ActionGraph ReadJson(JsonReader reader, Type objectType, ActionGraph existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
             return null;
@@ -20,9 +20,9 @@ namespace Treasured
 
         public override void WriteJson(JsonWriter writer, ActionGraph graph, JsonSerializer serializer)
         {
-            CacheCreateEventNodeAttributes(graph);
+            CacheRequiredEventNodeAttributes(graph);
             writer.WriteStartObject();
-            foreach (var kvp in s_cachedEventNodes)
+            foreach (var kvp in s_cachedRequiredEventNodes)
             {
                 if (kvp.Key != graph.Owner.GetType()) continue;
                 foreach (var evt in kvp.Value)
@@ -58,14 +58,14 @@ namespace Treasured
             writer.WriteEndObject();
         }
 
-        void CacheCreateEventNodeAttributes(ActionGraph graph)
+        void CacheRequiredEventNodeAttributes(ActionGraph graph)
         {
-            var attributes = ReflectionUtils.GetAttributes<CreateEventNodeAttribute>(graph.GetType());
+            var attributes = ReflectionUtils.GetAttributes<RequiredEventNodeAttribute>(graph.GetType());
             foreach(var attribute in attributes)
             {
-                if (!s_cachedEventNodes.ContainsKey(attribute.OwnerType))
+                if (!s_cachedRequiredEventNodes.ContainsKey(attribute.OwnerType))
                 {
-                    s_cachedEventNodes.Add(attribute.OwnerType, attribute.Types);
+                    s_cachedRequiredEventNodes.Add(attribute.OwnerType, attribute.Types);
                 }
             }
         }

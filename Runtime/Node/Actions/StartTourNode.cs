@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using Treasured.UnitySdk;
 
 namespace Treasured.Actions
@@ -6,6 +7,7 @@ namespace Treasured.Actions
     [API("startTour")]
     public class StartTourNode : ActionNode
     {
-        public GuidedTour target;
+        [JsonIgnore]
+        public Treasured.UnitySdk.GuidedTour target;
     }
 }

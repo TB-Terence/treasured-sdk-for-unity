@@ -5,21 +5,20 @@ using UnityEngine;
 
 namespace Treasured.Actions
 {
-    [CreateEventNode(typeof(Hotspot), typeof(OnSelectNode))]
-    [CreateEventNode(typeof(Interactable), typeof(OnClickNode), typeof(OnHoverNode))]
-    [RequireNode(typeof(OnSelectNode))]
+    [RequiredEventNode(typeof(Hotspot), typeof(OnSelectNode))]
+    [RequiredEventNode(typeof(Interactable), typeof(OnClickNode), typeof(OnHoverNode))]
     public class ActionGraph : NodeGraph
     {
         [SerializeField]
         [HideInInspector]
-        private UnityEngine.Object owner;
+        private UnityEngine.Object _owner;
 
-        public UnityEngine.Object Owner { get { return owner; } private set { owner = value; } }
+        public UnityEngine.Object Owner { get { return _owner; } internal set { _owner = value; } }
 
         public static ActionGraph Create(UnityEngine.Object owner)
         {
             ActionGraph graph = ScriptableObject.CreateInstance<ActionGraph>();
-            graph.owner = owner;
+            graph._owner = owner;
             return graph;
         }
     }

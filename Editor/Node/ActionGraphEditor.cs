@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using Treasured.Actions;
 using Treasured.UnitySdk;
 using UnityEditor;
 using UnityEngine;
@@ -25,7 +24,7 @@ namespace Treasured.Actions
 
         public override bool CanRemove(XNode.Node node)
         {
-            var eventNodeTypes = ReflectionUtils.GetAttributes<CreateEventNodeAttribute>(graph.GetType()).SelectMany(x => x.Types);
+            var eventNodeTypes = ReflectionUtils.GetAttributes<RequiredEventNodeAttribute>(graph.GetType()).SelectMany(x => x.Types);
             if (eventNodeTypes.Any(t => t == node.GetType()))
             {
                 Debug.LogError($"Removing {node.GetType().Name} is prohibited.");
@@ -37,7 +36,7 @@ namespace Treasured.Actions
         public override string GetNodeMenuName(System.Type type)
         {
             // Hide the options to create event nodes
-            if (!type.Namespace.StartsWith("Treasured") || type.Namespace.Equals("Treasured.Events"))
+            if (!type.Namespace.StartsWith("Treasured"))
             {
                 return null;
             }
@@ -46,7 +45,7 @@ namespace Treasured.Actions
 
         void CreateEventNodes()
         {
-            var attributes = ReflectionUtils.GetAttributes<CreateEventNodeAttribute>(graph.GetType());
+            var attributes = ReflectionUtils.GetAttributes<RequiredEventNodeAttribute>(graph.GetType());
             if(attributes == null)
             {
                 return;

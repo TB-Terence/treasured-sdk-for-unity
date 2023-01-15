@@ -33,6 +33,7 @@ namespace XNodeEditor {
         }
 
         private static void AddRequired(NodeGraph graph, Type type, ref Vector2 position) {
+            Debug.LogError("adding required node");
             if (!graph.nodes.Any(x => x.GetType() == type)) {
                 XNode.Node node = graph.AddNode(type);
                 node.position = position;

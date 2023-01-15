@@ -160,6 +160,9 @@ namespace Treasured.UnitySdk
         [SerializeField]
         internal MigrateInfo migrateInfo;
 
+        [Treasured.GuidedTour.GuidedTourGraph.CreateTour("default")]
+        public Treasured.GuidedTour.GuidedTourGraph guidedTourGraph;
+
         private void OnValidate()
         {
             //  Set default Auto Camera Rotation to false for all except for modern loader template 

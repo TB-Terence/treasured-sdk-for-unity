@@ -42,20 +42,20 @@ namespace Treasured.UnitySdk
 
         public static void Export(TreasuredMap map)
         {
-            var exporters = ReflectionUtils.GetSerializedFieldValuesOfType<Exporter>(map);
-            List<ValidationResult> validationResults = new List<ValidationResult>();
-            foreach (var exporter in exporters)
-            {
-                var results = exporter.CanExport();
-                if(results != null)
-                {
-                    validationResults.AddRange(results);
-                }
-            }
-            if((!TreasuredSDKPreferences.Instance.ignoreWarnings && validationResults.Count > 0) || (TreasuredSDKPreferences.Instance.ignoreWarnings && validationResults.Any(result => result.type == ValidationResult.ValidationResultType.Error)))
-            {
-                throw new ValidationException(validationResults);
-            }
+            //var exporters = ReflectionUtils.GetSerializedFieldValuesOfType<Exporter>(map);
+            //List<ValidationResult> validationResults = new List<ValidationResult>();
+            //foreach (var exporter in exporters)
+            //{
+            //    var results = exporter.CanExport();
+            //    if(results != null)
+            //    {
+            //        validationResults.AddRange(results);
+            //    }
+            //}
+            //if((!TreasuredSDKPreferences.Instance.ignoreWarnings && validationResults.Count > 0) || (TreasuredSDKPreferences.Instance.ignoreWarnings && validationResults.Any(result => result.type == ValidationResult.ValidationResultType.Error)))
+            //{
+            //    throw new ValidationException(validationResults);
+            //}
             ForceExport(map);
         }
 

@@ -245,6 +245,14 @@ namespace Treasured.UnitySdk
             InitializeTabGroups();
             InitializeObjectList();
             InitializeGuidedTour();
+            if (_map.guidedTourGraph.IsNullOrNone())
+            {
+                _map.guidedTourGraph = Treasured.GuidedTour.GuidedTourGraph.Create(_map);
+            }
+            else
+            {
+                _map.guidedTourGraph.Owner = _map;
+            }
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
             Migrate();
@@ -733,6 +741,10 @@ namespace Treasured.UnitySdk
                                                 {
                                                     current.actionGraph = ActionGraph.Create(current);
                                                 }
+                                                else
+                                                {
+                                                    current.actionGraph.Owner = current;
+                                                }
                                                 XNodeEditor.NodeEditorWindow.Open(current.actionGraph);
                                             }
                                         }
@@ -760,6 +772,7 @@ namespace Treasured.UnitySdk
                 EditorGUILayout.HelpBox("Guided Tour is currently disabled. You can go to Page Info > Features to turn it on.", MessageType.Warning);
                 return;
             }
+            EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(TreasuredMap.guidedTourGraph)));
             graphEditor.OnInspectorGUI();
         }
 
