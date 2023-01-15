@@ -128,5 +128,16 @@ namespace Treasured.UnitySdk
             }
             return results.ToArray();
         }
+
+        public static T GetAttribute<T>(object target, string fieldName) where T : Attribute
+        {
+            FieldInfo fieldInfo = target.GetType().GetField(fieldName);
+            return fieldInfo.GetCustomAttribute<T>();
+        }
+
+        public static T[] GetAttributes<T>(Type type) where T : Attribute
+        {
+            return type.GetCustomAttributes<T>().ToArray();
+        }
     }
 }

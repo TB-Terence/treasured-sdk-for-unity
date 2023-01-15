@@ -27,27 +27,6 @@ namespace Treasured.UnitySdk
             ScriptableActionCollection collection = value as ScriptableActionCollection;
             if (collection)
             {
-                //writer.WriteStartObject();
-                //// v1
-                //writer.WritePropertyName("v1");
-                //StringBuilder sb = new StringBuilder();
-                //foreach (var action in collection)
-                //{
-                //    if (!action.enabled)
-                //    {
-                //        continue;
-                //    }
-                //    Type type = action.GetType();
-                //    APIAttribute attribute = type.GetCustomAttributes<APIAttribute>().FirstOrDefault();
-                //    if (attribute == null)
-                //    {
-                //        continue;
-                //    }
-                //    sb.AppendLine($"{(attribute.IsAsync ? "await " : "")}{attribute.Domain}.{attribute.FunctionName}({JsonConvert.SerializeObject(action, Formatting.None, JsonExporter.JsonSettings)})");
-                //}
-                //writer.WriteValue(sb.ToString());
-                //// v2
-                //writer.WritePropertyName("v2");
                 writer.WriteStartArray();
                 foreach (var action in collection)
                 {
@@ -69,7 +48,6 @@ namespace Treasured.UnitySdk
                     writer.WriteEndObject();
                 }
                 writer.WriteEndArray();
-                //writer.WriteEndObject();
             }
             else
             {

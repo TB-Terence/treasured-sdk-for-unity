@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Treasured.Actions;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
@@ -85,7 +86,7 @@ namespace Treasured.UnitySdk
             {
                 contract.Converter = new ScriptableActionCollectionConverter();
             }
-            if (objectType == typeof(GoToAction))
+            if (objectType == typeof(GoToAction) || objectType == typeof(GoToNode))
             {
                 contract.Converter = new GoToActionConverter();
             }
@@ -93,7 +94,7 @@ namespace Treasured.UnitySdk
             {
                 contract.Converter = new StartTourActionConverter();
             }
-            if (objectType == typeof(ShowPreviewAction) || objectType == typeof(Actions.ShowPreviewAction))
+            if (objectType == typeof(ShowPreviewAction) || objectType == typeof(Actions.ShowPreviewAction) || objectType == typeof(ShowPreviewNode))
             {
                 contract.Converter = new ShowPreviewActionConverter();
             }
@@ -106,7 +107,10 @@ namespace Treasured.UnitySdk
             {
                 contract.Converter = new PlayAudioActionConverter();
             }
-
+            if(objectType == typeof(ActionGraph))
+            {
+                contract.Converter = new ActionGraphConverter();
+            }
             return contract;
         }
 
@@ -117,6 +121,10 @@ namespace Treasured.UnitySdk
             {
                 // filter out `name` field if type is subclass of TreasuredObject OR if DeclaringType of the property is subclass of MonoBehaviour
                 properties = properties.Where(x => (x.PropertyName.Equals("name") && type.IsSubclassOf(typeof(TreasuredObject))) || x.DeclaringType.IsSubclassOf(typeof(MonoBehaviour))).ToList();
+            }
+            else if (typeof(ActionNode).IsAssignableFrom(type))
+            {
+                properties = properties.Where(x => x.DeclaringType == type).ToList();
             }
             else if (type == typeof(ScriptableActionCollection) || type == typeof(GuidedTourGraph) || type == typeof(GuidedTour) || type == typeof(ActionGroup) || typeof(Exporter).IsAssignableFrom(type) || typeof(TreasuredSDKPreferences).IsAssignableFrom(type))
             {

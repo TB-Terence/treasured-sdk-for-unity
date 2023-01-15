@@ -9,7 +9,9 @@
         "Unity.RenderPipelines.Core.Editor",
         "Unity.TextMeshPro",
         "Whinarn.UnityMeshSimplifier.Runtime",
-        "Whinarn.UnityMeshSimplifier.Editor"
+        "Whinarn.UnityMeshSimplifier.Editor",
+        "XNodeEditor",
+        "XNode"
     ],
     "includePlatforms": [
         "Editor"

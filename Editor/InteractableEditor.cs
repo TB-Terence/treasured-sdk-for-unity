@@ -52,6 +52,7 @@ namespace Treasured.UnitySdk
                     onClickActionGroupDrawer.OnGUI(true);
                 }
                 EditorGUILayout.PropertyField(onClick);
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(TreasuredObject.actionGraph)));
             }
             else
             {

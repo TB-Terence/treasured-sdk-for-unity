@@ -24,6 +24,7 @@ namespace Treasured.UnitySdk
         private SerializedProperty _onClick;
         private SerializedProperty onClick;
         private SerializedProperty onEnter;
+        private SerializedProperty actionGraph;
 
         private TreasuredMap map;
         private SerializedObject serializedHitboxTransform;
@@ -55,6 +56,7 @@ namespace Treasured.UnitySdk
             _onClick = serializedObject.FindProperty("_onClick");
             onClick = serializedObject.FindProperty("onClick");
             onEnter = serializedObject.FindProperty(nameof(hotspot.onEnter));
+            actionGraph = serializedObject.FindProperty(nameof(hotspot.actionGraph));
             if (hotspot.Hitbox)
             {
                 serializedHitboxTransform = new SerializedObject(hotspot.Hitbox.transform);
@@ -128,6 +130,7 @@ namespace Treasured.UnitySdk
                     }
                 }
                 EditorGUILayout.EndFoldoutHeaderGroup();
+                EditorGUILayout.PropertyField(actionGraph);
             }
             else
             {

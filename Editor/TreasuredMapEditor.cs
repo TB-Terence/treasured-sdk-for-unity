@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Treasured.UnitySdk.Utilities;
+using Treasured.Actions;
 using Treasured.UnitySdk.Validation;
 using UnityEditor;
 using UnityEditor.PackageManager;
-using UnityEditorInternal;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
@@ -58,6 +57,7 @@ namespace Treasured.UnitySdk
 
             public static readonly GUIContent plus = EditorGUIUtility.TrIconContent("Toolbar Plus");
             public static readonly GUIContent minus = EditorGUIUtility.TrIconContent("Toolbar Minus", "Remove");
+            public static readonly GUIContent graph = EditorGUIUtility.TrIconContent("AnimatorController Icon", "Edit Graph");
 
             public static readonly GUIStyle logoText = new GUIStyle(EditorStyles.boldLabel)
             {
@@ -598,6 +598,7 @@ namespace Treasured.UnitySdk
             EditorGUILayout.PropertyField(uiSettings);
             SerializedProperty features = serializedObject.FindProperty("features");
             EditorGUILayout.PropertyField(features);
+            //EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(TreasuredMap.actionGraph)));
         }
 
         [TabGroup(groupName = "Objects")]
@@ -725,6 +726,14 @@ namespace Treasured.UnitySdk
                                                     }, current);
                                                     menu.ShowAsContext();
                                                     break;
+                                            }
+                                            if (GUILayout.Button(Styles.graph, EditorStyles.label, GUILayout.Width(20), GUILayout.Height(20)))
+                                            {
+                                                if (current.actionGraph.IsNullOrNone())
+                                                {
+                                                    current.actionGraph = ActionGraph.Create(current);
+                                                }
+                                                XNodeEditor.NodeEditorWindow.Open(current.actionGraph);
                                             }
                                         }
                                     }

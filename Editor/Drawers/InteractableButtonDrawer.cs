@@ -68,7 +68,7 @@ namespace Treasured.UnitySdk
                                     }
                                 }
                             }
-                            EditorGUI.PropertyField(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 6, position.width, k_SingleLineHeightWithSpace * 4), previewProperty, true);
+                            EditorGUI.PropertyField(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * (transformProperty.objectReferenceValue.IsNullOrNone() ? 3 : 6), position.width, k_SingleLineHeightWithSpace * 4), previewProperty, true);
                         }
                     }
                 }
@@ -116,7 +116,7 @@ namespace Treasured.UnitySdk
             bool assetIsNull = property.FindPropertyRelative(nameof(InteractableButton.asset)).objectReferenceValue.IsNullOrNone();
             bool transformIsNull = property.FindPropertyRelative(nameof(InteractableButton.transform)).objectReferenceValue.IsNullOrNone();
             float previewHeight = EditorGUI.GetPropertyHeight(property.FindPropertyRelative(nameof(InteractableButton.preview)), true);
-            return assetIsNull ? k_SingleLineHeightWithSpace * 2 : (k_SingleLineHeightWithSpace * (transformIsNull ? 3 : 6) + (transformIsNull ? 0 : previewHeight));
+            return assetIsNull ? k_SingleLineHeightWithSpace * 2 : (k_SingleLineHeightWithSpace * (transformIsNull ? 3 : 6) + (previewHeight));
         }
     }
 }

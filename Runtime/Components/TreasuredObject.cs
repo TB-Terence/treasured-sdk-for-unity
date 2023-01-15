@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using Treasured.Actions;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -47,6 +48,8 @@ namespace Treasured.UnitySdk
 
         public ScriptableActionCollection onClick;
         public ScriptableActionCollection onHover;
+
+        public ActionGraph actionGraph;
         #endregion
 
         #region Properties
