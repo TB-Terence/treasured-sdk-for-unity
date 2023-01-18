@@ -12,9 +12,9 @@ namespace Treasured.UnitySdk
             EditorGUI.BeginProperty(position, label, property);
             SerializedProperty targetProperty = property.FindPropertyRelative(nameof(GoToAction.target));
             SerializedProperty messageProperty = property.FindPropertyRelative(nameof(GoToAction.message));
-            if(GUI.Button(new Rect(position.xMax - 25, position.y, 20, EditorGUIUtility.singleLineHeight), EditorGUIUtility.TrIconContent("d_SceneViewCamera", "Preview"), EditorStyles.label))
+            if (GUI.Button(new Rect(position.xMax - 25, position.y, 20, EditorGUIUtility.singleLineHeight), EditorGUIUtility.TrIconContent("d_SceneViewCamera", "Preview"), EditorStyles.label))
             {
-                if(targetProperty.objectReferenceValue is Hotspot hotspot)
+                if (targetProperty.objectReferenceValue is Hotspot hotspot)
                 {
                     hotspot.Camera?.Preview();
                 }

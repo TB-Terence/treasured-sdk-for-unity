@@ -264,10 +264,13 @@ namespace Treasured.UnitySdk
             TreasuredObject[] objects = _map.GetComponentsInChildren<TreasuredObject>(true);
             foreach (TreasuredObject obj in objects)
             {
-                obj.onClick?.Clear();
-                if (obj.onClick == null)
+                if (obj.onClick.IsNullOrNone())
                 {
                     obj.onClick = CreateInstance<ScriptableActionCollection>();
+                }
+                else
+                {
+                    obj.onClick?.Clear();
                 }
                 foreach (var actionGroup in obj.OnClick)
                 {
@@ -293,10 +296,13 @@ namespace Treasured.UnitySdk
                         }
                     }
                 }
-                obj.onHover?.Clear();
-                if (obj.onHover == null)
+                if (obj.onHover.IsNullOrNone())
                 {
                     obj.onHover = CreateInstance<ScriptableActionCollection>();
+                }
+                else
+                {
+                    obj.onHover?.Clear();
                 }
                 foreach (var actionGroup in obj.OnHover)
                 {

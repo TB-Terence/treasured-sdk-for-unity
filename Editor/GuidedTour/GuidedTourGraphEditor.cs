@@ -43,7 +43,7 @@ namespace Treasured.UnitySdk
                     return;
                 }
                 serializedObject.Update();
-                using(var scope = new EditorGUILayout.ScrollViewScope(_scrollPosition))
+                using (var scope = new EditorGUILayout.ScrollViewScope(_scrollPosition))
                 {
                     _scrollPosition = scope.scrollPosition;
                     EditorGUIUtils.DrawPropertiesExcluding(serializedObject, "m_Script");
@@ -92,9 +92,9 @@ namespace Treasured.UnitySdk
                 {
                     CreateNew(list, "New Tour");
                 });
-                menu.AddItem(new GUIContent("Quick Tour/Hotspots"), false, () =>
+                menu.AddItem(new GUIContent("Quick Tour/Hotspots/Go To & Set Camera Rotation"), false, () =>
                 {
-                    GuidedTour tour = CreateNew(list, "Quick Tour/Hotspots");
+                    GuidedTour tour = CreateNew(list, "Quick Tour");
                     tour.actionScripts = ScriptableObject.CreateInstance<ScriptableActionCollection>();
                     foreach (var hotspot in Map.Hotspots)
                     {
@@ -109,6 +109,19 @@ namespace Treasured.UnitySdk
                             {
                                 rotation = hotspot.Camera.transform.rotation
                             });
+                        }
+                    }
+                    serializedObject.Update();
+                });
+                menu.AddItem(new GUIContent("Quick Tour/Hotspots/On Click Actions"), false, () =>
+                {
+                    GuidedTour tour = CreateNew(list, "Quick Tour");
+                    tour.actionScripts = ScriptableObject.CreateInstance<ScriptableActionCollection>();
+                    foreach (var hotspot in Map.Hotspots)
+                    {
+                        foreach (var action in hotspot.onClick)
+                        {
+                            tour.actionScripts.Add(action);
                         }
                     }
                     serializedObject.Update();
@@ -144,6 +157,10 @@ namespace Treasured.UnitySdk
         public override void OnInspectorGUI()
         {
             rl.DoLayoutList();
+            if(!Current.IsNullOrNone() && !Current.tours.Any(t => t.title.Equals("default")))
+            {
+                EditorGUILayout.HelpBox("A scene uses guided tour must have a tour named 'default'.", MessageType.Error);
+            }
         }
     }
 }

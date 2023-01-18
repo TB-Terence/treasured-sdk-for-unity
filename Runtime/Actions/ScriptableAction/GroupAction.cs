@@ -7,9 +7,9 @@ namespace Treasured.UnitySdk
     {
         public ScriptableActionCollection actions;
 
-        public GroupAction()
+        void OnEnable()
         {
-            actions = ScriptableObject.CreateInstance<ScriptableActionCollection>();
+            actions ??= ScriptableObject.CreateInstance<ScriptableActionCollection>();
         }
     }
 }
