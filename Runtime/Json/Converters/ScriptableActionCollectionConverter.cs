@@ -59,7 +59,7 @@ namespace Treasured.UnitySdk
                     writer.WritePropertyName("id");
                     writer.WriteValue(action.Id);
                     writer.WritePropertyName("method");
-                    APIAttribute apiAttribute = GetType().GetCustomAttributes<APIAttribute>().FirstOrDefault();
+                    APIAttribute apiAttribute = action.GetType().GetCustomAttributes<APIAttribute>().FirstOrDefault();
                     string functionName = apiAttribute != null ? apiAttribute.FunctionName : action.Type;
                     writer.WriteValue(functionName);
                     writer.WritePropertyName("args");
