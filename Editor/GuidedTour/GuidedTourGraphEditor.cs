@@ -119,7 +119,16 @@ namespace Treasured.UnitySdk
                     tour.actionScripts = ScriptableObject.CreateInstance<ScriptableActionCollection>();
                     foreach (var hotspot in Map.Hotspots)
                     {
-                        foreach (var action in hotspot.onClick)
+                        tour.actionScripts.Add(new GoToAction()
+                        {
+                            target = hotspot,
+                            message = hotspot.name
+                        });
+                        tour.actionScripts.Add(new SetCameraRotationAction()
+                        {
+                            rotation = hotspot.Camera.transform.rotation
+                        });
+                        foreach (var action in hotspot.actionGraph.onSelect)
                         {
                             tour.actionScripts.Add(action);
                         }

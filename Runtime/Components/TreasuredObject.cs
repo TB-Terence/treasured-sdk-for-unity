@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using Treasured.Actions;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -44,9 +45,6 @@ namespace Treasured.UnitySdk
 
         [SerializeReference]
         private List<ActionGroup> _onHover = new List<ActionGroup>();
-
-        public ScriptableActionCollection onClick;
-        public ScriptableActionCollection onHover;
         #endregion
 
         #region Properties
@@ -86,6 +84,8 @@ namespace Treasured.UnitySdk
         /// </summary>
         [JsonIgnore]
         public List<ActionGroup> OnHover => _onHover;
+
+        public ActionGraph actionGraph;
 
         //public Color ObjectId
         //{

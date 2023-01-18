@@ -14,8 +14,6 @@ namespace Treasured.UnitySdk
         [SerializeField]
         private HotspotCamera _camera;
 
-        public ScriptableActionCollection onEnter;
-
         #endregion
 
         #region Properties

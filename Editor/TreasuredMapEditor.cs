@@ -264,13 +264,17 @@ namespace Treasured.UnitySdk
             TreasuredObject[] objects = _map.GetComponentsInChildren<TreasuredObject>(true);
             foreach (TreasuredObject obj in objects)
             {
-                if (obj.onClick.IsNullOrNone())
+                if(obj.actionGraph == null)
                 {
-                    obj.onClick = CreateInstance<ScriptableActionCollection>();
+                    obj.actionGraph = new Treasured.Actions.ActionGraph();
+                }
+                if (obj.actionGraph.onSelect.IsNullOrNone())
+                {
+                    obj.actionGraph.onSelect = CreateInstance<ScriptableActionCollection>();
                 }
                 else
                 {
-                    obj.onClick?.Clear();
+                    obj.actionGraph.onSelect?.Clear();
                 }
                 foreach (var actionGroup in obj.OnClick)
                 {
@@ -285,24 +289,16 @@ namespace Treasured.UnitySdk
                                 group.actions.Add(scriptableAction);
                             }
                         }
-                        obj.onClick.Add(group);
+                        obj.actionGraph.onSelect.Add(group);
                     }
                     else if (actionGroup.Actions.Count == 1)
                     {
                         ScriptableAction scriptableAction = actionGroup.Actions[0].ConvertToScriptableAction();
                         if (scriptableAction != null)
                         {
-                            obj.onClick.Add(scriptableAction);
+                            obj.actionGraph.onSelect.Add(scriptableAction);
                         }
                     }
-                }
-                if (obj.onHover.IsNullOrNone())
-                {
-                    obj.onHover = CreateInstance<ScriptableActionCollection>();
-                }
-                else
-                {
-                    obj.onHover?.Clear();
                 }
                 foreach (var actionGroup in obj.OnHover)
                 {
@@ -317,14 +313,14 @@ namespace Treasured.UnitySdk
                                 group.actions.Add(scriptableAction);
                             }
                         }
-                        obj.onHover.Add(group);
+                        obj.actionGraph.onSelect.Add(group);
                     }
                     else if (actionGroup.Actions.Count == 1)
                     {
                         ScriptableAction scriptableAction = actionGroup.Actions[0].ConvertToScriptableAction();
                         if (scriptableAction != null)
                         {
-                            obj.onHover.Add(scriptableAction);
+                            obj.actionGraph.onSelect.Add(scriptableAction);
                         }
                     }
                 }
