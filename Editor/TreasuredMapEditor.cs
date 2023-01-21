@@ -434,7 +434,14 @@ namespace Treasured.UnitySdk
                     {
                         try
                         {
+                            
+                            Analytics.Logger.Log("os", SystemInfo.operatingSystem);
+                            Analytics.Logger.Log("processor", SystemInfo.processorType);
+                            Analytics.Logger.Log("graphicsDevice", SystemInfo.graphicsDeviceName);
+                            Analytics.Logger.Log("outputPath", _map.exportSettings.OutputDirectory);
                             Exporter.Export(_map);
+                            Analytics.Logger.GenerateLogs(_map.exportSettings.OutputDirectory);
+                            Analytics.Logger.Clear();
                         }
                         catch (ValidationException e)
                         {
