@@ -12,7 +12,6 @@ namespace Treasured.UnitySdk
     /// </summary>
     internal static class MenuItemRegister
     {
-        
         [MenuItem("Tools/Treasured/Upgrade Treasured CLI", priority = 99)]
         static void UpgradeTreasuredCLI()
         {
@@ -20,31 +19,22 @@ namespace Treasured.UnitySdk
 
             try
             {
-                using (Process process = new Process()) {
-#if UNITY_STANDALONE_WIN
-                    process.StartInfo.FileName = "cmd.exe";
-                    process.StartInfo.Arguments = "/C npm install -g @treasured/cli";
-                    process.StartInfo.CreateNoWindow = true;
-#elif UNITY_STANDALONE_OSX
-                    process.StartInfo.FileName = "npm";
-                    process.StartInfo.Arguments = "install -g @treasured/cli";
-#endif
-                    process.StartInfo.UseShellExecute = false;
-                    process.StartInfo.RedirectStandardOutput = true;
-                    process.StartInfo.RedirectStandardError = true;
-                    process.StartInfo.WorkingDirectory = System.Environment.CurrentDirectory;
-
+                using (Process process = ProcessUtilities.CreateProcess("npm install -g @treasured/cli"))
+                {
                     process.Start();
+
+                    string output = process.StandardOutput.ReadToEnd();
+                    string error = process.StandardError.ReadToEnd();
 
                     process.WaitForExit();
 
-                    string output = process.StandardOutput.ReadToEnd();
-                    if (!string.IsNullOrEmpty(output)) {
+                    if (!string.IsNullOrEmpty(output))
+                    {
                         UnityEngine.Debug.Log(output);
                     }
 
-                    string error = process.StandardError.ReadToEnd();
-                    if (!string.IsNullOrEmpty(error)) {
+                    if (!string.IsNullOrEmpty(error))
+                    {
                         UnityEngine.Debug.LogError(error);
                     }
                 }
@@ -52,6 +42,7 @@ namespace Treasured.UnitySdk
             catch (Exception e)
             {
                 UnityEngine.Debug.LogError(e.Message);
+                EditorUtility.ClearProgressBar();
                 return;
             }
 
@@ -62,27 +53,16 @@ namespace Treasured.UnitySdk
             string version = "";
             try
             {
-                using (Process process = new Process()) {
-#if UNITY_STANDALONE_WIN
-                    process.StartInfo.FileName = "cmd.exe";
-                    process.StartInfo.Arguments = "/C treasured --version";
-                    process.StartInfo.CreateNoWindow = true;
-#elif UNITY_STANDALONE_OSX
-                    process.StartInfo.FileName = "treasured";
-                    process.StartInfo.Arguments = "--version";
-#endif
-                    process.StartInfo.UseShellExecute = false;
-                    process.StartInfo.RedirectStandardOutput = true;
-                    process.StartInfo.RedirectStandardError = true;
-                    process.StartInfo.WorkingDirectory = System.Environment.CurrentDirectory;
-
+                using (Process process = ProcessUtilities.CreateProcess("treasured --version"))
+                {
                     process.Start();
 
                     process.WaitForExit();
                     version = process.StandardOutput.ReadToEnd();
 
                     string error = process.StandardError.ReadToEnd();
-                    if (!string.IsNullOrEmpty(error)) {
+                    if (!string.IsNullOrEmpty(error))
+                    {
                         UnityEngine.Debug.LogError(error);
                     }
                 }
@@ -96,11 +76,13 @@ namespace Treasured.UnitySdk
             // Show message
             if (!string.IsNullOrEmpty(version))
             {
-                EditorUtility.DisplayDialog("Treasured CLI installed", "Treasured CLI version " + version + " installed successfully", "OK");
+                EditorUtility.DisplayDialog("Treasured CLI installed",
+                    "Treasured CLI version " + version + " installed successfully", "OK");
             }
             else
             {
-                EditorUtility.DisplayDialog("Treasured CLI installation failed", "Treasured CLI installation failed. Please try again.", "OK");
+                EditorUtility.DisplayDialog("Treasured CLI installation failed",
+                    "Treasured CLI installation failed. Please try again.", "OK");
             }
         }
 
@@ -204,6 +186,7 @@ namespace Treasured.UnitySdk
             {
                 return true;
             }
+
             return !Selection.activeGameObject.GetComponentInParent<TreasuredMap>();
         }
     }

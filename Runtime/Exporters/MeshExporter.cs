@@ -434,21 +434,19 @@ namespace Treasured.UnitySdk
                 await Task.Delay(1000);
 
                 // Run `treasured optimize` to optimize the glb file
-                var npmProcess = new Process();
+                var argumentBuilder = new System.Text.StringBuilder();
+
 #if UNITY_STANDALONE_WIN
-                npmProcess.StartInfo.FileName = "cmd.exe";
+                /*npmProcess.StartInfo.FileName = "cmd.exe";
                 npmProcess.StartInfo.Arguments =
                     "/K treasured optimize scene.glb";
-                npmProcess.StartInfo.CreateNoWindow = false;
+                npmProcess.StartInfo.CreateNoWindow = false;*/
+                argumentBuilder.Append("/K treasured optimize scene.glb");
+
 #elif UNITY_STANDALONE_OSX
-                npmProcess.StartInfo.FileName = "treasured";
-                npmProcess.StartInfo.Arguments =
-                    $"optimize scene.glb";
+                argumentBuilder.Append("treasured optimize scene.glb");
 #endif
-                npmProcess.StartInfo.UseShellExecute = false;
-                npmProcess.StartInfo.RedirectStandardOutput = true;
-                npmProcess.StartInfo.RedirectStandardError = true;
-                npmProcess.StartInfo.WorkingDirectory = Map.exportSettings.OutputDirectory;
+                var npmProcess = ProcessUtilities.CreateProcess(argumentBuilder.ToString());
 
                 string stdOutput = "";
                 string stdError = "";
@@ -465,8 +463,16 @@ namespace Treasured.UnitySdk
                 }
                 finally
                 {
-                    Debug.Log(stdOutput);
-                    Debug.LogError(stdError);
+                    if (!string.IsNullOrEmpty(stdOutput))
+                    {
+                        Debug.Log(stdOutput);
+                    }
+
+                    if (!string.IsNullOrEmpty(stdError))
+                    {
+                        Debug.LogError(stdError);
+                    }
+
                     npmProcess.Dispose();
                 }
             }
