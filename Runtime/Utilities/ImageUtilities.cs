@@ -20,9 +20,9 @@ namespace Treasured.UnitySdk
         private static readonly string TreasuredPluginsFolder = Path.GetFullPath("Packages/com.treasured.unitysdk/Plugins/Win");
 
         private static string ktx2Converter = Path.Combine(TreasuredPluginsFolder,
-            "Ktx2Converter.bat").Replace(" ", "^ ");
+            "Ktx2Converter.bat").ToOSSpecificPath();
 
-        private static string toktx = Path.Combine(TreasuredPluginsFolder, "toktx.exe").Replace(" ", "^ ");
+        private static string toktx = Path.Combine(TreasuredPluginsFolder, "toktx.exe").ToOSSpecificPath();
 
 #elif UNITY_STANDALONE_OSX
         private static string processName = "zsh";
@@ -80,7 +80,7 @@ namespace Treasured.UnitySdk
 
             var modifiedDirectory = rootDirectory.Replace(" ", "^ ");
 
-            var argument = $"{ktx2Converter} \"{toktx}\" \"{modifiedDirectory}\"";
+            var argument = $"{ktx2Converter} \"{toktx}\" \"{rootDirectory}\"";
             var ktxProcess = ProcessUtilities.CreateProcess(argument);
             ktxProcess.Start();
             string stdOutput = ktxProcess.StandardOutput.ReadToEnd();

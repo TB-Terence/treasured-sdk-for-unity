@@ -12,12 +12,11 @@ namespace Treasured.UnitySdk
         private static readonly string _processName = "cmd.exe";
 
         public static readonly string TreasuredPluginsFolder =
- Path.GetFullPath("Packages/com.treasured.unitysdk/Plugins/Win").ToOSSpecificPath();
-        
+            Path.GetFullPath("Packages/com.treasured.unitysdk/Plugins/Win").ToOSSpecificPath();
+
         private static readonly string _baseArgument = "/C";
 
 #elif UNITY_STANDALONE_OSX
-
         private static readonly string _processName = "zsh";
 
         public static readonly string TreasuredPluginsFolder =
@@ -30,9 +29,13 @@ namespace Treasured.UnitySdk
         {
             Process process = new Process();
             process.StartInfo.FileName = _processName;
-            process.StartInfo.Arguments = $"{_baseArgument} '{arguments}'";
 
-            process.StartInfo.CreateNoWindow = false;
+#if UNITY_STANDALONE_WIN
+            process.StartInfo.Arguments = $"{_baseArgument} {arguments}";
+#elif UNITY_STANDALONE_OSX
+            process.StartInfo.Arguments = $"{_baseArgument} '{arguments}'";
+#endif
+            process.StartInfo.CreateNoWindow = true;
             process.StartInfo.WindowStyle = ProcessWindowStyle.Normal;
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.RedirectStandardOutput = true;
