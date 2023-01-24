@@ -434,19 +434,7 @@ namespace Treasured.UnitySdk
                 await Task.Delay(1000);
 
                 // Run `treasured optimize` to optimize the glb file
-                var argumentBuilder = new System.Text.StringBuilder();
-
-#if UNITY_STANDALONE_WIN
-                /*npmProcess.StartInfo.FileName = "cmd.exe";
-                npmProcess.StartInfo.Arguments =
-                    "/K treasured optimize scene.glb";
-                npmProcess.StartInfo.CreateNoWindow = false;*/
-                argumentBuilder.Append("/K treasured optimize scene.glb");
-
-#elif UNITY_STANDALONE_OSX
-                argumentBuilder.Append("treasured optimize scene.glb");
-#endif
-                var npmProcess = ProcessUtilities.CreateProcess(argumentBuilder.ToString());
+                var npmProcess = ProcessUtilities.CreateProcess("treasured optimize scene.glb");
 
                 string stdOutput = "";
                 string stdError = "";

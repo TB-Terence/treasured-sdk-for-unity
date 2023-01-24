@@ -492,18 +492,12 @@ namespace Treasured.UnitySdk
                                     EditorGUIUtility.TrTextContentWithIcon("Play", "Run in browser", "d_PlayButton On"),
                                     Styles.exportButton, GUILayout.MaxWidth(150)))
                             {
-                                var argumentBuilder = new System.Text.StringBuilder();
-
                                 // Run `treasured dev` to start dev server
                                 try
                                 {
-#if UNITY_STANDALONE_WIN
-                                    argumentBuilder.Append($"/C treasured dev {_map.exportSettings.folderName}");
-#elif UNITY_STANDALONE_OSX
-
-                                    argumentBuilder.Append($"treasured dev {_map.exportSettings.folderName}");
-#endif
-                                    _npmProcess = ProcessUtilities.CreateProcess(argumentBuilder.ToString());
+                                    _npmProcess =
+                                        ProcessUtilities.CreateProcess(
+                                            $"treasured dev {_map.exportSettings.folderName}");
                                     _npmProcess.Start();
 
                                     _map.processId = _npmProcess.Id;
