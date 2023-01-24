@@ -80,31 +80,17 @@ namespace Treasured.UnitySdk
 
             var modifiedDirectory = rootDirectory.Replace(" ", "^ ");
 
-            var argumentBuilder = new StringBuilder();
-#if UNITY_STANDALONE_WIN
-            argumentBuilder.Append("/K ");
-#endif
-            argumentBuilder.Append("-c ");
-            argumentBuilder.Append(ktx2Converter);
-            argumentBuilder.Append($" \"{toktx}\"");
-            argumentBuilder.Append($" \"{modifiedDirectory}\"");
-
-            var pass = $"{ktx2Converter} \"{toktx}\" \"{modifiedDirectory}\"";
-            var argument = $"-c '{pass}'";
-            
-
-            var startInfo = new ProcessStartInfo(processName, argument);
-            startInfo.CreateNoWindow = true;
-            startInfo.RedirectStandardOutput = true;
-            startInfo.UseShellExecute = false;
-
-            using var ktxProcess = new Process() { StartInfo = startInfo };
+            var argument = $"{ktx2Converter} \"{toktx}\" \"{modifiedDirectory}\"";
+            var ktxProcess = ProcessUtilities.CreateProcess(argument);
             ktxProcess.Start();
             string stdOutput = ktxProcess.StandardOutput.ReadToEnd();
             try
             {
                 ktxProcess.WaitForExit();
-                UnityEngine.Debug.Log(stdOutput);
+                if (!string.IsNullOrEmpty(stdOutput))
+                {
+                    UnityEngine.Debug.Log(stdOutput);
+                }
             }
             catch (Exception e)
             {
