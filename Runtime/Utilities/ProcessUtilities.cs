@@ -45,5 +45,35 @@ namespace Treasured.UnitySdk
 
             return process;
         }
+
+        public static void KillProcess(ref Process process)
+        {
+            // TODO: This might kill the new process with same handle after domain reload.
+            // Kill the process
+
+            ProcessStartInfo startInfo = new ProcessStartInfo
+            {
+#if UNITY_STANDALONE_WIN
+                FileName = "cmd.exe",
+                Arguments = $"/C taskkill /pid {process.Id} /f /t",
+                CreateNoWindow = true,
+#elif UNITY_STANDALONE_OSX
+            startInfo.FileName = "pkill";
+            startInfo.Arguments = $"-P {pid}";
+#endif
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
+            Process p = Process.Start(startInfo);
+            process.WaitForExit();
+
+            if (!process.HasExited)
+            {
+                process.Kill();
+            }
+
+            process = null;
+        }
     }
 }
