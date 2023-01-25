@@ -78,9 +78,8 @@ namespace Treasured.UnitySdk
                 return;
             }
 
-            var modifiedDirectory = rootDirectory.Replace(" ", "^ ");
+            var argument = $"(\"{ktx2Converter}\" \"{toktx}\" \"{rootDirectory}\")";
 
-            var argument = $"{ktx2Converter} \"{toktx}\" \"{rootDirectory}\"";
             var ktxProcess = ProcessUtilities.CreateProcess(argument);
             ktxProcess.Start();
             string stdOutput = ktxProcess.StandardOutput.ReadToEnd();

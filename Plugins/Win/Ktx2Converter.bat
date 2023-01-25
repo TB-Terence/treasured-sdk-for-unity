@@ -9,7 +9,7 @@ set arg1=%1
 set arg2=%2
 setlocal enabledelayedexpansion
 for /R "%arg2%" %%G in (*.png) do (
-	"%arg1%" --bcmp "%%~dpnG" "%%G"
+	%arg1% --bcmp "%%~dpnG" "%%G"
 	del "%%G"
 )
 exit
