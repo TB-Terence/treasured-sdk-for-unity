@@ -260,6 +260,14 @@ namespace Treasured.UnitySdk
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
             Migrate();
+            try
+            {
+                _npmProcess ??= Process.GetProcessById(_map.processId);
+            }
+            catch (Exception)
+            {
+
+            }
         }
 
         private void OnDisable()
@@ -575,20 +583,21 @@ namespace Treasured.UnitySdk
         {
             // TODO: This might kill the new process with same handle after domain reload.
             // Kill the process
-            string pid = _map.processId.ToString();
 
-            ProcessStartInfo startInfo = new ProcessStartInfo();
+            ProcessStartInfo startInfo = new ProcessStartInfo
+            {
 #if UNITY_STANDALONE_WIN
-            startInfo.FileName = "cmd.exe";
-            startInfo.Arguments = $"/C taskkill /pid {pid} /f";
-            startInfo.CreateNoWindow = true;
+                FileName = "cmd.exe",
+                Arguments = $"/C taskkill /pid {_map.processId} /f /t",
+                CreateNoWindow = true,
 #elif UNITY_STANDALONE_OSX
             startInfo.FileName = "pkill";
             startInfo.Arguments = $"-P {pid}";
 #endif
-            startInfo.UseShellExecute = false;
-            startInfo.RedirectStandardOutput = true;
-            startInfo.RedirectStandardError = true;
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true
+            };
             Process process = Process.Start(startInfo);
             process.WaitForExit();
 
