@@ -82,14 +82,23 @@ namespace Treasured.UnitySdk
 
             var ktxProcess = ProcessUtilities.CreateProcess(argument);
             ktxProcess.Start();
-            string stdOutput = ktxProcess.StandardOutput.ReadToEnd();
+            bool canceled = false;
             try
             {
-                ktxProcess.WaitForExit();
-                if (!string.IsNullOrEmpty(stdOutput))
+#if UNITY_EDITOR
+                while(!ktxProcess.StandardOutput.EndOfStream)
                 {
-                    UnityEngine.Debug.Log(stdOutput);
+                    if (int.TryParse(ktxProcess.StandardOutput.ReadLine(), out int percentage))
+                    {
+                        if(UnityEditor.EditorUtility.DisplayCancelableProgressBar("Encoding", $"Please wait. Encoding to KTX2 format.", percentage / 100f))
+                        {
+                            ProcessUtilities.KillProcess(ref ktxProcess);
+                            canceled = true;
+                            break;
+                        }
+                    }
                 }
+#endif
             }
             catch (Exception e)
             {
@@ -97,8 +106,14 @@ namespace Treasured.UnitySdk
             }
             finally
             {
-                ktxProcess.Dispose();
+                ktxProcess?.Dispose();
             }
+#if UNITY_EDITOR
+            if (!canceled)
+            {
+                UnityEditor.EditorUtility.DisplayDialog("Encoding Completed", $"Encoding to KTX2 completed.", "OK");
+            }
+#endif
         }
 
         public static void Encode(Texture2D texture, string directory, string fileName, ImageFormat format, int imageQualityPercentage = 100)

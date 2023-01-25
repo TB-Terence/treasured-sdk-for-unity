@@ -484,6 +484,28 @@ namespace Treasured.UnitySdk
                         {
                             MapExporterWindow.Show(_map, e);
                         }
+                        catch (ContextException e)
+                        {
+                            EditorGUIUtility.PingObject(e.Context);
+                            UnityEngine.Debug.LogException(e);
+                        }
+                        catch (TreasuredException e)
+                        {
+                            EditorGUIUtility.PingObject(_map);
+                            UnityEngine.Debug.LogException(e);
+                        }
+                        catch (OperationCanceledException e)
+                        {
+                            EditorUtility.DisplayDialog("Canceled", e.Message, "OK");
+                        }
+                        catch (Exception e)
+                        {
+                            UnityEngine.Debug.LogException(e);
+                        }
+                        finally
+                        {
+                            EditorUtility.ClearProgressBar();
+                        }
                     }
                 }
 
@@ -510,8 +532,8 @@ namespace Treasured.UnitySdk
 
                                     _map.processId = _npmProcess.Id;
 
-                                    UnityEditor.EditorApplication.quitting -= KillProcess;
-                                    UnityEditor.EditorApplication.quitting += KillProcess;
+                                    UnityEditor.EditorApplication.quitting -= () => ProcessUtilities.KillProcess(ref _npmProcess);
+                                    UnityEditor.EditorApplication.quitting += () => ProcessUtilities.KillProcess(ref _npmProcess);
                                 }
                                 catch (Exception e)
                                 {
@@ -537,7 +559,7 @@ namespace Treasured.UnitySdk
                         {
                             try
                             {
-                                KillProcess();
+                                ProcessUtilities.KillProcess(ref _npmProcess);
                             }
                             catch (Exception e)
                             {
@@ -577,36 +599,6 @@ namespace Treasured.UnitySdk
             }
 
             serializedObject.ApplyModifiedProperties();
-        }
-
-        void KillProcess()
-        {
-            // TODO: This might kill the new process with same handle after domain reload.
-            // Kill the process
-
-            ProcessStartInfo startInfo = new ProcessStartInfo
-            {
-#if UNITY_STANDALONE_WIN
-                FileName = "cmd.exe",
-                Arguments = $"/C taskkill /pid {_map.processId} /f /t",
-                CreateNoWindow = true,
-#elif UNITY_STANDALONE_OSX
-            startInfo.FileName = "pkill";
-            startInfo.Arguments = $"-P {pid}";
-#endif
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true
-            };
-            Process process = Process.Start(startInfo);
-            process.WaitForExit();
-
-            if (!_npmProcess.HasExited)
-            {
-                _npmProcess.Kill();
-            }
-
-            _npmProcess = null;
         }
 
         [TabGroup(groupName = "Page Info")]
@@ -866,23 +858,9 @@ namespace Treasured.UnitySdk
                     }
                 }
             }
-            catch (ContextException e)
-            {
-                EditorGUIUtility.PingObject(e.Context);
-                UnityEngine.Debug.LogException(e);
-            }
-            catch (TreasuredException e)
-            {
-                EditorGUIUtility.PingObject(_map);
-                UnityEngine.Debug.LogException(e);
-            }
             catch (Exception e)
             {
-                UnityEngine.Debug.LogException(e);
-            }
-            finally
-            {
-                EditorUtility.ClearProgressBar();
+                throw e;
             }
         }
 
