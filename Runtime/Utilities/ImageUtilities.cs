@@ -20,19 +20,19 @@ namespace Treasured.UnitySdk
         private static readonly string TreasuredPluginsFolder = Path.GetFullPath("Packages/com.treasured.unitysdk/Plugins/Win");
 
         private static string ktx2Converter = Path.Combine(TreasuredPluginsFolder,
-            "Ktx2Converter.bat").Replace(" ", "^ ");
+            "Ktx2Converter.bat").ToOSSpecificPath();
 
-        private static string toktx = Path.Combine(TreasuredPluginsFolder, "toktx.exe").Replace(" ", "^ ");
+        private static string toktx = Path.Combine(TreasuredPluginsFolder, "toktx.exe").ToOSSpecificPath();
 
 #elif UNITY_STANDALONE_OSX
-        private static string processName = "/bin/sh";
+        private static string processName = "zsh";
 
         private static readonly string TreasuredPluginsFolder = Path.GetFullPath("Packages/com.treasured.unitysdk/Plugins/OSX");
 
         private static string ktx2Converter = Path.Combine(TreasuredPluginsFolder,
-                                                           "Ktx2Converter.sh").Replace(" ", "^ ");
+                                                           "Ktx2Converter.sh").ToOSSpecificPath();
 
-        private static string toktx = Path.Combine(TreasuredPluginsFolder, "toktx").Replace(" ", "^ ");
+        private static string toktx = Path.Combine(TreasuredPluginsFolder, "toktx").ToOSSpecificPath();
 #endif
 
         /// <summary>
@@ -78,28 +78,27 @@ namespace Treasured.UnitySdk
                 return;
             }
 
-            var modifiedDirectory = rootDirectory.Replace(" ", "^ ");
+            var argument = $"(\"{ktx2Converter}\" \"{toktx}\" \"{rootDirectory}\")";
 
-            var argumentBuilder = new StringBuilder();
-#if UNITY_STANDALONE_WIN
-            argumentBuilder.Append("/K ");
-#endif
-            argumentBuilder.Append(ktx2Converter);
-            argumentBuilder.Append($" \"{toktx}\"");
-            argumentBuilder.Append($" \"{modifiedDirectory}\"");
-
-            var startInfo = new ProcessStartInfo(processName, argumentBuilder.ToString());
-            startInfo.CreateNoWindow = false;
-            //startInfo.RedirectStandardOutput = true;
-            //startInfo.UseShellExecute = false;
-
-            using var ktxProcess = new Process() { StartInfo = startInfo };
+            var ktxProcess = ProcessUtilities.CreateProcess(argument);
             ktxProcess.Start();
-            //string stdOutput = ktxProcess.StandardOutput.ReadToEnd();
+            bool canceled = false;
             try
             {
-                ktxProcess.WaitForExit();
-                //UnityEngine.Debug.Log(stdOutput);
+#if UNITY_EDITOR
+                while(!ktxProcess.StandardOutput.EndOfStream)
+                {
+                    if (int.TryParse(ktxProcess.StandardOutput.ReadLine(), out int percentage))
+                    {
+                        if(UnityEditor.EditorUtility.DisplayCancelableProgressBar("Encoding", $"Please wait. Encoding to KTX2 format.", percentage / 100f))
+                        {
+                            ProcessUtilities.KillProcess(ref ktxProcess);
+                            canceled = true;
+                            break;
+                        }
+                    }
+                }
+#endif
             }
             catch (Exception e)
             {
@@ -107,8 +106,14 @@ namespace Treasured.UnitySdk
             }
             finally
             {
-                ktxProcess.Dispose();
+                ktxProcess?.Dispose();
             }
+#if UNITY_EDITOR
+            if (!canceled)
+            {
+                UnityEditor.EditorUtility.DisplayDialog("Encoding Completed", $"Encoding to KTX2 completed.", "OK");
+            }
+#endif
         }
 
         public static void Encode(Texture2D texture, string directory, string fileName, ImageFormat format, int imageQualityPercentage = 100)

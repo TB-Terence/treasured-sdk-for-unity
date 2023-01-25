@@ -11,9 +11,8 @@ for /R "%arg2%" %%G in (*.png) do (set /a count+=1)
 for /R "%arg2%" %%G in (*.png) do (
 	set /a progress+=1
 	set /a percentage=!progress! * 100 / %count%
-	echo Encoding to KTX2...[!percentage!%%]
-	echo DO NOT close this window.
-	"%arg1%" --bcmp "%%~dpnG" "%%G"
+	echo !percentage!
+	%arg1% --bcmp "%%~dpnG" "%%G"
 	del "%%G"
 	cls
 )

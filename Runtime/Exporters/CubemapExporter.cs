@@ -60,10 +60,7 @@ namespace Treasured.UnitySdk
 
             if (imageFormat == ImageFormat.Ktx2)
             {
-#if UNITY_EDITOR
-                UnityEditor.EditorUtility.DisplayProgressBar("Converting to KTX2", "Converting in progress...", 0.5f);
-#endif
-                ImageUtilies.ConvertToKTX2(Path.Combine(Map.exportSettings.OutputDirectory));
+                ImageUtilies.ConvertToKTX2(Map.exportSettings.OutputDirectory);
             }
         }
 
@@ -99,8 +96,8 @@ namespace Treasured.UnitySdk
                 for (int index = 0; index < count; index++)
                 {
                     Hotspot current = hotspots[index];
-                    string progressTitle = $"Exporting {imageQuality.ToString()} quality Hotspots ({index + 1}/{count})";
-                    string progressText = $"Generating data for {current.name}...";
+                    string progressTitle = $"Capturing Hotspots";
+                    string progressText = $"{current.name}";
 
                     camera.transform.SetPositionAndRotation(current.Camera.transform.position, Quaternion.identity);
 
@@ -121,7 +118,7 @@ namespace Treasured.UnitySdk
 #if UNITY_EDITOR
                                 if (UnityEditor.EditorUtility.DisplayCancelableProgressBar(progressTitle, progressText, i / 6f))
                                 {
-                                    throw new TreasuredException("Export canceled", "Export canceled by the user.");
+                                    throw new OperationCanceledException("Export canceled by user.");
                                 }
 #endif
                                 texture.SetPixels((i % 3) * cubemapWidth, MAXIMUM_CUDA_TEXTURE_WIDTH - ((i / 3) + 1) * cubemapWidth, cubemapWidth, cubemapWidth,
@@ -135,7 +132,7 @@ namespace Treasured.UnitySdk
 #if UNITY_EDITOR
                                 if (UnityEditor.EditorUtility.DisplayCancelableProgressBar(progressTitle, progressText, i / 6f))
                                 {
-                                    throw new TreasuredException("Export canceled", "Export canceled by the user.");
+                                    throw new OperationCanceledException("Export canceled by user.");
                                 }
 #endif
                                 texture.SetPixels(cubemap.GetPixels((CubemapFace)i));
