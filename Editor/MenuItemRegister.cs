@@ -42,8 +42,11 @@ namespace Treasured.UnitySdk
             catch (Exception e)
             {
                 UnityEngine.Debug.LogError(e.Message);
-                EditorUtility.ClearProgressBar();
                 return;
+            }
+            finally
+            {
+                EditorUtility.ClearProgressBar();
             }
 
             EditorUtility.DisplayProgressBar("Installing Treasured CLI", "Installing the Treasured CLI from npm", 1f);
