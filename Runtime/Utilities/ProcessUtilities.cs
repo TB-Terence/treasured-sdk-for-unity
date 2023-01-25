@@ -46,7 +46,7 @@ namespace Treasured.UnitySdk
             return process;
         }
 
-        public static void KillProcess(ref Process process)
+        public static void KillProcess(Process process)
         {
             // TODO: This might kill the new process with same handle after domain reload.
             // Kill the process
@@ -71,9 +71,8 @@ namespace Treasured.UnitySdk
             if (!process.HasExited)
             {
                 process.Kill();
+                process.Dispose();
             }
-
-            process = null;
         }
     }
 }

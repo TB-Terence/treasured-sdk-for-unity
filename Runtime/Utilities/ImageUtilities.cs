@@ -86,18 +86,27 @@ namespace Treasured.UnitySdk
             try
             {
 #if UNITY_EDITOR
-                while(!ktxProcess.StandardOutput.EndOfStream)
+#if UNITY_STANDALONE_WIN
+                while (!ktxProcess.StandardOutput.EndOfStream)
                 {
                     if (int.TryParse(ktxProcess.StandardOutput.ReadLine(), out int percentage))
                     {
-                        if(UnityEditor.EditorUtility.DisplayCancelableProgressBar("Encoding", $"Please wait. Encoding to KTX2 format.", percentage / 100f))
+                        if (UnityEditor.EditorUtility.DisplayCancelableProgressBar("Encoding", $"Please wait. Encoding to KTX2 format.", percentage / 100f))
                         {
-                            ProcessUtilities.KillProcess(ref ktxProcess);
+                            ProcessUtilities.KillProcess(ktxProcess);
                             canceled = true;
                             break;
                         }
                     }
                 }
+#elif UNITY_STANDALONE_OSX
+                string stdOutput = ktxProcess.StandardOutput.ReadToEnd();
+                ktxProcess.WaitForExit();
+                if (!string.IsNullOrEmpty(stdOutput))
+                {
+                    UnityEngine.Debug.Log(stdOutput);
+                }
+#endif
 #endif
             }
             catch (Exception e)

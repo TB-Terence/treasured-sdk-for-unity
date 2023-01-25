@@ -262,7 +262,8 @@ namespace Treasured.UnitySdk
             Migrate();
             try
             {
-                _npmProcess ??= Process.GetProcessById(_map.processId);
+                var process = Process.GetProcessById(_map.processId);
+                _npmProcess = process.HasExited ? null : process;
             }
             catch (Exception)
             {
@@ -322,13 +323,6 @@ namespace Treasured.UnitySdk
                         }
                     }
                 }
-
-                obj.onHover?.Clear();
-                if (obj.onHover == null)
-                {
-                    obj.onHover = CreateInstance<ScriptableActionCollection>();
-                }
-
                 foreach (var actionGroup in obj.OnHover)
                 {
                     if (actionGroup.Actions.Count > 1)
@@ -565,8 +559,8 @@ namespace Treasured.UnitySdk
 
                                     _map.processId = _npmProcess.Id;
 
-                                    UnityEditor.EditorApplication.quitting -= () => ProcessUtilities.KillProcess(ref _npmProcess);
-                                    UnityEditor.EditorApplication.quitting += () => ProcessUtilities.KillProcess(ref _npmProcess);
+                                    UnityEditor.EditorApplication.quitting -= () => ProcessUtilities.KillProcess(_npmProcess);
+                                    UnityEditor.EditorApplication.quitting += () => ProcessUtilities.KillProcess(_npmProcess);
                                 }
                                 catch (Exception e)
                                 {
@@ -592,7 +586,8 @@ namespace Treasured.UnitySdk
                         {
                             try
                             {
-                                ProcessUtilities.KillProcess(ref _npmProcess);
+                                ProcessUtilities.KillProcess(_npmProcess);
+                                _npmProcess = null;
                             }
                             catch (Exception e)
                             {
