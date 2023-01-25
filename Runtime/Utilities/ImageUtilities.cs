@@ -20,19 +20,19 @@ namespace Treasured.UnitySdk
         private static readonly string TreasuredPluginsFolder = Path.GetFullPath("Packages/com.treasured.unitysdk/Plugins/Win");
 
         private static string ktx2Converter = Path.Combine(TreasuredPluginsFolder,
-            "Ktx2Converter.bat").Replace(" ", "^ ");
+            "Ktx2Converter.bat").ToOSSpecificPath();
 
-        private static string toktx = Path.Combine(TreasuredPluginsFolder, "toktx.exe").Replace(" ", "^ ");
+        private static string toktx = Path.Combine(TreasuredPluginsFolder, "toktx.exe").ToOSSpecificPath();
 
 #elif UNITY_STANDALONE_OSX
-        private static string processName = "/bin/sh";
+        private static string processName = "zsh";
 
         private static readonly string TreasuredPluginsFolder = Path.GetFullPath("Packages/com.treasured.unitysdk/Plugins/OSX");
 
         private static string ktx2Converter = Path.Combine(TreasuredPluginsFolder,
-                                                           "Ktx2Converter.sh").Replace(" ", "^ ");
+                                                           "Ktx2Converter.sh").ToOSSpecificPath();
 
-        private static string toktx = Path.Combine(TreasuredPluginsFolder, "toktx").Replace(" ", "^ ");
+        private static string toktx = Path.Combine(TreasuredPluginsFolder, "toktx").ToOSSpecificPath();
 #endif
 
         /// <summary>
@@ -78,28 +78,18 @@ namespace Treasured.UnitySdk
                 return;
             }
 
-            var modifiedDirectory = rootDirectory.Replace(" ", "^ ");
+            var argument = $"(\"{ktx2Converter}\" \"{toktx}\" \"{rootDirectory}\")";
 
-            var argumentBuilder = new StringBuilder();
-#if UNITY_STANDALONE_WIN
-            argumentBuilder.Append("/K ");
-#endif
-            argumentBuilder.Append(ktx2Converter);
-            argumentBuilder.Append($" \"{toktx}\"");
-            argumentBuilder.Append($" \"{modifiedDirectory}\"");
-
-            var startInfo = new ProcessStartInfo(processName, argumentBuilder.ToString());
-            startInfo.CreateNoWindow = true;
-            startInfo.RedirectStandardOutput = true;
-            startInfo.UseShellExecute = false;
-
-            using var ktxProcess = new Process() { StartInfo = startInfo };
+            var ktxProcess = ProcessUtilities.CreateProcess(argument);
             ktxProcess.Start();
             string stdOutput = ktxProcess.StandardOutput.ReadToEnd();
             try
             {
                 ktxProcess.WaitForExit();
-                UnityEngine.Debug.Log(stdOutput);
+                if (!string.IsNullOrEmpty(stdOutput))
+                {
+                    UnityEngine.Debug.Log(stdOutput);
+                }
             }
             catch (Exception e)
             {
