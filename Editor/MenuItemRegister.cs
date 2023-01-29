@@ -101,6 +101,20 @@ namespace Treasured.UnitySdk
             Client.Add("https://github.com/TB-Terence/treasured-sdk-for-unity.git#exp");
         }
 
+#if !TREASURED_SDK_DEVMODE
+        [MenuItem("Tools/Treasured/Enable Dev Mode", priority = 99)]
+#else
+        [MenuItem("Tools/Treasured/Disable Dev Mode", priority = 99)]
+#endif
+        static void EnableDevMode()
+        {
+#if !TREASURED_SDK_DEVMODE
+            ScriptingDefineSymbolsUtils.AddDefineSymbol("TREASURED_SDK_DEVMODE");
+#else
+            ScriptingDefineSymbolsUtils.RemoveDefineSymbol("TREASURED_SDK_DEVMODE");
+#endif
+        }
+
         static bool IsTreasuredMapSelected()
         {
             return Selection.activeGameObject?.GetComponentInParent<TreasuredMap>();
