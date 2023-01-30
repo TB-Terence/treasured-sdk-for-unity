@@ -293,7 +293,7 @@ namespace Treasured.UnitySdk
                 }
 
                 var onSelect = obj.actionGraph.GetActionGroup("onSelect");
-                if (onSelect)
+                if (onSelect != null)
                 {
                     onSelect.Clear();
                 }
@@ -330,7 +330,7 @@ namespace Treasured.UnitySdk
                 if (obj is Interactable interactable)
                 {
                     var onHover = obj.actionGraph.GetActionGroup("onHover");
-                    if (onHover)
+                    if (onHover != null)
                     {
                         onHover.Clear();
                     }

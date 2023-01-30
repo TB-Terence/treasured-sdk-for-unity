@@ -102,7 +102,10 @@ namespace Treasured.UnitySdk
             {
                 contract.Converter = new GuidedTourGraphConverter();
             }
-
+            if (objectType == typeof(ScriptableActionCollection))
+            {
+                contract.Converter = new ScriptableActionCollectionConverter();
+            }
             if (objectType == typeof(PlayAudioAction))
             {
                 contract.Converter = new PlayAudioActionConverter();

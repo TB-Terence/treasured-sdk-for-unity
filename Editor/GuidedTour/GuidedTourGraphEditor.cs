@@ -92,7 +92,7 @@ namespace Treasured.UnitySdk
                 {
                     CreateNew(list, "New Tour");
                 });
-                menu.AddItem(new GUIContent("Quick Tour/On Click Actions"), false, () =>
+                menu.AddItem(new GUIContent("Quick Tour/Navigate Through Hotspots"), false, () =>
                 {
                     GuidedTour tour = CreateNew(list, "Quick Tour");
                     tour.actionScripts = new ScriptableActionCollection();
@@ -108,7 +108,7 @@ namespace Treasured.UnitySdk
                             rotation = hotspot.Camera.transform.rotation
                         });
                         var onSelect = hotspot.actionGraph.GetActionGroup("onSelect");
-                        if (!onSelect) continue;
+                        if (onSelect == null) continue;
                         foreach (var action in onSelect)
                         {
                             tour.actionScripts.Add(action);

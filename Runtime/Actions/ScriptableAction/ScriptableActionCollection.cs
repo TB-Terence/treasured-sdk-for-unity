@@ -56,10 +56,5 @@ namespace Treasured.UnitySdk
         {
             return ((ICollection<ScriptableAction>)_actions).Remove(item);
         }
-
-        public static implicit operator bool(ScriptableActionCollection collection)
-        {
-            return collection != null;
-        }
     }
 }

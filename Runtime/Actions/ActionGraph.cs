@@ -15,7 +15,7 @@ namespace Treasured.Actions
         public ScriptableActionCollection AddActionGroup(string groupName)
         {
             var group = GetActionGroup(groupName);
-            if (group)
+            if (group != null)
             {
                 return group;
             }
@@ -35,7 +35,7 @@ namespace Treasured.Actions
         public bool RemoveActionGroup(string groupName)
         {
             var group = GetActionGroup(groupName);
-            if (group)
+            if (group != null)
             {
                return _groups.Remove(group);
             }

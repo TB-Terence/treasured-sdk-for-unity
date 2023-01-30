@@ -37,7 +37,7 @@ namespace Treasured.UnitySdk
         {
             var hotspot = target as Hotspot;
             var onSelect = hotspot.actionGraph.GetActionGroup("onSelect");
-            if (!onSelect)
+            if (onSelect != null)
             {
                 hotspot.actionGraph.AddActionGroup("onSelect");
             }

@@ -9,13 +9,13 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    internal class ActionGraphConverter : JsonConverter
+    internal class ScriptableActionCollectionConverter : JsonConverter
     {
         public override bool CanRead => false;
 
         public override bool CanConvert(Type objectType)
         {
-            return objectType == typeof(ActionGraph);
+            return objectType == typeof(ScriptableActionCollection);
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
@@ -25,21 +25,35 @@ namespace Treasured.UnitySdk
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            ActionGraph graph = value as ActionGraph;
-            if (graph != null)
+            ScriptableActionCollection collection = value as ScriptableActionCollection;
+            if (collection != null)
             {
-                writer.WriteStartObject();
-                foreach (var collection in graph.GetGroups())
+                writer.WriteStartArray();
+                foreach (var action in collection)
                 {
-                    writer.WritePropertyName(collection.name);
-                    serializer.Serialize(writer, collection);
+                    if (action == null || !action.enabled)
+                    {
+                        continue;
+                    }
+                    writer.WriteStartObject();
+                    writer.WritePropertyName("id");
+                    writer.WriteValue(action.Id);
+                    writer.WritePropertyName("method");
+                    APIAttribute apiAttribute = action.GetType().GetCustomAttributes<APIAttribute>().FirstOrDefault();
+                    string functionName = apiAttribute != null ? apiAttribute.FunctionName : action.Type;
+                    writer.WriteValue(functionName);
+                    writer.WritePropertyName("args");
+                    serializer.ContractResolver = ContractResolver.Instance;
+                    JObject jAction = JObject.FromObject(action, serializer);
+                    jAction.WriteTo(writer);
+                    writer.WriteEndObject();
                 }
-                writer.WriteEndObject();
+                writer.WriteEndArray();
             }
             else
             {
-                writer.WriteStartObject();
-                writer.WriteEndObject();
+                writer.WriteStartArray();
+                writer.WriteEndArray();
             }
         }
 
