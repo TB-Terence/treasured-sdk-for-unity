@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Treasured.Actions;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -21,13 +21,11 @@ namespace Treasured.UnitySdk
         private SerializedProperty button;
         private SerializedProperty hitbox;
         private SerializedProperty _onClick;
-        private SerializedProperty onSelect;
+        private SerializedProperty actionGraph;
 
         private TreasuredMap map;
         private SerializedObject serializedHitboxTransform;
         private SerializedObject serializedCameraTransform;
-
-        private int selectedTabIndex;
 
         private bool showVisibleTargetsOnly;
 
@@ -38,15 +36,16 @@ namespace Treasured.UnitySdk
         private void OnEnable()
         {
             var hotspot = target as Hotspot;
-            if (hotspot.actionGraph.onSelect.IsNullOrNone())
+            var onSelect = hotspot.actionGraph.GetActionGroup("onSelect");
+            if (!onSelect)
             {
-                hotspot.actionGraph.onSelect = CreateInstance<ScriptableActionCollection>();
+                hotspot.actionGraph.AddActionGroup("onSelect");
             }
             map = (target as Hotspot).Map;
             button = serializedObject.FindProperty(nameof(TreasuredObject.button));
             hitbox = serializedObject.FindProperty("_hitbox");
             _onClick = serializedObject.FindProperty("_onClick");
-            onSelect = serializedObject.FindProperty(nameof(TreasuredObject.actionGraph)).FindPropertyRelative(nameof(ActionGraph.onSelect));
+            actionGraph = serializedObject.FindProperty(nameof(TreasuredObject.actionGraph));
             if (hotspot.Hitbox)
             {
                 serializedHitboxTransform = new SerializedObject(hotspot.Hitbox.transform);
@@ -108,7 +107,7 @@ namespace Treasured.UnitySdk
                     {
                         onClickListDrawer?.OnGUI();
                     }
-                    EditorGUILayout.PropertyField(onSelect);
+                    EditorGUILayout.PropertyField(actionGraph);
                 }
                 EditorGUILayout.EndFoldoutHeaderGroup();
             }

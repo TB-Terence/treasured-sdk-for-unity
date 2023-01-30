@@ -234,7 +234,6 @@ namespace Treasured.UnitySdk
 
         public void OnGUILayout()
         {
-            
             reorderableList.serializedProperty.serializedObject.Update();
             reorderableList.DoLayoutList();
             reorderableList.serializedProperty.serializedObject.ApplyModifiedProperties();

@@ -92,31 +92,10 @@ namespace Treasured.UnitySdk
                 {
                     CreateNew(list, "New Tour");
                 });
-                //menu.AddItem(new GUIContent("Quick Tour/Hotspots/Go To & Set Camera Rotation"), false, () =>
-                //{
-                //    GuidedTour tour = CreateNew(list, "Quick Tour");
-                //    tour.actionScripts = ScriptableObject.CreateInstance<ScriptableActionCollection>();
-                //    foreach (var hotspot in Map.Hotspots)
-                //    {
-                //        tour.actionScripts.Add(new GoToAction()
-                //        {
-                //            target = hotspot,
-                //            message = hotspot.name
-                //        });
-                //        if (!hotspot.Camera.IsNullOrNone())
-                //        {
-                //            tour.actionScripts.Add(new SetCameraRotationAction()
-                //            {
-                //                rotation = hotspot.Camera.transform.rotation
-                //            });
-                //        }
-                //    }
-                //    serializedObject.Update();
-                //});
                 menu.AddItem(new GUIContent("Quick Tour/On Click Actions"), false, () =>
                 {
                     GuidedTour tour = CreateNew(list, "Quick Tour");
-                    tour.actionScripts = ScriptableObject.CreateInstance<ScriptableActionCollection>();
+                    tour.actionScripts = new ScriptableActionCollection();
                     foreach (var hotspot in Map.Hotspots)
                     {
                         tour.actionScripts.Add(new GoToAction()
@@ -128,8 +107,9 @@ namespace Treasured.UnitySdk
                         {
                             rotation = hotspot.Camera.transform.rotation
                         });
-                        if (hotspot.actionGraph.onSelect.IsNullOrNone()) continue;
-                        foreach (var action in hotspot.actionGraph.onSelect)
+                        var onSelect = hotspot.actionGraph.GetActionGroup("onSelect");
+                        if (!onSelect) continue;
+                        foreach (var action in onSelect)
                         {
                             tour.actionScripts.Add(action);
                         }

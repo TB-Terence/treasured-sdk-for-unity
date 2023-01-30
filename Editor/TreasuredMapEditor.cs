@@ -126,7 +126,7 @@ namespace Treasured.UnitySdk
                     {
                         tabButton = new GUIStyle(EditorStyles.toolbarButton)
                         {
-                            fixedHeight = 24,
+                            fixedHeight = 32,
                             fontStyle = FontStyle.Bold,
                             padding = new RectOffset(8, 8, 0, 0),
                             normal =
@@ -286,17 +286,20 @@ namespace Treasured.UnitySdk
             TreasuredObject[] objects = _map.GetComponentsInChildren<TreasuredObject>(true);
             foreach (TreasuredObject obj in objects)
             {
+                // initialize graph
                 if(obj.actionGraph == null)
                 {
                     obj.actionGraph = new Treasured.Actions.ActionGraph();
                 }
-                if (obj.actionGraph.onSelect.IsNullOrNone())
+
+                var onSelect = obj.actionGraph.GetActionGroup("onSelect");
+                if (onSelect)
                 {
-                    obj.actionGraph.onSelect = CreateInstance<ScriptableActionCollection>();
+                    onSelect.Clear();
                 }
                 else
                 {
-                    obj.actionGraph.onSelect?.Clear();
+                    onSelect = obj.actionGraph.AddActionGroup("onSelect");
                 }
 
                 foreach (var actionGroup in obj.OnClick)
@@ -312,38 +315,51 @@ namespace Treasured.UnitySdk
                                 group.actions.Add(scriptableAction);
                             }
                         }
-                        obj.actionGraph.onSelect.Add(group);
+                        onSelect.Add(group);
                     }
                     else if (actionGroup.Actions.Count == 1)
                     {
                         ScriptableAction scriptableAction = actionGroup.Actions[0].ConvertToScriptableAction();
                         if (scriptableAction != null)
                         {
-                            obj.actionGraph.onSelect.Add(scriptableAction);
+                            onSelect.Add(scriptableAction);
                         }
                     }
                 }
-                foreach (var actionGroup in obj.OnHover)
+                
+                if (obj is Interactable interactable)
                 {
-                    if (actionGroup.Actions.Count > 1)
+                    var onHover = obj.actionGraph.GetActionGroup("onHover");
+                    if (onHover)
                     {
-                        GroupAction group = new GroupAction();
-                        foreach (var action in actionGroup.Actions)
+                        onHover.Clear();
+                    }
+                    else
+                    {
+                        onHover = obj.actionGraph.AddActionGroup("onHover");
+                    }
+                    foreach (var actionGroup in obj.OnHover)
+                    {
+                        if (actionGroup.Actions.Count > 1)
                         {
-                            ScriptableAction scriptableAction = action.ConvertToScriptableAction();
+                            GroupAction group = new GroupAction();
+                            foreach (var action in actionGroup.Actions)
+                            {
+                                ScriptableAction scriptableAction = action.ConvertToScriptableAction();
+                                if (scriptableAction != null)
+                                {
+                                    group.actions.Add(scriptableAction);
+                                }
+                            }
+                            onHover.Add(group);
+                        }
+                        else if (actionGroup.Actions.Count == 1)
+                        {
+                            ScriptableAction scriptableAction = actionGroup.Actions[0].ConvertToScriptableAction();
                             if (scriptableAction != null)
                             {
-                                group.actions.Add(scriptableAction);
+                                onHover.Add(scriptableAction);
                             }
-                        }
-                        obj.actionGraph.onSelect.Add(group);
-                    }
-                    else if (actionGroup.Actions.Count == 1)
-                    {
-                        ScriptableAction scriptableAction = actionGroup.Actions[0].ConvertToScriptableAction();
-                        if (scriptableAction != null)
-                        {
-                            obj.actionGraph.onSelect.Add(scriptableAction);
                         }
                     }
                 }

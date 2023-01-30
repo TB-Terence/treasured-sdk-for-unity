@@ -87,17 +87,6 @@ namespace Treasured.UnitySdk
 
         public ActionGraph actionGraph;
 
-        //public Color ObjectId
-        //{
-        //    get
-        //    {
-        //        int seed = Id.GetHashCode();
-        //        System.Random rand = new System.Random(seed);
-        //        byte[] buffer = new byte[3];
-        //        rand.NextBytes(buffer);
-        //        return new Color32(buffer[0], buffer[1], buffer[2], 255); // ColorUtility.ToHtmlStringRGB internally uses Color32 and use Color causes some precision error in the final output
-        //    }
-        //}
         #endregion
 
 #if UNITY_EDITOR

@@ -9,7 +9,7 @@ namespace Treasured.UnitySdk
 
         public GroupAction()
         {
-            actions = ScriptableObject.CreateInstance<ScriptableActionCollection>();
+            actions = new ScriptableActionCollection();
         }
     }
 }

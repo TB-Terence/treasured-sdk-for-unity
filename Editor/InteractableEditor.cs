@@ -1,4 +1,5 @@
-﻿using Treasured.Actions;
+﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -11,7 +12,7 @@ namespace Treasured.UnitySdk
         private ActionGroupListDrawer onClickListDrawer;
         private SerializedProperty button;
         private SerializedProperty hitbox;
-        private SerializedProperty onSelect;
+        private SerializedProperty actionGraph;
 
         private TreasuredMap map;
         private SerializedObject serializedHitboxTransform;
@@ -24,7 +25,7 @@ namespace Treasured.UnitySdk
             hitbox = serializedObject.FindProperty("_hitbox");
             serializedHitboxTransform = new SerializedObject((target as Interactable).Hitbox.transform);
             onClickListDrawer = new ActionGroupListDrawer(serializedObject, serializedObject.FindProperty("_onClick"));
-            onSelect = serializedObject.FindProperty(nameof(TreasuredObject.actionGraph)).FindPropertyRelative(nameof(ActionGraph.onSelect));
+            actionGraph = serializedObject.FindProperty(nameof(TreasuredObject.actionGraph));
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
         }
@@ -60,7 +61,7 @@ namespace Treasured.UnitySdk
                     {
                         onClickListDrawer?.OnGUI();
                     }
-                    EditorGUILayout.PropertyField(onSelect);
+                    EditorGUILayout.PropertyField(actionGraph);
                 }
             }
             else
