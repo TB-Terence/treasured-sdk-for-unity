@@ -58,8 +58,8 @@ namespace Treasured.UnitySdk
                 Arguments = $"/C taskkill /pid {process.Id} /f /t",
                 CreateNoWindow = true,
 #elif UNITY_STANDALONE_OSX
-            startInfo.FileName = "pkill";
-            startInfo.Arguments = $"-P {pid}";
+                FileName = "pkill",
+                Arguments = $"-P {process.Id}",
 #endif
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
