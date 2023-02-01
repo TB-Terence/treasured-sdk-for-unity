@@ -4,11 +4,11 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk.Validation
 {
-    public sealed class TreasuredMapValidator : Validator
+    public sealed class TreasuredSceneValidator : Validator
     {
         private static RequiredFieldValidator s_requiredFieldValidator_map;
         private TreasuredMap _map;
-        public TreasuredMapValidator(TreasuredMap map) : base(map)
+        public TreasuredSceneValidator(TreasuredMap map) : base(map)
         {
             this._map = map;
             s_requiredFieldValidator_map = new RequiredFieldValidator(map);
@@ -138,9 +138,9 @@ namespace Treasured.UnitySdk.Validation
             var tours = _map.graph.tours;
             foreach (var tour in tours)
             {
+                if (tour.actionScripts == null) continue;
                 foreach (var action in tour.actionScripts)
                 {
-                    
                     if ((action is AudioAction audioAction && string.IsNullOrWhiteSpace(audioAction.src)) || (action is Actions.EmbedAction embedAction && string.IsNullOrWhiteSpace(embedAction.src)))
                     {
                         ValidationResult validationResult = new ValidationResult()

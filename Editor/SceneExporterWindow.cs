@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    internal sealed class MapExporterWindow : UnityEditor.EditorWindow
+    internal sealed class SceneExporterWindow : UnityEditor.EditorWindow
     {
         class Styles
         {
@@ -29,7 +29,7 @@ namespace Treasured.UnitySdk
 
         public static void Show(TreasuredMap map, ValidationException e)
         {
-            var window = EditorWindow.GetWindow<MapExporterWindow>(true, "Map Exporter", true);
+            var window = EditorWindow.GetWindow<SceneExporterWindow>(true, "Scene Exporter", true);
             window.map = map;
             window.results = e.results.Select(result => new ListItem() { validationResult = result}).ToList();
             window.warnings = window.results.Where(item => item.validationResult.type == ValidationResult.ValidationResultType.Warning).ToList();

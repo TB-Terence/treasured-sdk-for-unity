@@ -476,7 +476,7 @@ namespace Treasured.UnitySdk
                         }
                         catch (ValidationException e)
                         {
-                            MapExporterWindow.Show(_map, e);
+                            SceneExporterWindow.Show(_map, e);
                         }
                         catch (ContextException e)
                         {

@@ -32,7 +32,7 @@ namespace Treasured.UnitySdk
 
         public override List<ValidationResult> CanExport()
         {
-            TreasuredMapValidator validator = new TreasuredMapValidator(Map);
+            TreasuredSceneValidator validator = new TreasuredSceneValidator(Map);
             return validator.GetValidationResults();
         }
     }

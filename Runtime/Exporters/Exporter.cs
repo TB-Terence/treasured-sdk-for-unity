@@ -76,9 +76,19 @@ namespace Treasured.UnitySdk
             {
                 if (exporter != null && exporter.enabled)
                 {
-                    exporter.OnPreExport();
-                    exporter.Export();
-                    exporter.OnPostExport();
+                    try
+                    {
+                        exporter.OnPreExport();
+                        exporter.Export();
+                    }
+                    catch (Exception ex)
+                    {
+                        throw ex;
+                    }
+                    finally
+                    {
+                        exporter.OnPostExport();
+                    }
                 }
             }
         }

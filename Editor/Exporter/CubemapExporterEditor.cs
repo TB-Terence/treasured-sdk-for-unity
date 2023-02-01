@@ -6,6 +6,19 @@ namespace Treasured.UnitySdk
     [CustomEditor(typeof(CubemapExporter))]
     internal class CubemapExporterEditor : UnityEditor.Editor
     {
+        private static readonly GUIContent k_temporarySettings = new GUIContent("" +
+            "The following settings will be apply during capture\n\n" +
+            "<Volume Settings>\n\n" +
+            "Bloom > Intensity -> 0\n" +
+            "Chromatic Aberration > Intensity -> 0\n" +
+            "Depth of Field -> 0\n" +
+            "Film grain > Intensity -> 0\n" +
+            "Lens Distortion > Scale -> 0\n" +
+            "Motion Blur > Intensity -> 0\n" +
+            "Vignette > Intensity -> 0\n\n" +
+            "<Camera>\n" +
+            "Post Anti-Aliasing -> SMAA");
+
         private SerializedProperty _useCustomWidth;
         private SerializedProperty _customCubemapWidth;
         private SerializedProperty _imageQuality;
@@ -24,6 +37,7 @@ namespace Treasured.UnitySdk
         public override void OnInspectorGUI()
         {
             CubemapExporter cubemapExportProcess = (CubemapExporter)target;
+            EditorGUILayout.HelpBox(k_temporarySettings);
             EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(CubemapExporter.imageFormat)));
             EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(CubemapExporter.cubemapFormat)));
             _exportAllQualities.boolValue = EditorGUILayout.Toggle(new GUIContent("Export all Image Qualities"),
