@@ -2,6 +2,12 @@
 {
     public struct ValidationResult
     {
+        public struct ValidationResolver
+        {
+            public string text;
+            public System.Action onResolve;
+        }
+
         public enum ValidationResultType
         {
             Warning,
@@ -10,8 +16,7 @@
 
         public string name;
         public string description;
-        public UnityEngine.Object target;
-        public UnityEngine.Object[] targets;
         public ValidationResultType type;
+        public ValidationResolver[] resolvers;
     }
 }
