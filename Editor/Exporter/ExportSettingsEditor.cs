@@ -6,6 +6,10 @@ namespace Treasured.UnitySdk
     [CustomEditor(typeof(ExportSettings))]
     internal class ExportSettingsEditor : UnityEditor.Editor
     {
+        private static class Styles
+        {
+            public static readonly GUIContent labelOptimizeScene = new GUIContent("Optimize Scene", "Optimize the cubemaps and the scene.glb to decrease the final file size. Keep in mind that this will result in a longer export process.");
+        }
         public override void OnInspectorGUI()
         {
             ExportSettings settings = target as ExportSettings;
@@ -18,6 +22,7 @@ namespace Treasured.UnitySdk
                 {
                     settings.folderName = newOutputFolderName;
                 }
+                EditorGUILayout.Toggle(Styles.labelOptimizeScene, settings.optimizeScene);
             }
         }
     }

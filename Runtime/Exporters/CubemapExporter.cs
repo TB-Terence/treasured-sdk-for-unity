@@ -59,7 +59,7 @@ namespace Treasured.UnitySdk
                 ExportCubemap(imageQuality);
             }
 
-            if (imageFormat == ImageFormat.Ktx2)
+            if (Map.exportSettings.optimizeScene)
             {
                 ImageUtilies.ConvertToKTX2(Map.exportSettings.OutputDirectory);
             }
@@ -274,19 +274,29 @@ namespace Treasured.UnitySdk
                 {
                     switch (component)
                     {
+                        case UnityEngine.Rendering.HighDefinition.Exposure e:
+                            if(volume.isGlobal)
+                                AddParameterOverwrite(new ParameterOverwrite<UnityEngine.Rendering.HighDefinition.ExposureMode>(component, nameof(UnityEngine.Rendering.HighDefinition.Exposure.mode), UnityEngine.Rendering.HighDefinition.ExposureMode.Fixed));
+                            break;
                         case UnityEngine.Rendering.HighDefinition.LensDistortion ld:
                             AddParameterOverwrite(new ParameterOverwrite<float>(component, nameof(UnityEngine.Rendering.HighDefinition.LensDistortion.scale), 1));
                             AddParameterOverwrite(new ParameterOverwrite<float>(component, nameof(UnityEngine.Rendering.HighDefinition.LensDistortion.intensity), 0));
                             break;
                         // intensity
+                        case UnityEngine.Rendering.HighDefinition.AmbientOcclusion ao:
                         case UnityEngine.Rendering.HighDefinition.Bloom b:
                         case UnityEngine.Rendering.HighDefinition.MotionBlur mb:
                         case UnityEngine.Rendering.HighDefinition.FilmGrain fg:
                         case UnityEngine.Rendering.HighDefinition.Vignette v:
+                        case UnityEngine.Rendering.HighDefinition.ChromaticAberration ca:
                             AddParameterOverwrite(new ParameterOverwrite<float>(component, "intensity", 0));
                             break;
                         case UnityEngine.Rendering.HighDefinition.DepthOfField dof:
-                            AddParameterOverwrite(new ParameterOverwrite<float>(component, nameof(UnityEngine.Rendering.HighDefinition.DepthOfField.focusDistance), 0));
+                            if(dof.focusMode == UnityEngine.Rendering.HighDefinition.DepthOfFieldMode.UsePhysicalCamera)
+                            {
+                                AddParameterOverwrite(new ParameterOverwrite<UnityEngine.Rendering.HighDefinition.DepthOfFieldMode>(component, nameof(UnityEngine.Rendering.HighDefinition.DepthOfField.farMaxBlur), 0));
+                                AddParameterOverwrite(new ParameterOverwrite<UnityEngine.Rendering.HighDefinition.DepthOfFieldMode>(component, nameof(UnityEngine.Rendering.HighDefinition.DepthOfField.nearMaxBlur), 0));
+                            }
                             break;
                         default:
                             break;

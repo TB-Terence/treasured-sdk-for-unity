@@ -117,12 +117,6 @@ namespace Treasured.UnitySdk
             {
                 ktxProcess?.Dispose();
             }
-#if UNITY_EDITOR
-            if (!canceled)
-            {
-                UnityEditor.EditorUtility.DisplayDialog("Encoding Completed", $"Encoding to KTX2 completed.", "OK");
-            }
-#endif
         }
 
         public static void Encode(Texture2D texture, string directory, string fileName, ImageFormat format, int imageQualityPercentage = 100)

@@ -18,7 +18,7 @@ namespace Treasured.UnitySdk
         private SerializedProperty _keepCombinedMesh;
         private SerializedProperty _exportQuality;
         private SerializedProperty _displayLogs;
-        private SerializedProperty _shouldOptimizeMesh;
+        //private SerializedProperty _shouldOptimizeMesh;
 
         private void OnEnable()
         {
@@ -32,7 +32,7 @@ namespace Treasured.UnitySdk
             _keepCombinedMesh = serializedObject.FindProperty(nameof(MeshExporter.keepCombinedMesh));
             _exportQuality = serializedObject.FindProperty(nameof(MeshExporter.ExportQuality));
             _displayLogs = serializedObject.FindProperty(nameof(MeshExporter.displayLogs));
-            _shouldOptimizeMesh = serializedObject.FindProperty(nameof(MeshExporter.shouldOptimizeMesh));
+            //_shouldOptimizeMesh = serializedObject.FindProperty(nameof(MeshExporter.shouldOptimizeMesh));
                 
             //  TODO: Find a better way to add tags to the runtime scripts
             _tagString = UnityEditorInternal.InternalEditorUtility.tags;
@@ -79,7 +79,7 @@ namespace Treasured.UnitySdk
                 EditorGUILayout.PropertyField(_keepCombinedMesh);
                 EditorGUILayout.PropertyField(_exportQuality);
                 EditorGUILayout.PropertyField(_displayLogs);
-                EditorGUILayout.PropertyField(_shouldOptimizeMesh);
+                //EditorGUILayout.PropertyField(_shouldOptimizeMesh);
             }
         }
 

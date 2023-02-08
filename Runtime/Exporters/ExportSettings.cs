@@ -19,6 +19,7 @@ namespace Treasured.UnitySdk
 
         [RequiredField]
         public string folderName;
+        public bool optimizeScene = true;
 
         public string OutputDirectory
         {

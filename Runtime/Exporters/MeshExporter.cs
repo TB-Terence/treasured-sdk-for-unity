@@ -419,7 +419,7 @@ namespace Treasured.UnitySdk
             _gltfSceneExporter.GLBSaved -= OnGLBSaved;
 
             //  Check if the exported glb should be optimized
-            if (shouldOptimizeMesh)
+            if (Map.exportSettings.optimizeScene)
             {
                 var glbFilePath = Path.Combine(Map.exportSettings.OutputDirectory, "scene.glb");
 
