@@ -598,15 +598,21 @@ namespace Treasured.UnitySdk
             serializedObject.ApplyModifiedProperties();
         }
 
+        private bool _backgroudMusicExpanded = true;
+
         [TabGroup(groupName = "Page Info")]
         private void OnPageInfoGUI()
         {
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_author"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_title"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_description"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("_audioUrl"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("_muteOnStart"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(TreasuredMap.defaultBackgroundVolume)));
+            _backgroudMusicExpanded = EditorGUILayout.Foldout(_backgroudMusicExpanded, "Background Music", true);
+            if (_backgroudMusicExpanded)
+            {
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_audioUrl"), new GUIContent("Uri", "Url to the audio file"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_muteOnStart"), new GUIContent("Mute", "Mute the audio at the beginning"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(TreasuredMap.defaultBackgroundVolume)), new GUIContent("Volume"));
+            }
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_templateLoader"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("headHTML"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("pageEmbeds"));
