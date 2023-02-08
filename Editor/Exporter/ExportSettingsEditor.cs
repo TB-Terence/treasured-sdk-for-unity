@@ -22,7 +22,7 @@ namespace Treasured.UnitySdk
                 {
                     settings.folderName = newOutputFolderName;
                 }
-                EditorGUILayout.Toggle(Styles.labelOptimizeScene, settings.optimizeScene);
+                settings.optimizeScene = EditorGUILayout.Toggle(Styles.labelOptimizeScene, settings.optimizeScene);
             }
         }
     }

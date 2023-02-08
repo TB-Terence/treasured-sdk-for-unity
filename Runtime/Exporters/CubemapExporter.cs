@@ -261,6 +261,9 @@ namespace Treasured.UnitySdk
 
         public override void OnPreExport()
         {
+            string path = Path.Combine(Map.exportSettings.OutputDirectory, "images");
+            if (Directory.Exists(path))
+                Directory.Delete(path, true);
             flipY = true;
             _parameterOverwrites.Clear();
             _cameraData = ValidateCamera().gameObject.GetComponent<UnityEngine.Rendering.HighDefinition.HDAdditionalCameraData>();
@@ -303,7 +306,6 @@ namespace Treasured.UnitySdk
                     }
                 }
             }
-            
         }
 
         private void AddParameterOverwrite<T>(ParameterOverwrite<T> overwrite)

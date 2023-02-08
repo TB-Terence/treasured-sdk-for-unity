@@ -472,7 +472,6 @@ namespace Treasured.UnitySdk
                     {
                         try
                         {
-
                             Exporter.Export(_map);
                             EditorUtility.DisplayDialog("Export Finished", $"Scene export finished.", "OK");
                         }
