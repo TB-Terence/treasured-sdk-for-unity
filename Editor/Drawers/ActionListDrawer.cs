@@ -149,7 +149,7 @@ namespace Treasured.UnitySdk
                 },
                 onAddDropdownCallback = (Rect buttonRect, ReorderableList list) =>
                 {
-                    ShowAddMenu();
+                    ShowAddMenu(false);
                 },
                 onRemoveCallback = (ReorderableList list) =>
                 {
@@ -167,7 +167,7 @@ namespace Treasured.UnitySdk
             }
         }
 
-        private void ShowAddMenu()
+        private void ShowAddMenu(bool insertAfterCurrent = true)
         {
             var actionTypes = TypeCache.GetTypesDerivedFrom<T>().Where(x => !x.IsAbstract && !x.IsDefined(typeof(ObsoleteAttribute), true));
             GenericMenu menu = new GenericMenu();
@@ -177,9 +177,10 @@ namespace Treasured.UnitySdk
                 string nicfyName = GetNicifyActionName(type);
                 menu.AddItem(new GUIContent(attribute != null ? $"{attribute.Path}/{nicfyName}" : nicfyName), false, () =>
                 {
-                    SerializedProperty element = reorderableList.serializedProperty.InsertManagedObject(type, reorderableList.index);
-                    element.isExpanded = true;
+                    SerializedProperty element = reorderableList.serializedProperty.InsertManagedObject(type, insertAfterCurrent ? reorderableList.index : reorderableList.count);
+                    element.isExpanded = element.managedReferenceFullTypename.EndsWith("GroupAction") ? false : true;
                     element.serializedObject.ApplyModifiedProperties();
+                    reorderableList.index++;
                 });
                 CreateActionGroupAttribute[] linkedActionAttributes = (CreateActionGroupAttribute[])Attribute.GetCustomAttributes(type, typeof(CreateActionGroupAttribute));
                 if (linkedActionAttributes != null && linkedActionAttributes.Length > 0)
@@ -198,14 +199,15 @@ namespace Treasured.UnitySdk
                         }
                         menu.AddItem(new GUIContent(pathBuilder.ToString()), false, () =>
                         {
-                            int index = reorderableList.index;
-                            SerializedProperty element = reorderableList.serializedProperty.InsertManagedObject(type, index);
+                            int index = reorderableList.index == -1 ? -1 : insertAfterCurrent ? reorderableList.index : reorderableList.count;
+                            SerializedProperty element = reorderableList.serializedProperty.InsertManagedObject(type, index++);
                             foreach (var linkedType in linkedActionAttribute.Types)
                             {
-                                reorderableList.serializedProperty.InsertManagedObject(linkedType, ++index);
+                                reorderableList.serializedProperty.InsertManagedObject(linkedType, index++);
                             }
-                            element.isExpanded = true;
+                            element.isExpanded = element.managedReferenceFullTypename.EndsWith("GroupAction") ? false: true;
                             element.serializedObject.ApplyModifiedProperties();
+                            reorderableList.index = index > reorderableList.count - 1 ? reorderableList.count - 1 : index;
                         });
                     }
                 }

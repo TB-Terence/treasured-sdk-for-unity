@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using Treasured.Actions;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -44,9 +45,6 @@ namespace Treasured.UnitySdk
 
         [SerializeReference]
         private List<ActionGroup> _onHover = new List<ActionGroup>();
-
-        public ScriptableActionCollection onClick;
-        public ScriptableActionCollection onHover;
         #endregion
 
         #region Properties
@@ -87,17 +85,8 @@ namespace Treasured.UnitySdk
         [JsonIgnore]
         public List<ActionGroup> OnHover => _onHover;
 
-        //public Color ObjectId
-        //{
-        //    get
-        //    {
-        //        int seed = Id.GetHashCode();
-        //        System.Random rand = new System.Random(seed);
-        //        byte[] buffer = new byte[3];
-        //        rand.NextBytes(buffer);
-        //        return new Color32(buffer[0], buffer[1], buffer[2], 255); // ColorUtility.ToHtmlStringRGB internally uses Color32 and use Color causes some precision error in the final output
-        //    }
-        //}
+        public ActionGraph actionGraph;
+
         #endregion
 
 #if UNITY_EDITOR

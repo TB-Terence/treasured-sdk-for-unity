@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -14,24 +15,17 @@ namespace Treasured.UnitySdk
             public static readonly GUIContent missingMapComponent = EditorGUIUtility.TrTextContent("Missing Treasured Map Component in parent.", "", "Warning");
         }
 
-        private static readonly GUIContent[] tabs = { new GUIContent("On Click"), new GUIContent("On Hover") };
         private const string k_RecordingText = "Recording In Progress(Click on the scene to rotate the camera)...";
 
-        private ActionGroupListDrawer onClickList;
-        private ActionGroupListDrawer onHoverList;
+        private ActionGroupListDrawer onClickListDrawer;
         private SerializedProperty button;
         private SerializedProperty hitbox;
-        private SerializedProperty camera;
         private SerializedProperty _onClick;
-        private SerializedProperty onClick;
-        private SerializedProperty _onHover;
-        private SerializedProperty onHover;
+        private SerializedProperty actionGraph;
 
         private TreasuredMap map;
         private SerializedObject serializedHitboxTransform;
         private SerializedObject serializedCameraTransform;
-
-        private int selectedTabIndex;
 
         private bool showVisibleTargetsOnly;
 
@@ -42,22 +36,16 @@ namespace Treasured.UnitySdk
         private void OnEnable()
         {
             var hotspot = target as Hotspot;
-            if (hotspot.onClick.IsNullOrNone())
+            var onSelect = hotspot.actionGraph.GetActionGroup("onSelect");
+            if (onSelect != null)
             {
-                hotspot.onClick = CreateInstance<ScriptableActionCollection>();
-            }
-            if (hotspot.onHover.IsNullOrNone())
-            {
-                hotspot.onHover = CreateInstance<ScriptableActionCollection>();
+                hotspot.actionGraph.AddActionGroup("onSelect");
             }
             map = (target as Hotspot).Map;
             button = serializedObject.FindProperty(nameof(TreasuredObject.button));
             hitbox = serializedObject.FindProperty("_hitbox");
-            camera = serializedObject.FindProperty("_camera");
             _onClick = serializedObject.FindProperty("_onClick");
-            onClick = serializedObject.FindProperty("onClick");
-            _onHover = serializedObject.FindProperty("_onHover");
-            onHover = serializedObject.FindProperty("onHover");
+            actionGraph = serializedObject.FindProperty(nameof(TreasuredObject.actionGraph));
             if (hotspot.Hitbox)
             {
                 serializedHitboxTransform = new SerializedObject(hotspot.Hitbox.transform);
@@ -68,8 +56,7 @@ namespace Treasured.UnitySdk
             }
             if (serializedObject.targetObjects.Length == 1)
             {
-                onClickList = new ActionGroupListDrawer(serializedObject, _onClick);
-                onHoverList = new ActionGroupListDrawer(serializedObject, _onHover);
+                onClickListDrawer = new ActionGroupListDrawer(serializedObject, _onClick);
             }
             hotspot?.TryInvokeMethods("OnSelectedInHierarchy");
             SceneView.duringSceneGui -= OnSceneViewGUI;
@@ -109,31 +96,18 @@ namespace Treasured.UnitySdk
                 bool showDeprecatedActions = SessionState.GetBool(SessionKeys.ShowDeprecatedActions, false);
                 SessionState.SetBool(SessionKeys.ShowDeprecatedActions, EditorGUILayout.ToggleLeft("Show Deprecated Actions", showDeprecatedActions));
                 EditorGUI.BeginChangeCheck();
-                bool isExpanded = EditorGUILayout.BeginFoldoutHeaderGroup(SessionState.GetBool(SessionKeys.ShowActionList, true), "Actions");
+                bool isExpanded = EditorGUILayout.BeginFoldoutHeaderGroup(SessionState.GetBool(SessionKeys.ShowActionList, true), "Action Graph");
                 if (EditorGUI.EndChangeCheck())
                 {
                     SessionState.SetBool(SessionKeys.ShowActionList, isExpanded);
                 }
                 if (isExpanded)
                 {
-                    selectedTabIndex = GUILayout.SelectionGrid(selectedTabIndex, tabs, tabs.Length, TreasuredMapEditor.Styles.TabButton);
-                    switch (selectedTabIndex)
+                    if (showDeprecatedActions)
                     {
-                        case 0:
-                            if (showDeprecatedActions)
-                            {
-                                onClickList?.OnGUI();
-                            }
-                            EditorGUILayout.PropertyField(onClick);
-                            break;
-                        case 1:
-                            if (showDeprecatedActions)
-                            {
-                                onHoverList?.OnGUI();
-                            }
-                            EditorGUILayout.PropertyField(onHover);
-                            break;
+                        onClickListDrawer?.OnGUI();
                     }
+                    EditorGUILayout.PropertyField(actionGraph);
                 }
                 EditorGUILayout.EndFoldoutHeaderGroup();
             }

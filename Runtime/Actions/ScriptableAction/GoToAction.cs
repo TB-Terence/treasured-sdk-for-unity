@@ -1,6 +1,6 @@
 ﻿namespace Treasured.UnitySdk
 {
-    [API("goto")]
+    [API("goTo")]
     [CreateActionGroup(typeof(SetCameraRotationAction))]
     [CreateActionGroup(typeof(PanAction))]
     public class GoToAction : ScriptableAction

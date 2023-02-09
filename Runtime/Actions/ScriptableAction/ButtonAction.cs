@@ -3,6 +3,7 @@
     [API("button")]
     public class ButtonAction : ScriptableAction
     {
-        public string text;
+        public string text = "Continue?";
+        public string buttonText = "Yes";
     }
 }
