@@ -8,6 +8,15 @@ namespace Treasured.UnitySdk
     [AddComponentMenu("Treasured/Interactable")]
     public sealed class Interactable : TreasuredObject
     {
+        private void OnEnable()
+        {
+            // add default action group for onSelect event
+            actionGraph.AddActionGroup("onSelect");
+            // add default action group for onHover event
+            actionGraph.AddActionGroup("onHover");
+        }
+
+
         #region Editor GUI Functions
 #if UNITY_EDITOR
         void OnSceneViewFocus()

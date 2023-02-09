@@ -85,10 +85,9 @@ namespace Treasured.UnitySdk
         [JsonIgnore]
         public List<ActionGroup> OnHover => _onHover;
 
-        public ActionGraph actionGraph;
+        public ActionGraph actionGraph = new ActionGraph();
 
         #endregion
-
 #if UNITY_EDITOR
         // DO NOT REMOVE, called by Editor
         void OnSelectedInHierarchy()

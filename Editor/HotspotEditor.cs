@@ -36,11 +36,6 @@ namespace Treasured.UnitySdk
         private void OnEnable()
         {
             var hotspot = target as Hotspot;
-            var onSelect = hotspot.actionGraph.GetActionGroup("onSelect");
-            if (onSelect != null)
-            {
-                hotspot.actionGraph.AddActionGroup("onSelect");
-            }
             map = (target as Hotspot).Map;
             button = serializedObject.FindProperty(nameof(TreasuredObject.button));
             hitbox = serializedObject.FindProperty("_hitbox");

@@ -107,8 +107,7 @@ namespace Treasured.UnitySdk
                         {
                             rotation = hotspot.Camera.transform.rotation
                         });
-                        var onSelect = hotspot.actionGraph.GetActionGroup("onSelect");
-                        if (onSelect == null) continue;
+                        if (!hotspot.actionGraph.TryGetActionGroup("onSelect", out var onSelect)) continue;
                         foreach (var action in onSelect)
                         {
                             tour.actionScripts.Add(action);

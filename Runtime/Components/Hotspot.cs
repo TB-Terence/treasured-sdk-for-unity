@@ -33,6 +33,12 @@ namespace Treasured.UnitySdk
         }
         #endregion
 
+        private void OnEnable()
+        {
+            // add default action group for onSelect event
+            actionGraph.AddActionGroup("onSelect");
+        }
+
         /// <summary>
         /// Snap the hotspot to ground if it hits collider.
         /// </summary>
