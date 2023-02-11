@@ -22,6 +22,7 @@ namespace Treasured.UnitySdk
             "Post Anti-Aliasing -> SMAA");
         public override void OnInspectorGUI()
         {
+            serializedObject.Update();
             EditorGUILayout.HelpBox(k_temporarySettings);
             SerializedProperty exportAllQualities = serializedObject.FindProperty(nameof(CubemapExporter.exportAllQualities));
             EditorGUILayout.PropertyField(exportAllQualities);
@@ -29,6 +30,7 @@ namespace Treasured.UnitySdk
             {
                 EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(CubemapExporter.imageQuality)));
             }
+            serializedObject.ApplyModifiedProperties();
         }
 
         void OnPreferenceGUI(SerializedObject serializedObject)

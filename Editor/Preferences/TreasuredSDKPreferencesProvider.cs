@@ -33,7 +33,7 @@ namespace Treasured.UnitySdk
             {
                 if (_onPreferenceGUI != null && _onPreferenceGUI.GetParameters().Length == 1)
                 {
-                    using (new ExporterEditor.ExporterScope(SerializedObject.targetObject as Exporter))
+                    using (new ExporterEditor.ExporterScope(SerializedObject.FindProperty(nameof(Exporter.enabled))))
                     {
                         SerializedObject.Update();
                         EditorGUI.BeginChangeCheck();
@@ -67,15 +67,15 @@ namespace Treasured.UnitySdk
             TreasuredSDKPreferences.Instance.Save();
             TreasuredSDKPreferences.Instance.hideFlags &= ~HideFlags.NotEditable;
             _serializedObject = TreasuredSDKPreferences.Instance.GetSerializedObject();
-            var serializedFields = ReflectionUtils.GetSeriliazedFieldReferences(TreasuredSDKPreferences.Instance, false);
+            var serializedFields = ReflectionUtilities.GetSerializableFieldInfoValuePair(TreasuredSDKPreferences.Instance, false);
             _serializedProperties = new List<SerializedProperty>();
-            for (int i = 0; i < serializedFields.Count; i++)
+            foreach (var pair in serializedFields)
             {
-                if (serializedFields[i].fieldInfo.Name.Equals("exporters")) // skip exporter[] field
+                if (pair.FieldInfo.Name.Equals("exporters")) // skip exporter[] field
                 {
                     continue;
                 }
-                _serializedProperties.Add(_serializedObject.FindProperty(serializedFields[i].fieldInfo.Name));
+                _serializedProperties.Add(_serializedObject.FindProperty(pair.FieldInfo.Name));
             }
             // initialize exporter gui drawers
             _exporterDrawers = new List<ExporterPreferenceGUIDrawer>();

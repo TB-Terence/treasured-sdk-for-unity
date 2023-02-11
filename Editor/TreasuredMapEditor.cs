@@ -238,31 +238,31 @@ namespace Treasured.UnitySdk
         private TabGroupState[] _tabGroupStates;
         private int _selectedTabIndex = 1;
         private FoldoutGroupState[] _foldoutGroupStates;
-        private TreasuredMap _map;
-        private Editor _exportSettingsEditor;
-        private Editor[] _exporterEditors;
-        private List<Hotspot> _hotspots;
 
-        private Editor graphEditor;
+        private TreasuredMap _map;
+        private Exporter[] _exporters;
+        private List<Hotspot> _hotspots;
+        private Editor editor1;
 
         private Process _npmProcess;
+
+        private Dictionary<UnityEngine.Object, Editor> _cachedEditors = new Dictionary<UnityEngine.Object, Editor>();
 
         public void OnEnable()
         {
             _selectedTabIndex = SessionState.GetInt(SelectedTabIndexKey, _selectedTabIndex);
             _map = target as TreasuredMap;
             _hotspots = new List<Hotspot>(_map.Hotspots);
-            InitializeSettings();
-            InitializeExporters();
+            InitializeScriptableObjects();
+            CreateCachedEditors();
             InitializeTabGroups();
             InitializeObjectList();
-            InitializeGuidedTour();
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
             Migrate();
             try
             {
-                var process = Process.GetProcessById(_map.processId);
+                var process = Process.GetProcessById(SessionState.GetInt(SessionKeys.CLIProcessId, -1));
                 _npmProcess = process.HasExited ? null : process;
             }
             catch (Exception)
@@ -367,47 +367,39 @@ namespace Treasured.UnitySdk
             serializedObject.Update();
         }
 
-        private void InitializeSettings()
+        private void InitializeScriptableObjects()
         {
-            SerializedProperty exportSettings = serializedObject.FindProperty(nameof(TreasuredMap.exportSettings));
-            if (exportSettings.objectReferenceValue == null)
+            var pairs = ReflectionUtilities.GetSerializableFieldValuesOfType<ScriptableObject>(_map);
+            foreach (var pair in pairs)
             {
-                exportSettings.objectReferenceValue = ScriptableObject.CreateInstance<ExportSettings>();
+                if (pair.IsNull())
+                {
+                    pair.SetValue(ScriptableObject.CreateInstance(pair.FieldInfo.FieldType));
+                }
+                if (pair.GetValue() is Exporter exporter && exporter.Map != _map)
+                {
+                    exporter.Map = _map;
+                }
             }
-
-            Editor.CreateCachedEditor(exportSettings.objectReferenceValue, null, ref _exportSettingsEditor);
-            serializedObject.ApplyModifiedProperties();
         }
 
-        private void InitializeExporters()
+        private void CreateCachedEditors()
         {
-            // Find all serializable exporter
-            FieldInfo[] exporterFields = typeof(TreasuredMap)
-                .GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(x =>
-                    typeof(Exporter).IsAssignableFrom(x.FieldType) &&
-                    (x.IsPublic || (x.IsPrivate && x.IsDefined(typeof(SerializeField))))).ToArray();
-            _exporterEditors = new Editor[exporterFields.Length];
-            for (int i = 0; i < exporterFields.Length; i++)
+            // Create editors for export setting
+            _cachedEditors[_map.exportSettings] = Editor.CreateEditor(_map.exportSettings);
+            // Create editors for exporters
+            var exporters = ReflectionUtilities.GetSerializableFieldValuesOfType<Exporter>(target, false);
+            _exporters = exporters.Select(exporter => exporter.GetValueAs<Exporter>()).ToArray();
+            foreach (var exporter in _exporters)
             {
-                FieldInfo fi = exporterFields[i];
-                SerializedProperty exporterProperty = serializedObject.FindProperty(fi.Name);
-                if (exporterProperty.objectReferenceValue == null)
-                {
-                    exporterProperty.objectReferenceValue = ScriptableObject.CreateInstance(fi.FieldType);
-                }
-
-                SerializedObject exporterObject = new SerializedObject(exporterProperty.objectReferenceValue);
-                SerializedProperty mapProperty = exporterObject.FindProperty("_map");
-                if (mapProperty.objectReferenceValue == null)
-                {
-                    mapProperty.objectReferenceValue = target;
-                }
-
-                exporterObject.ApplyModifiedProperties();
-                Editor.CreateCachedEditor(exporterProperty.objectReferenceValue, null, ref _exporterEditors[i]);
+                _cachedEditors[exporter] = Editor.CreateEditor(exporter);
             }
-
-            serializedObject.ApplyModifiedProperties();
+            // Create editor for guided tour graph
+            _cachedEditors[_map.graph] = Editor.CreateEditor(_map.graph);
+            if (_cachedEditors[_map.graph] is GuidedTourGraphEditor editor)
+            {
+                editor.Map = _map;
+            }
         }
 
         private void InitializeTabGroups()
@@ -445,22 +437,6 @@ namespace Treasured.UnitySdk
                 {
                     _foldoutGroupStates[i].objects.Add((TreasuredObject)objects[x]);
                 }
-            }
-        }
-
-        private void InitializeGuidedTour()
-        {
-            SerializedProperty sp = serializedObject.FindProperty(nameof(TreasuredMap.graph));
-            if (sp.objectReferenceValue.IsNullOrNone())
-            {
-                sp.objectReferenceValue = ScriptableObject.CreateInstance<GuidedTourGraph>();
-                sp.serializedObject.ApplyModifiedProperties();
-            }
-
-            graphEditor = Editor.CreateEditor(sp.objectReferenceValue);
-            if (graphEditor is GuidedTourGraphEditor editor)
-            {
-                editor.Map = _map;
             }
         }
 
@@ -571,7 +547,7 @@ namespace Treasured.UnitySdk
                                             $"treasured dev {_map.exportSettings.folderName}");
                                     _npmProcess.Start();
 
-                                    _map.processId = _npmProcess.Id;
+                                    SessionState.SetInt(SessionKeys.CLIProcessId, _npmProcess.Id);
 
                                     UnityEditor.EditorApplication.quitting -= () => ProcessUtilities.KillProcess(_npmProcess);
                                     UnityEditor.EditorApplication.quitting += () => ProcessUtilities.KillProcess(_npmProcess);
@@ -852,27 +828,26 @@ namespace Treasured.UnitySdk
                 return;
             }
 
-            graphEditor.OnInspectorGUI();
+            _cachedEditors[_map.graph].OnInspectorGUI();
         }
 
         [TabGroup(groupName = "Export Settings")]
         private void OnExportGUI()
         {
-            _exportSettingsEditor.serializedObject.Update();
-            _exportSettingsEditor.OnInspectorGUI();
-            _exportSettingsEditor.serializedObject.ApplyModifiedProperties();
-            try
+            EditorGUI.BeginChangeCheck();
+            _cachedEditors[_map.exportSettings].OnInspectorGUI();
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Exporter Settings", EditorStyles.boldLabel);
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button(new GUIContent("Reset to Default",
+                    "Reset all exporter settings to Default Preferences")))
             {
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField("Exporter Settings", EditorStyles.boldLabel);
-                GUILayout.FlexibleSpace();
-                if (GUILayout.Button(new GUIContent("Reset to Default",
-                        "Reset all exporter settings to Default Preferences")))
+                try
                 {
-                    foreach (var editor in _exporterEditors)
+                    foreach (var exporter in _exporters)
                     {
-                        var source = TreasuredSDKPreferences.Instance.exporters.FirstOrDefault(exporter =>
-                            exporter.GetType() == editor.target.GetType());
+                        var source = TreasuredSDKPreferences.Instance.exporters.FirstOrDefault(e =>
+                            e.GetType() == exporter.GetType());
                         if (source == null)
                         {
                             continue;
@@ -882,39 +857,26 @@ namespace Treasured.UnitySdk
                         SerializedProperty current = serializedObject.GetIterator();
                         while (current.Next(true))
                         {
-                            editor.serializedObject.CopyFromSerializedProperty(current);
+                            _cachedEditors[exporter].serializedObject.CopyFromSerializedProperty(current);
                         }
-
-                        // set _map for the exporter
-                        editor.serializedObject.FindProperty("_map").objectReferenceValue = _map;
-                        editor.serializedObject.ApplyModifiedProperties();
+                        _cachedEditors[exporter].serializedObject.ApplyModifiedProperties();
                     }
                 }
-
-                EditorGUILayout.EndHorizontal();
-                using (new EditorGUI.IndentLevelScope(1))
+                catch (Exception e)
                 {
-                    for (int i = 0; i < _exporterEditors.Length; i++)
-                    {
-                        Editor editor = _exporterEditors[i];
-                        editor.serializedObject.Update();
-                        var exporter = (editor.serializedObject.targetObject as Exporter);
-                        EditorGUI.BeginChangeCheck();
-                        using (var scope = new ExporterEditor.ExporterScope(exporter))
-                        {
-                            editor.OnInspectorGUI();
-                        }
-
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            editor.serializedObject.ApplyModifiedProperties();
-                        }
-                    }
+                    throw e;
                 }
             }
-            catch (Exception e)
+            EditorGUILayout.EndHorizontal();
+            using (new EditorGUI.IndentLevelScope(1))
             {
-                throw e;
+                foreach (var exporter in _exporters)
+                {
+                    using (var scope = new ExporterEditor.ExporterScope(_cachedEditors[exporter].serializedObject.FindProperty(nameof(Exporter.enabled))))
+                    {
+                        _cachedEditors[exporter].OnInspectorGUI();
+                    }
+                }
             }
         }
 

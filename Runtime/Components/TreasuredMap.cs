@@ -129,8 +129,6 @@ namespace Treasured.UnitySdk
         }
         #endregion
 
-        public int processId;
-
         [Code]
         public string headHTML;
 
@@ -166,15 +164,6 @@ namespace Treasured.UnitySdk
             if (_templateLoader != null && _templateLoader.template != "modern")
             {
                 _templateLoader.autoCameraRotation = false;
-            }
-        }
-
-        private void Reset()
-        {
-            var fields = ReflectionUtils.GetSeriliazedFieldReferences(this, false).Where(x => typeof(ScriptableObject).IsAssignableFrom(x.fieldInfo.FieldType));
-            foreach (var field in fields)
-            {
-                field.SetValue(ScriptableObject.CreateInstance(field.fieldInfo.FieldType));
             }
         }
     }

@@ -41,6 +41,7 @@ namespace Treasured.UnitySdk
 
         public override void OnInspectorGUI()
         {
+            serializedObject.Update();
             EditorGUILayout.BeginHorizontal();
             _canUseTag.boolValue = EditorGUILayout.Toggle(
                 new GUIContent("Use Tag", "Only combine GameObjects which this tag."),
@@ -79,8 +80,9 @@ namespace Treasured.UnitySdk
                 EditorGUILayout.PropertyField(_keepCombinedMesh);
                 EditorGUILayout.PropertyField(_exportQuality);
                 EditorGUILayout.PropertyField(_displayLogs);
-                //EditorGUILayout.PropertyField(_shouldOptimizeMesh);
             }
+
+            serializedObject.ApplyModifiedProperties();
         }
 
         void OnPreferenceGUI(SerializedObject serializedObject)
