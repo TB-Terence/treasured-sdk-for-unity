@@ -7,49 +7,49 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    public static class ReflectionUtilities
+    public struct FieldInfoValuePair
     {
-        public struct FieldInfoValuePair
+        public object DeclaringObject { get; private set; }
+        public FieldInfo FieldInfo { get; private set; }
+
+        public FieldInfoValuePair(object declaringObject, FieldInfo fieldInfo)
         {
-            public object DeclaringObject { get; private set; }
-            public FieldInfo FieldInfo { get; private set; }
-
-            public FieldInfoValuePair(object declaringObject, FieldInfo fieldInfo)
-            {
-                DeclaringObject = declaringObject;
-                FieldInfo = fieldInfo;
-            }
-
-            public void SetValue(object value)
-            {
-                FieldInfo.SetValue(DeclaringObject, value);
-            }
-
-            public object GetValue()
-            {
-                return FieldInfo.GetValue(DeclaringObject);
-            }
-
-            public T GetValueAs<T>()
-            {
-                return (T)FieldInfo.GetValue(DeclaringObject);
-            }
-
-            public bool IsNull()
-            {
-                var value = GetValue();
-                if (FieldInfo.FieldType.IsAssignableFrom(typeof(UnityEngine.Object)))
-                {
-                    return (value as UnityEngine.Object).IsNullOrNone();
-                }
-                if (value is string str)
-                {
-                    return string.IsNullOrWhiteSpace(str);
-                }
-                return value is null;
-            }
+            DeclaringObject = declaringObject;
+            FieldInfo = fieldInfo;
         }
 
+        public void SetValue(object value)
+        {
+            FieldInfo.SetValue(DeclaringObject, value);
+        }
+
+        public object GetValue()
+        {
+            return FieldInfo.GetValue(DeclaringObject);
+        }
+
+        public T GetValueAs<T>()
+        {
+            return (T)FieldInfo.GetValue(DeclaringObject);
+        }
+
+        public bool IsNull()
+        {
+            var value = GetValue();
+            if (FieldInfo.FieldType.IsAssignableFrom(typeof(UnityEngine.Object)))
+            {
+                return (value as UnityEngine.Object).IsNullOrNone();
+            }
+            if (value is string str)
+            {
+                return string.IsNullOrWhiteSpace(str);
+            }
+            return value is null;
+        }
+    }
+
+    public static class ReflectionUtilities
+    {
         public static IEnumerable<FieldInfoValuePair> GetSerializableFieldValuesOfType<T>(object target, bool includeChildren = false)
         {
             List<FieldInfoValuePair> fieldValuePairs = new List<FieldInfoValuePair>();
@@ -78,7 +78,6 @@ namespace Treasured.UnitySdk
             {
                 if (field.IsPublic || Attribute.IsDefined(field, typeof(SerializeField)))
                 {
-                    object value = field.GetValue(obj);
                     fieldValuePairs.Add(new FieldInfoValuePair(obj, field));
                 }
             }

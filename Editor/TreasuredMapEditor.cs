@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Treasured.UnitySdk.Utilities;
 using Treasured.UnitySdk.Validation;
 using UnityEditor;
 using UnityEditor.PackageManager;
-using UnityEditorInternal;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
 namespace Treasured.UnitySdk
 {
@@ -248,11 +245,16 @@ namespace Treasured.UnitySdk
 
         private Dictionary<UnityEngine.Object, Editor> _cachedEditors = new Dictionary<UnityEngine.Object, Editor>();
 
+        private bool _backgroudMusicExpanded = true;
+
+        private HashSet<string> _requiredSerializedFieldPaths = new HashSet<string>();
+
         public void OnEnable()
         {
             _selectedTabIndex = SessionState.GetInt(SelectedTabIndexKey, _selectedTabIndex);
             _map = target as TreasuredMap;
             _hotspots = new List<Hotspot>(_map.Hotspots);
+            CreateRequiredFieldPath();
             InitializeScriptableObjects();
             CreateCachedEditors();
             InitializeTabGroups();
@@ -268,6 +270,15 @@ namespace Treasured.UnitySdk
             catch (Exception)
             {
 
+            }
+        }
+
+        private void CreateRequiredFieldPath()
+        {
+            var fields = EditorReflectionUtilities.GetSerializedPropertiesWithAttribute<RequiredFieldAttribute>(_map);
+            foreach (var field in fields)
+            {
+                _requiredSerializedFieldPaths.Add(field.serializedProperty.propertyPath);
             }
         }
 
@@ -619,14 +630,25 @@ namespace Treasured.UnitySdk
             serializedObject.ApplyModifiedProperties();
         }
 
-        private bool _backgroudMusicExpanded = true;
+        void PropertyField(SerializedProperty serializedProperty)
+        {
+            if(_requiredSerializedFieldPaths.Contains(serializedProperty.propertyPath))
+            {
+                EditorGUILayoutUtils.RequiredPropertyField(serializedProperty);
+            }
+            else
+            {
+                EditorGUILayout.PropertyField(serializedProperty);
+            }
+        }
+
 
         [TabGroup(groupName = "Page Info")]
         private void OnPageInfoGUI()
         {
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("_author"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("_title"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("_description"));
+            PropertyField(serializedObject.FindProperty("_author"));
+            PropertyField(serializedObject.FindProperty("_title"));
+            PropertyField(serializedObject.FindProperty("_description"));
             _backgroudMusicExpanded = EditorGUILayout.Foldout(_backgroudMusicExpanded, "Background Music", true);
             if (_backgroudMusicExpanded)
             {

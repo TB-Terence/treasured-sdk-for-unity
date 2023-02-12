@@ -11,7 +11,7 @@ namespace Treasured.UnitySdk.Validation
         public override List<ValidationResult> GetValidationResults()
         {
             List<ValidationResult> results = new List<ValidationResult>();
-            foreach (var pair in ReflectionUtilities.GetSerializableFieldInfoValuePairWithAttribute<RequiredFieldAttribute>(target))
+            foreach (var pair in ReflectionUtilities.GetSerializableFieldInfoValuePairWithAttribute<RequiredFieldAttribute>(target, true))
             {
                 if (pair.IsNull())
                 {
