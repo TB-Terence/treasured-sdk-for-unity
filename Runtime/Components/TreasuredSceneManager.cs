@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.IO;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
@@ -7,6 +8,7 @@ namespace Treasured.UnitySdk
     public class TreasuredSceneManager : MonoBehaviour
     {
         public SceneInfo sceneInfo;
+        public StyleInfo styleInfo;
 
         private void OnValidate()
         {
@@ -32,7 +34,46 @@ namespace Treasured.UnitySdk
         [TextArea(3, 5)]
         public string description;
 
+        public AudioContent backgroundMusic;
+    }
+
+    [System.Serializable]
+    public class StyleInfo
+    {
         [JsonProperty("loader")]
         public TemplateLoader templateLoader;
+        public bool darkMode = false;
+    }
+
+    [System.Serializable]
+    public abstract class Content<T> where T : UnityEngine.Object
+    {
+        [OnValueChanged(nameof(UpdateUri))]
+        public T asset;
+        [EnableIf(nameof(IsRemoteContent))]
+        [TextArea(3, 5)]
+        [SerializeField]
+        private string _uri;
+        public string Uri { get => _uri; }
+
+        bool IsRemoteContent()
+        {
+            return asset.IsNullOrNone();
+        }
+
+        void UpdateUri()
+        {
+#if UNITY_EDITOR
+            _uri = !asset.IsNullOrNone() ? "audio/" + Path.GetFileName(UnityEditor.AssetDatabase.GetAssetPath(asset)) : string.Empty;
+#endif
+        }
+    }
+
+    [System.Serializable]
+    public sealed class AudioContent : Content<AudioClip>
+    {
+        [Range(0, 100)]
+        public int volume;
+        public bool muted;
     }
 }

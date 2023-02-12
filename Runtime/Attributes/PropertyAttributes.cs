@@ -8,11 +8,11 @@ namespace Treasured.UnitySdk
     /// </summary>
     public class EnableIfAttribute : PropertyAttribute
     {
-        public string ConditionalField = "";
+        public string Getter { get; private set; }
 
-        public EnableIfAttribute(string conditionalField)
+        public EnableIfAttribute(string getter)
         {
-            ConditionalField = conditionalField;
+            Getter = getter;
         }
     }
 
