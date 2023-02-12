@@ -82,12 +82,8 @@ namespace Treasured.UnitySdk
                             property.stringValue = EditorGUI.TextField(rect, property.stringValue);
                         }
                         break;
-                    case SerializedPropertyType.Integer:
-                    case SerializedPropertyType.Float:
-                        // TODO: handle Range attribute
-                        break;
                     default:
-                        EditorGUI.PropertyField(position, property, label);
+                        EditorGUI.PropertyField(position, property, label, true);
                         break;
                 }
                 if (EditorGUI.EndChangeCheck() && onValueChangedAttribute != null)
@@ -194,7 +190,7 @@ namespace Treasured.UnitySdk
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
             if (!_showProperty) { return 0f; }
-            float totalHeight = base.GetPropertyHeight(property, label);
+            float totalHeight = EditorGUI.GetPropertyHeight(property, label, true);
             // Add text area height
             if (property.propertyType == SerializedPropertyType.String)
             {

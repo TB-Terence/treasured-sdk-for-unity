@@ -16,11 +16,15 @@ namespace Treasured.UnitySdk.Validation
                 if (pair.IsNull())
                 {
                     var fieldName = NicifyVariableName(pair.FieldInfo.Name);
+                    if (pair.FieldInfo.FieldType.IsArray)
+                    {
+                        UnityEngine.Debug.Log(pair.DeclaringObject);
+                    }
                     results.Add(new ValidationResult()
                     {
                         name = "Missing Required Field",
                         description = $"`{fieldName}` for `{pair.FieldInfo.DeclaringType.Name}` is required, but it's either missing or unassigned.",
-                        type = ValidationResult.ValidationResultType.Error
+                        type = ValidationResult.ValidationResultType.Error,
                     });
                 }
             }

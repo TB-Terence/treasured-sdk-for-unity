@@ -78,7 +78,18 @@ namespace Treasured.UnitySdk
             {
                 if (field.IsPublic || Attribute.IsDefined(field, typeof(SerializeField)))
                 {
-                    fieldValuePairs.Add(new FieldInfoValuePair(obj, field));
+                    if (field.FieldType.IsArray)
+                    {
+                        IList list = (IList)field.GetValue(obj);
+                        foreach (var element in list)
+                        {
+                            fieldValuePairs.AddRange(GetSerializableFieldInfoValuePair(element, includeChildren));
+                        }
+                    }
+                    else
+                    {
+                        fieldValuePairs.Add(new FieldInfoValuePair(obj, field));
+                    }
                 }
             }
             if (includeChildren)
