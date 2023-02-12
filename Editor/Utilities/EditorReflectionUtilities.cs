@@ -4,6 +4,7 @@ using UnityEditor;
 using System.Reflection;
 using System.Linq;
 using System.Collections.Generic;
+using Treasured.UnitySdk.Utilities;
 
 namespace Treasured.UnitySdk
 {
@@ -97,6 +98,35 @@ namespace Treasured.UnitySdk
             {
                 return fieldInfo.GetValue(declaringObject);
             }
+        }
+
+        public static object GetDeclaringObject(SerializedProperty property)
+        {
+            if (property == null)
+            {
+                return null;
+            }
+
+            object rootObj = property.serializedObject.targetObject;
+            string path = property.propertyPath.Replace(".Array.data[", "[");
+            path = path.Substring(0, path.LastIndexOf('.'));
+            string[] elements = path.Split('.');
+
+            foreach (var element in elements)
+            {
+                if (element.Contains("["))
+                {
+                    string elementName = element.Substring(0, element.IndexOf("["));
+                    int index = Convert.ToInt32(element.Substring(element.IndexOf("[")).Replace("[", "").Replace("]", ""));
+                    rootObj = EditorUtils.GetValue_Imp(rootObj, elementName, index);
+                }
+                else
+                {
+                    rootObj = EditorUtils.GetValue_Imp(rootObj, element);
+                }
+            }
+
+            return rootObj;
         }
     }
 }
