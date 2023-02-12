@@ -131,36 +131,6 @@ namespace Treasured.UnitySdk
             return clicked;
         }
 
-        /// <summary>
-        /// Show Error icon if the field is missing.
-        /// </summary>
-        /// <param name="property"></param>
-        /// <returns>Return true if data is missing otherwise false.</returns>
-        public static bool RequiredPropertyField(SerializedProperty property)
-        {
-            bool missingData = false;
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                // TODO: possible turn this into Func<bool> with custom condition check
-                switch (property.propertyType)
-                {
-                    case SerializedPropertyType.String:
-                        missingData = string.IsNullOrWhiteSpace(property.stringValue);
-                        break;
-                }
-                // fixes TextArea indent
-                if (missingData)
-                {
-                    EditorGUILayout.PropertyField(property, EditorGUIUtility.TrTextContent(property.displayName, property.tooltip, "Error"));
-                }
-                else
-                {
-                    EditorGUILayout.PropertyField(property);
-                }
-            }
-            return missingData;
-        }
-
         public static void ComponentTransformPropertyField(SerializedProperty component, SerializedObject serializedTransform, string name, bool showPosition = true, bool showRotation = true, bool showScale = true)
         {
             if (serializedTransform == null)

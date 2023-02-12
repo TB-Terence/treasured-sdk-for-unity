@@ -49,8 +49,8 @@ namespace Treasured.UnitySdk
         public string Description { get => _description; set => _title = _description; }
 
         [SerializeField]
-        [TextArea(3, 3)]
         [JsonProperty("audioUrl")]
+        [TextArea(3, 3)]
         private string _audioUrl;
         [Range(0, 100)]
         public int defaultBackgroundVolume = 100;
@@ -61,6 +61,16 @@ namespace Treasured.UnitySdk
         [JsonProperty("loader")]
         private TemplateLoader _templateLoader;
         #endregion
+
+        void Test()
+        {
+            _audioUrl += 'c';
+        }
+
+        void Test(string a)
+        {
+
+        }
 
         #region Guide Tour
         [SerializeField]
