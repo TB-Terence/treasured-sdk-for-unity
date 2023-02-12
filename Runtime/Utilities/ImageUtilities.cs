@@ -15,8 +15,6 @@ namespace Treasured.UnitySdk
     internal class ImageUtilies
     {
 #if UNITY_STANDALONE_WIN
-        private static string processName = "cmd.exe";
-
         private static readonly string TreasuredPluginsFolder = Path.GetFullPath("Packages/com.treasured.unitysdk/Plugins/Win");
 
         private static string ktx2Converter = Path.Combine(TreasuredPluginsFolder,
@@ -25,8 +23,6 @@ namespace Treasured.UnitySdk
         private static string toktx = Path.Combine(TreasuredPluginsFolder, "toktx.exe").ToOSSpecificPath();
 
 #elif UNITY_STANDALONE_OSX
-        private static string processName = "zsh";
-
         private static readonly string TreasuredPluginsFolder = Path.GetFullPath("Packages/com.treasured.unitysdk/Plugins/OSX");
 
         private static string ktx2Converter = Path.Combine(TreasuredPluginsFolder,
@@ -82,7 +78,6 @@ namespace Treasured.UnitySdk
 
             var ktxProcess = ProcessUtilities.CreateProcess(argument);
             ktxProcess.Start();
-            bool canceled = false;
             try
             {
 #if UNITY_EDITOR
@@ -94,7 +89,6 @@ namespace Treasured.UnitySdk
                         if (UnityEditor.EditorUtility.DisplayCancelableProgressBar("Encoding", $"Please wait. Encoding to KTX2 format.", percentage / 100f))
                         {
                             ProcessUtilities.KillProcess(ktxProcess);
-                            canceled = true;
                             break;
                         }
                     }

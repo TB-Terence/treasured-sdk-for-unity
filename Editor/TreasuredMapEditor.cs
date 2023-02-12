@@ -36,9 +36,6 @@ namespace Treasured.UnitySdk
             map.migrateInfo.shouldMigrate = true;
         }
 
-        private static readonly string[] selectableObjectListNames = new string[]
-            { "Hotspots", "Interactables", "Videos", "Sounds", "HTML Embeds" };
-
         class TreasuredMapGizmosSettings
         {
             public bool enableCameraPreview = true;
@@ -112,6 +109,7 @@ namespace Treasured.UnitySdk
                 fixedWidth = 1
             };
 
+            public static readonly GUIContent ToolDescription = new GUIContent("Treasured is a tool to help you create and export your Unity scenes to the web. For more information, visit treasured.dev for more info");
 
             private static GUIStyle tabButton;
 
@@ -444,7 +442,7 @@ namespace Treasured.UnitySdk
             serializedObject.Update();
 
             Texture2D TreasuredLogo = Resources.Load<Texture2D>("Treasured_Logo");
-            GUILayout.Space(10);
+            EditorGUILayout.Space(10);
             using (new EditorGUILayout.HorizontalScope())
             {
                 GUILayout.FlexibleSpace();
@@ -461,9 +459,7 @@ namespace Treasured.UnitySdk
             }
 
             GUILayout.Space(10);
-            GUILayout.Label(
-                "Treasured is a tool to help you create and export your Unity scenes to the web. For more information, visit treasured.dev for more info",
-                Styles.centeredLabel);
+            GUILayout.Label(Styles.ToolDescription,Styles.centeredLabel);
             GUILayout.Space(10);
 
             // Draw Directory, Export and Play buttons

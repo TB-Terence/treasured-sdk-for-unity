@@ -17,23 +17,24 @@ namespace Treasured.UnitySdk
     {
         public static class Styles
         {
+            public static readonly string RequiredColorHex = "#FF6E40";
             public const float MiniButtonWidth = 20;
             public const float ControlSpacing = 2;
-            public static GUIContent Dropdown = EditorGUIUtility.TrIconContent("icon dropdown");
-            public static GUIStyle RequiredLabel = new GUIStyle(EditorStyles.boldLabel)
+            public static readonly GUIContent Dropdown = EditorGUIUtility.TrIconContent("icon dropdown");
+            public static readonly GUIStyle RichText = new GUIStyle(EditorStyles.label)
             {
-                normal = { textColor = Color.red },
-                focused = { textColor = Color.red },
-                active = { textColor = Color.red },
-                hover = { textColor = Color.red },
+                richText = true
             };
         }
 
         private bool _showProperty = true;
+        private bool _isMissing = false;
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
+            ValidateInput(property);
             ShowIfAttribute showIfAttribute = fieldInfo.GetCustomAttribute<ShowIfAttribute>();
+            RequiredFieldAttribute requiredFieldAttribute = fieldInfo.GetCustomAttribute<RequiredFieldAttribute>();
             if (showIfAttribute != null)
             {
                 MemberInfo[] memberInfos = fieldInfo.DeclaringType.GetMember(showIfAttribute.Getter, BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
@@ -68,11 +69,12 @@ namespace Treasured.UnitySdk
             Rect total = new Rect(position.x, position.y, position.width, position.height - EditorGUIUtility.singleLineHeight * buttonAttributes.Length);
             using (new EditorGUI.DisabledGroupScope(readOnlyAttribute != null))
             {
+                property.serializedObject.Update();
                 EditorGUI.BeginChangeCheck();
+                Rect rect = PrefixLabel(new Rect(total.x, total.y, total.width, total.height), property, label);
                 switch (property.propertyType)
                 {
                     case SerializedPropertyType.String:
-                        Rect rect = PrefixLabel(new Rect(total.x, total.y, total.width, total.height), property, label);
                         if (textAreaAttribute != null)
                         {
                             property.stringValue = EditorGUI.TextArea(rect, property.stringValue);
@@ -83,12 +85,21 @@ namespace Treasured.UnitySdk
                         }
                         break;
                     default:
-                        EditorGUI.PropertyField(position, property, label, true);
+                        EditorGUI.PropertyField(rect, property, GUIContent.none, true);
                         break;
                 }
-                if (EditorGUI.EndChangeCheck() && onValueChangedAttribute != null)
+                if (EditorGUI.EndChangeCheck())
                 {
-                    Invoke(property, onValueChangedAttribute.CallbackName);
+                    property.serializedObject.ApplyModifiedProperties();
+                    if (onValueChangedAttribute != null)
+                    {
+                        Invoke(property, onValueChangedAttribute.CallbackName);
+                    }
+                    ValidateInput(property);
+                }
+                if (_isMissing)
+                {
+                    EditorGUI.LabelField(new Rect(total.x, total.yMax - EditorGUIUtility.singleLineHeight, total.width, EditorGUIUtility.singleLineHeight), $"<color={Styles.RequiredColorHex}>{requiredFieldAttribute.Text}</color>", Styles.RichText);
                 }
             }
             for (int i = 0; i < buttonAttributes.Length; i++)
@@ -127,36 +138,21 @@ namespace Treasured.UnitySdk
         /// 
         /// </summary>
         /// <param name="total"></param>
-        /// <param name="serializedProperty"></param>
+        /// <param name="property"></param>
         /// <param name="label"></param>
         /// <returns></returns>
-        Rect PrefixLabel(Rect total, SerializedProperty serializedProperty, GUIContent label)
+        Rect PrefixLabel(Rect total, SerializedProperty property, GUIContent label)
         {
-            RequiredFieldAttribute requiredFieldAttribute = fieldInfo.GetCustomAttribute<RequiredFieldAttribute>();
             TextAreaAttribute textAreaAttribute = fieldInfo.GetCustomAttribute<TextAreaAttribute>();
             PresetAttribute presetAttribute = fieldInfo.GetCustomAttribute<PresetAttribute>();
-            bool missingData = false;
-            if (requiredFieldAttribute != null)
-            {
-                switch (serializedProperty.propertyType)
-                {
-                    case SerializedPropertyType.String:
-                        missingData = string.IsNullOrWhiteSpace(serializedProperty.stringValue);
-                        break;
-                    case SerializedPropertyType.ObjectReference:
-                        missingData = serializedProperty.objectReferenceValue.IsNullOrNone();
-                        break;
-                }
-            }
             Rect labelRect = new Rect(total.x, total.y, total.width, EditorGUIUtility.singleLineHeight);
-            bool hasTooltip = !string.IsNullOrEmpty(serializedProperty.tooltip);
-            Rect controlRect = EditorGUI.PrefixLabel(labelRect, missingData ? EditorGUIUtility.TrTextContent(serializedProperty.displayName, $"This field is required.{(hasTooltip ? "\n" + serializedProperty.tooltip : "")}", "Error") : label, missingData ? Styles.RequiredLabel : EditorStyles.label);
+            Rect controlRect = EditorGUI.PrefixLabel(labelRect, new GUIContent(!_isMissing ? property.displayName : $"{property.displayName} <color={Styles.RequiredColorHex}>*</color>", property.tooltip), Styles.RichText);
             if (presetAttribute != null)
             {
                 controlRect = new Rect(controlRect.x - 14, controlRect.y, controlRect.width + 14 - Styles.MiniButtonWidth - Styles.ControlSpacing, controlRect.height);
                 if (EditorGUI.DropdownButton(new Rect(total.xMax - Styles.MiniButtonWidth, labelRect.y, Styles.MiniButtonWidth, EditorGUIUtility.singleLineHeight), Styles.Dropdown, FocusType.Passive))
                 {
-                    ShowPresetMenu(serializedProperty);
+                    ShowPresetMenu(property);
                 }
             }
             if (textAreaAttribute == null)
@@ -166,7 +162,7 @@ namespace Treasured.UnitySdk
             }
             else
             {
-                return new Rect(total.x, total.y + EditorGUIUtility.singleLineHeight, total.width, total.height - EditorGUIUtility.singleLineHeight);
+                return new Rect(total.x, total.y + EditorGUIUtility.singleLineHeight, total.width, total.height - EditorGUIUtility.singleLineHeight - (_isMissing ? EditorGUIUtility.singleLineHeight : 0));
             }
         }
 
@@ -191,18 +187,40 @@ namespace Treasured.UnitySdk
         {
             if (!_showProperty) { return 0f; }
             float totalHeight = EditorGUI.GetPropertyHeight(property, label, true);
+            TextAreaAttribute textAreaAttribute = fieldInfo.GetCustomAttribute<TextAreaAttribute>();
             // Add text area height
-            if (property.propertyType == SerializedPropertyType.String)
+            switch (property.propertyType)
             {
-                TextAreaAttribute textAreaAttribute = fieldInfo.GetCustomAttribute<TextAreaAttribute>();
-                if (textAreaAttribute != null)
-                {
-                    totalHeight += (textAreaAttribute.minLines) * (EditorGUIUtility.singleLineHeight);
-                }
+                case SerializedPropertyType.String:
+                    if (textAreaAttribute != null)
+                    {
+                        totalHeight += (textAreaAttribute.minLines) * (EditorGUIUtility.singleLineHeight);
+                    }
+                    break;
+                default:
+                    break;
             }
+            if (_isMissing) totalHeight += EditorGUIUtility.singleLineHeight;
             // Add button height
             totalHeight += EditorGUIUtility.singleLineHeight * fieldInfo.GetCustomAttributes<ButtonAttribute>().Count();
             return totalHeight;
+        }
+
+        private void ValidateInput(SerializedProperty serializedProperty)
+        {
+            RequiredFieldAttribute requiredFieldAttribute = fieldInfo.GetCustomAttribute<RequiredFieldAttribute>();
+            if (requiredFieldAttribute != null)
+            {
+                switch (serializedProperty.propertyType)
+                {
+                    case SerializedPropertyType.String:
+                        _isMissing = string.IsNullOrWhiteSpace(serializedProperty.stringValue);
+                        break;
+                    case SerializedPropertyType.ObjectReference:
+                        _isMissing = serializedProperty.objectReferenceValue.IsNullOrNone();
+                        break;
+                }
+            }
         }
     }
 }

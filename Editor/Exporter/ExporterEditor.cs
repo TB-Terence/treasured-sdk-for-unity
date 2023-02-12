@@ -87,9 +87,7 @@ namespace Treasured.UnitySdk
 
         public override void OnInspectorGUI()
         {
-            serializedObject.Update();
-            EditorGUIUtils.DrawPropertiesExcluding(serializedObject, "m_Script");
-            serializedObject.ApplyModifiedProperties();
+            EditorGUIUtils.DrawProperties(serializedObject);
         }
     }
 }

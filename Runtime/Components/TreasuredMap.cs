@@ -62,16 +62,6 @@ namespace Treasured.UnitySdk
         private TemplateLoader _templateLoader;
         #endregion
 
-        void Test()
-        {
-            _audioUrl += 'c';
-        }
-
-        void Test(string a)
-        {
-
-        }
-
         #region Guide Tour
         [SerializeField]
         private bool _loop;

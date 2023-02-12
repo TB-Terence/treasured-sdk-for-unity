@@ -27,7 +27,19 @@ namespace Treasured.UnitySdk
     }
 
     public class ReadOnlyAttribute : PropertyAttribute { }
-    public class RequiredFieldAttribute : PropertyAttribute { }
+    public class RequiredFieldAttribute : PropertyAttribute
+    {
+        public string Text { get; private set; }
+        public RequiredFieldAttribute(string text)
+        {
+            this.Text = text;
+        }
+
+        public RequiredFieldAttribute()
+        {
+            this.Text = "This field is required.";
+        }
+    }
 
     public class PresetAttribute : PropertyAttribute
     {

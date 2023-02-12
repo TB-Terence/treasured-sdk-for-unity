@@ -42,13 +42,11 @@ namespace Treasured.UnitySdk
                     this.Close();
                     return;
                 }
-                serializedObject.Update();
                 using (var scope = new EditorGUILayout.ScrollViewScope(_scrollPosition))
                 {
                     _scrollPosition = scope.scrollPosition;
                     EditorGUIUtils.DrawPropertiesExcluding(serializedObject, "m_Script");
                 }
-                serializedObject.ApplyModifiedProperties();
             }
         }
 

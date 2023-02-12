@@ -8,7 +8,7 @@ namespace Treasured.UnitySdk
     {
         [RequiredField]
         [Preset("minimal", "simple", "standard", "modern")]
-        public string template;
+        public string template = "minimal";
         [ShowIf(nameof(ShowAutoCameraRotation))]
         public bool autoCameraRotation;
 
@@ -18,7 +18,7 @@ namespace Treasured.UnitySdk
 
         bool ShowAutoCameraRotation()
         {
-            return template.Equals("modern");
+            return !string.IsNullOrEmpty(template) && template.Equals("modern");
         }
     }
 }
