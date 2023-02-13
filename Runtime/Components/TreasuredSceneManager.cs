@@ -7,13 +7,38 @@ namespace Treasured.UnitySdk
 {
     public class TreasuredSceneManager : MonoBehaviour
     {
+        [Group]
         public SceneInfo sceneInfo;
+        [Group]
         public StyleInfo styleInfo;
 
-        private void OnValidate()
-        {
-            
-        }
+        [JsonIgnore]
+        [Group("Export Settings")]
+        public ExportSettings exportSettings;
+
+        [JsonIgnore]
+        [Group("Export Settings")]
+        public JsonExporter jsonExporter;
+
+        [JsonIgnore]
+        [Group("Export Settings")]
+        public IconExporter iconExporter;
+
+        [JsonIgnore]
+        [Group("Export Settings")]
+        public CubemapExporter cubemapExporter;
+
+        [JsonIgnore]
+        [Group("Export Settings")]
+        public MeshExporter meshExporter;
+
+        [JsonIgnore]
+        [Group("Export Settings")]
+        public AudioExporter audioExporter;
+
+        [JsonIgnore]
+        [Group("Export Settings")]
+        public VideoExporter VideoExporter;
     }
 
     [System.Serializable]
