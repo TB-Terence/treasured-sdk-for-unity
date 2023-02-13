@@ -19,6 +19,25 @@ namespace Treasured.UnitySdk.Utilities
             serializedObject.ApplyModifiedProperties();
         }
 
+        public static void DrawPropertyWithoutFoldout(SerializedProperty serializedProperty)
+        {
+            SerializedProperty iterator = serializedProperty.Copy();
+            SerializedProperty endProperty = serializedProperty.GetEndProperty();
+            bool enterChildren = true;
+            while (iterator.NextVisible(enterChildren))
+            {
+                if (endProperty != null && iterator.propertyPath == endProperty.propertyPath)
+                {
+                    break;
+                }
+                enterChildren = false;
+                if (!ExcludingProperties.Contains(iterator.name))
+                {
+                    EditorGUILayout.PropertyField(iterator, true);
+                }
+            }
+        }
+
         public static void DrawPropertiesExcluding(SerializedObject serializedObject, params string[] propertyToExclude)
         {
             serializedObject.Update();

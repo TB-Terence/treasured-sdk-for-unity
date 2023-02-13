@@ -13,20 +13,32 @@ namespace Treasured.UnitySdk
         public FieldInfo fieldInfo;
         public SerializedProperty serializedProperty;
         public object declaringObject;
+
+        public SerializedPropertyInfo(SerializedProperty property, FieldInfo fieldInfo, object declaringObject)
+        {
+            this.serializedProperty = property;
+            this.fieldInfo = fieldInfo;
+            this.declaringObject = declaringObject;
+        }
+
+        public object GetValue()
+        {
+            return fieldInfo.GetValue(declaringObject);
+        }
     }
 
     public static class EditorReflectionUtilities
     {
         private static readonly string[] s_propertyToExclude = new string[] { "m_Script" };
 
-        public static List<SerializedPropertyInfo> GetSerializedProperties(UnityEngine.Object obj)
+        public static List<SerializedPropertyInfo> GetSerializedProperties(UnityEngine.Object obj, bool includingChildren = false)
         {
             var serializedObject = new SerializedObject(obj);
             var serializedProperties = new List<SerializedPropertyInfo>();
             var iterator = serializedObject.GetIterator();
             iterator.Next(true);
 
-            var fields = ReflectionUtilities.GetSerializableFieldInfoValuePair(obj, true);
+            var fields = ReflectionUtilities.GetSerializableFieldInfoValuePair(obj, includingChildren);
             var fieldDict = new Dictionary<string, FieldInfoValuePair>();
             foreach (var field in fields)
             {
@@ -50,14 +62,14 @@ namespace Treasured.UnitySdk
             return serializedProperties;
         }
 
-        public static List<SerializedPropertyInfo> GetSerializedPropertiesWithAttribute<T>(UnityEngine.Object obj) where T : Attribute
+        public static List<SerializedPropertyInfo> GetSerializedPropertiesWithAttribute<T>(UnityEngine.Object obj, bool includingChildren = false) where T : Attribute
         {
             var serializedObject = new SerializedObject(obj);
             var serializedProperties = new List<SerializedPropertyInfo>();
             var iterator = serializedObject.GetIterator();
             iterator.Next(true);
 
-            var fields = ReflectionUtilities.GetSerializableFieldInfoValuePairWithAttribute<T>(obj, true);
+            var fields = ReflectionUtilities.GetSerializableFieldInfoValuePairWithAttribute<T>(obj, includingChildren);
             var fieldDict = new Dictionary<string, FieldInfoValuePair>();
             foreach (var field in fields)
             {
@@ -79,25 +91,6 @@ namespace Treasured.UnitySdk
             }
 
             return serializedProperties;
-        }
-
-        public class SerializedPropertyInfo
-        {
-            public readonly SerializedProperty serializedProperty;
-            public readonly FieldInfo fieldInfo;
-            public readonly object declaringObject;
-
-            public SerializedPropertyInfo(SerializedProperty property, FieldInfo fieldInfo, object declaringObject)
-            {
-                this.serializedProperty = property;
-                this.fieldInfo = fieldInfo;
-                this.declaringObject = declaringObject;
-            }
-
-            public object GetValue()
-            {
-                return fieldInfo.GetValue(declaringObject);
-            }
         }
 
         public static object GetDeclaringObject(SerializedProperty property)
