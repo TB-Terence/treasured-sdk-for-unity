@@ -30,7 +30,7 @@ namespace Treasured.UnitySdk
         }
 
         [MenuItem("CONTEXT/TreasuredMap/Reset Migrate Info")]
-        static void DoubleMass(MenuCommand command)
+        static void ResetMigrateInfo(MenuCommand command)
         {
             TreasuredMap map = (TreasuredMap)command.context;
             map.migrateInfo.shouldMigrate = true;
@@ -284,7 +284,7 @@ namespace Treasured.UnitySdk
             foreach (TreasuredObject obj in objects)
             {
                 // initialize graph
-                if(obj.actionGraph == null)
+                if (obj.actionGraph == null)
                 {
                     obj.actionGraph = new Treasured.Actions.ActionGraph();
                 }
@@ -321,7 +321,7 @@ namespace Treasured.UnitySdk
                         }
                     }
                 }
-                
+
                 if (obj is Interactable interactable)
                 {
                     if (obj.actionGraph.TryGetActionGroup("onHover", out var onHover))
@@ -459,7 +459,7 @@ namespace Treasured.UnitySdk
             }
 
             GUILayout.Space(10);
-            GUILayout.Label(Styles.ToolDescription,Styles.centeredLabel);
+            GUILayout.Label(Styles.ToolDescription, Styles.centeredLabel);
             GUILayout.Space(10);
 
             // Draw Directory, Export and Play buttons
@@ -584,10 +584,18 @@ namespace Treasured.UnitySdk
                     }
                 }
 
+
                 GUILayout.FlexibleSpace();
             }
-
-            GUILayout.Space(20);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.FlexibleSpace();
+                if (GUILayout.Button("Open Tool Window", Styles.exportButton, GUILayout.MaxWidth(150)))
+                {
+                    TreasuredSceneManagementToolWindow.ShowWindow(_map);
+                }
+                GUILayout.FlexibleSpace();
+            }
 
             using (var scope = new EditorGUI.ChangeCheckScope())
             {
@@ -648,13 +656,6 @@ namespace Treasured.UnitySdk
                     using (new GUILayout.HorizontalScope())
                     {
                         state.expanded = EditorGUILayout.Foldout(state.expanded, new GUIContent(state.groupName), true);
-                        if (GUILayout.Button(
-                                EditorGUIUtility.TrIconContent("Toolbar Plus",
-                                    $"Create new {ObjectNames.NicifyVariableName(state.type.Name)}"),
-                                EditorStyles.label, GUILayout.Width(20)))
-                        {
-                            state.objects.Add((target as TreasuredMap).CreateObject(state.type));
-                        }
                     }
 
                     if (state.expanded)
@@ -888,15 +889,15 @@ namespace Treasured.UnitySdk
                 return;
             }
 
-            for (int i = 0; i < _hotspots.Count; i++)
+            for (int i = 0; i < _map.Hotspots.Length; i++)
             {
-                Hotspot current = _hotspots[i];
+                Hotspot current = _map.Hotspots[i];
                 if (!current.gameObject.activeSelf)
                 {
                     continue;
                 }
 
-                Hotspot next = GetNextActiveHotspot(i, _hotspots);
+                Hotspot next = GetNextActiveHotspot(i, _map.Hotspots);
 
                 Transform hitboxTransform = current.Hitbox.transform;
                 Transform cameraTransform = current.Camera.transform;
@@ -907,7 +908,7 @@ namespace Treasured.UnitySdk
                     Handles.DrawDottedLine(hitboxTransform.position, cameraTransform.position, 5);
                 }
 
-                if (!_map.Loop && i == _hotspots.Count - 1)
+                if (!_map.Loop && i == _map.Hotspots.Length - 1)
                 {
                     continue;
                 }

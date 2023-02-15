@@ -11,8 +11,6 @@ namespace Treasured.UnitySdk
     [ComponentCard("Hotspot", "Hotspots are used to allow the user to navigate through the scene.", "Hotspot", "https://www.notion.so/treasured/Hotspots-aec47e5d3b59492cb2c00637baa1ead4")]
     internal class HotspotEditor : TreasuredObjectEditor
     {
-        public static readonly GUIContent snapToGround = EditorGUIUtility.TrTextContent("Snap on ground", "Snap the object slightly above the ground from camera position. This also snap the first box collider to the ground based on the size.");
-
         private const string k_RecordingText = "Recording In Progress(Click on the scene to rotate the camera)...";
 
         private ActionGroupListDrawer onClickListDrawer;
@@ -74,10 +72,6 @@ namespace Treasured.UnitySdk
                         isRecording = !isRecording;
                         SceneView.lastActiveSceneView.Repaint();
                     }
-                    if (GUILayout.Button("Preview"))
-                    {
-                        (target as Hotspot).Camera.Preview();
-                    }
                 }
                 EditorGUILayout.PropertyField(button);
                 EditorGUILayoutUtils.TransformPropertyField(hitbox, "Hitbox");
@@ -102,16 +96,6 @@ namespace Treasured.UnitySdk
             else
             {
                 EditorGUILayout.HelpBox($"Multi-Editing is disabled.", MessageType.Info);
-            }
-            if (GUILayout.Button(snapToGround, GUILayout.Height(24)))
-            {
-                foreach (var target in serializedObject.targetObjects)
-                {
-                    if (target is Hotspot hotspot)
-                    {
-                        hotspot.SnapToGround();
-                    }
-                }
             }
             EditorGUILayout.BeginFoldoutHeaderGroup(true, "Debug");
             using (new EditorGUI.IndentLevelScope())

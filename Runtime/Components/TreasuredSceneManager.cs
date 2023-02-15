@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using UnityEngine;
+using UnityEngine.Video;
 
 namespace Treasured.UnitySdk
 {
@@ -48,32 +49,88 @@ namespace Treasured.UnitySdk
     [System.Serializable]
     public abstract class Content<T> where T : UnityEngine.Object
     {
+        [JsonIgnore]
         [OnValueChanged(nameof(UpdateUri))]
         public T asset;
-        [EnableIf(nameof(IsRemoteContent))]
-        [TextArea(3, 5)]
         [SerializeField]
-        private string _uri;
-        public string Uri { get => _uri; }
+        [ShowIf(nameof(IsLocalContent))]
+        [ReadOnly]
+        [TextArea(3, 5)]
+        [JsonIgnore]
+        private string _localUri;
+        [ShowIf(nameof(IsRemoteContent))]
+        [TextArea(3, 5)]
+        [JsonIgnore]
+        public string remoteUri;
+
+        [JsonProperty("uri")]
+        public string Uri
+        {
+            get
+            {
+                return IsLocalContent() ? _localUri : remoteUri;
+            }
+        }
 
         bool IsRemoteContent()
         {
-            return asset.IsNullOrNone();
+            return !IsLocalContent();
         }
+
+        public bool IsLocalContent()
+        {
+            return !asset.IsNullOrNone();
+        }
+
+        public abstract string GetLocalPathPrefix();
 
         void UpdateUri()
         {
 #if UNITY_EDITOR
-            _uri = !asset.IsNullOrNone() ? "audio/" + Path.GetFileName(UnityEditor.AssetDatabase.GetAssetPath(asset)) : string.Empty;
+            if (IsLocalContent())
+            {
+                _localUri = $"{GetLocalPathPrefix()}/" + Path.GetFileName(UnityEditor.AssetDatabase.GetAssetPath(asset));
+            }
 #endif
         }
     }
 
-    [System.Serializable]
+    [Serializable]
     public sealed class AudioContent : Content<AudioClip>
     {
         [Range(0, 100)]
-        public int volume;
+        public int volume = 50;
         public bool muted;
+        public bool loop;
+        public bool autoplay;
+
+        public override string GetLocalPathPrefix()
+        {
+            return "audio";
+        }
+    }
+
+    [Serializable]
+    public sealed class ImageContent : Content<Texture2D>
+    {
+        public override string GetLocalPathPrefix()
+        {
+            return "images";
+        }
+    }
+
+    [Serializable]
+    public sealed class VideoContent : Content<VideoClip>
+    {
+        [Range(0, 100)]
+        public int volume = 50;
+        public bool muted;
+        public bool loop;
+        public bool autoplay;
+
+        public override string GetLocalPathPrefix()
+        {
+            return "video";
+        }
     }
 }
