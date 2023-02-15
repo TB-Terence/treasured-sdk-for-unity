@@ -25,11 +25,30 @@ namespace Treasured.UnitySdk
             }
         }
 
-        static class Styles
+        public static class Styles
         {
             public static GUIStyle Link = new GUIStyle() { stretchWidth = false, normal = { textColor = new Color(0f, 0.47f, 0.85f) } };
             public static readonly GUIContent requiredField = EditorGUIUtility.TrIconContent("Error", "Required field");
             public static readonly GUIContent transformLabel = new GUIContent("Transform");
+
+            public static readonly GUIStyle componentCardName = new GUIStyle(EditorStyles.boldLabel)
+            {
+                wordWrap = false,
+                fontSize = 18,
+                alignment = TextAnchor.MiddleLeft,
+                normal = { textColor = Color.white },
+                fixedHeight = 42
+            };
+            public static readonly GUIStyle componentCardDescription = new GUIStyle("label")
+            {
+                alignment = TextAnchor.UpperLeft,
+                wordWrap = true,
+                fontStyle = FontStyle.Italic
+            };
+            public static readonly GUIStyle componentCardBox = new GUIStyle("helpBox")
+            {
+                padding = new RectOffset(10, 10, 10, 10)
+            };
         }
 
         private static object transformRotationGUI;
@@ -292,6 +311,64 @@ namespace Treasured.UnitySdk
                     {
                         EditorGUI.FocusTextInControl(null);
                         serializedProperty.serializedObject.ApplyModifiedProperties();
+                    }
+                }
+            }
+        }
+
+        public static void ComponentCard(Texture2D icon, string title, string description, string helpUrl = "")
+        {
+            using (new EditorGUILayout.VerticalScope(Styles.componentCardBox))
+            {
+                //using (new EditorGUILayout.VerticalScope())
+                //{
+                //    using (new EditorGUILayout.HorizontalScope())
+                //    {
+                //        GUILayout.Space(20);
+                //        GUILayout.Label(icon, GUILayout.Width(42f), GUILayout.Height(42f));
+                //        using (new EditorGUILayout.VerticalScope())
+                //        {
+                //            GUILayout.Label(title, Styles.componentCardName);
+                //        }
+                //        GUILayout.FlexibleSpace();
+                //    }
+                //    GUILayout.Label(description, Styles.componentCardDescription);
+                //}
+                //using (new EditorGUILayout.VerticalScope())
+                //{
+                //    using (new EditorGUILayout.HorizontalScope())
+                //    {
+                //        GUILayout.Space(20);
+                //        GUILayout.Label(icon, GUILayout.Width(42f), GUILayout.Height(42f));
+                //        using (new EditorGUILayout.VerticalScope())
+                //        {
+                //            GUILayout.Label(title, Styles.componentCardName);
+                //        }
+                //        GUILayout.FlexibleSpace();
+                //    }
+                //    GUILayout.Label(description, Styles.componentCardDescription);
+                //}
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    GUILayout.Label(icon, GUILayout.Width(42f), GUILayout.Height(42f));
+                    using (new EditorGUILayout.VerticalScope())
+                    {
+                        using (new EditorGUILayout.VerticalScope())
+                        {
+                            GUILayout.Label(title, Styles.componentCardName);
+                        }
+                        GUILayout.Label(description, Styles.componentCardDescription);
+                    }
+                }
+                if (!string.IsNullOrEmpty(helpUrl))
+                {
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        GUILayout.FlexibleSpace();
+                        if (GUILayout.Button("More Info", EditorStyles.linkLabel))
+                        {
+                            EditorUtility.OpenWithDefaultApp(helpUrl);
+                        }
                     }
                 }
             }

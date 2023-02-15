@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Treasured.UnitySdk.Utilities;
 using UnityEditor;
 using UnityEngine;
 
@@ -7,13 +8,10 @@ namespace Treasured.UnitySdk
 {
     [CustomEditor(typeof(Hotspot))]
     [CanEditMultipleObjects]
-    internal class HotspotEditor : UnityEditor.Editor
+    [ComponentCard("Hotspot", "Hotspots are used to allow the user to navigate through the scene.", "Hotspot", "https://www.notion.so/treasured/Hotspots-aec47e5d3b59492cb2c00637baa1ead4")]
+    internal class HotspotEditor : TreasuredObjectEditor
     {
-        internal static class Styles
-        {
-            public static readonly GUIContent snapToGround = EditorGUIUtility.TrTextContent("Snap on ground", "Snap the object slightly above the ground from camera position. This also snap the first box collider to the ground based on the size.");
-            public static readonly GUIContent missingMapComponent = EditorGUIUtility.TrTextContent("Missing Treasured Map Component in parent.", "", "Warning");
-        }
+        public static readonly GUIContent snapToGround = EditorGUIUtility.TrTextContent("Snap on ground", "Snap the object slightly above the ground from camera position. This also snap the first box collider to the ground based on the size.");
 
         private const string k_RecordingText = "Recording In Progress(Click on the scene to rotate the camera)...";
 
@@ -23,7 +21,6 @@ namespace Treasured.UnitySdk
         private SerializedProperty _onClick;
         private SerializedProperty actionGraph;
 
-        private TreasuredMap map;
         private SerializedObject serializedHitboxTransform;
         private SerializedObject serializedCameraTransform;
 
@@ -33,10 +30,10 @@ namespace Treasured.UnitySdk
 
         private bool isRecording;
 
-        private void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
             var hotspot = target as Hotspot;
-            map = (target as Hotspot).Map;
             button = serializedObject.FindProperty(nameof(TreasuredObject.button));
             hitbox = serializedObject.FindProperty("_hitbox");
             _onClick = serializedObject.FindProperty("_onClick");
@@ -65,11 +62,7 @@ namespace Treasured.UnitySdk
 
         public override void OnInspectorGUI()
         {
-            if (map == null)
-            {
-                EditorGUILayout.LabelField(Styles.missingMapComponent);
-                return;
-            }
+            base.OnInspectorGUI();
             serializedObject.Update();
             if (serializedObject.targetObjects.Length == 1)
             {
@@ -110,7 +103,7 @@ namespace Treasured.UnitySdk
             {
                 EditorGUILayout.HelpBox($"Multi-Editing is disabled.", MessageType.Info);
             }
-            if (GUILayout.Button(Styles.snapToGround, GUILayout.Height(24)))
+            if (GUILayout.Button(snapToGround, GUILayout.Height(24)))
             {
                 foreach (var target in serializedObject.targetObjects)
                 {
