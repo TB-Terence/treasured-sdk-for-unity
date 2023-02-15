@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Newtonsoft.Json;
+using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
@@ -15,5 +16,7 @@ namespace Treasured.UnitySdk
 
         [Range(0, 100)]
         public int Distance = 3;
+
+        public AudioContent audioContent;
     }
 }

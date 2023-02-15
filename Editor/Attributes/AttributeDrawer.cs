@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Reflection;
 using Treasured.UnitySdk.Utilities;
 using UnityEditor;
@@ -34,6 +35,8 @@ namespace Treasured.UnitySdk
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
+            EditorGUI.BeginProperty(position, label, property);
+            property.serializedObject.Update();
             ValidateInput(property);
             ShowIfAttribute showIfAttribute = fieldInfo.GetCustomAttribute<ShowIfAttribute>();
             ReadOnlyAttribute readOnlyAttribute = fieldInfo.GetCustomAttribute<ReadOnlyAttribute>();
@@ -86,7 +89,7 @@ namespace Treasured.UnitySdk
                 {
                     if (onValueChangedAttribute != null)
                     {
-                        Invoke(property, onValueChangedAttribute.CallbackName);
+                        Invoke(property, onValueChangedAttribute);
                     }
                     ValidateInput(property);
                 }
@@ -99,9 +102,11 @@ namespace Treasured.UnitySdk
             {
                 if (GUI.Button(new Rect(position.x, position.y + total.height + EditorGUIUtility.singleLineHeight * i, position.width, EditorGUIUtility.singleLineHeight), buttonAttributes[i].Text))
                 {
-                    Invoke(property, buttonAttributes[i].CallbackName);
+                    Invoke(property, buttonAttributes[i]);
                 }
             }
+            property.serializedObject.ApplyModifiedProperties();
+            EditorGUI.EndProperty();
         }
 
         bool GetCondition(SerializedProperty property, string getter)
@@ -129,24 +134,29 @@ namespace Treasured.UnitySdk
             return condition;
         }
 
-        void Invoke(SerializedProperty property, string name)
+        void Invoke(SerializedProperty property, Attribute attribute)
         {
             var target = EditorUtils.GetTargetObjectWithProperty(property);
-            var callbackMethod = EditorUtils.GetMethod(target, name);
-            if (callbackMethod != null && callbackMethod.ReturnType == typeof(void)
-                                       && callbackMethod.GetParameters().Length == 0)
+            IMethodInvoker invoker = attribute as IMethodInvoker;
+            MethodInfo callbackMethod = invoker == null ? null : EditorUtils.GetMethod(target, invoker.CallbackName);
+            if (callbackMethod != null)
             {
-                //property.serializedObject.ApplyModifiedProperties();
-                //property.serializedObject.Update();
-                callbackMethod.Invoke(target, new object[] { });
+                if (callbackMethod.GetParameters().Length == 0)
+                {
+                    callbackMethod.Invoke(target, new object[] { });
+                }
+                else
+                {
+                    string warning = string.Format(
+                    "{0} can invoke only methods with 0 parameters",
+                    attribute.GetType().Name);
+
+                    Debug.LogWarning(warning, property.serializedObject.targetObject);
+                }
             }
             else
             {
-                string warning = string.Format(
-                    "{0} can invoke only methods with 'void' return type and 0 parameters",
-                    attribute.GetType().Name);
-
-                Debug.LogWarning(warning, property.serializedObject.targetObject);
+                Debug.LogWarning($"Method not found. Callback name: {invoker.CallbackName}", property.serializedObject.targetObject);
             }
             // lose text field focus to avoid delay
             GUI.FocusControl(null);

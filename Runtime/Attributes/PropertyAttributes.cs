@@ -53,7 +53,7 @@ namespace Treasured.UnitySdk
     /// <summary>
     /// OnValueChanged attribute calls the specified function whenever the reference value has been changed via the inspector.
     /// </summary>
-    public class OnValueChangedAttribute : PropertyAttribute
+    public class OnValueChangedAttribute : PropertyAttribute, IMethodInvoker
     {
         public string CallbackName { get; private set; }
 
@@ -64,28 +64,35 @@ namespace Treasured.UnitySdk
     }
 
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Field, AllowMultiple = true)]
-    public class ButtonAttribute : PropertyAttribute
+    public class ButtonAttribute : PropertyAttribute, IMethodInvoker
     {
         public string Text { get; private set; }
         public string CallbackName { get; private set; }
-        internal bool IsCallbackFunction { get; private set; } = false;
+        internal bool HasCallback { get; private set; } = false;
 
-        public ButtonAttribute(string text) : this()
+        /// <summary>
+        /// </summary>
+        /// <param name="text"></param>
+        public ButtonAttribute(string text) : this(text, string.Empty)
         {
             Text = text;
-            IsCallbackFunction = true;
+            HasCallback = true;
         }
 
-        public ButtonAttribute(string text, string callbackName) : this()
+        /// <summary>
+        /// </summary>
+        /// <param name="text">Text for the button</param>
+        /// <param name="callbackName">Name of zero parameter method</param>
+        public ButtonAttribute(string text, string callbackName)
         {
             Text = text;
             CallbackName = callbackName;
-            IsCallbackFunction = false;
+            HasCallback = !string.IsNullOrEmpty(callbackName);
         }
+    }
 
-        public ButtonAttribute()
-        {
-            IsCallbackFunction = true;
-        }
+    public interface IMethodInvoker
+    {
+        public string CallbackName { get; }
     }
 }
