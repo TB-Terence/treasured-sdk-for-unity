@@ -1,5 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Linq;
+using System.Reflection;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
@@ -11,7 +13,6 @@ namespace Treasured.UnitySdk
         [HideInInspector]
         [GUID]
         private string _id = Guid.NewGuid().ToString();
-        [JsonIgnore]
         public string Id { get => _id; }
 
         [JsonIgnore]
@@ -21,11 +22,15 @@ namespace Treasured.UnitySdk
         /// <summary>
         /// Actual type of the action in string format without Action suffix.
         /// </summary>
-        [JsonIgnore]
         public string Type
         {
             get
             {
+                APIAttribute apiAttribute = GetType().GetCustomAttributes<APIAttribute>().FirstOrDefault();
+                if (apiAttribute != null)
+                {
+                    return apiAttribute.FunctionName;
+                }
                 string name = this.GetType().Name;
                 if (name.EndsWith("Action") && name.Length > 6)
                 {

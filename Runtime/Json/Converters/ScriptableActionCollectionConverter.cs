@@ -27,49 +27,51 @@ namespace Treasured.UnitySdk
             ScriptableActionCollection collection = value as ScriptableActionCollection;
             if (collection)
             {
-                //writer.WriteStartObject();
+                writer.WriteStartArray();
                 // v1
                 //writer.WritePropertyName("v1");
-                StringBuilder sb = new StringBuilder();
-                foreach (var action in collection)
-                {
-                    if (!action.enabled)
-                    {
-                        continue;
-                    }
-                    Type type = action.GetType();
-                    APIAttribute attribute = type.GetCustomAttributes<APIAttribute>().FirstOrDefault();
-                    if (attribute == null)
-                    {
-                        continue;
-                    }
-                    sb.AppendLine($"{(attribute.IsAsync ? "await " : "")}{attribute.Domain}.{attribute.FunctionName}({JsonConvert.SerializeObject(action, Formatting.None, JsonExporter.JsonSettings)})");
-                }
-                writer.WriteValue(sb.ToString());
+                //StringBuilder sb = new StringBuilder();
+                //foreach (var action in collection)
+                //{
+                //    if (!action.enabled)
+                //    {
+                //        continue;
+                //    }
+                //    Type type = action.GetType();
+                //    APIAttribute attribute = type.GetCustomAttributes<APIAttribute>().FirstOrDefault();
+                //    if (attribute == null)
+                //    {
+                //        continue;
+                //    }
+                //    sb.AppendLine($"{(attribute.IsAsync ? "await " : "")}{attribute.Domain}.{attribute.FunctionName}({JsonConvert.SerializeObject(action, Formatting.None, JsonExporter.JsonSettings)})");
+                //}
+                //writer.WriteValue(sb.ToString());
                 // v2
-                //writer.WritePropertyName("v2");
-                /*writer.WriteStartArray();
+                writer.WriteStartObject();
+                writer.WritePropertyName("actions");
+                writer.WriteStartArray();
                 foreach (var action in collection)
                 {
                     if (action == null || !action.enabled)
                     {
                         continue;
                     }
-                    writer.WriteStartObject();
-                    writer.WritePropertyName("id");
-                    writer.WriteValue(action.Id);
-                    writer.WritePropertyName("method");
-                    APIAttribute apiAttribute = GetType().GetCustomAttributes<APIAttribute>().FirstOrDefault();
-                    string functionName = apiAttribute != null ? apiAttribute.FunctionName : action.Type;
-                    writer.WriteValue(functionName);
-                    writer.WritePropertyName("args");
+                    //writer.WriteStartObject();
+                    //writer.WritePropertyName("id");
+                    //writer.WriteValue(action.Id);
+                    //writer.WritePropertyName("method");
+                    //APIAttribute apiAttribute = GetType().GetCustomAttributes<APIAttribute>().FirstOrDefault();
+                    //string functionName = apiAttribute != null ? apiAttribute.FunctionName : action.Type;
+                    //writer.WriteValue(functionName);
+                    //writer.WritePropertyName("args");
                     serializer.ContractResolver = ContractResolver.Instance;
                     JObject jAction = JObject.FromObject(action, serializer);
                     jAction.WriteTo(writer);
-                    writer.WriteEndObject();
+                    //writer.WriteEndObject();
                 }
-                writer.WriteEndArray();*/
-                //writer.WriteEndObject();
+                writer.WriteEndArray();
+                writer.WriteEndObject();
+                writer.WriteEndArray();
             }
             else
             {
