@@ -518,6 +518,66 @@ namespace Treasured.UnitySdk
                 }
 
                 GUILayout.Space(10f);
+                using (new EditorGUI.DisabledGroupScope(!Directory.Exists(_map.exportSettings.OutputDirectory)))
+                {
+                    if (GUILayout.Button(
+                        EditorGUIUtility.TrTextContent("Build",
+                            "Build the export and host it on the server. This function is enabled when the directory exist.", "d_BuildSettings.Web.Small"),
+                        Styles.exportButton, GUILayout.MaxWidth(150)))
+                    {
+                        var buildProcess =
+                            ProcessUtilities.CreateProcess(
+                                $"treasured build \"{_map.exportSettings.OutputDirectory}\"");
+                        
+                        string stdOutput = "";
+                        string stdError = "";
+                        
+                        try
+                        {
+                            buildProcess.Start();
+                            while (!buildProcess.HasExited)
+                            {
+                                if (EditorUtility.DisplayCancelableProgressBar("Building",
+                                    "Please wait. Getting build ready.", 50 / 100f))
+                                {
+                                    ProcessUtilities.KillProcess(buildProcess);
+                                    throw new OperationCanceledException();
+                                }
+                            }
+                            stdOutput = buildProcess.StandardOutput.ReadToEnd();
+                            stdError = buildProcess.StandardError.ReadToEnd();
+
+                            EditorUtility.DisplayDialog("Build Finished", $"Build generated successfully.", "OK");
+                            
+                            EditorUtility.OpenWithDefaultApp(TreasuredSDKPreferences.Instance.customExportFolder);
+                        }
+                        catch (OperationCanceledException e)
+                        {
+                            EditorUtility.DisplayDialog("Canceled", e.Message, "OK");
+                        }
+                        catch (Exception e)
+                        {
+                            throw new ApplicationException(e.Message);
+                        }
+                        finally
+                        {
+                            if (!string.IsNullOrEmpty(stdOutput))
+                            {
+                                Debug.Log(stdOutput);
+                            }
+
+                            if (!string.IsNullOrEmpty(stdError))
+                            {
+                                Debug.LogError(stdError);
+                            }
+
+                            buildProcess?.Dispose();
+                            EditorUtility.ClearProgressBar();
+                        }
+                    }
+                }
+                
+                GUILayout.Space(10f);
                 using (var playButtonGroup = new EditorGUILayout.FadeGroupScope(Convert.ToSingle(_npmProcess == null)))
                 {
                     if (playButtonGroup.visible)
