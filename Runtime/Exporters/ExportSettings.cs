@@ -32,5 +32,13 @@ namespace Treasured.UnitySdk
                 return Path.Combine(TreasuredSDKPreferences.Instance.customExportFolder, folderName).ToOSSpecificPath();
             }
         }
+
+        public ExportType ExportType;
+    }
+    
+    public enum ExportType
+    {
+        Export,
+        ProductionExport,
     }
 }

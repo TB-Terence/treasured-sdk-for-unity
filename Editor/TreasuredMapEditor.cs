@@ -466,14 +466,14 @@ namespace Treasured.UnitySdk
                                                             @"[a-zA-Z0-9\-]").Success))
                 {
                     if (GUILayout.Button(
-                            EditorGUIUtility.TrTextContentWithIcon("Export",
+                            EditorGUIUtility.TrTextContentWithIcon(_map.exportSettings.ExportType == ExportType.Export ? "Export" : "Production Export",
                                 $"Export scene to {TreasuredSDKPreferences.Instance.customExportFolder}/{_map.exportSettings.folderName}",
-                                "SceneLoadIn"), Styles.exportButton, GUILayout.MaxWidth(150)))
+                                "SceneLoadIn"), Styles.exportButton, _map.exportSettings.ExportType == ExportType.ProductionExport ? GUILayout.MaxWidth(200) : GUILayout.MaxWidth(150)))
                     {
                         try
                         {
                             Exporter.Export(_map);
-                            EditorUtility.DisplayDialog("Export Finished", $"Scene export finished.", "OK");
+                            // EditorUtility.DisplayDialog("Export Finished", $"Scene export finished.", "OK");
                         }
                         catch (ValidationException e)
                         {
@@ -500,6 +500,19 @@ namespace Treasured.UnitySdk
                         finally
                         {
                             EditorUtility.ClearProgressBar();
+                        }
+                    }
+                    
+                    if (EditorGUILayout.DropdownButton(EditorGUIUtility.TrTextContentWithIcon("", "Select Export type", "d_icon dropdown"), FocusType.Passive, Styles.exportButton, GUILayout.Height(30)))
+                    {
+                        GenericMenu menu = new GenericMenu();
+                        menu.AddItem(new GUIContent("Export"), false, HandleItemClicked, ExportType.Export);
+                        menu.AddItem(new GUIContent("Production Export"), false, HandleItemClicked, ExportType.ProductionExport);
+                        menu.ShowAsContext();
+                        
+                        void HandleItemClicked(object parameter)
+                        {
+                            _map.exportSettings.ExportType = (ExportType)parameter;
                         }
                     }
                 }

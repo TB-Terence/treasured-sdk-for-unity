@@ -433,21 +433,41 @@ namespace Treasured.UnitySdk
                 //  Wait for 1 sec to finish writing scene.glb file
                 await Task.Delay(1000);
 
+                string argument = Map.exportSettings.ExportType == ExportType.ProductionExport
+                    ? $"treasured optimize \"{Map.exportSettings.OutputDirectory}\""
+                    : $"treasured optimize \"{Map.exportSettings.OutputDirectory}\" -- skipGlb";
+
                 // Run `treasured optimize` to optimize the glb file
-                var npmProcess = ProcessUtilities.CreateProcess("treasured optimize scene.glb");
+                var npmProcess = ProcessUtilities.CreateProcess(argument);
 
                 string stdOutput = "";
                 string stdError = "";
                 try
                 {
                     npmProcess.Start();
+
+                    while (!npmProcess.HasExited)
+                    {
+                        if (UnityEditor.EditorUtility.DisplayCancelableProgressBar("Encoding",
+                            "Please wait. Encoding to KTX2 format.", 50 / 100f))
+                        {
+                            ProcessUtilities.KillProcess(npmProcess);
+                            throw new OperationCanceledException();
+                        }
+                    }
+
                     stdOutput = npmProcess.StandardOutput.ReadToEnd();
                     stdError = npmProcess.StandardError.ReadToEnd();
-                    npmProcess.WaitForExit();
+
+                    EditorUtility.DisplayDialog("Export Finished", $"Scene export finished.", "OK");
+                }
+                catch (OperationCanceledException e)
+                {
+                    EditorUtility.DisplayDialog("Canceled", e.Message, "OK");
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError(e.Message);
+                    throw new ApplicationException(e.Message);
                 }
                 finally
                 {
@@ -461,7 +481,8 @@ namespace Treasured.UnitySdk
                         Debug.LogError(stdError);
                     }
 
-                    npmProcess.Dispose();
+                    npmProcess?.Dispose();
+                    EditorUtility.ClearProgressBar();
                 }
             }
         }

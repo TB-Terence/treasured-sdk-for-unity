@@ -47,6 +47,13 @@ namespace Treasured.UnitySdk
         {
             var imageQualities = Enum.GetValues(typeof(ImageQuality)).Cast<ImageQuality>();
 
+            //  Overriding export settings for Production export
+            if (Map.exportSettings.ExportType == ExportType.ProductionExport)
+            {
+                ExportCubemap(ImageQuality.High);
+                return;
+            }
+            
             if (exportAllQualities)
             {
                 foreach (var quality in imageQualities)
@@ -57,11 +64,6 @@ namespace Treasured.UnitySdk
             else
             {
                 ExportCubemap(imageQuality);
-            }
-
-            if (Map.exportSettings.optimizeScene)
-            {
-                ImageUtilies.ConvertToKTX2(Map.exportSettings.OutputDirectory);
             }
         }
 
