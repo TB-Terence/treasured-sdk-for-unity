@@ -66,7 +66,7 @@ namespace Treasured.UnitySdk
                 RedirectStandardError = true
             };
             Process p = Process.Start(startInfo);
-            process.WaitForExit();
+            p.WaitForExit();
 
             if (!process.HasExited)
             {

@@ -466,13 +466,70 @@ namespace Treasured.UnitySdk
                                                             @"[a-zA-Z0-9\-]").Success))
                 {
                     if (GUILayout.Button(
-                            EditorGUIUtility.TrTextContentWithIcon("Export",
+                            EditorGUIUtility.TrTextContentWithIcon(_map.exportSettings.ExportType == ExportType.Export ? "Export" : "Production Export",
                                 $"Export scene to {TreasuredSDKPreferences.Instance.customExportFolder}/{_map.exportSettings.folderName}",
-                                "SceneLoadIn"), Styles.exportButton, GUILayout.MaxWidth(150)))
+                                "SceneLoadIn"), Styles.exportButton, _map.exportSettings.ExportType == ExportType.ProductionExport ? GUILayout.MaxWidth(200) : GUILayout.MaxWidth(150)))
                     {
                         try
                         {
                             Exporter.Export(_map);
+
+                            if(_map.cubemapExporter.enabled || _map.meshExporter.enabled)
+                            {
+                                string argument;
+                                
+                                if (_map.exportSettings.optimizeScene
+                                    || _map.exportSettings.ExportType == ExportType.ProductionExport)
+                                {
+                                    argument =
+                                        $"treasured optimize \"{_map.exportSettings.OutputDirectory}\"";
+                                }
+                                else
+                                {
+                                    argument =
+                                        $"treasured optimize \"{_map.exportSettings.OutputDirectory}\" --skipGlb";
+                                }
+                                
+                                // Run `treasured optimize` to optimize the glb file
+                                var npmProcess = ProcessUtilities.CreateProcess(argument);
+
+                                string stdOutput = "";
+                                try
+                                {
+                                    npmProcess.Start();
+
+                                    while (!npmProcess.HasExited)
+                                    {
+                                        if (UnityEditor.EditorUtility.DisplayCancelableProgressBar("Finalizing Export",
+                                            $"Please wait. Processing {_map.exportSettings.folderName}...", 50 / 100f))
+                                        {
+                                            ProcessUtilities.KillProcess(npmProcess);
+                                            throw new OperationCanceledException();
+                                        }
+                                    }
+
+                                    stdOutput = npmProcess.StandardOutput.ReadToEnd();
+                                }
+                                catch (OperationCanceledException e)
+                                {
+                                    EditorUtility.DisplayDialog("Canceled", e.Message, "OK");
+                                }
+                                catch (Exception e)
+                                {
+                                    throw new ApplicationException(e.Message);
+                                }
+                                finally
+                                {
+                                    if (!string.IsNullOrEmpty(stdOutput))
+                                    {
+                                        Debug.Log(stdOutput);
+                                    }
+
+                                    npmProcess?.Dispose();
+                                    EditorUtility.ClearProgressBar();
+                                }
+                            }
+                            
                             EditorUtility.DisplayDialog("Export Finished", $"Scene export finished.", "OK");
                         }
                         catch (ValidationException e)
@@ -502,8 +559,81 @@ namespace Treasured.UnitySdk
                             EditorUtility.ClearProgressBar();
                         }
                     }
+                    
+                    if (EditorGUILayout.DropdownButton(EditorGUIUtility.TrTextContentWithIcon("", "Select Export type", "d_icon dropdown"), FocusType.Passive, Styles.exportButton, GUILayout.Height(30)))
+                    {
+                        GenericMenu menu = new GenericMenu();
+                        menu.AddItem(new GUIContent("Export"), false, HandleItemClicked, ExportType.Export);
+                        menu.AddItem(new GUIContent("Production Export"), false, HandleItemClicked, ExportType.ProductionExport);
+                        menu.ShowAsContext();
+                        
+                        void HandleItemClicked(object parameter)
+                        {
+                            _map.exportSettings.ExportType = (ExportType)parameter;
+                        }
+                    }
                 }
 
+                GUILayout.Space(10f);
+                using (new EditorGUI.DisabledGroupScope(!Directory.Exists(_map.exportSettings.OutputDirectory)))
+                {
+                    if (GUILayout.Button(
+                        EditorGUIUtility.TrTextContent("Build",
+                            "Build the export and host it on the server. This function is enabled when the directory exist.", "d_BuildSettings.Web.Small"),
+                        Styles.exportButton, GUILayout.MaxWidth(150)))
+                    {
+                        var buildProcess =
+                            ProcessUtilities.CreateProcess(
+                                $"treasured build \"{_map.exportSettings.OutputDirectory}\"");
+                        
+                        string stdOutput = "";
+                        string stdError = "";
+                        
+                        try
+                        {
+                            buildProcess.Start();
+                            while (!buildProcess.HasExited)
+                            {
+                                if (EditorUtility.DisplayCancelableProgressBar("Building",
+                                    "Please wait. Getting build ready.", 50 / 100f))
+                                {
+                                    ProcessUtilities.KillProcess(buildProcess);
+                                    throw new OperationCanceledException();
+                                }
+                            }
+                            stdOutput = buildProcess.StandardOutput.ReadToEnd();
+                            stdError = buildProcess.StandardError.ReadToEnd();
+
+                            EditorUtility.DisplayDialog("Build Finished", $"Build generated successfully.", "OK");
+                            
+                            EditorUtility.OpenWithDefaultApp(TreasuredSDKPreferences.Instance.customExportFolder);
+                        }
+                        catch (OperationCanceledException e)
+                        {
+                            EditorUtility.DisplayDialog("Canceled", e.Message, "OK");
+                        }
+                        catch (Exception e)
+                        {
+                            throw new ApplicationException(e.Message);
+                        }
+                        finally
+                        {
+                            if (!string.IsNullOrEmpty(stdOutput))
+                            {
+                                Debug.Log(stdOutput);
+                            }
+
+                            if (!string.IsNullOrEmpty(stdError))
+                            {
+                                Debug.LogError(stdError);
+                            }
+
+                            buildProcess?.Dispose();
+                            EditorUtility.ClearProgressBar();
+                        }
+                    }
+                }
+                
                 GUILayout.Space(10f);
                 using (var playButtonGroup = new EditorGUILayout.FadeGroupScope(Convert.ToSingle(_npmProcess == null)))
                 {

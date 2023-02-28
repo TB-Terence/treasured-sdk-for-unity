@@ -70,6 +70,7 @@ namespace Treasured.UnitySdk
         /// Convert all PNG files under root directory to KTX2
         /// </summary>
         /// <param name="rootDirectory">Root Directory of PNG images folder</param>
+        [Obsolete]
         public static void ConvertToKTX2(string rootDirectory)
         {
             if (string.IsNullOrWhiteSpace(rootDirectory))
