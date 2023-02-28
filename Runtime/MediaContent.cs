@@ -6,48 +6,8 @@ using UnityEngine.Video;
 
 namespace Treasured.UnitySdk
 {
-    public class TreasuredSceneManager : MonoBehaviour
-    {
-        public SceneInfo sceneInfo;
-        public StyleInfo styleInfo;
-
-        private void OnValidate()
-        {
-            
-        }
-    }
-
-    [System.Serializable]
-    public class SceneInfo
-    {
-        [SerializeField]
-        [ReadOnly]
-        private string _id = Guid.NewGuid().ToString();
-        public string Id { get => _id; }
-
-        [RequiredField]
-        [Tooltip("The name of the individual, company or organization.")]
-        public string creator;
-        [RequiredField]
-        [TextArea(2, 2)]
-        public string title;
-        [RequiredField]
-        [TextArea(3, 5)]
-        public string description;
-
-        public AudioContent backgroundMusic;
-    }
-
-    [System.Serializable]
-    public class StyleInfo
-    {
-        [JsonProperty("loader")]
-        public TemplateLoader templateLoader;
-        public bool darkMode = false;
-    }
-
-    [System.Serializable]
-    public abstract class Content<T> where T : UnityEngine.Object
+    [Serializable]
+    public abstract class MediaContent<T> where T : UnityEngine.Object
     {
         [JsonIgnore]
         [OnValueChanged(nameof(UpdateUri))]
@@ -96,7 +56,7 @@ namespace Treasured.UnitySdk
     }
 
     [Serializable]
-    public sealed class AudioContent : Content<AudioClip>
+    public sealed class AudioContent : MediaContent<AudioClip>
     {
         [Range(0, 100)]
         public int volume = 50;
@@ -111,7 +71,7 @@ namespace Treasured.UnitySdk
     }
 
     [Serializable]
-    public sealed class ImageContent : Content<Texture2D>
+    public sealed class ImageContent : MediaContent<Texture2D>
     {
         public override string GetLocalPathPrefix()
         {
@@ -120,7 +80,7 @@ namespace Treasured.UnitySdk
     }
 
     [Serializable]
-    public sealed class VideoContent : Content<VideoClip>
+    public sealed class VideoContent : MediaContent<VideoClip>
     {
         [Range(0, 100)]
         public int volume = 50;

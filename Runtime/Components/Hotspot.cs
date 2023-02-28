@@ -37,12 +37,19 @@ namespace Treasured.UnitySdk
         {
             // add default action group for onSelect event
             actionGraph.AddActionGroup("onSelect");
+            if (_camera == null)
+            {
+                _camera = gameObject.FindOrCreateChild<HotspotCamera>("Camera");
+                _camera.transform.localPosition = Hitbox.transform.localPosition;
+                _camera.transform.localRotation = Quaternion.Euler(Hitbox.transform.localEulerAngles);
+            }
         }
 
         /// <summary>
         /// Snap the hotspot to ground if it hits collider.
         /// </summary>
-        internal void SnapToGround()
+        [Control("Snap to Ground")]
+        void SnapToGround()
         {
             // Temporarily disable self colliders
             var colliders = GetComponents<Collider>();
@@ -64,6 +71,12 @@ namespace Treasured.UnitySdk
             {
                 collider.enabled = queue.Dequeue();
             }
+        }
+
+        [Control("Preview")]
+        void PreviewCamera()
+        {
+            Camera?.Preview();
         }
 
         /// <summary>
@@ -106,11 +119,6 @@ namespace Treasured.UnitySdk
                 _camera.transform.localPosition = Hitbox.transform.localPosition;
                 _camera.transform.localRotation = Quaternion.Euler(Hitbox.transform.localEulerAngles);
             }
-        }
-
-        void OnSceneViewFocus()
-        {
-            Camera?.Preview();
         }
 #endif
         #endregion

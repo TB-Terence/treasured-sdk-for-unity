@@ -587,15 +587,6 @@ namespace Treasured.UnitySdk
 
                 GUILayout.FlexibleSpace();
             }
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                GUILayout.FlexibleSpace();
-                if (GUILayout.Button("Open Tool Window", Styles.exportButton, GUILayout.MaxWidth(150)))
-                {
-                    TreasuredSceneManagementToolWindow.ShowWindow(_map);
-                }
-                GUILayout.FlexibleSpace();
-            }
 
             using (var scope = new EditorGUI.ChangeCheckScope())
             {
@@ -884,6 +875,7 @@ namespace Treasured.UnitySdk
 
         private void OnSceneViewGUI(SceneView view)
         {
+            return;
             if (SceneView.lastActiveSceneView.size == 0.01f) // this happens when TreasuredObject is selected
             {
                 return;

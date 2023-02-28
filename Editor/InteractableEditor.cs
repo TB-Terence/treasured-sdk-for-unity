@@ -70,6 +70,7 @@ namespace Treasured.UnitySdk
 
         private void OnSceneViewGUI(SceneView view)
         {
+            return;
             if (target is Interactable interactable && interactable.Hitbox != null)
             {
                 Matrix4x4 matrix = Handles.matrix;

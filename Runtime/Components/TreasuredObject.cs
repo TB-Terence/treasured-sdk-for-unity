@@ -65,6 +65,16 @@ namespace Treasured.UnitySdk
         {
             get
             {
+                if (_hitbox == null)
+                {
+                    _hitbox = gameObject.FindOrCreateChild<Hitbox>("Hitbox");
+                    _hitbox.transform.localPosition = Vector3.zero;
+                    _hitbox.transform.localRotation = Quaternion.identity;
+                    if (TryGetComponent<BoxCollider>(out var collider) && collider.isTrigger)
+                    {
+                        _hitbox.transform.localScale = collider.size;
+                    }
+                }
                 return _hitbox;
             }
             set
@@ -92,16 +102,6 @@ namespace Treasured.UnitySdk
         // DO NOT REMOVE, called by Editor
         void OnSelectedInHierarchy()
         {
-            if (Hitbox == null)
-            {
-                Hitbox = gameObject.FindOrCreateChild<Hitbox>("Hitbox");
-                Hitbox.transform.localPosition = Vector3.zero;
-                Hitbox.transform.localRotation = Quaternion.identity;
-                if (TryGetComponent<BoxCollider>(out var collider) && collider.isTrigger)
-                {
-                    Hitbox.transform.localScale = collider.size;
-                }
-            }
             if (Hitbox)
             {
                 var renderer = GetComponentInChildren<Renderer>();

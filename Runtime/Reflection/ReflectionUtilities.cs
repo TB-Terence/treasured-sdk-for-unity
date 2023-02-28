@@ -78,9 +78,8 @@ namespace Treasured.UnitySdk
             {
                 if (field.IsPublic || Attribute.IsDefined(field, typeof(SerializeField)))
                 {
-                    if (field.FieldType.IsArray)
+                    if (field.FieldType.IsArray && field.GetValue(obj) is IList list && list != null)
                     {
-                        IList list = (IList)field.GetValue(obj);
                         foreach (var element in list)
                         {
                             fieldValuePairs.AddRange(GetSerializableFieldInfoValuePair(element, includeChildren));
@@ -118,6 +117,24 @@ namespace Treasured.UnitySdk
         public static IEnumerable<FieldInfoValuePair> GetSerializableFieldInfoValuePairWithAttribute<T>(object obj, bool includeChildren = false) where T : Attribute
         {
             return GetSerializableFieldInfoValuePair(obj, includeChildren).Where(pair => Attribute.IsDefined(pair.FieldInfo, typeof(T))).ToList();
+        }
+
+        public struct MethodInfoAttributePair<T> where T : Attribute
+        {
+            public MethodInfo methodInfo;
+            public T attribute;
+        }
+
+        public static MethodInfoAttributePair<T>[] GetMethodsWithAttribute<T>(object target, bool includeBase = false) where T : Attribute
+        {
+            Type type = target.GetType();
+            MethodInfo[] methods = type.GetMethods(includeBase ? BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance :
+                BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+            return methods.Where(method => method.IsDefined(typeof(T))).Select(method => new MethodInfoAttributePair<T>()
+            {
+                methodInfo = method,
+                attribute = method.GetCustomAttribute<T>()
+            }).ToArray();
         }
     }
 }

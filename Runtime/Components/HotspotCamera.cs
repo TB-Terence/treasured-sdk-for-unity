@@ -107,7 +107,6 @@ namespace Treasured.UnitySdk
 #endif
         }
 
-#if UNITY_EDITOR
         void OnDrawGizmosSelected()
         {
             Color tempColor = Gizmos.color;
@@ -119,6 +118,5 @@ namespace Treasured.UnitySdk
             Gizmos.color = tempColor;
             Gizmos.matrix = tempMatrix;
         }
-#endif
     }
 }
