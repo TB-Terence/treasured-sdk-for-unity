@@ -32,10 +32,14 @@ namespace Treasured.UnitySdk
                 else
                 {
                     writer.WriteStartObject();
-                    writer.WritePropertyName("hotspotId");
+                    writer.WritePropertyName("id");
+                    writer.WriteValue(action.Id);
+                    writer.WritePropertyName("type");
+                    writer.WriteValue(action.Type);
+                    writer.WritePropertyName("targetId");
                     writer.WriteValue(action.target.Id);
-                    writer.WritePropertyName("message");
-                    writer.WriteValue(action.message);
+                    writer.WritePropertyName("targetType");
+                    writer.WriteValue("hotspot");
                     writer.WriteEndObject();
                 }
             }
