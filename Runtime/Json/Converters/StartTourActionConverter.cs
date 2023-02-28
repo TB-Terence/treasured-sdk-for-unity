@@ -27,7 +27,8 @@ namespace Treasured.UnitySdk
                 }
                 if (action.target.IsNullOrNone())
                 {
-                    writer.WriteNull();
+                    writer.WriteStartObject();
+                    writer.WriteEndObject();
                 }
                 else
                 {

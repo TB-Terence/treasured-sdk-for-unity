@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Treasured.Actions;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
@@ -25,7 +26,7 @@ namespace Treasured.UnitySdk
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             ScriptableActionCollection collection = value as ScriptableActionCollection;
-            if (collection)
+            if (collection != null)
             {
                 writer.WriteStartArray();
                 // v1
@@ -47,30 +48,28 @@ namespace Treasured.UnitySdk
                 //}
                 //writer.WriteValue(sb.ToString());
                 // v2
-                writer.WriteStartObject();
-                writer.WritePropertyName("actions");
-                writer.WriteStartArray();
+                //writer.WriteStartObject();
+                //writer.WritePropertyName("actions");
+                //writer.WriteStartArray();
                 foreach (var action in collection)
                 {
                     if (action == null || !action.enabled)
                     {
                         continue;
                     }
-                    //writer.WriteStartObject();
-                    //writer.WritePropertyName("id");
-                    //writer.WriteValue(action.Id);
-                    //writer.WritePropertyName("method");
-                    //APIAttribute apiAttribute = GetType().GetCustomAttributes<APIAttribute>().FirstOrDefault();
-                    //string functionName = apiAttribute != null ? apiAttribute.FunctionName : action.Type;
-                    //writer.WriteValue(functionName);
-                    //writer.WritePropertyName("args");
+                    writer.WriteStartObject();
+                    writer.WritePropertyName("id");
+                    writer.WriteValue(action.Id);
+                    writer.WritePropertyName("method");
+                    APIAttribute apiAttribute = action.GetType().GetCustomAttributes<APIAttribute>().FirstOrDefault();
+                    string functionName = apiAttribute != null ? apiAttribute.FunctionName : action.Type;
+                    writer.WriteValue(functionName);
+                    writer.WritePropertyName("args");
                     serializer.ContractResolver = ContractResolver.Instance;
                     JObject jAction = JObject.FromObject(action, serializer);
                     jAction.WriteTo(writer);
-                    //writer.WriteEndObject();
+                    writer.WriteEndObject();
                 }
-                writer.WriteEndArray();
-                writer.WriteEndObject();
                 writer.WriteEndArray();
             }
             else

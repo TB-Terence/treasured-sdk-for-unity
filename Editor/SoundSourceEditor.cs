@@ -20,7 +20,6 @@ namespace Treasured.UnitySdk
             SerializedProperty volume = serializedObject.FindProperty("Volume");
             SerializedProperty loop = serializedObject.FindProperty("Loop");
             SerializedProperty distance = serializedObject.FindProperty("Distance");
-            SerializedProperty onClick = serializedObject.FindProperty(nameof(SoundSource.onClick));
 
             EditorGUILayout.PropertyField(id);
             EditorGUILayout.PropertyField(src);
@@ -39,7 +38,6 @@ namespace Treasured.UnitySdk
                         new Vector3(soundSource.Distance, soundSource.Distance, soundSource.Distance);
                 }
             }
-            EditorGUILayout.PropertyField(onClick);
 
             serializedObject.ApplyModifiedProperties();
         }

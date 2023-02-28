@@ -41,7 +41,6 @@ namespace Treasured.UnitySdk
             SerializedProperty loop = serializedObject.FindProperty(nameof(VideoRenderer.loop));
             SerializedProperty autoPlay = serializedObject.FindProperty(nameof(VideoRenderer.autoplay));
             SerializedProperty videoClip = serializedObject.FindProperty(nameof(VideoRenderer.VideoClip));
-            SerializedProperty onClick = serializedObject.FindProperty(nameof(VideoRenderer.onClick));
             
             var videoRenderer = (VideoRenderer)target;
 
@@ -86,7 +85,6 @@ namespace Treasured.UnitySdk
             EditorGUILayout.PropertyField(volume);
             EditorGUILayout.PropertyField(loop);
             EditorGUILayout.PropertyField(autoPlay);
-            EditorGUILayout.PropertyField(onClick);
 
             serializedObject.ApplyModifiedProperties();
         }

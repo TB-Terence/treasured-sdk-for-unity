@@ -1,4 +1,6 @@
-﻿using UnityEditor;
+﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
@@ -7,10 +9,10 @@ namespace Treasured.UnitySdk
     [CanEditMultipleObjects]
     internal class InteractableEditor : UnityEditor.Editor
     {
-        private ActionGroupListDrawer onClickActionGroupDrawer;
+        private ActionGroupListDrawer onClickListDrawer;
         private SerializedProperty button;
         private SerializedProperty hitbox;
-        private SerializedProperty onClick;
+        private SerializedProperty actionGraph;
 
         private TreasuredMap map;
         private SerializedObject serializedHitboxTransform;
@@ -22,8 +24,8 @@ namespace Treasured.UnitySdk
             button = serializedObject.FindProperty(nameof(TreasuredObject.button));
             hitbox = serializedObject.FindProperty("_hitbox");
             serializedHitboxTransform = new SerializedObject((target as Interactable).Hitbox.transform);
-            onClickActionGroupDrawer = new ActionGroupListDrawer(serializedObject, serializedObject.FindProperty("_onClick"));
-            onClick = serializedObject.FindProperty("onClick");
+            onClickListDrawer = new ActionGroupListDrawer(serializedObject, serializedObject.FindProperty("_onClick"));
+            actionGraph = serializedObject.FindProperty(nameof(TreasuredObject.actionGraph));
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
         }
@@ -47,11 +49,20 @@ namespace Treasured.UnitySdk
             {
                 bool showDeprecatedActions = SessionState.GetBool(SessionKeys.ShowDeprecatedActions, false);
                 SessionState.SetBool(SessionKeys.ShowDeprecatedActions, EditorGUILayout.ToggleLeft("Show Deprecated Actions", showDeprecatedActions));
-                if(showDeprecatedActions)
+                EditorGUI.BeginChangeCheck();
+                bool isExpanded = EditorGUILayout.BeginFoldoutHeaderGroup(SessionState.GetBool(SessionKeys.ShowActionList, true), "Action Graph");
+                if (EditorGUI.EndChangeCheck())
                 {
-                    onClickActionGroupDrawer.OnGUI(true);
+                    SessionState.SetBool(SessionKeys.ShowActionList, isExpanded);
                 }
-                EditorGUILayout.PropertyField(onClick);
+                if (isExpanded)
+                {
+                    if (showDeprecatedActions)
+                    {
+                        onClickListDrawer?.OnGUI();
+                    }
+                    EditorGUILayout.PropertyField(actionGraph);
+                }
             }
             else
             {
