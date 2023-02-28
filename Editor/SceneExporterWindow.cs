@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    internal sealed class MapExporterWindow : UnityEditor.EditorWindow
+    internal sealed class SceneExporterWindow : UnityEditor.EditorWindow
     {
         class Styles
         {
@@ -29,7 +29,7 @@ namespace Treasured.UnitySdk
 
         public static void Show(TreasuredMap map, ValidationException e)
         {
-            var window = EditorWindow.GetWindow<MapExporterWindow>(true, "Map Exporter", true);
+            var window = EditorWindow.GetWindow<SceneExporterWindow>(true, "Scene Exporter", true);
             window.map = map;
             window.results = e.results.Select(result => new ListItem() { validationResult = result}).ToList();
             window.warnings = window.results.Where(item => item.validationResult.type == ValidationResult.ValidationResultType.Warning).ToList();
@@ -78,11 +78,6 @@ namespace Treasured.UnitySdk
             }
         }
 
-        private void OnLostFocus()
-        {
-            this.Close();
-        }
-
         private void ShowList(List<ListItem> items)
         {
             for (int i = 0; i < items.Count; i++)
@@ -94,27 +89,25 @@ namespace Treasured.UnitySdk
                     using (new EditorGUI.IndentLevelScope(2))
                     {
                         EditorGUILayout.LabelField(new GUIContent(item.validationResult.description), EditorStyles.wordWrappedLabel);
-                        using (new EditorGUILayout.HorizontalScope())
+                        //EditorGUILayout.Space();
+                        if (item.validationResult.resolvers != null)
                         {
-                            if (item.validationResult.targets != null)
+                            using (new EditorGUILayout.VerticalScope())
                             {
-                                for (int index = 0; index < item.validationResult.targets.Length; index++)
+                                EditorGUILayout.Space();
+                                foreach (var resolver in item.validationResult.resolvers)
                                 {
-                                    if (GUILayout.Button(item.validationResult.targets[index].name, EditorStyles.linkLabel))
+                                    using (new EditorGUILayout.HorizontalScope())
                                     {
-                                        EditorGUIUtility.PingObject(item.validationResult.targets[index]);
+                                        EditorGUILayout.Space();
+                                        if (GUILayout.Button(resolver.text, DefaultStyles.Link))
+                                        {
+                                            resolver.onResolve?.Invoke();
+                                        }
                                     }
                                 }
                             }
-                            if (item.validationResult.target != null)
-                            {
-                                if (GUILayout.Button(item.validationResult.target.name, EditorStyles.linkLabel))
-                                {
-                                    EditorGUIUtility.PingObject(item.validationResult.target);
-                                }
-                            }
                         }
-                        
                     }
                 }
                 EditorGUILayout.EndFoldoutHeaderGroup();

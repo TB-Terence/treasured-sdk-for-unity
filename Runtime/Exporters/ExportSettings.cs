@@ -19,6 +19,7 @@ namespace Treasured.UnitySdk
 
         [RequiredField]
         public string folderName;
+        public bool optimizeScene = true;
 
         public string OutputDirectory
         {
@@ -31,5 +32,13 @@ namespace Treasured.UnitySdk
                 return Path.Combine(TreasuredSDKPreferences.Instance.customExportFolder, folderName).ToOSSpecificPath();
             }
         }
+
+        public ExportType ExportType;
+    }
+    
+    public enum ExportType
+    {
+        Export,
+        ProductionExport,
     }
 }

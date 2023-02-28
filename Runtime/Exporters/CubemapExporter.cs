@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -46,6 +47,13 @@ namespace Treasured.UnitySdk
         {
             var imageQualities = Enum.GetValues(typeof(ImageQuality)).Cast<ImageQuality>();
 
+            //  Overriding export settings for Production export
+            if (Map.exportSettings.ExportType == ExportType.ProductionExport)
+            {
+                ExportCubemap(ImageQuality.High);
+                return;
+            }
+            
             if (exportAllQualities)
             {
                 foreach (var quality in imageQualities)
@@ -56,11 +64,6 @@ namespace Treasured.UnitySdk
             else
             {
                 ExportCubemap(imageQuality);
-            }
-
-            if (imageFormat == ImageFormat.Ktx2)
-            {
-                ImageUtilies.ConvertToKTX2(Map.exportSettings.OutputDirectory);
             }
         }
 
@@ -208,36 +211,130 @@ namespace Treasured.UnitySdk
             }
         }
 #if HDRP_10_5_1_OR_NEWER
-        /// <summary>
-        /// Fixes lens Lens Distortion when export cubemap in HDRP
-        /// </summary>
-        private Dictionary<UnityEngine.Rendering.HighDefinition.LensDistortion, float> _lensScales = new Dictionary<UnityEngine.Rendering.HighDefinition.LensDistortion, float>();
+        private UnityEngine.Rendering.HighDefinition.HDAdditionalCameraData _cameraData;
+        private UnityEngine.Rendering.HighDefinition.HDAdditionalCameraData.AntialiasingMode _antiAliasing;
+        private UnityEngine.Rendering.HighDefinition.HDAdditionalCameraData.SMAAQualityLevel _SMAAQuality;
+        private Dictionary<VolumeComponent, List<IParameterOverwrite>> _parameterOverwrites = new Dictionary<VolumeComponent, List<IParameterOverwrite>>();
+
+        private interface IParameterOverwrite
+        {
+            public VolumeComponent Component { get; }
+            public FieldInfo FieldInfo { get; }
+            public object OverwriteValue { get; set; }
+            public void Overwrite();
+            public void Revert();
+        }
+        private struct ParameterOverwrite<T> : IParameterOverwrite
+        {
+            /// <summary>
+            /// <see cref="VolumeComponent"/> on HDRP profile to overwrite.
+            /// </summary>
+            public VolumeComponent Component { get; private set; }
+            /// <summary>
+            /// Field Info of the <see cref="VolumeParameter"/>
+            /// </summary>
+            public FieldInfo FieldInfo { get; private set; }
+            public T InitialValue { get; private set; }
+            public object OverwriteValue { get; set; }
+            
+            public ParameterOverwrite(VolumeComponent component, string fieldName, T overwriteValue)
+            {
+                this.Component = component;
+                this.FieldInfo = component.GetType().GetField(fieldName);
+                this.OverwriteValue = overwriteValue;
+                this.InitialValue = ((VolumeParameter<T>)this.FieldInfo.GetValue(component)).value;
+            }
+
+            public void Overwrite()
+            {
+                ((VolumeParameter<T>)FieldInfo.GetValue(Component)).value = (T)OverwriteValue;
+            }
+
+            public void Revert()
+            {
+                ((VolumeParameter<T>)FieldInfo.GetValue(Component)).value = InitialValue;
+            }
+
+            public override int GetHashCode()
+            {
+                return Component.GetHashCode();
+            }
+        }
 
         public override void OnPreExport()
         {
+            string path = Path.Combine(Map.exportSettings.OutputDirectory, "images");
+            if (Directory.Exists(path))
+                Directory.Delete(path, true);
             flipY = true;
-            _lensScales.Clear();
-            Volume[] volumes = GameObject.FindObjectsOfType<Volume>();
-            for (int i = 0; i < volumes.Length; i++)
+            _parameterOverwrites.Clear();
+            _cameraData = ValidateCamera().gameObject.GetComponent<UnityEngine.Rendering.HighDefinition.HDAdditionalCameraData>();
+            _antiAliasing = _cameraData.antialiasing;
+            _cameraData.antialiasing = UnityEngine.Rendering.HighDefinition.HDAdditionalCameraData.AntialiasingMode.SubpixelMorphologicalAntiAliasing;
+            _SMAAQuality = _cameraData.SMAAQuality;
+            _cameraData.SMAAQuality = UnityEngine.Rendering.HighDefinition.HDAdditionalCameraData.SMAAQualityLevel.High;
+            foreach (var volume in GameObject.FindObjectsOfType<Volume>())
             {
-                if (volumes[i].profile.TryGet<UnityEngine.Rendering.HighDefinition.LensDistortion>(out var lensDistortion))
+                foreach (var component in volume.profile.components)
                 {
-                    _lensScales[lensDistortion] = lensDistortion.scale.value;
-                    lensDistortion.scale.value = 1;
+                    switch (component)
+                    {
+                        case UnityEngine.Rendering.HighDefinition.Exposure e:
+                            if(volume.isGlobal)
+                                AddParameterOverwrite(new ParameterOverwrite<UnityEngine.Rendering.HighDefinition.ExposureMode>(component, nameof(UnityEngine.Rendering.HighDefinition.Exposure.mode), UnityEngine.Rendering.HighDefinition.ExposureMode.Fixed));
+                            break;
+                        case UnityEngine.Rendering.HighDefinition.LensDistortion ld:
+                            AddParameterOverwrite(new ParameterOverwrite<float>(component, nameof(UnityEngine.Rendering.HighDefinition.LensDistortion.scale), 1));
+                            AddParameterOverwrite(new ParameterOverwrite<float>(component, nameof(UnityEngine.Rendering.HighDefinition.LensDistortion.intensity), 0));
+                            break;
+                        // intensity
+                        case UnityEngine.Rendering.HighDefinition.AmbientOcclusion ao:
+                        case UnityEngine.Rendering.HighDefinition.Bloom b:
+                        case UnityEngine.Rendering.HighDefinition.MotionBlur mb:
+                        case UnityEngine.Rendering.HighDefinition.FilmGrain fg:
+                        case UnityEngine.Rendering.HighDefinition.Vignette v:
+                        case UnityEngine.Rendering.HighDefinition.ChromaticAberration ca:
+                            AddParameterOverwrite(new ParameterOverwrite<float>(component, "intensity", 0));
+                            break;
+                        case UnityEngine.Rendering.HighDefinition.DepthOfField dof:
+                            if(dof.focusMode == UnityEngine.Rendering.HighDefinition.DepthOfFieldMode.UsePhysicalCamera)
+                            {
+                                AddParameterOverwrite(new ParameterOverwrite<UnityEngine.Rendering.HighDefinition.DepthOfFieldMode>(component, nameof(UnityEngine.Rendering.HighDefinition.DepthOfField.farMaxBlur), 0));
+                                AddParameterOverwrite(new ParameterOverwrite<UnityEngine.Rendering.HighDefinition.DepthOfFieldMode>(component, nameof(UnityEngine.Rendering.HighDefinition.DepthOfField.nearMaxBlur), 0));
+                            }
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
         }
 
+        private void AddParameterOverwrite<T>(ParameterOverwrite<T> overwrite)
+        {
+            if (!_parameterOverwrites.ContainsKey(overwrite.Component))
+            {
+                _parameterOverwrites[overwrite.Component] = new List<IParameterOverwrite>();
+            }
+            _parameterOverwrites[overwrite.Component].Add(overwrite);
+            overwrite.Overwrite();
+        }
+
         public override void OnPostExport()
         {
-            foreach (var lensDistortion in _lensScales.Keys)
+            if(_cameraData)
             {
-                if (_lensScales.TryGetValue(lensDistortion, out var scale))
+                _cameraData.antialiasing = _antiAliasing;
+                _cameraData.SMAAQuality = _SMAAQuality;
+            }
+            foreach (var overwrites in _parameterOverwrites.Values)
+            {
+                foreach (var overwrite in overwrites)
                 {
-                    lensDistortion.scale.value = scale;
+                    overwrite.Revert();
                 }
             }
-            _lensScales.Clear();
+            _parameterOverwrites.Clear();
         }
 #endif
     }

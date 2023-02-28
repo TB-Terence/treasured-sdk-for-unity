@@ -4,11 +4,11 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk.Validation
 {
-    public sealed class TreasuredMapValidator : Validator
+    public sealed class TreasuredSceneValidator : Validator
     {
         private static RequiredFieldValidator s_requiredFieldValidator_map;
         private TreasuredMap _map;
-        public TreasuredMapValidator(TreasuredMap map) : base(map)
+        public TreasuredSceneValidator(TreasuredMap map) : base(map)
         {
             this._map = map;
             s_requiredFieldValidator_map = new RequiredFieldValidator(map);
@@ -17,12 +17,39 @@ namespace Treasured.UnitySdk.Validation
         public override List<ValidationResult> GetValidationResults()
         {
             var results = base.GetValidationResults();
+            results.AddRange(GetProjectSettingsValidationResult());
             // Check for missing required fields
             results.AddRange(s_requiredFieldValidator_map.GetValidationResults());
             results.AddRange(GetSelectObjectReferenceValidationResults());
             results.AddRange(GetHotspotPathValidationResult());
             results.AddRange(GetGuidedTourSrcValidationResult());
             return results;
+        }
+
+        IEnumerable<ValidationResult> GetProjectSettingsValidationResult()
+        {
+            if (TreasuredSDKPreferences.Instance.customExportFolder.StartsWith(Application.dataPath))
+            {
+                yield return new ValidationResult()
+                {
+                    name = "Export folder not recommended",
+                    description = "The export folder is currently set to a folder inside the Asset folder, which is not recommended.",
+                    type = ValidationResult.ValidationResultType.Warning,
+                    resolvers = new ValidationResult.ValidationResolver[]
+                    {
+                        new ValidationResult.ValidationResolver()
+                        {
+                            text = "Change Export Folder",
+                            onResolve = () =>
+                            {
+#if UNITY_2018_3_OR_NEWER && UNITY_EDITOR
+                                UnityEditor.SettingsService.OpenUserPreferences("Preferences/Treasured SDK");
+#endif
+                            }
+                        }
+                    }
+                };
+            }
         }
 
         IEnumerable<ValidationResult> GetSelectObjectReferenceValidationResults()
@@ -35,10 +62,22 @@ namespace Treasured.UnitySdk.Validation
                 {
                     results.Add(new ValidationResult()
                     {
-                        name = "Missing reference for Action",
+                        name = "Missing camera reference for Hotspot",
                         description = $"Camera Transform is not assigned for {obj.name}.",
                         type = ValidationResult.ValidationResultType.Error,
-                        target = obj
+                        resolvers = new ValidationResult.ValidationResolver[]
+                        {
+                            new ValidationResult.ValidationResolver()
+                            {
+                                text = $"Ping '{obj.name}'",
+                                onResolve = () =>
+                                {
+#if UNITY_EDITOR
+                                    UnityEditor.EditorGUIUtility.PingObject(obj);
+#endif
+                                }
+                            }
+                        }
                     });
                 }
                 //foreach (var group in obj.OnClick)
@@ -70,35 +109,35 @@ namespace Treasured.UnitySdk.Validation
                 //        }
                 //    }
                 //}
-                foreach (var group in obj.OnHover)
-                {
-                    foreach (var action in group.Actions)
-                    {
-                        if (action is SelectObjectAction soa)
-                        {
-                            if (soa.target == null || (soa.target != null && !soa.target.gameObject.activeSelf))
-                            {
-                                results.Add(new ValidationResult()
-                                {
-                                    name = "Missing reference",
-                                    description = $"The target for OnHover-Object action is inactive OR is not assigned for {obj.name}.",
-                                    type = ValidationResult.ValidationResultType.Error,
-                                    target = soa.target
-                                });
-                            }
-                            else if (soa.target.GetComponentInParent<TreasuredMap>() != obj.GetComponentInParent<TreasuredMap>())
-                            {
-                                results.Add(new ValidationResult()
-                                {
-                                    name = "Invalid reference",
-                                    description = $"The target set for OnHover-Object action does not belong to the same map.",
-                                    type = ValidationResult.ValidationResultType.Error,
-                                    target = soa.target
-                                });
-                            }
-                        }
-                    }
-                }
+                //foreach (var group in obj.OnHover)
+                //{
+                //    foreach (var action in group.Actions)
+                //    {
+                //        if (action is SelectObjectAction soa)
+                //        {
+                //            if (soa.target == null || (soa.target != null && !soa.target.gameObject.activeSelf))
+                //            {
+                //                results.Add(new ValidationResult()
+                //                {
+                //                    name = "Missing reference",
+                //                    description = $"The target for OnHover-Object action is inactive OR is not assigned for {obj.name}.",
+                //                    type = ValidationResult.ValidationResultType.Error,
+                //                    target = soa.target
+                //                });
+                //            }
+                //            else if (soa.target.GetComponentInParent<TreasuredMap>() != obj.GetComponentInParent<TreasuredMap>())
+                //            {
+                //                results.Add(new ValidationResult()
+                //                {
+                //                    name = "Invalid reference",
+                //                    description = $"The target set for OnHover-Object action does not belong to the same map.",
+                //                    type = ValidationResult.ValidationResultType.Error,
+                //                    target = soa.target
+                //                });
+                //            }
+                //        }
+                //    }
+                //}
             }
             return results;
         }
@@ -117,10 +156,27 @@ namespace Treasured.UnitySdk.Validation
                         results.Add(new ValidationResult()
                         {
                             name = "Collider blocking path",
-                            description = $"Collider blocking path between hotspot <{current.name}> and <{next.name}>. The game object blocking the path: <{hit.collider.gameObject.name}>",
-                            target = hit.collider.gameObject,
-                            targets = new UnityEngine.Object[] {current, next },
-                            type = ValidationResult.ValidationResultType.Warning
+                            description = $"Collider blocking path between hotspot <{current.name}> and <{next.name}>. Move the game objects for better user experience.",
+                            type = ValidationResult.ValidationResultType.Warning,
+#if UNITY_EDITOR
+                            resolvers = new ValidationResult.ValidationResolver[] {
+                                new ValidationResult.ValidationResolver()
+                                {
+                                    text = $"Ping '{current.name}(Hotspot 1)'",
+                                    onResolve = () => { UnityEditor.EditorGUIUtility.PingObject(current); }
+                                },
+                                new ValidationResult.ValidationResolver()
+                                {
+                                    text = $"Ping '{hit.collider.gameObject.name}(Collider)'",
+                                    onResolve = () => { UnityEditor.EditorGUIUtility.PingObject(hit.collider.gameObject); }
+                                },
+                                 new ValidationResult.ValidationResolver()
+                                {
+                                    text = $"Ping '{next.name}(Hotspot 2)'",
+                                    onResolve = () => { UnityEditor.EditorGUIUtility.PingObject(current); }
+                                },
+#endif
+                            }
                         });
                     }
                 }
@@ -138,9 +194,9 @@ namespace Treasured.UnitySdk.Validation
             var tours = _map.graph.tours;
             foreach (var tour in tours)
             {
+                if (tour.actionScripts == null) continue;
                 foreach (var action in tour.actionScripts)
                 {
-                    
                     if ((action is AudioAction audioAction && string.IsNullOrWhiteSpace(audioAction.src)) || (action is Actions.EmbedAction embedAction && string.IsNullOrWhiteSpace(embedAction.src)))
                     {
                         ValidationResult validationResult = new ValidationResult()
@@ -156,5 +212,7 @@ namespace Treasured.UnitySdk.Validation
             }
             return results;
         }
+
+
     }
 }

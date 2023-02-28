@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Treasured.UnitySdk.Validation;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
@@ -65,12 +66,18 @@ namespace Treasured.UnitySdk
             ExportQuality = MeshExportQuality.Full;
         }
 
-        public override void OnPreExport()
+        public override List<ValidationResult> CanExport()
         {
             if (!canUseTag && !canUseLayerMask)
             {
-                throw new ArgumentException(
-                    "[MeshExporter] : Mesh Export Search option is not configured.GLB Mesh will not be exported.");
+                var result = new ValidationResult
+                {
+                    type = ValidationResult.ValidationResultType.Error,
+                    description = "Mesh Export Search option of Using Tags or LayerMask are not configured. \nGLB Mesh will not be exported.",
+                    name = "[MeshExporter] : Use Tag | Use LayerMask Error"
+                };
+
+                return new List<ValidationResult> { result };
             }
 
             if (canUseTag)
@@ -78,11 +85,19 @@ namespace Treasured.UnitySdk
                 //  Check if include and exclude tags does not have common tags
                 if ((includeTags & excludeTags) != 0)
                 {
-                    throw new ArgumentException(
-                        "[MeshExporter] : Mesh Export tag for Include Tags and Exclude Tags have common tags assigned. "
-                        + "Please make sure that same tag is not selected on both.");
+                    var result = new ValidationResult
+                    {
+                        type = ValidationResult.ValidationResultType.Error,
+                        description =
+                            "Mesh Export tag for Include Tags and Exclude Tags have common tags assigned.\nPlease make sure that same tag is not assigned on both.",
+                        name = "[MeshExporter] : Include and Exclude Tags Error"
+                    };
+                    
+                    return new List<ValidationResult> { result };
                 }
             }
+
+            return base.CanExport();
         }
 
         public override void Export()
@@ -95,13 +110,17 @@ namespace Treasured.UnitySdk
             }
 
             var meshToCombineDictionary = PrepareMeshForExport();
-
+            
             //  Combining meshes
             CombineAllMeshes(meshToCombineDictionary.Values.ToList(), Map.transform);
         }
 
-        public Dictionary<int, GameObject> PrepareMeshForExport()
+        public Dictionary<int,GameObject> PrepareMeshForExport()
         {
+#if UNITY_EDITOR
+            EditorUtility.DisplayProgressBar("Preparing Mesh", "Processing all the meshes in progress..", 0.5f);
+#endif
+            
             Dictionary<int, GameObject> meshToCombineDictionary = new Dictionary<int, GameObject>();
             filterTag = includeTags ^ excludeTags;
 
@@ -151,8 +170,21 @@ namespace Treasured.UnitySdk
 
             var rootGameObjects = SceneManager.GetActiveScene().GetRootGameObjects();
 
+            var totalGameObjects = rootGameObjects.Length;
+            var currentIndex = 0;
+            
             foreach (var gameObject in rootGameObjects)
             {
+#if UNITY_EDITOR
+                if (EditorUtility.DisplayCancelableProgressBar("Preparing Mesh", "Filtering mesh in progress..",
+                    currentIndex / totalGameObjects))
+                {
+                    throw new ApplicationException("Export Canceled by the user");
+                }
+#endif
+                
+                currentIndex++;
+                
                 //  If gameObject is disabled then skip adding it to export
                 if (!gameObject.activeInHierarchy)
                 {
@@ -270,6 +302,9 @@ namespace Treasured.UnitySdk
                 }
             }
 
+#if UNITY_EDITOR
+            EditorUtility.ClearProgressBar();
+#endif
             return meshToCombineDictionary;
         }
 
@@ -301,8 +336,21 @@ namespace Treasured.UnitySdk
                 UVComponentCount = 0
             };
 
+            var totalGameObjects = meshToCombine.Count;
+            var currentIndex = 0;
+            
             foreach (var meshGameObject in meshToCombine)
             {
+#if UNITY_EDITOR
+                if (EditorUtility.DisplayCancelableProgressBar("Combining Mesh", "Mesh combining in progress..",
+                    currentIndex / totalGameObjects))
+                {
+                    throw new ApplicationException("Export Canceled by the user");
+                }
+#endif
+
+                currentIndex++;
+                
                 if (ContainsValidRenderer(meshGameObject) && meshGameObject.TryGetComponent(out MeshFilter filter))
                 {
                     //  Check if sharedMesh is not null
@@ -410,60 +458,21 @@ namespace Treasured.UnitySdk
             {
                 _gltfSceneExporter.GLBSaved += OnGLBSaved;
 
+#if UNITY_EDITOR
+                EditorUtility.DisplayProgressBar("Converting to Glb format", "Mesh Conversion in Progress..", 0.5f);
+#endif
+                
                 _gltfSceneExporter.SaveGLB(Path.Combine(Map.exportSettings.OutputDirectory), "scene");
             }
         }
 
         private async void OnGLBSaved()
         {
+#if UNITY_EDITOR
+            EditorUtility.ClearProgressBar();
+#endif
+            
             _gltfSceneExporter.GLBSaved -= OnGLBSaved;
-
-            //  Check if the exported glb should be optimized
-            if (shouldOptimizeMesh)
-            {
-                var glbFilePath = Path.Combine(Map.exportSettings.OutputDirectory, "scene.glb");
-
-                //  Check if scene.glb file is present
-                if (!File.Exists(glbFilePath))
-                {
-                    Debug.LogError("Scene.glb file does not exists. Mesh will not be optimized.");
-                    return;
-                }
-
-                //  Wait for 1 sec to finish writing scene.glb file
-                await Task.Delay(1000);
-
-                // Run `treasured optimize` to optimize the glb file
-                var npmProcess = ProcessUtilities.CreateProcess("treasured optimize scene.glb");
-
-                string stdOutput = "";
-                string stdError = "";
-                try
-                {
-                    npmProcess.Start();
-                    stdOutput = npmProcess.StandardOutput.ReadToEnd();
-                    stdError = npmProcess.StandardError.ReadToEnd();
-                    npmProcess.WaitForExit();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError(e.Message);
-                }
-                finally
-                {
-                    if (!string.IsNullOrEmpty(stdOutput))
-                    {
-                        Debug.Log(stdOutput);
-                    }
-
-                    if (!string.IsNullOrEmpty(stdError))
-                    {
-                        Debug.LogError(stdError);
-                    }
-
-                    npmProcess.Dispose();
-                }
-            }
         }
 
         private string RetrieveTexturePath(Texture texture)

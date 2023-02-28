@@ -5,13 +5,14 @@ using UnityEngine.Serialization;
 
 namespace Treasured.UnitySdk
 {
-    [API("text")]
+    [API("showText")]
     public class TextAction : ScriptableAction
     {
         public const string kPattern = "[^\\w]";
         public const int kAverageWordsReadPerSecond = 3;
 
         [TextArea(3, 3)]
+        [JsonProperty("content")]
         public string message;
 
         [JsonIgnore]
@@ -20,6 +21,9 @@ namespace Treasured.UnitySdk
         [Tooltip("Text display duration in seconds.")]
         [FormerlySerializedAs("_duration")]
         public int duration;
+
+        [Preset("dialogue", "fade")]
+        public string style = "fade";
 
         /// <summary>
         /// Modified duration based on message in milliseconds.

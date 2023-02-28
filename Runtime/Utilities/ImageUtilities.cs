@@ -70,6 +70,7 @@ namespace Treasured.UnitySdk
         /// Convert all PNG files under root directory to KTX2
         /// </summary>
         /// <param name="rootDirectory">Root Directory of PNG images folder</param>
+        [Obsolete]
         public static void ConvertToKTX2(string rootDirectory)
         {
             if (string.IsNullOrWhiteSpace(rootDirectory))
@@ -117,12 +118,6 @@ namespace Treasured.UnitySdk
             {
                 ktxProcess?.Dispose();
             }
-#if UNITY_EDITOR
-            if (!canceled)
-            {
-                UnityEditor.EditorUtility.DisplayDialog("Encoding Completed", $"Encoding to KTX2 completed.", "OK");
-            }
-#endif
         }
 
         public static void Encode(Texture2D texture, string directory, string fileName, ImageFormat format, int imageQualityPercentage = 100)
