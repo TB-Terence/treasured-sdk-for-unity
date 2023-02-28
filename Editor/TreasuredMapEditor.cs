@@ -474,8 +474,7 @@ namespace Treasured.UnitySdk
                         {
                             Exporter.Export(_map);
 
-                            var exporters = ReflectionUtils.GetSerializedFieldValuesOfType<Exporter>(_map);
-                            if (exporters.Any(result => (result is CubemapExporter || result is MeshExporter) && result.enabled))
+                            if(_map.cubemapExporter.enabled || _map.meshExporter.enabled)
                             {
                                 string argument;
                                 
@@ -510,8 +509,6 @@ namespace Treasured.UnitySdk
                                     }
 
                                     stdOutput = npmProcess.StandardOutput.ReadToEnd();
-
-                                    // EditorUtility.DisplayDialog("Export Finished", $"Scene export finished.", "OK");
                                 }
                                 catch (OperationCanceledException e)
                                 {
