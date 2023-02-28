@@ -7,18 +7,19 @@ namespace Treasured.UnitySdk
 {
     [CustomEditor(typeof(Interactable))]
     [CanEditMultipleObjects]
-    internal class InteractableEditor : UnityEditor.Editor
+    [ComponentCard("Interactable", "Interactables are used to allow the user to click to interact with the scene in the browser.", "", "https://www.notion.so/treasured/Interactables-b34a557d38fa41af94062bfd6bd48fc3")]
+    internal class InteractableEditor : TreasuredObjectEditor
     {
         private ActionGroupListDrawer onClickListDrawer;
         private SerializedProperty button;
         private SerializedProperty hitbox;
         private SerializedProperty actionGraph;
 
-        private TreasuredMap map;
         private SerializedObject serializedHitboxTransform;
 
-        private void OnEnable()
+        protected override void OnEnable()
         {
+            base.OnEnable();
             map = (target as Interactable).Map;
             (target as Interactable).TryInvokeMethods("OnSelectedInHierarchy");
             button = serializedObject.FindProperty(nameof(TreasuredObject.button));
@@ -37,11 +38,7 @@ namespace Treasured.UnitySdk
 
         public override void OnInspectorGUI()
         {
-            if (map == null)
-            {
-                EditorGUILayout.LabelField(HotspotEditor.Styles.missingMapComponent);
-                return;
-            }
+            base.OnInspectorGUI();
             serializedObject.Update();
             EditorGUILayout.PropertyField(button);
             EditorGUILayoutUtils.ComponentTransformPropertyField(hitbox, serializedHitboxTransform, "Hitbox");
@@ -73,6 +70,7 @@ namespace Treasured.UnitySdk
 
         private void OnSceneViewGUI(SceneView view)
         {
+            return;
             if (target is Interactable interactable && interactable.Hitbox != null)
             {
                 Matrix4x4 matrix = Handles.matrix;

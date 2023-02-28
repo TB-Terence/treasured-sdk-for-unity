@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
-using Treasured.UnitySdk.Utilities;
 using Treasured.UnitySdk.Validation;
 using UnityEditor;
 using UnityEditor.PackageManager;
-using UnityEditorInternal;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
 namespace Treasured.UnitySdk
 {
@@ -33,14 +30,11 @@ namespace Treasured.UnitySdk
         }
 
         [MenuItem("CONTEXT/TreasuredMap/Reset Migrate Info")]
-        static void DoubleMass(MenuCommand command)
+        static void ResetMigrateInfo(MenuCommand command)
         {
             TreasuredMap map = (TreasuredMap)command.context;
             map.migrateInfo.shouldMigrate = true;
         }
-
-        private static readonly string[] selectableObjectListNames = new string[]
-            { "Hotspots", "Interactables", "Videos", "Sounds", "HTML Embeds" };
 
         class TreasuredMapGizmosSettings
         {
@@ -115,6 +109,7 @@ namespace Treasured.UnitySdk
                 fixedWidth = 1
             };
 
+            public static readonly GUIContent ToolDescription = new GUIContent("Treasured is a tool to help you create and export your Unity scenes to the web. For more information, visit treasured.dev for more info");
 
             private static GUIStyle tabButton;
 
@@ -238,31 +233,33 @@ namespace Treasured.UnitySdk
         private TabGroupState[] _tabGroupStates;
         private int _selectedTabIndex = 1;
         private FoldoutGroupState[] _foldoutGroupStates;
-        private TreasuredMap _map;
-        private Editor _exportSettingsEditor;
-        private Editor[] _exporterEditors;
-        private List<Hotspot> _hotspots;
 
-        private Editor graphEditor;
+        private TreasuredMap _map;
+        private Exporter[] _exporters;
+        private List<Hotspot> _hotspots;
+        private Editor editor1;
 
         private Process _npmProcess;
+
+        private Dictionary<UnityEngine.Object, Editor> _cachedEditors = new Dictionary<UnityEngine.Object, Editor>();
+
+        private bool _backgroudMusicExpanded = true;
 
         public void OnEnable()
         {
             _selectedTabIndex = SessionState.GetInt(SelectedTabIndexKey, _selectedTabIndex);
             _map = target as TreasuredMap;
             _hotspots = new List<Hotspot>(_map.Hotspots);
-            InitializeSettings();
-            InitializeExporters();
+            InitializeScriptableObjects();
+            CreateCachedEditors();
             InitializeTabGroups();
             InitializeObjectList();
-            InitializeGuidedTour();
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
             Migrate();
             try
             {
-                var process = Process.GetProcessById(_map.processId);
+                var process = Process.GetProcessById(SessionState.GetInt(SessionKeys.CLIProcessId, -1));
                 _npmProcess = process.HasExited ? null : process;
             }
             catch (Exception)
@@ -287,13 +284,11 @@ namespace Treasured.UnitySdk
             foreach (TreasuredObject obj in objects)
             {
                 // initialize graph
-                if(obj.actionGraph == null)
+                if (obj.actionGraph == null)
                 {
                     obj.actionGraph = new Treasured.Actions.ActionGraph();
                 }
-
-                var onSelect = obj.actionGraph.GetActionGroup("onSelect");
-                if (onSelect != null)
+                if (obj.actionGraph.TryGetActionGroup("onSelect", out var onSelect))
                 {
                     onSelect.Clear();
                 }
@@ -326,11 +321,10 @@ namespace Treasured.UnitySdk
                         }
                     }
                 }
-                
+
                 if (obj is Interactable interactable)
                 {
-                    var onHover = obj.actionGraph.GetActionGroup("onHover");
-                    if (onHover != null)
+                    if (obj.actionGraph.TryGetActionGroup("onHover", out var onHover))
                     {
                         onHover.Clear();
                     }
@@ -370,47 +364,39 @@ namespace Treasured.UnitySdk
             serializedObject.Update();
         }
 
-        private void InitializeSettings()
+        private void InitializeScriptableObjects()
         {
-            SerializedProperty exportSettings = serializedObject.FindProperty(nameof(TreasuredMap.exportSettings));
-            if (exportSettings.objectReferenceValue == null)
+            var pairs = ReflectionUtilities.GetSerializableFieldValuesOfType<ScriptableObject>(_map);
+            foreach (var pair in pairs)
             {
-                exportSettings.objectReferenceValue = ScriptableObject.CreateInstance<ExportSettings>();
+                if (pair.IsNull())
+                {
+                    pair.SetValue(ScriptableObject.CreateInstance(pair.FieldInfo.FieldType));
+                }
+                if (pair.GetValue() is Exporter exporter && exporter.Map != _map)
+                {
+                    exporter.Map = _map;
+                }
             }
-
-            Editor.CreateCachedEditor(exportSettings.objectReferenceValue, null, ref _exportSettingsEditor);
-            serializedObject.ApplyModifiedProperties();
         }
 
-        private void InitializeExporters()
+        private void CreateCachedEditors()
         {
-            // Find all serializable exporter
-            FieldInfo[] exporterFields = typeof(TreasuredMap)
-                .GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(x =>
-                    typeof(Exporter).IsAssignableFrom(x.FieldType) &&
-                    (x.IsPublic || (x.IsPrivate && x.IsDefined(typeof(SerializeField))))).ToArray();
-            _exporterEditors = new Editor[exporterFields.Length];
-            for (int i = 0; i < exporterFields.Length; i++)
+            // Create editors for export setting
+            _cachedEditors[_map.exportSettings] = Editor.CreateEditor(_map.exportSettings);
+            // Create editors for exporters
+            var exporters = ReflectionUtilities.GetSerializableFieldValuesOfType<Exporter>(target, false);
+            _exporters = exporters.Select(exporter => exporter.GetValueAs<Exporter>()).ToArray();
+            foreach (var exporter in _exporters)
             {
-                FieldInfo fi = exporterFields[i];
-                SerializedProperty exporterProperty = serializedObject.FindProperty(fi.Name);
-                if (exporterProperty.objectReferenceValue == null)
-                {
-                    exporterProperty.objectReferenceValue = ScriptableObject.CreateInstance(fi.FieldType);
-                }
-
-                SerializedObject exporterObject = new SerializedObject(exporterProperty.objectReferenceValue);
-                SerializedProperty mapProperty = exporterObject.FindProperty("_map");
-                if (mapProperty.objectReferenceValue == null)
-                {
-                    mapProperty.objectReferenceValue = target;
-                }
-
-                exporterObject.ApplyModifiedProperties();
-                Editor.CreateCachedEditor(exporterProperty.objectReferenceValue, null, ref _exporterEditors[i]);
+                _cachedEditors[exporter] = Editor.CreateEditor(exporter);
             }
-
-            serializedObject.ApplyModifiedProperties();
+            // Create editor for guided tour graph
+            _cachedEditors[_map.graph] = Editor.CreateEditor(_map.graph);
+            if (_cachedEditors[_map.graph] is GuidedTourGraphEditor editor)
+            {
+                editor.Map = _map;
+            }
         }
 
         private void InitializeTabGroups()
@@ -451,28 +437,12 @@ namespace Treasured.UnitySdk
             }
         }
 
-        private void InitializeGuidedTour()
-        {
-            SerializedProperty sp = serializedObject.FindProperty(nameof(TreasuredMap.graph));
-            if (sp.objectReferenceValue.IsNullOrNone())
-            {
-                sp.objectReferenceValue = ScriptableObject.CreateInstance<GuidedTourGraph>();
-                sp.serializedObject.ApplyModifiedProperties();
-            }
-
-            graphEditor = Editor.CreateEditor(sp.objectReferenceValue);
-            if (graphEditor is GuidedTourGraphEditor editor)
-            {
-                editor.Map = _map;
-            }
-        }
-
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
 
             Texture2D TreasuredLogo = Resources.Load<Texture2D>("Treasured_Logo");
-            GUILayout.Space(10);
+            EditorGUILayout.Space(10);
             using (new EditorGUILayout.HorizontalScope())
             {
                 GUILayout.FlexibleSpace();
@@ -489,9 +459,7 @@ namespace Treasured.UnitySdk
             }
 
             GUILayout.Space(10);
-            GUILayout.Label(
-                "Treasured is a tool to help you create and export your Unity scenes to the web. For more information, visit treasured.dev for more info",
-                Styles.centeredLabel);
+            GUILayout.Label(Styles.ToolDescription, Styles.centeredLabel);
             GUILayout.Space(10);
 
             // Draw Directory, Export and Play buttons
@@ -522,7 +490,6 @@ namespace Treasured.UnitySdk
                         try
                         {
                             Exporter.Export(_map);
-
                             if(_map.cubemapExporter.enabled || _map.meshExporter.enabled)
                             {
                                 string argument;
@@ -578,7 +545,6 @@ namespace Treasured.UnitySdk
                                     EditorUtility.ClearProgressBar();
                                 }
                             }
-                            
                             EditorUtility.DisplayDialog("Export Finished", $"Scene export finished.", "OK");
                         }
                         catch (ValidationException e)
@@ -704,7 +670,7 @@ namespace Treasured.UnitySdk
                                             $"treasured dev {_map.exportSettings.folderName}");
                                     _npmProcess.Start();
 
-                                    _map.processId = _npmProcess.Id;
+                                    SessionState.SetInt(SessionKeys.CLIProcessId, _npmProcess.Id);
 
                                     UnityEditor.EditorApplication.quitting -= () => ProcessUtilities.KillProcess(_npmProcess);
                                     UnityEditor.EditorApplication.quitting += () => ProcessUtilities.KillProcess(_npmProcess);
@@ -746,10 +712,9 @@ namespace Treasured.UnitySdk
                     }
                 }
 
+
                 GUILayout.FlexibleSpace();
             }
-
-            GUILayout.Space(20);
 
             using (var scope = new EditorGUI.ChangeCheckScope())
             {
@@ -812,13 +777,6 @@ namespace Treasured.UnitySdk
                     using (new GUILayout.HorizontalScope())
                     {
                         state.expanded = EditorGUILayout.Foldout(state.expanded, new GUIContent(state.groupName), true);
-                        if (GUILayout.Button(
-                                EditorGUIUtility.TrIconContent("Toolbar Plus",
-                                    $"Create new {ObjectNames.NicifyVariableName(state.type.Name)}"),
-                                EditorStyles.label, GUILayout.Width(20)))
-                        {
-                            state.objects.Add((target as TreasuredMap).CreateObject(state.type));
-                        }
                     }
 
                     if (state.expanded)
@@ -985,27 +943,26 @@ namespace Treasured.UnitySdk
                 return;
             }
 
-            graphEditor.OnInspectorGUI();
+            _cachedEditors[_map.graph].OnInspectorGUI();
         }
 
         [TabGroup(groupName = "Export Settings")]
         private void OnExportGUI()
         {
-            _exportSettingsEditor.serializedObject.Update();
-            _exportSettingsEditor.OnInspectorGUI();
-            _exportSettingsEditor.serializedObject.ApplyModifiedProperties();
-            try
+            EditorGUI.BeginChangeCheck();
+            _cachedEditors[_map.exportSettings].OnInspectorGUI();
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField("Exporter Settings", EditorStyles.boldLabel);
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button(new GUIContent("Reset to Default",
+                    "Reset all exporter settings to Default Preferences")))
             {
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.LabelField("Exporter Settings", EditorStyles.boldLabel);
-                GUILayout.FlexibleSpace();
-                if (GUILayout.Button(new GUIContent("Reset to Default",
-                        "Reset all exporter settings to Default Preferences")))
+                try
                 {
-                    foreach (var editor in _exporterEditors)
+                    foreach (var exporter in _exporters)
                     {
-                        var source = TreasuredSDKPreferences.Instance.exporters.FirstOrDefault(exporter =>
-                            exporter.GetType() == editor.target.GetType());
+                        var source = TreasuredSDKPreferences.Instance.exporters.FirstOrDefault(e =>
+                            e.GetType() == exporter.GetType());
                         if (source == null)
                         {
                             continue;
@@ -1015,39 +972,26 @@ namespace Treasured.UnitySdk
                         SerializedProperty current = serializedObject.GetIterator();
                         while (current.Next(true))
                         {
-                            editor.serializedObject.CopyFromSerializedProperty(current);
+                            _cachedEditors[exporter].serializedObject.CopyFromSerializedProperty(current);
                         }
-
-                        // set _map for the exporter
-                        editor.serializedObject.FindProperty("_map").objectReferenceValue = _map;
-                        editor.serializedObject.ApplyModifiedProperties();
+                        _cachedEditors[exporter].serializedObject.ApplyModifiedProperties();
                     }
                 }
-
-                EditorGUILayout.EndHorizontal();
-                using (new EditorGUI.IndentLevelScope(1))
+                catch (Exception e)
                 {
-                    for (int i = 0; i < _exporterEditors.Length; i++)
-                    {
-                        Editor editor = _exporterEditors[i];
-                        editor.serializedObject.Update();
-                        var exporter = (editor.serializedObject.targetObject as Exporter);
-                        EditorGUI.BeginChangeCheck();
-                        using (var scope = new ExporterEditor.ExporterScope(exporter))
-                        {
-                            editor.OnInspectorGUI();
-                        }
-
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            editor.serializedObject.ApplyModifiedProperties();
-                        }
-                    }
+                    throw e;
                 }
             }
-            catch (Exception e)
+            EditorGUILayout.EndHorizontal();
+            using (new EditorGUI.IndentLevelScope(1))
             {
-                throw e;
+                foreach (var exporter in _exporters)
+                {
+                    using (var scope = new ExporterEditor.ExporterScope(_cachedEditors[exporter].serializedObject.FindProperty(nameof(Exporter.enabled))))
+                    {
+                        _cachedEditors[exporter].OnInspectorGUI();
+                    }
+                }
             }
         }
 
@@ -1061,20 +1005,21 @@ namespace Treasured.UnitySdk
 
         private void OnSceneViewGUI(SceneView view)
         {
+            return;
             if (SceneView.lastActiveSceneView.size == 0.01f) // this happens when TreasuredObject is selected
             {
                 return;
             }
 
-            for (int i = 0; i < _hotspots.Count; i++)
+            for (int i = 0; i < _map.Hotspots.Length; i++)
             {
-                Hotspot current = _hotspots[i];
+                Hotspot current = _map.Hotspots[i];
                 if (!current.gameObject.activeSelf)
                 {
                     continue;
                 }
 
-                Hotspot next = GetNextActiveHotspot(i, _hotspots);
+                Hotspot next = GetNextActiveHotspot(i, _map.Hotspots);
 
                 Transform hitboxTransform = current.Hitbox.transform;
                 Transform cameraTransform = current.Camera.transform;
@@ -1085,7 +1030,7 @@ namespace Treasured.UnitySdk
                     Handles.DrawDottedLine(hitboxTransform.position, cameraTransform.position, 5);
                 }
 
-                if (!_map.Loop && i == _hotspots.Count - 1)
+                if (!_map.Loop && i == _map.Hotspots.Length - 1)
                 {
                     continue;
                 }

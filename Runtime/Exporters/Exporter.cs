@@ -21,7 +21,7 @@ namespace Treasured.UnitySdk
         public bool enabled = true;
 
         [JsonIgnore]
-        public TreasuredMap Map { get => _map; }
+        public TreasuredMap Map { get => _map; set => _map = value; }
 
         public virtual List<ValidationResult> CanExport()
         {
@@ -42,11 +42,11 @@ namespace Treasured.UnitySdk
 
         public static void Export(TreasuredMap map)
         {
-            var exporters = ReflectionUtils.GetSerializedFieldValuesOfType<Exporter>(map);
+            var exporters = ReflectionUtilities.GetSerializableFieldValuesOfType<Exporter>(map);
             List<ValidationResult> validationResults = new List<ValidationResult>();
             foreach (var exporter in exporters)
             {
-                var results = exporter.CanExport();
+                var results = exporter.GetValueAs<Exporter>().CanExport();
                 if(results != null)
                 {
                     validationResults.AddRange(results);
@@ -65,16 +65,17 @@ namespace Treasured.UnitySdk
             {
                 throw new ArgumentException($"Export Settings > Folder Name is empty.");
             }
-            var exporters = ReflectionUtils.GetSerializedFieldValuesOfType<Exporter>(map);
+            var exporterPairs = ReflectionUtilities.GetSerializableFieldValuesOfType<Exporter>(map);
             DataValidator.ValidateMap(map);
             var exportPath = Path.Combine(map.exportSettings.OutputDirectory);
             if (!Directory.Exists(exportPath))
             {
                 Directory.CreateDirectory(exportPath); // try create the directory if not exist.
             }
-            foreach (var exporter in exporters)
+            foreach (var pair in exporterPairs)
             {
-                if (exporter != null && exporter.enabled)
+                var exporter = pair.GetValueAs<Exporter>();
+                if (!exporter.IsNullOrNone() && exporter.enabled)
                 {
                     try
                     {

@@ -20,6 +20,13 @@ namespace Treasured.UnitySdk
             return (T)CreateObject(map, typeof(T));
         }
 
+        /// <summary>
+        /// Creates an object under <paramref name="map"/> with proper hierarchy setup.
+        /// </summary>
+        /// <param name="map"></param>
+        /// <param name="t"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentException"></exception>
         public static TreasuredObject CreateObject(this TreasuredMap map, Type t)
         {
             if (!typeof(TreasuredObject).IsAssignableFrom(t))

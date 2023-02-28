@@ -14,32 +14,31 @@ namespace Treasured.Actions
         
         public ScriptableActionCollection AddActionGroup(string groupName)
         {
-            var group = GetActionGroup(groupName);
-            if (group != null)
+            if (!TryGetActionGroup(groupName, out var group))
             {
-                return group;
+                group = new ScriptableActionCollection
+                {
+                    name = groupName
+                };
+                _groups.Add(group);
             }
-            group = new ScriptableActionCollection
-            {
-                name = groupName
-            };
-            _groups.Add(group);
             return group;
         }
 
-        public ScriptableActionCollection GetActionGroup(string groupName)
+        public bool TryGetActionGroup(string groupName, out ScriptableActionCollection group)
         {
-            return _groups.FirstOrDefault(group => group.name == groupName);
+            group = _groups.FirstOrDefault(group => group.name == groupName);
+            return group != null;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="groupName"></param>
+        /// <returns>Returns true if group is removed. </returns>
         public bool RemoveActionGroup(string groupName)
         {
-            var group = GetActionGroup(groupName);
-            if (group != null)
-            {
-               return _groups.Remove(group);
-            }
-            return false;
+            return TryGetActionGroup(groupName, out var group) && _groups.Remove(group);
         }
 
         public IEnumerable<ScriptableActionCollection> GetGroups()

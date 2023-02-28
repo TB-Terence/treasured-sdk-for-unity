@@ -89,7 +89,7 @@ namespace Treasured.UnitySdk.Utilities
             return obj;
         }
         
-        private static object GetValue_Imp(object source, string name)
+        internal static object GetValue_Imp(object source, string name)
         {
             if (source == null)
             {
@@ -117,8 +117,8 @@ namespace Treasured.UnitySdk.Utilities
 
             return null;
         }
-        
-        private static object GetValue_Imp(object source, string name, int index)
+
+        internal static object GetValue_Imp(object source, string name, int index)
         {
             IEnumerable enumerable = GetValue_Imp(source, name) as IEnumerable;
             if (enumerable == null)

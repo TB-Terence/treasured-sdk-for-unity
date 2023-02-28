@@ -49,8 +49,8 @@ namespace Treasured.UnitySdk
         public string Description { get => _description; set => _title = _description; }
 
         [SerializeField]
-        [TextArea(3, 3)]
         [JsonProperty("audioUrl")]
+        [TextArea(3, 3)]
         private string _audioUrl;
         [Range(0, 100)]
         public int defaultBackgroundVolume = 100;
@@ -129,8 +129,6 @@ namespace Treasured.UnitySdk
         }
         #endregion
 
-        public int processId;
-
         [Code]
         public string headHTML;
 
@@ -166,15 +164,6 @@ namespace Treasured.UnitySdk
             if (_templateLoader != null && _templateLoader.template != "modern")
             {
                 _templateLoader.autoCameraRotation = false;
-            }
-        }
-
-        private void Reset()
-        {
-            var fields = ReflectionUtils.GetSeriliazedFieldReferences(this, false).Where(x => typeof(ScriptableObject).IsAssignableFrom(x.fieldInfo.FieldType));
-            foreach (var field in fields)
-            {
-                field.SetValue(ScriptableObject.CreateInstance(field.fieldInfo.FieldType));
             }
         }
     }

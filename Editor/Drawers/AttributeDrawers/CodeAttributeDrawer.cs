@@ -112,13 +112,13 @@ namespace Treasured.UnitySdk
                 }
             }
 
-            [Button]
+            [Button("Copy")]
             void Copy()
             {
                 GUIUtility.systemCopyBuffer = serializedProperty.stringValue;
             }
 
-            [Button]
+            [Button("Paste")]
             void Paste()
             {
                 serializedProperty.stringValue = GUIUtility.systemCopyBuffer;

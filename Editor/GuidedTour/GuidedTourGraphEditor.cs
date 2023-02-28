@@ -42,13 +42,11 @@ namespace Treasured.UnitySdk
                     this.Close();
                     return;
                 }
-                serializedObject.Update();
                 using (var scope = new EditorGUILayout.ScrollViewScope(_scrollPosition))
                 {
                     _scrollPosition = scope.scrollPosition;
                     EditorGUIUtils.DrawPropertiesExcluding(serializedObject, "m_Script");
                 }
-                serializedObject.ApplyModifiedProperties();
             }
         }
 
@@ -107,8 +105,7 @@ namespace Treasured.UnitySdk
                         {
                             rotation = hotspot.Camera.transform.rotation
                         });
-                        var onSelect = hotspot.actionGraph.GetActionGroup("onSelect");
-                        if (onSelect == null) continue;
+                        if (!hotspot.actionGraph.TryGetActionGroup("onSelect", out var onSelect)) continue;
                         foreach (var action in onSelect)
                         {
                             tour.actionScripts.Add(action);
