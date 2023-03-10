@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 namespace Treasured.UnitySdk
 {
-    [EditorTool("Treasured Scene Tool", typeof(TreasuredScene))]
+    //[EditorTool("Treasured Scene Tool", typeof(TreasuredMap))]
     class TreasuredSceneTool : EditorTool, IDrawSelectedHandles
     {
         static class Styles
@@ -31,7 +31,7 @@ namespace Treasured.UnitySdk
         static string[] ObjectTypeNames;
 
         int selectedIndex;
-        TreasuredScene scene;
+        TreasuredMap scene;
         TreasuredObject selection;
         bool showPath;
         Rect windowRect = new Rect(10, 100, 100, 200);
@@ -50,7 +50,7 @@ namespace Treasured.UnitySdk
         {
             // Allocate unmanaged resources or perform one-time set up functions here
             ObjectTypeNames = ObjectTypeNames = ObjectTypes.Select(t => ObjectNames.NicifyVariableName(t.Name)).ToArray();
-            scene = target as TreasuredScene;
+            scene = target as TreasuredMap;
         }
 
         void OnDisable()
@@ -62,7 +62,7 @@ namespace Treasured.UnitySdk
         [Shortcut("Activate Treasured Scene Tool", typeof(SceneView), KeyCode.T, ShortcutModifiers.Action)]
         static void PlatformToolShortcut()
         {
-            if (Selection.GetFiltered<TreasuredScene>(SelectionMode.TopLevel).Length > 0)
+            if (Selection.GetFiltered<TreasuredMap>(SelectionMode.TopLevel).Length > 0)
                 ToolManager.SetActiveTool<TreasuredSceneTool>();
             else
                 Debug.Log("No scene selected!");
@@ -137,7 +137,7 @@ namespace Treasured.UnitySdk
                         Handles.DrawDottedLine(hitboxTransform.position, cameraTransform.position, 5);
                     }
 
-                    if (!scene.sceneInfo.loop && i == hotspots.Length - 1)
+                    if (!scene.Loop && i == hotspots.Length - 1)
                     {
                         continue;
                     }
@@ -167,7 +167,7 @@ namespace Treasured.UnitySdk
             Hotspot next = list[(index + 1) % list.Count];
             while (next != current)
             {
-                if (index == list.Count - 1 && !scene.sceneInfo.loop)
+                if (index == list.Count - 1 && !scene.Loop)
                 {
                     return null;
                 }
@@ -200,7 +200,7 @@ namespace Treasured.UnitySdk
             {
                 throw new ArgumentException($"Type dismatch. {t.Name} is not a type of TreasuredObject.");
             }
-            TreasuredScene scene = (target as TreasuredScene);
+            TreasuredMap scene = (target as TreasuredMap);
             if (scene == null)
             {
                 return null;
@@ -244,6 +244,12 @@ namespace Treasured.UnitySdk
     {
         public static class Styles
         {
+            public struct GUIContentWithType
+            {
+                public Type type;
+                public GUIContent guiContent;
+            }
+
             public static readonly GUIContent snapToGround = EditorGUIUtility.TrTextContent("Snap on ground", "Snap the object slightly above the ground from camera position. This also snap the first box collider to the ground based on the size.");
             public static readonly GUIContent recordingText = new GUIContent("Click on the scene to change the default view for Hotspot");
             public static readonly GUIStyle pathLabel = new GUIStyle(EditorStyles.linkLabel)
@@ -262,9 +268,21 @@ namespace Treasured.UnitySdk
             {
                 wordWrap = true
             };
+
+            public static readonly GUIContent[] icons = new GUIContent[]
+                {
+                EditorGUIUtility.TrIconContent(Resources.Load<Texture2D>("Hotspot"), "Hotspot"),
+                EditorGUIUtility.TrIconContent("GameObject On Icon", "Interactable"),
+                EditorGUIUtility.TrIconContent("d_SceneViewAudio", "Sound Source"),
+                EditorGUIUtility.TrIconContent("d_Profiler.Video", "Video Renderer"),
+                EditorGUIUtility.TrIconContent("d_BuildSettings.WebGL", "HTML Embed")
+                };
+
+            public static readonly GUIContent logo = new GUIContent(Resources.Load<Texture2D>("Treasured_Logo"));
         }
-        private static readonly Type[] ObjectTypes = new Type[] { typeof(Hotspot), typeof(Interactable), typeof(SoundSource), typeof(VideoRenderer) };
-        private static string[] ObjectTypeNames;
+
+        private static readonly Type[] ObjectTypes = new Type[] { typeof(Hotspot), typeof(Interactable), typeof(SoundSource), typeof(VideoRenderer), typeof(HTMLEmbed) };
+        //private static string[] ObjectTypeNames;
 
 
         [MenuItem("Tools/Treasured/Scene Builder", priority = 0)]
@@ -276,7 +294,7 @@ namespace Treasured.UnitySdk
             return window;
         }
 
-        public static void ShowWindow(TreasuredScene scene)
+        public static void ShowWindow(TreasuredMap scene)
         {
             var window = ShowWindow();
             window.scene = scene;
@@ -296,8 +314,7 @@ namespace Treasured.UnitySdk
             public GizmosState hitbox = new GizmosState() { color = Color.green };
         }
 
-        public TreasuredScene scene;
-        SceneView sceneView;
+        public TreasuredMap scene;
 
         ToolMode toolMode;
         int selectedTypeIndex;
@@ -332,8 +349,10 @@ namespace Treasured.UnitySdk
 
         private void OnEnable()
         {
-            ObjectTypeNames = ObjectTypeNames = ObjectTypes.Select(t => ObjectNames.NicifyVariableName(t.Name)).ToArray();
-            sceneView = SceneView.lastActiveSceneView;
+            if (Selection.activeGameObject.TryGetComponent<TreasuredMap>(out var map) || !(map = Selection.activeGameObject.GetComponentInParent<TreasuredMap>()).IsNullOrNone())
+            {
+                scene = map;
+            }
             ShowSceneViewNotification(new GUIContent("Click on where you want to place the object."), 1.5f);
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
@@ -353,7 +372,8 @@ namespace Treasured.UnitySdk
             //    ListItem item = (ListItem)objectList.list[index];
             //    item.Enabled = EditorGUI.ToggleLeft(rect, item.target.name, item.Enabled);
             //};
-            //toolMode = ToolMode.Create;
+            toolMode = ToolMode.Create;
+            OnSelectionChange();
         }
 
         private void OnDisable()
@@ -371,7 +391,7 @@ namespace Treasured.UnitySdk
             switch (selection)
             {
                 case Hotspot hotspot:
-                    Handles.DrawCamera(new Rect(Screen.width - 110, Screen.height - 130, 100, 100), Camera.main);
+                    //Handles.DrawCamera(new Rect(Screen.width - 110, Screen.height - 130, 100, 100), Camera.main);
                     break;
                 default:
                     break;
@@ -456,40 +476,43 @@ namespace Treasured.UnitySdk
             {
                 scene = CreateNewTreasuredScene();
             }
-            scene = (TreasuredScene)EditorGUILayout.ObjectField(new GUIContent("Scene"), scene, typeof(TreasuredScene), true);
+            scene = (TreasuredMap)EditorGUILayout.ObjectField(new GUIContent("Scene"), scene, typeof(TreasuredMap), true);
             if (scene == null)
             {
                 EditorGUILayout.LabelField("You have not selected a scene yet. Please choose one from the hierarchy or create a new scene.", Styles.centeredGreyMiniLabel, GUILayout.ExpandHeight(true));
                 return;
             }
-
-            toolMode = (ToolMode)EditorGUILayout.EnumPopup("Mode", toolMode);
-
+            if (GUILayout.Button("Select All Hitbox"))
+            {
+                Selection.objects = scene.Hotspots.Select(hs => hs.Hitbox.gameObject).ToArray();
+            }
+            if (GUILayout.Button("Select All Camera"))
+            {
+                Selection.objects = scene.Hotspots.Select(hs => hs.Camera.gameObject).ToArray();
+            }
             using (new EditorGUILayout.HorizontalScope())
             {
-                EditorGUILayout.PrefixLabel("Create", EditorStyles.boldLabel);
+                EditorGUILayout.PrefixLabel("Object Type", EditorStyles.boldLabel);
                 EditorGUI.indentLevel++;
                 EditorGUI.BeginChangeCheck();
-                selectedTypeIndex = GUILayout.SelectionGrid(selectedTypeIndex, ObjectTypeNames, 2, Styles.radioButton);
+                selectedTypeIndex = GUILayout.SelectionGrid(selectedTypeIndex, Styles.icons, Styles.icons.Length, EditorStyles.toolbarButton, GUILayout.Width(150f));
                 if (EditorGUI.EndChangeCheck())
                 {
-                    ShowSceneViewNotification(new GUIContent($"Click on where you want to place the {ObjectTypeNames[selectedTypeIndex]}."), 1.5f);
+                    ShowSceneViewNotification(new GUIContent($"Click on where you want to place the {Styles.icons[selectedTypeIndex].tooltip}."), 1.5f);
                 }
                 EditorGUI.indentLevel--;
             }
-            selection = (TreasuredObject)EditorGUILayout.ObjectField(new GUIContent("Selection"), selection, typeof(TreasuredObject), true);
-            if (selection == null)
+            if (GUILayout.Button("Select All"))
             {
-                return;
+                Selection.objects = scene.GetComponentsInChildren(ObjectTypes[selectedTypeIndex]).Select(c => c.gameObject).ToArray();
             }
-            return;
             switch (selection)
             {
                 case TreasuredMap scene:
                     
                     break;
                 case Hotspot hotspot:
-                    EditorGUILayout.LabelField("Controls", EditorStyles.boldLabel);
+                    EditorGUILayout.LabelField("Hitbox Controls", EditorStyles.boldLabel);
                     foreach (var method in ReflectionUtilities.GetMethodsWithAttribute<ControlAttribute>(hotspot))
                     {
                         if (GUILayout.Button(method.attribute.name))
@@ -497,6 +520,12 @@ namespace Treasured.UnitySdk
                             method.methodInfo.Invoke(hotspot, new object[] { });
                         }
                     }
+                    if (GUILayout.Button("Snap to Ground"))
+                    {
+                        hotspot.SnapToGround();
+                    }
+                    EditorGUILayout.LabelField("Camera Controls", EditorStyles.boldLabel);
+                    hotspot.Camera.transform.position = EditorGUILayout.Vector3Field("Position", hotspot.Camera.transform.position);
                     if (GUILayout.Button(toolMode != ToolMode.Record ? "Record" : "Stop Record"))
                     {
                         if(toolMode == ToolMode.Record)
@@ -507,21 +536,25 @@ namespace Treasured.UnitySdk
                         {
                             ShowSceneViewNotification(Styles.recordingText, 5);
                             toolMode = ToolMode.Record;
-                            hotspot.Camera.Preview();
+                            PreviewCamera(hotspot.Camera);
                         }
+                    }
+                    if (GUILayout.Button("Preview Camera"))
+                    {
+                        PreviewCamera(hotspot.Camera);
                     }
                     EditorGUI.indentLevel--;
                     break;
                 case Interactable interactable:
                     break;
             }
-            objectList.DoLayoutList();
+            //objectList.DoLayoutList();
         }
 
         void ShowSceneViewNotification(GUIContent notification, double fadeoutWait)
         {
-            sceneView?.ShowNotification(notification, fadeoutWait);
-            sceneView?.Repaint();
+            SceneView.lastActiveSceneView?.ShowNotification(notification, fadeoutWait);
+            SceneView.lastActiveSceneView?.Repaint();
         }
 
         void CreateObject(Type t)
@@ -544,7 +577,7 @@ namespace Treasured.UnitySdk
             newGO.transform.SetParent(categoryRoot);
             obj.TryInvokeMethods("OnSelectedInHierarchy");
             // Place the new game object on floor if collider found.
-            Camera camera = sceneView?.camera;
+            Camera camera = SceneView.lastActiveSceneView?.camera;
             if (Physics.Raycast(HandleUtility.GUIPointToWorldRay(Event.current.mousePosition), out var hit))
             {
                 obj.transform.position = hit.point;
@@ -560,7 +593,7 @@ namespace Treasured.UnitySdk
             }
             else
             {
-                SceneView.lastActiveSceneView.LookAt(obj.transform.position, camera.transform.rotation);
+                SceneView.lastActiveSceneView?.LookAt(obj.transform.position, camera.transform.rotation);
             }
             EditorGUIUtility.PingObject(obj);
         }
@@ -571,12 +604,12 @@ namespace Treasured.UnitySdk
             switch (toolMode)
             {
                 case ToolMode.Create:
-                    if (selection is TreasuredMap && e.type == EventType.MouseDown && e.button == 0)
+                    if (e.type == EventType.MouseDown && e.button == 0)
                     {
                         if (selectedTypeIndex > -1 && selectedTypeIndex < ObjectTypes.Length)
                         {
                             CreateObject(ObjectTypes[selectedTypeIndex]);
-                            sceneView.Repaint();
+                            SceneView.lastActiveSceneView?.Repaint();
                         }
                     }
                     break;
@@ -588,7 +621,7 @@ namespace Treasured.UnitySdk
                             if (e.button == 0 && selection is Hotspot hotspot)
                             {
                                 hotspot.Camera.transform.rotation = Quaternion.LookRotation(ray.direction);
-                                hotspot.Camera.Preview();
+                                PreviewCamera(hotspot.Camera);
                             }
                             break;
                         case EventType.Layout:
@@ -599,11 +632,16 @@ namespace Treasured.UnitySdk
             }
         }
 
-        TreasuredScene CreateNewTreasuredScene()
+        TreasuredMap CreateNewTreasuredScene()
         {
             GameObject root = new GameObject("Treasured Scene");
-            TreasuredScene scene = root.AddComponent<TreasuredScene>();
+            TreasuredMap scene = root.AddComponent<TreasuredMap>();
             return scene;
+        }
+
+        void PreviewCamera(HotspotCamera camera, float size = 0.01f)
+        {
+            SceneView.lastActiveSceneView.LookAt(camera.transform.position, camera.transform.rotation, size);
         }
     }
 }

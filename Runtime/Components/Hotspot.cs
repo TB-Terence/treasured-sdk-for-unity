@@ -48,8 +48,7 @@ namespace Treasured.UnitySdk
         /// <summary>
         /// Snap the hotspot to ground if it hits collider.
         /// </summary>
-        [Control("Snap to Ground")]
-        void SnapToGround()
+        public void SnapToGround()
         {
             // Temporarily disable self colliders
             var colliders = GetComponents<Collider>();
@@ -71,12 +70,6 @@ namespace Treasured.UnitySdk
             {
                 collider.enabled = queue.Dequeue();
             }
-        }
-
-        [Control("Preview")]
-        void PreviewCamera()
-        {
-            Camera?.Preview();
         }
 
         /// <summary>
@@ -107,6 +100,11 @@ namespace Treasured.UnitySdk
                 }
                 return targets;
             }
+        }
+
+        private void OnDrawGizmos()
+        {
+            Gizmos.DrawIcon(transform.position + Vector3.up, "Packages/com.treasured.unitysdk/Resources/Hotspot.png", true);
         }
 
         #region Editor GUI Functions

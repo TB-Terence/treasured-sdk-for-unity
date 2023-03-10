@@ -35,8 +35,8 @@ namespace Treasured.UnitySdk
                     writer.WriteStartObject();
                     writer.WritePropertyName("id");
                     writer.WriteValue(action.Id);
-                    writer.WritePropertyName("tourId");
-                    writer.WriteValue(action.target.Id);
+                    writer.WritePropertyName("tourName");
+                    writer.WriteValue(action.target.title);
                     writer.WriteEndObject();
                 }
             }

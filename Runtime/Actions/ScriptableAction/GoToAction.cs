@@ -1,4 +1,6 @@
-﻿namespace Treasured.UnitySdk
+﻿using UnityEngine;
+
+namespace Treasured.UnitySdk
 {
     [API("goTo")]
     [CreateActionGroup(typeof(SetCameraRotationAction))]
@@ -6,6 +8,7 @@
     public class GoToAction : ScriptableAction
     {
         public Hotspot target;
+        [TextArea]
         public string message;
     }
 }

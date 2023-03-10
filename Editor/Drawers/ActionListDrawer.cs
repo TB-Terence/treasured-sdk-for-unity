@@ -72,6 +72,7 @@ namespace Treasured.UnitySdk
                 drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
                 {
                     SerializedProperty element = elements.GetArrayElementAtIndex(index);
+                    element.serializedObject.Update();
                     using (new EditorGUI.IndentLevelScope(1))
                     {
                         string name = element.managedReferenceFullTypename.Substring(element.managedReferenceFullTypename.LastIndexOf('.') + 1);
@@ -141,6 +142,7 @@ namespace Treasured.UnitySdk
                             reorderableList.DoLayoutList();
                         }
                     }
+                    element.serializedObject.ApplyModifiedProperties();
                 },
                 elementHeightCallback = (int index) =>
                 {

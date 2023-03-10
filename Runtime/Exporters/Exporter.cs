@@ -52,7 +52,7 @@ namespace Treasured.UnitySdk
                     validationResults.AddRange(results);
                 }
             }
-            if((!TreasuredSDKPreferences.Instance.ignoreWarnings && validationResults.Count > 0) || (TreasuredSDKPreferences.Instance.ignoreWarnings && validationResults.Any(result => result.type == ValidationResult.ValidationResultType.Error)))
+            if ((!TreasuredSDKPreferences.Instance.ignoreWarnings && validationResults.Count > 0) || (TreasuredSDKPreferences.Instance.ignoreWarnings && validationResults.Any(result => result.type == ValidationResult.ValidationResultType.Error)))
             {
                 throw new ValidationException(validationResults);
             }
@@ -90,6 +90,69 @@ namespace Treasured.UnitySdk
                     {
                         exporter.OnPostExport();
                     }
+                }
+            }
+            
+            if (map.cubemapExporter.enabled || map.meshExporter.enabled)
+            {
+                string argument;
+
+                if (map.exportSettings.optimizeScene
+                    || map.exportSettings.ExportType == ExportType.ProductionExport)
+                {
+                    argument =
+                        $"treasured optimize \"{map.exportSettings.OutputDirectory}\"";
+                }
+                else
+                {
+                    argument =
+                        $"treasured optimize \"{map.exportSettings.OutputDirectory}\" --skipGlb";
+                    UnityEngine.Debug.LogError("optimizing skip glb");
+                }
+
+                // Run `treasured optimize` to optimize the glb file
+                var npmProcess = ProcessUtilities.CreateProcess(argument);
+                npmProcess.Start();
+                string stdOutput = "";
+                try
+                {
+                    npmProcess.Start();
+
+#if UNITY_EDITOR
+                    while (!npmProcess.HasExited)
+                    {
+                        if (UnityEditor.EditorUtility.DisplayCancelableProgressBar("Finalizing Export",
+                            $"Please wait. Processing {map.exportSettings.folderName}...", 50 / 100f))
+                        {
+                            ProcessUtilities.KillProcess(npmProcess);
+                            throw new OperationCanceledException();
+                        }
+                    }
+#endif
+
+                    stdOutput = npmProcess.StandardOutput.ReadToEnd();
+                }
+                catch (OperationCanceledException e)
+                {
+#if UNITY_EDITOR
+                    UnityEditor.EditorUtility.DisplayDialog("Canceled", e.Message, "OK");
+#endif
+                }
+                catch (Exception e)
+                {
+                    throw new ApplicationException(e.Message);
+                }
+                finally
+                {
+                    if (!string.IsNullOrEmpty(stdOutput))
+                    {
+                        UnityEngine.Debug.Log(stdOutput);
+                    }
+
+                    npmProcess?.Dispose();
+#if UNITY_EDITOR
+                    UnityEditor.EditorUtility.ClearProgressBar();
+#endif
                 }
             }
         }

@@ -490,62 +490,6 @@ namespace Treasured.UnitySdk
                         try
                         {
                             Exporter.Export(_map);
-                            if(_map.cubemapExporter.enabled || _map.meshExporter.enabled)
-                            {
-                                string argument;
-                                
-                                if (_map.exportSettings.optimizeScene
-                                    || _map.exportSettings.ExportType == ExportType.ProductionExport)
-                                {
-                                    argument =
-                                        $"treasured optimize \"{_map.exportSettings.OutputDirectory}\"";
-                                }
-                                else
-                                {
-                                    argument =
-                                        $"treasured optimize \"{_map.exportSettings.OutputDirectory}\" --skipGlb";
-                                }
-                                
-                                // Run `treasured optimize` to optimize the glb file
-                                var npmProcess = ProcessUtilities.CreateProcess(argument);
-
-                                string stdOutput = "";
-                                try
-                                {
-                                    npmProcess.Start();
-
-                                    while (!npmProcess.HasExited)
-                                    {
-                                        if (UnityEditor.EditorUtility.DisplayCancelableProgressBar("Finalizing Export",
-                                            $"Please wait. Processing {_map.exportSettings.folderName}...", 50 / 100f))
-                                        {
-                                            ProcessUtilities.KillProcess(npmProcess);
-                                            throw new OperationCanceledException();
-                                        }
-                                    }
-
-                                    stdOutput = npmProcess.StandardOutput.ReadToEnd();
-                                }
-                                catch (OperationCanceledException e)
-                                {
-                                    EditorUtility.DisplayDialog("Canceled", e.Message, "OK");
-                                }
-                                catch (Exception e)
-                                {
-                                    throw new ApplicationException(e.Message);
-                                }
-                                finally
-                                {
-                                    if (!string.IsNullOrEmpty(stdOutput))
-                                    {
-                                        Debug.Log(stdOutput);
-                                    }
-
-                                    npmProcess?.Dispose();
-                                    EditorUtility.ClearProgressBar();
-                                }
-                            }
-                            EditorUtility.DisplayDialog("Export Finished", $"Scene export finished.", "OK");
                         }
                         catch (ValidationException e)
                         {
@@ -635,12 +579,12 @@ namespace Treasured.UnitySdk
                         {
                             if (!string.IsNullOrEmpty(stdOutput))
                             {
-                                Debug.Log(stdOutput);
+                                UnityEngine.Debug.Log(stdOutput);
                             }
 
                             if (!string.IsNullOrEmpty(stdError))
                             {
-                                Debug.LogError(stdError);
+                                UnityEngine.Debug.LogError(stdError);
                             }
 
                             buildProcess?.Dispose();
@@ -740,8 +684,6 @@ namespace Treasured.UnitySdk
 
             serializedObject.ApplyModifiedProperties();
         }
-
-        private bool _backgroudMusicExpanded = true;
 
         [TabGroup(groupName = "Page Info")]
         private void OnPageInfoGUI()
@@ -880,7 +822,7 @@ namespace Treasured.UnitySdk
                                                 case 0:
                                                     if (current is Hotspot hotspot)
                                                     {
-                                                        hotspot.Camera.Preview();
+                                                        SceneView.lastActiveSceneView.LookAt(hotspot.Camera.transform.position, hotspot.Camera.transform.rotation, 0.01f);
                                                     }
                                                     else
                                                     {

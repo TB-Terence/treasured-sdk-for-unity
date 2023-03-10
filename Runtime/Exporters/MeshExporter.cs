@@ -466,7 +466,7 @@ namespace Treasured.UnitySdk
             }
         }
 
-        private async void OnGLBSaved()
+        private void OnGLBSaved()
         {
 #if UNITY_EDITOR
             EditorUtility.ClearProgressBar();

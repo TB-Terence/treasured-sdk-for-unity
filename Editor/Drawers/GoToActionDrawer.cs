@@ -16,7 +16,7 @@ namespace Treasured.UnitySdk
             {
                 if (targetProperty.objectReferenceValue is Hotspot hotspot)
                 {
-                    hotspot.Camera?.Preview();
+                    SceneView.lastActiveSceneView.LookAt(hotspot.Camera.transform.position, hotspot.Camera.transform.rotation, 0.01f);
                 }
             }
             EditorGUILayoutUtils.CreateComponentDropZone<Hotspot>(position, (hotspots) =>
@@ -36,7 +36,7 @@ namespace Treasured.UnitySdk
             {
                 EditorGUI.indentLevel++;
                 EditorGUI.PropertyField(new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing,  position.width, EditorGUIUtility.singleLineHeight), targetProperty);
-                EditorGUI.PropertyField(new Rect(position.x, position.y + (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) * 2, position.width, EditorGUIUtility.singleLineHeight), messageProperty);
+                EditorGUI.PropertyField(new Rect(position.x, position.y + (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) * 2, position.width, EditorGUI.GetPropertyHeight(messageProperty)), messageProperty);
                 EditorGUI.indentLevel--;
             }
             EditorGUI.EndProperty();

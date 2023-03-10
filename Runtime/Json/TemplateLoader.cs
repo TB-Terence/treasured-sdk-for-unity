@@ -12,7 +12,6 @@ namespace Treasured.UnitySdk
         [ShowIf(nameof(ShowAutoCameraRotation))]
         public bool autoCameraRotation;
 
-        [RequiredField]
         [TextArea(3, 3)]
         public string imageUrl;
 
