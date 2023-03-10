@@ -8,7 +8,5 @@ namespace Treasured.UnitySdk
     public class GoToAction : ScriptableAction
     {
         public Hotspot target;
-        [TextArea]
-        public string message;
     }
 }

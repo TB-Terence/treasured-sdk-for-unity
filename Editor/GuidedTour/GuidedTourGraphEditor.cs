@@ -98,8 +98,7 @@ namespace Treasured.UnitySdk
                     {
                         tour.actionScripts.Add(new GoToAction()
                         {
-                            target = hotspot,
-                            message = hotspot.name
+                            target = hotspot
                         });
                         tour.actionScripts.Add(new SetCameraRotationAction()
                         {

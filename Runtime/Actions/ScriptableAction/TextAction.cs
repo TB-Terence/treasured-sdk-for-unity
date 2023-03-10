@@ -22,9 +22,6 @@ namespace Treasured.UnitySdk
         [FormerlySerializedAs("_duration")]
         public int duration;
 
-        [Preset("dialogue", "fade")]
-        public string style = "fade";
-
         /// <summary>
         /// Modified duration based on message in milliseconds.
         /// </summary>

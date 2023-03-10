@@ -11,7 +11,6 @@ namespace Treasured.UnitySdk
         {
             EditorGUI.BeginProperty(position, label, property);
             SerializedProperty targetProperty = property.FindPropertyRelative(nameof(GoToAction.target));
-            SerializedProperty messageProperty = property.FindPropertyRelative(nameof(GoToAction.message));
             if (GUI.Button(new Rect(position.xMax - 25, position.y, 20, EditorGUIUtility.singleLineHeight), EditorGUIUtility.TrIconContent("d_SceneViewCamera", "Preview"), EditorStyles.label))
             {
                 if (targetProperty.objectReferenceValue is Hotspot hotspot)
@@ -36,7 +35,6 @@ namespace Treasured.UnitySdk
             {
                 EditorGUI.indentLevel++;
                 EditorGUI.PropertyField(new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing,  position.width, EditorGUIUtility.singleLineHeight), targetProperty);
-                EditorGUI.PropertyField(new Rect(position.x, position.y + (EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing) * 2, position.width, EditorGUI.GetPropertyHeight(messageProperty)), messageProperty);
                 EditorGUI.indentLevel--;
             }
             EditorGUI.EndProperty();
