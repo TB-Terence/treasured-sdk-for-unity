@@ -33,6 +33,8 @@ namespace Treasured.UnitySdk
         private int _progressUpdateInterval = 10000;
         private GLTFSceneExporter _gltfSceneExporter;
 
+        private Dictionary<int, GameObject> meshToCombineDictionary;
+
         public static string[] allTags;
         public int includeTags = 1;
         public int excludeTags = 0;
@@ -121,7 +123,7 @@ namespace Treasured.UnitySdk
             EditorUtility.DisplayProgressBar("Preparing Mesh", "Processing all the meshes in progress..", 0.5f);
 #endif
             
-            Dictionary<int, GameObject> meshToCombineDictionary = new Dictionary<int, GameObject>();
+            meshToCombineDictionary = new Dictionary<int, GameObject>();
             filterTag = includeTags ^ excludeTags;
 
             //  Find terrain from the scene
@@ -208,19 +210,7 @@ namespace Treasured.UnitySdk
                     var gameObjectTagIndex = (int)Mathf.Pow(2, Array.IndexOf(allTags, gameObject.tag));
                     if ((includeTags & gameObjectTagIndex) == gameObjectTagIndex)
                     {
-                        foreach (var child in gameObject.transform.GetComponentsInChildren<Transform>())
-                        {
-                            if (!child.gameObject.activeInHierarchy)
-                            {
-                                continue;
-                            }
-
-                            var childGameObjectTagIndex = (int)Mathf.Pow(2, Array.IndexOf(allTags, child.tag));
-                            if ((excludeTags & childGameObjectTagIndex) != childGameObjectTagIndex)
-                            {
-                                meshToCombineDictionary.Add(child.gameObject.GetInstanceID(), child.gameObject);
-                            }
-                        }
+                        IterateAllChildRootGameObjects(gameObject.transform);
 
                         continue;
                     }
@@ -306,6 +296,58 @@ namespace Treasured.UnitySdk
             EditorUtility.ClearProgressBar();
 #endif
             return meshToCombineDictionary;
+        }
+
+        private void IterateAllChildRootGameObjects(Transform transform)
+        {
+            if(!transform.gameObject.activeInHierarchy)
+                return;
+            
+            //  This is root
+            if (transform.childCount > 0)
+            {
+                //  Check Filter validation
+                var rootGoTag = (int)Mathf.Pow(2, Array.IndexOf(allTags, transform.tag));
+
+                if (/*((includeTags & rootGoTag) == rootGoTag) &&*/ (excludeTags & rootGoTag) != rootGoTag)
+                {
+                    if (!meshToCombineDictionary.ContainsKey(transform.gameObject.GetInstanceID()))
+                    {
+                        Debug.Log(transform.name, transform);
+                        meshToCombineDictionary.Add(transform.gameObject.GetInstanceID(), transform.gameObject);
+                    }
+                }
+                else
+                {
+                    return;
+                }
+
+                //  Iterate it's child to check if it has any root gameObjects
+                for (int i = 0; i < transform.childCount; i++)
+                {
+                    //  Check Filter validation
+                    var childGameObjectTag = (int)Mathf.Pow(2, Array.IndexOf(allTags, transform.GetChild(i).tag));
+                    
+                    if ((excludeTags & childGameObjectTag) != childGameObjectTag)
+                    {
+                        IterateAllChildRootGameObjects(transform.GetChild(i));
+                    }
+                }
+            }
+            else
+            {
+                //  not a root gameObject
+                //  Check Filter validation
+                var childGameObjectTagIndex = (int)Mathf.Pow(2, Array.IndexOf(allTags, transform.tag));
+                if ((excludeTags & childGameObjectTagIndex) != childGameObjectTagIndex)
+                {
+                    if (!meshToCombineDictionary.ContainsKey(transform.gameObject.GetInstanceID()))
+                    {
+                        Debug.Log(transform.name, transform);
+                        meshToCombineDictionary.Add(transform.gameObject.GetInstanceID(), transform.gameObject);
+                    }
+                }
+            }
         }
 
         private void CombineAllMeshes(List<GameObject> meshToCombine, Transform parentTransform)
