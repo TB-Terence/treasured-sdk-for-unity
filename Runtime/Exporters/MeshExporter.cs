@@ -72,7 +72,7 @@ namespace Treasured.UnitySdk
             {
                 var result = new ValidationResult
                 {
-                    type = ValidationResult.ValidationResultType.Error,
+                    type = ValidationResult.ValidationResultType.Info,
                     description = "Mesh Export Search option of Using Tags or LayerMask are not configured. \nGLB Mesh will not be exported.",
                     name = "[MeshExporter] : Use Tag | Use LayerMask Error"
                 };
@@ -102,13 +102,6 @@ namespace Treasured.UnitySdk
 
         public override void Export()
         {
-            if (!canUseTag && !canUseLayerMask)
-            {
-                Debug.LogError(
-                    "[MeshExporter] : Mesh Export Search option is not configured. GLB Mesh will not be exported.");
-                return;
-            }
-
             var meshToCombineDictionary = PrepareMeshForExport();
             
             //  Combining meshes
