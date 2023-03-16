@@ -11,15 +11,15 @@ namespace Treasured.UnitySdk.Validation
         public override List<ValidationResult> GetValidationResults()
         {
             List<ValidationResult> results = new List<ValidationResult>();
-            foreach (var reference in ReflectionUtils.GetSeriliazedFieldReferencesWithAttribute<RequiredFieldAttribute>(target))
+            foreach (var reference in ReflectionUtilities.GetSerializableFieldInfoValuePairWithAttribute<RequiredFieldAttribute>(target))
             {
                 if (reference.IsNull())
                 {
-                    var fieldName = NicifyVariableName(reference.fieldInfo.Name);
+                    var fieldName = NicifyVariableName(reference.FieldInfo.Name);
                     results.Add(new ValidationResult()
                     {
                         name = "Missing Required Field",
-                        description = $"`{fieldName}` of `{reference.fieldInfo.DeclaringType.Name}` is required, but it's either missing or unassigned.",
+                        description = $"`{fieldName}` of `{reference.FieldInfo.DeclaringType.Name}` is required, but it's either missing or unassigned.",
                         type = ValidationResult.ValidationResultType.Error
                     });
                 }

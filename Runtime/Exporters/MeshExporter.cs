@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -63,10 +63,9 @@ namespace Treasured.UnitySdk
             {
                 var result = new ValidationResult
                 {
-                    type = ValidationResult.ValidationResultType.Error,
-                    description =
-                        "Mesh Export tag for Include Tags and Exclude Tags have common tags assigned.\nPlease make sure that same tag is not assigned on both.",
-                    name = "[MeshExporter] : Include and Exclude Tags Error"
+                    type = ValidationResult.ValidationResultType.Info,
+                    description = "Mesh Export Search option of Using Tags or LayerMask are not configured. \nGLB Mesh will not be exported.",
+                    name = "[MeshExporter] : Use Tag | Use LayerMask Error"
                 };
 
                 return new List<ValidationResult> { result };
@@ -390,6 +389,8 @@ namespace Treasured.UnitySdk
             meshRenderer.material =
                 new Material(Resources.Load("TreasuredDefaultMaterial", typeof(Material)) as Material);
             tempGameObject.gameObject.SetActive(true);
+            
+            CreateGLB(new[]{tempGameObject.transform});
 
             CreateGLB(new[] { tempGameObject.transform });
 

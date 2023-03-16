@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Treasured.UnitySdk.Validation;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -41,6 +42,20 @@ namespace Treasured.UnitySdk
             _customCubemapWidth = MAXIMUM_CUBEMAP_FACE_WIDTH;
             flipY = true;
             _qualityPercentage = 75;
+        }
+
+        public override List<ValidationResult> CanExport()
+        {
+            var result = base.CanExport();
+            if (Map.Hotspots == null || Map.Hotspots.Length == 0)
+            {
+                result.Add(new ValidationResult() { name = "No active hotspot(s)", description = "No active hotspot(s) found under this map object.", type = ValidationResult.ValidationResultType.Error, priority = -1 });
+            }
+            if (Camera.main == null)
+            {
+                result.Add(new ValidationResult() { name = "Camera not found", description = "Please make sure there is an active camera in the scene.", type = ValidationResult.ValidationResultType.Error, priority = -1 });
+            }
+            return result;
         }
 
         public override void Export()
