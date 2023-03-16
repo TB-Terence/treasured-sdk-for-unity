@@ -38,11 +38,6 @@ namespace Treasured.UnitySdk
         public static string[] allTags;
         public int includeTags = 1;
         public int excludeTags = 0;
-        public bool canUseTag;
-        public int filterTag = 0;
-
-        public bool canUseLayerMask;
-        public LayerMask filterLayerMask;
 
         public MeshExportQuality ExportQuality = MeshExportQuality.Full;
 
@@ -52,51 +47,29 @@ namespace Treasured.UnitySdk
         [Tooltip("Display detailed mesh exporter logs")]
         public bool displayLogs;
 
-        [Tooltip("Optimize Glb Mesh to lower the glb mesh size")]
-        public bool shouldOptimizeMesh;
-
         [UnityEngine.ContextMenu("Reset")]
         private void Reset()
         {
             enabled = true;
             includeTags = 1;
             excludeTags = 0;
-            canUseTag = false;
-            filterTag = 0;
-            canUseLayerMask = false;
-            filterLayerMask = 0;
             ExportQuality = MeshExportQuality.Full;
         }
 
         public override List<ValidationResult> CanExport()
         {
-            if (!canUseTag && !canUseLayerMask)
+            //  Check if include and exclude tags does not have common tags
+            if ((includeTags & excludeTags) != 0)
             {
                 var result = new ValidationResult
                 {
                     type = ValidationResult.ValidationResultType.Error,
-                    description = "Mesh Export Search option of Using Tags or LayerMask are not configured. \nGLB Mesh will not be exported.",
-                    name = "[MeshExporter] : Use Tag | Use LayerMask Error"
+                    description =
+                        "Mesh Export tag for Include Tags and Exclude Tags have common tags assigned.\nPlease make sure that same tag is not assigned on both.",
+                    name = "[MeshExporter] : Include and Exclude Tags Error"
                 };
 
                 return new List<ValidationResult> { result };
-            }
-
-            if (canUseTag)
-            {
-                //  Check if include and exclude tags does not have common tags
-                if ((includeTags & excludeTags) != 0)
-                {
-                    var result = new ValidationResult
-                    {
-                        type = ValidationResult.ValidationResultType.Error,
-                        description =
-                            "Mesh Export tag for Include Tags and Exclude Tags have common tags assigned.\nPlease make sure that same tag is not assigned on both.",
-                        name = "[MeshExporter] : Include and Exclude Tags Error"
-                    };
-                    
-                    return new List<ValidationResult> { result };
-                }
             }
 
             return base.CanExport();
@@ -104,67 +77,37 @@ namespace Treasured.UnitySdk
 
         public override void Export()
         {
-            if (!canUseTag && !canUseLayerMask)
-            {
-                Debug.LogError(
-                    "[MeshExporter] : Mesh Export Search option is not configured. GLB Mesh will not be exported.");
-                return;
-            }
-
             var meshToCombineDictionary = PrepareMeshForExport();
-            
+
             //  Combining meshes
             CombineAllMeshes(meshToCombineDictionary.Values.ToList(), Map.transform);
         }
 
-        public Dictionary<int,GameObject> PrepareMeshForExport()
+        public Dictionary<int, GameObject> PrepareMeshForExport()
         {
 #if UNITY_EDITOR
             EditorUtility.DisplayProgressBar("Preparing Mesh", "Processing all the meshes in progress..", 0.5f);
 #endif
-            
+
             meshToCombineDictionary = new Dictionary<int, GameObject>();
-            filterTag = includeTags ^ excludeTags;
 
             //  Find terrain from the scene
             Terrain terrain = Terrain.activeTerrain;
             if (terrain)
             {
                 //  check with the search filter
-                if (canUseTag)
-                {
-                    meshToCombineDictionary.Add(terrain.GetInstanceID(), terrain.gameObject);
+                meshToCombineDictionary.Add(terrain.GetInstanceID(), terrain.gameObject);
 
-                    var terrainTagIndex = (int)Mathf.Pow(2, Array.IndexOf(allTags, terrain.gameObject.tag));
-                    if ((includeTags & terrainTagIndex) == terrainTagIndex)
-                    {
-                        var exportTerrainToObj = ExportTerrainToObj(terrain);
-                        meshToCombineDictionary.Add(exportTerrainToObj.GetInstanceID(), exportTerrainToObj);
-                        foreach (var child in exportTerrainToObj.transform.GetComponentsInChildren<Transform>())
-                        {
-                            if (!meshToCombineDictionary.ContainsKey(child.gameObject.GetInstanceID()))
-                            {
-                                meshToCombineDictionary.Add(child.gameObject.GetInstanceID(), child.gameObject);
-                            }
-                        }
-                    }
-                }
-                else if (canUseLayerMask)
+                var terrainTagIndex = (int)Mathf.Pow(2, Array.IndexOf(allTags, terrain.gameObject.tag));
+                if ((includeTags & terrainTagIndex) == terrainTagIndex)
                 {
-                    var terrainLayer = 1 << terrain.gameObject.layer;
-                    if ((filterLayerMask & terrainLayer) == terrainLayer)
+                    var exportTerrainToObj = ExportTerrainToObj(terrain);
+                    meshToCombineDictionary.Add(exportTerrainToObj.GetInstanceID(), exportTerrainToObj);
+                    foreach (var child in exportTerrainToObj.transform.GetComponentsInChildren<Transform>())
                     {
-                        if (!meshToCombineDictionary.ContainsKey(terrain.GetInstanceID()))
+                        if (!meshToCombineDictionary.ContainsKey(child.gameObject.GetInstanceID()))
                         {
-                            var exportTerrainToObj = ExportTerrainToObj(terrain);
-                            meshToCombineDictionary.Add(exportTerrainToObj.GetInstanceID(), exportTerrainToObj);
-                            foreach (var child in exportTerrainToObj.transform.GetComponentsInChildren<Transform>())
-                            {
-                                if (!meshToCombineDictionary.ContainsKey(child.gameObject.GetInstanceID()))
-                                {
-                                    meshToCombineDictionary.Add(child.gameObject.GetInstanceID(), child.gameObject);
-                                }
-                            }
+                            meshToCombineDictionary.Add(child.gameObject.GetInstanceID(), child.gameObject);
                         }
                     }
                 }
@@ -174,7 +117,7 @@ namespace Treasured.UnitySdk
 
             var totalGameObjects = rootGameObjects.Length;
             var currentIndex = 0;
-            
+
             foreach (var gameObject in rootGameObjects)
             {
 #if UNITY_EDITOR
@@ -184,9 +127,9 @@ namespace Treasured.UnitySdk
                     throw new ApplicationException("Export Canceled by the user");
                 }
 #endif
-                
+
                 currentIndex++;
-                
+
                 //  If gameObject is disabled then skip adding it to export
                 if (!gameObject.activeInHierarchy)
                 {
@@ -204,35 +147,11 @@ namespace Treasured.UnitySdk
                     continue;
                 }
 
-                if (canUseTag)
+                //  Compare tag to see if needs to include in mesh combiner
+                var gameObjectTagIndex = (int)Mathf.Pow(2, Array.IndexOf(allTags, gameObject.tag));
+                if ((includeTags & gameObjectTagIndex) == gameObjectTagIndex)
                 {
-                    //  Compare tag to see if needs to include in mesh combiner
-                    var gameObjectTagIndex = (int)Mathf.Pow(2, Array.IndexOf(allTags, gameObject.tag));
-                    if ((includeTags & gameObjectTagIndex) == gameObjectTagIndex)
-                    {
-                        IterateAllChildRootGameObjects(gameObject.transform);
-
-                        continue;
-                    }
-                }
-
-                if (canUseLayerMask)
-                {
-                    var layer = 1 << gameObject.layer;
-                    if ((filterLayerMask & layer) == layer)
-                    {
-                        foreach (var child in gameObject.transform.GetComponentsInChildren<Transform>())
-                        {
-                            if (!child.gameObject.activeInHierarchy)
-                            {
-                                continue;
-                            }
-
-                            meshToCombineDictionary.Add(child.gameObject.GetInstanceID(), child.gameObject);
-                        }
-
-                        continue;
-                    }
+                    IterateAllChildRootGameObjects(gameObject.transform);
                 }
             }
 
@@ -300,16 +219,16 @@ namespace Treasured.UnitySdk
 
         private void IterateAllChildRootGameObjects(Transform transform)
         {
-            if(!transform.gameObject.activeInHierarchy)
+            if (!transform.gameObject.activeInHierarchy)
                 return;
-            
+
             //  This is root
             if (transform.childCount > 0)
             {
                 //  Check Filter validation
                 var rootGoTag = (int)Mathf.Pow(2, Array.IndexOf(allTags, transform.tag));
 
-                if (/*((includeTags & rootGoTag) == rootGoTag) &&*/ (excludeTags & rootGoTag) != rootGoTag)
+                if ( /*((includeTags & rootGoTag) == rootGoTag) &&*/ (excludeTags & rootGoTag) != rootGoTag)
                 {
                     if (!meshToCombineDictionary.ContainsKey(transform.gameObject.GetInstanceID()))
                     {
@@ -327,7 +246,7 @@ namespace Treasured.UnitySdk
                 {
                     //  Check Filter validation
                     var childGameObjectTag = (int)Mathf.Pow(2, Array.IndexOf(allTags, transform.GetChild(i).tag));
-                    
+
                     if ((excludeTags & childGameObjectTag) != childGameObjectTag)
                     {
                         IterateAllChildRootGameObjects(transform.GetChild(i));
@@ -380,7 +299,7 @@ namespace Treasured.UnitySdk
 
             var totalGameObjects = meshToCombine.Count;
             var currentIndex = 0;
-            
+
             foreach (var meshGameObject in meshToCombine)
             {
 #if UNITY_EDITOR
@@ -392,7 +311,7 @@ namespace Treasured.UnitySdk
 #endif
 
                 currentIndex++;
-                
+
                 if (ContainsValidRenderer(meshGameObject) && meshGameObject.TryGetComponent(out MeshFilter filter))
                 {
                     //  Check if sharedMesh is not null
@@ -471,8 +390,8 @@ namespace Treasured.UnitySdk
             meshRenderer.material =
                 new Material(Resources.Load("TreasuredDefaultMaterial", typeof(Material)) as Material);
             tempGameObject.gameObject.SetActive(true);
-            
-            CreateGLB(new[]{tempGameObject.transform});
+
+            CreateGLB(new[] { tempGameObject.transform });
 
             if (!keepCombinedMesh)
             {
@@ -500,7 +419,7 @@ namespace Treasured.UnitySdk
 #if UNITY_EDITOR
                 EditorUtility.DisplayProgressBar("Converting to Glb format", "Mesh Conversion in Progress..", 0.5f);
 #endif
-                
+
                 _gltfSceneExporter.SaveGLB(Path.Combine(Map.exportSettings.OutputDirectory), "scene");
             }
         }
@@ -510,7 +429,7 @@ namespace Treasured.UnitySdk
 #if UNITY_EDITOR
             EditorUtility.ClearProgressBar();
 #endif
-            
+
             _gltfSceneExporter.GLBSaved -= OnGLBSaved;
         }
 
