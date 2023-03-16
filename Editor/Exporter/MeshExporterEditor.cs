@@ -33,8 +33,9 @@ namespace Treasured.UnitySdk
             _includeTag.intValue = EditorGUILayout.MaskField("Include Tags", _includeTag.intValue, _tagString);
             _excludeTag.intValue = EditorGUILayout.MaskField("Exclude Tags", _excludeTag.intValue, _tagString);
 
-            EditorGUILayout.PropertyField(_keepCombinedMesh);
             EditorGUILayout.PropertyField(_exportQuality);
+            
+            EditorGUILayout.PropertyField(_keepCombinedMesh);
             EditorGUILayout.PropertyField(_displayLogs);
         }
 
