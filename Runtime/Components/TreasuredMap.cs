@@ -49,8 +49,8 @@ namespace Treasured.UnitySdk
         public string Description { get => _description; set => _title = _description; }
 
         [SerializeField]
-        [TextArea(3, 3)]
         [JsonProperty("audioUrl")]
+        [TextArea(3, 3)]
         private string _audioUrl;
         [Range(0, 100)]
         public int defaultBackgroundVolume = 100;
@@ -82,6 +82,10 @@ namespace Treasured.UnitySdk
 
         #region Export Properties
         public ImageFormat Format { get => cubemapExporter.imageFormat; }
+        #endregion
+
+        #region Actions
+        public ScriptableActionCollection onSceneLoad;
         #endregion
 
         #region Objects
@@ -124,8 +128,6 @@ namespace Treasured.UnitySdk
             }
         }
         #endregion
-
-        public int processId;
 
         [Code]
         public string headHTML;

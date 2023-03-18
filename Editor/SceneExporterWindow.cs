@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Treasured.UnitySdk.Validation;
@@ -128,7 +128,7 @@ namespace Treasured.UnitySdk
                 EditorGUILayout.EndFoldoutHeaderGroup();
             }
         }
-
+        
         private MessageType GetMessageType(ValidationResult.ValidationResultType validationResultType)
         {
             switch (validationResultType)

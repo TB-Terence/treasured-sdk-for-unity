@@ -23,7 +23,6 @@ namespace Treasured.UnitySdk
             _keepCombinedMesh = serializedObject.FindProperty(nameof(MeshExporter.keepCombinedMesh));
             _exportQuality = serializedObject.FindProperty(nameof(MeshExporter.ExportQuality));
             _displayLogs = serializedObject.FindProperty(nameof(MeshExporter.displayLogs));
-
             _tagString = UnityEditorInternal.InternalEditorUtility.tags;
             MeshExporter.allTags = _tagString;
         }

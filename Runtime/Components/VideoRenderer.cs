@@ -17,17 +17,23 @@ namespace Treasured.UnitySdk
         [JsonIgnore]
         public VideoClip VideoClip;
 
+        public VideoContent videoContent;
+
         [Url]
+        [JsonIgnore]
         [FormerlySerializedAs("Src")]
         public string src;
         [Range(0, 100)]
         [FormerlySerializedAs("Volume")]
+        [JsonIgnore]
         public int volume = 100;
         [FormerlySerializedAs("Loop")]
+        [JsonIgnore]
         public bool loop = true;
         /// <summary>
         /// Auto play the video when start.
         /// </summary>
+        [JsonIgnore]
         public bool autoplay = true;
         #endregion
 

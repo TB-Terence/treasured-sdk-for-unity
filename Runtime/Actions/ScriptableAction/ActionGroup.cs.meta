@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:Runtime/Actions/ScriptableAction/ActionGroup.cs.meta
 guid: d103fabc7c37a69488f3273be217b316
+========
+guid: 5b609f29f0c4b454fbb0fb7c4b754804
+>>>>>>>> upm:Editor/SessionKeys.cs.meta
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2

@@ -9,24 +9,25 @@ namespace Treasured.UnitySdk
         private void OnEnable()
         {
             (target as TreasuredObject)?.TryInvokeMethods("OnSelectedInHierarchy");
+            if (target is SoundSource soundSource)
+            {
+                soundSource.audioContent ??= new AudioContent()
+                {
+                    volume = soundSource.Volume,
+                    loop = soundSource.Loop,
+                    remoteUri = soundSource.Src
+                };
+            }
         }
 
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
 
-            SerializedProperty id = serializedObject.FindProperty("_id");
-            SerializedProperty src = serializedObject.FindProperty("Src");
-            SerializedProperty volume = serializedObject.FindProperty("Volume");
-            SerializedProperty loop = serializedObject.FindProperty("Loop");
             SerializedProperty distance = serializedObject.FindProperty("Distance");
-            SerializedProperty onClick = serializedObject.FindProperty(nameof(SoundSource.onClick));
+            SerializedProperty auidoContent = serializedObject.FindProperty(nameof(SoundSource.audioContent));
 
-            EditorGUILayout.PropertyField(id);
-            EditorGUILayout.PropertyField(src);
-            EditorGUILayout.PropertyField(volume);
-            EditorGUILayout.PropertyField(loop);
-
+            EditorGUILayout.PropertyField(auidoContent);
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(distance);
             if (EditorGUI.EndChangeCheck())
@@ -39,7 +40,6 @@ namespace Treasured.UnitySdk
                         new Vector3(soundSource.Distance, soundSource.Distance, soundSource.Distance);
                 }
             }
-            EditorGUILayout.PropertyField(onClick);
 
             serializedObject.ApplyModifiedProperties();
         }

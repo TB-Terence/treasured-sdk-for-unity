@@ -77,17 +77,16 @@ namespace Treasured.UnitySdk
         public override void Export()
         {
             var meshToCombineDictionary = PrepareMeshForExport();
-
+            
             //  Combining meshes
             CombineAllMeshes(meshToCombineDictionary.Values.ToList(), Map.transform);
         }
 
-        public Dictionary<int, GameObject> PrepareMeshForExport()
+        public Dictionary<int,GameObject> PrepareMeshForExport()
         {
 #if UNITY_EDITOR
             EditorUtility.DisplayProgressBar("Preparing Mesh", "Processing all the meshes in progress..", 0.5f);
 #endif
-
             meshToCombineDictionary = new Dictionary<int, GameObject>();
 
             //  Find terrain from the scene
@@ -126,9 +125,7 @@ namespace Treasured.UnitySdk
                     throw new ApplicationException("Export Canceled by the user");
                 }
 #endif
-
                 currentIndex++;
-
                 //  If gameObject is disabled then skip adding it to export
                 if (!gameObject.activeInHierarchy)
                 {
@@ -420,17 +417,15 @@ namespace Treasured.UnitySdk
 #if UNITY_EDITOR
                 EditorUtility.DisplayProgressBar("Converting to Glb format", "Mesh Conversion in Progress..", 0.5f);
 #endif
-
                 _gltfSceneExporter.SaveGLB(Path.Combine(Map.exportSettings.OutputDirectory), "scene");
             }
         }
 
-        private async void OnGLBSaved()
+        private void OnGLBSaved()
         {
 #if UNITY_EDITOR
             EditorUtility.ClearProgressBar();
 #endif
-
             _gltfSceneExporter.GLBSaved -= OnGLBSaved;
         }
 

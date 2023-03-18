@@ -42,13 +42,11 @@ namespace Treasured.UnitySdk
                     this.Close();
                     return;
                 }
-                serializedObject.Update();
-                using(var scope = new EditorGUILayout.ScrollViewScope(_scrollPosition))
+                using (var scope = new EditorGUILayout.ScrollViewScope(_scrollPosition))
                 {
                     _scrollPosition = scope.scrollPosition;
                     EditorGUIUtils.DrawPropertiesExcluding(serializedObject, "m_Script");
                 }
-                serializedObject.ApplyModifiedProperties();
             }
         }
 
@@ -92,23 +90,24 @@ namespace Treasured.UnitySdk
                 {
                     CreateNew(list, "New Tour");
                 });
-                menu.AddItem(new GUIContent("Quick Tour/Hotspots"), false, () =>
+                menu.AddItem(new GUIContent("Quick Tour/Navigate Through Hotspots"), false, () =>
                 {
-                    GuidedTour tour = CreateNew(list, "Quick Tour/Hotspots");
-                    tour.actionScripts = ScriptableObject.CreateInstance<ScriptableActionCollection>();
+                    GuidedTour tour = CreateNew(list, "Quick Tour");
+                    tour.actionScripts = new ScriptableActionCollection();
                     foreach (var hotspot in Map.Hotspots)
                     {
                         tour.actionScripts.Add(new GoToAction()
                         {
-                            target = hotspot,
-                            message = hotspot.name
+                            target = hotspot
                         });
-                        if (!hotspot.Camera.IsNullOrNone())
+                        tour.actionScripts.Add(new SetCameraRotationAction()
                         {
-                            tour.actionScripts.Add(new SetCameraRotationAction()
-                            {
-                                rotation = hotspot.Camera.transform.rotation
-                            });
+                            rotation = hotspot.Camera.transform.rotation
+                        });
+                        if (!hotspot.actionGraph.TryGetActionGroup("onSelect", out var onSelect)) continue;
+                        foreach (var action in onSelect)
+                        {
+                            tour.actionScripts.Add(action);
                         }
                     }
                     serializedObject.Update();
@@ -144,6 +143,10 @@ namespace Treasured.UnitySdk
         public override void OnInspectorGUI()
         {
             rl.DoLayoutList();
+            if(!Current.IsNullOrNone() && !Current.tours.Any(t => t.title.Equals("default")))
+            {
+                EditorGUILayout.HelpBox("A scene uses guided tour must have a tour named 'default'.", MessageType.Error);
+            }
         }
     }
 }

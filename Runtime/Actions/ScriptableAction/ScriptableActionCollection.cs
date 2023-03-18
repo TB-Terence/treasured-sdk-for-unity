@@ -1,12 +1,12 @@
-﻿using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    public class ScriptableActionCollection : ScriptableObject, IEnumerable<ScriptableAction>, ICollection<ScriptableAction>
+    [Serializable]
+    public class ScriptableActionCollection : IEnumerable<ScriptableAction>, ICollection<ScriptableAction>
     {
         [SerializeField]
         [HideInInspector]
@@ -19,6 +19,8 @@ namespace Treasured.UnitySdk
 
         [SerializeReference]
         private List<ScriptableAction> _actions = new List<ScriptableAction>();
+
+        public string name;
 
         IEnumerator<ScriptableAction> IEnumerable<ScriptableAction>.GetEnumerator()
         {

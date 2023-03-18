@@ -13,6 +13,6 @@ namespace Treasured.UnitySdk
 
         public bool loop = false;
         [TextArea(3, 5)]
-        public string message;
+        public string message = "";
     }
 }

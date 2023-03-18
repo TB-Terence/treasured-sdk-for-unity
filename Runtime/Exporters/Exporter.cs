@@ -21,7 +21,7 @@ namespace Treasured.UnitySdk
         public bool enabled = true;
 
         [JsonIgnore]
-        public TreasuredMap Map { get => _map; }
+        public TreasuredMap Map { get => _map; set => _map = value; }
 
         public virtual List<ValidationResult> CanExport()
         {

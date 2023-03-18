@@ -1,12 +1,12 @@
-﻿namespace Treasured.UnitySdk
+﻿using UnityEngine;
+
+namespace Treasured.UnitySdk
 {
-    //[API("goto")]
-    [API("selectObject")]
+    [API("goTo")]
     [CreateActionGroup(typeof(SetCameraRotationAction))]
     [CreateActionGroup(typeof(PanAction))]
     public class GoToAction : ScriptableAction
     {
         public Hotspot target;
-        public string message;
     }
 }

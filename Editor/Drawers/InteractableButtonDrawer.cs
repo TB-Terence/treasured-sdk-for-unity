@@ -16,6 +16,7 @@ namespace Treasured.UnitySdk
             SerializedProperty transformProperty = property.FindPropertyRelative(nameof(InteractableButton.transform));
             SerializedProperty previewProperty = property.FindPropertyRelative(nameof(InteractableButton.preview));
             EditorGUI.BeginProperty(position, label, property);
+            property.serializedObject.Update();
             EditorGUI.BeginChangeCheck();
             var expanded = EditorGUI.Foldout(new Rect(position.x, position.y, position.width, k_SingleLineHeightWithSpace), SessionState.GetBool(SessionKeys.ShowInteractableButtonFoldout, true), label);
             if (EditorGUI.EndChangeCheck())
@@ -55,17 +56,10 @@ namespace Treasured.UnitySdk
                             {
                                 using (new EditorGUI.IndentLevelScope(1))
                                 {
-                                    using (var scope = new EditorGUI.ChangeCheckScope())
-                                    {
-                                        Transform transform = transformProperty.objectReferenceValue as Transform;
-                                        transform.localPosition = EditorGUI.Vector3Field(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 3, position.width, EditorGUIUtility.singleLineHeight), "Position", transform.localPosition);
-                                        transform.localEulerAngles = EditorGUI.Vector3Field(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 4, position.width, EditorGUIUtility.singleLineHeight), "Rotation", transform.localEulerAngles);
-                                        transform.localScale = EditorGUI.Vector3Field(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 5, position.width, EditorGUIUtility.singleLineHeight), "Size", transform.localScale);
-                                        if (scope.changed)
-                                        {
-                                            transformProperty.serializedObject.ApplyModifiedProperties();
-                                        }
-                                    }
+                                    Transform transform = transformProperty.objectReferenceValue as Transform;
+                                    transform.localPosition = EditorGUI.Vector3Field(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 3, position.width, EditorGUIUtility.singleLineHeight), "Position", transform.localPosition);
+                                    transform.localEulerAngles = EditorGUI.Vector3Field(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 4, position.width, EditorGUIUtility.singleLineHeight), "Rotation", transform.localEulerAngles);
+                                    transform.localScale = EditorGUI.Vector3Field(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 5, position.width, EditorGUIUtility.singleLineHeight), "Size", transform.localScale);
                                 }
                             }
                             EditorGUI.PropertyField(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 6, position.width, k_SingleLineHeightWithSpace * 4), previewProperty, true);
@@ -73,6 +67,7 @@ namespace Treasured.UnitySdk
                     }
                 }
             }
+            property.serializedObject.ApplyModifiedProperties();
             EditorGUI.EndProperty();
         }
 

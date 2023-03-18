@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using Treasured.Actions;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -48,6 +49,7 @@ namespace Treasured.UnitySdk
         [JsonProperty("actionGroups")]
         public ScriptableActionCollection onClick;
         public ScriptableActionCollection onHover;
+        
         #endregion
 
         #region Properties
@@ -68,6 +70,16 @@ namespace Treasured.UnitySdk
         {
             get
             {
+                if (_hitbox == null)
+                {
+                    _hitbox = gameObject.FindOrCreateChild<Hitbox>("Hitbox");
+                    _hitbox.transform.localPosition = Vector3.zero;
+                    _hitbox.transform.localRotation = Quaternion.identity;
+                    if (TryGetComponent<BoxCollider>(out var collider) && collider.isTrigger)
+                    {
+                        _hitbox.transform.localScale = collider.size;
+                    }
+                }
                 return _hitbox;
             }
             set
@@ -87,33 +99,13 @@ namespace Treasured.UnitySdk
         [JsonIgnore]
         public List<ActionGroup> OnHover => _onHover;
 
-        //public Color ObjectId
-        //{
-        //    get
-        //    {
-        //        int seed = Id.GetHashCode();
-        //        System.Random rand = new System.Random(seed);
-        //        byte[] buffer = new byte[3];
-        //        rand.NextBytes(buffer);
-        //        return new Color32(buffer[0], buffer[1], buffer[2], 255); // ColorUtility.ToHtmlStringRGB internally uses Color32 and use Color causes some precision error in the final output
-        //    }
-        //}
-        #endregion
+        public ActionGraph actionGraph = new ActionGraph();
 
+        #endregion
 #if UNITY_EDITOR
         // DO NOT REMOVE, called by Editor
         void OnSelectedInHierarchy()
         {
-            if (Hitbox == null)
-            {
-                Hitbox = gameObject.FindOrCreateChild<Hitbox>("Hitbox");
-                Hitbox.transform.localPosition = Vector3.zero;
-                Hitbox.transform.localRotation = Quaternion.identity;
-                if (TryGetComponent<BoxCollider>(out var collider) && collider.isTrigger)
-                {
-                    Hitbox.transform.localScale = collider.size;
-                }
-            }
             if (Hitbox)
             {
                 var renderer = GetComponentInChildren<Renderer>();

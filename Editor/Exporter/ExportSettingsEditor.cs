@@ -12,18 +12,22 @@ namespace Treasured.UnitySdk
         }
         public override void OnInspectorGUI()
         {
+            serializedObject.Update();
             ExportSettings settings = target as ExportSettings;
             EditorGUILayout.LabelField("Export Settings", EditorStyles.boldLabel);
             using(new EditorGUI.IndentLevelScope(1))
             {
+                SerializedProperty folderName = serializedObject.FindProperty(nameof(ExportSettings.folderName));
+                SerializedProperty optimizeScene = serializedObject.FindProperty(nameof(ExportSettings.optimizeScene));
                 EditorGUI.BeginChangeCheck();
-                string newOutputFolderName = EditorGUILayout.TextField(new GUIContent("Folder Name"), settings.folderName);
+                string newOutputFolderName = EditorGUILayout.TextField(new GUIContent("Folder Name"), folderName.stringValue);
                 if (EditorGUI.EndChangeCheck() && !string.IsNullOrWhiteSpace(newOutputFolderName))
                 {
-                    settings.folderName = newOutputFolderName;
+                    folderName.stringValue = newOutputFolderName;
                 }
-                settings.optimizeScene = EditorGUILayout.Toggle(Styles.labelOptimizeScene, settings.optimizeScene);
+                EditorGUILayout.PropertyField(optimizeScene);
             }
+            serializedObject.ApplyModifiedProperties();
         }
     }
 }

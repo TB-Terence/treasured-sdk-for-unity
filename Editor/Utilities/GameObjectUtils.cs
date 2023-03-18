@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    public static class GameObjectUtils
+    internal static class GameObjectUtils
     {
         public static string GetFullPath(this Component component)
         {

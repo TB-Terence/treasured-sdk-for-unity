@@ -29,13 +29,19 @@ namespace Treasured.UnitySdk
 
         internal class ExporterScope : GUI.Scope
         {
-            public ExporterScope(Exporter exporter)
+            public SerializedProperty enabled;
+            public ExporterScope(SerializedProperty enabled)
             {
+                this.enabled = enabled;
+                this.enabled.serializedObject.Update();
+                var exporter = enabled.serializedObject.targetObject as Exporter;
+                Type type = enabled.serializedObject.GetType();
                 EditorGUILayout.BeginHorizontal();
                 EditorGUI.BeginChangeCheck();
-                exporter.enabled = EditorGUILayout.ToggleLeft(ObjectNames.NicifyVariableName(exporter.GetType().Name), exporter.enabled, EditorStyles.boldLabel);
+                enabled.boolValue = EditorGUILayout.ToggleLeft(ObjectNames.NicifyVariableName(exporter.GetType().Name), enabled.boolValue, EditorStyles.boldLabel);
                 if (EditorGUI.EndChangeCheck())
                 {
+                    enabled.serializedObject.ApplyModifiedProperties();
                     if (exporter.enabled)
                     {
                         exporter.OnEnabled();
@@ -81,13 +87,7 @@ namespace Treasured.UnitySdk
 
         public override void OnInspectorGUI()
         {
-            serializedObject.Update();
-            EditorGUI.BeginChangeCheck();
-            EditorGUIUtils.DrawPropertiesExcluding(serializedObject, "m_Script");
-            if (EditorGUI.EndChangeCheck())
-            {
-                serializedObject.ApplyModifiedProperties();
-            }
+            EditorGUIUtils.DrawProperties(serializedObject);
         }
     }
 }

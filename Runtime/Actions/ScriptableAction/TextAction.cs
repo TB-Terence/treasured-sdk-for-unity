@@ -12,7 +12,7 @@ namespace Treasured.UnitySdk
         public const int kAverageWordsReadPerSecond = 3;
 
         [TextArea(3, 3)]
-        [JsonProperty("content")]
+        //[JsonProperty("content")]
         public string message;
 
         [JsonIgnore]
