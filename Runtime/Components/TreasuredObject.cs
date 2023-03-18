@@ -45,7 +45,7 @@ namespace Treasured.UnitySdk
 
         [SerializeReference]
         private List<ActionGroup> _onHover = new List<ActionGroup>();
-        
+
         [JsonProperty("actionGroups")]
         public ScriptableActionCollection onClick;
         public ScriptableActionCollection onHover;

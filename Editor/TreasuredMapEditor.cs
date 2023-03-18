@@ -369,7 +369,7 @@ namespace Treasured.UnitySdk
             var pairs = ReflectionUtilities.GetSerializableFieldValuesOfType<ScriptableObject>(_map);
             foreach (var pair in pairs)
             {
-                if (pair.IsNull())
+                if (pair.IsNull()
                 {
                     pair.SetValue(ScriptableObject.CreateInstance(pair.FieldInfo.FieldType));
                 }
@@ -684,6 +684,8 @@ namespace Treasured.UnitySdk
 
             serializedObject.ApplyModifiedProperties();
         }
+
+        private bool _backgroudMusicExpanded = true;
 
         [TabGroup(groupName = "Page Info")]
         private void OnPageInfoGUI()

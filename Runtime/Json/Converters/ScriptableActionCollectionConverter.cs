@@ -48,6 +48,7 @@ namespace Treasured.UnitySdk
                 //}
                 //writer.WriteValue(sb.ToString());
                 // v2
+
                 //writer.WriteStartObject();
                 //writer.WritePropertyName("actions");
                 //writer.WriteStartArray();
@@ -57,6 +58,7 @@ namespace Treasured.UnitySdk
                     {
                         continue;
                     }
+
                     writer.WriteStartObject();
                     writer.WritePropertyName("id");
                     writer.WriteValue(action.Id);
@@ -68,7 +70,7 @@ namespace Treasured.UnitySdk
                     serializer.ContractResolver = ContractResolver.Instance;
                     JObject jAction = JObject.FromObject(action, serializer);
                     jAction.WriteTo(writer);
-                    writer.WriteEndObject();
+                    //writer.WriteEndObject();
                 }
                 writer.WriteEndArray();
             }

@@ -461,7 +461,10 @@ namespace UnityGLTF
 			scene.Nodes = new List<NodeId>(rootObjTransforms.Length);
 			foreach (var transform in rootObjTransforms)
 			{
-				scene.Nodes.Add(ExportNode(transform));
+				if (transform.gameObject.activeInHierarchy)
+				{
+					scene.Nodes.Add(ExportNode(transform));
+				}
 			}
 
 			_root.Scenes.Add(scene);
@@ -622,10 +625,13 @@ namespace UnityGLTF
 			for (var i = 0; i < childCount; i++)
 			{
 				var go = transform.GetChild(i).gameObject;
-				if (IsPrimitive(go))
-					prims.Add(go);
-				else
-					nonPrims.Add(go);
+				if (go.activeInHierarchy)
+				{
+					if (IsPrimitive(go))
+						prims.Add(go);
+					else
+						nonPrims.Add(go);
+				}
 			}
 
 			primitives = prims.ToArray();

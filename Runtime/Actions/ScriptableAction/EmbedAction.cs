@@ -1,6 +1,6 @@
 ﻿namespace Treasured.UnitySdk.Actions
 {
-    [API("embed")]
+    [API("openLink")]
     public class EmbedAction : ScriptableAction
     {
         [Url]

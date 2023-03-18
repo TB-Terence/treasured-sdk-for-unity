@@ -69,13 +69,13 @@ namespace Treasured.UnitySdk
             _serializedObject = TreasuredSDKPreferences.Instance.GetSerializedObject();
             var serializedFields = ReflectionUtilities.GetSerializableFieldInfoValuePair(TreasuredSDKPreferences.Instance, false);
             _serializedProperties = new List<SerializedProperty>();
-            foreach (var pair in serializedFields)
+            foreach (var field in serializedFields)
             {
-                if (pair.FieldInfo.Name.Equals("exporters")) // skip exporter[] field
+                if (field.FieldInfo.Name.Equals("exporters")) // skip exporter[] field
                 {
                     continue;
                 }
-                _serializedProperties.Add(_serializedObject.FindProperty(pair.FieldInfo.Name));
+                _serializedProperties.Add(_serializedObject.FindProperty(field.FieldInfo.Name));
             }
             // initialize exporter gui drawers
             _exporterDrawers = new List<ExporterPreferenceGUIDrawer>();

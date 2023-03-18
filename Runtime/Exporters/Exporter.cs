@@ -42,15 +42,14 @@ namespace Treasured.UnitySdk
 
         public static void Export(TreasuredMap map)
         {
-            var exporters = ReflectionUtilities.GetSerializableFieldValuesOfType<Exporter>(map);
+            var fieldValues = ReflectionUtilities.GetSerializableFieldValuesOfType<Exporter>(map);
             List<ValidationResult> validationResults = new List<ValidationResult>();
-            foreach (var exporter in exporters)
+            foreach (var field in fieldValues)
             {
-                var results = exporter.GetValueAs<Exporter>().CanExport();
-                if(results != null)
-                {
+                var exporter = field.Value;
+                var results = exporter.CanExport();
+                if (results != null)
                     validationResults.AddRange(results);
-                }
             }
             if ((!TreasuredSDKPreferences.Instance.ignoreWarnings && validationResults.Count > 0) || (TreasuredSDKPreferences.Instance.ignoreWarnings && validationResults.Any(result => result.type == ValidationResult.ValidationResultType.Error)))
             {
@@ -74,8 +73,8 @@ namespace Treasured.UnitySdk
             }
             foreach (var pair in exporterPairs)
             {
-                var exporter = pair.GetValueAs<Exporter>();
-                if (!exporter.IsNullOrNone() && exporter.enabled)
+                var exporter = pair.Value;
+                if (!pair.Value.IsNullOrNone() && exporter.enabled)
                 {
                     try
                     {
@@ -92,7 +91,7 @@ namespace Treasured.UnitySdk
                     }
                 }
             }
-            
+
             if (map.cubemapExporter.enabled || map.meshExporter.enabled)
             {
                 string argument;

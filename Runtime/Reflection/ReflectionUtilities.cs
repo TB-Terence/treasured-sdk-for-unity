@@ -7,15 +7,39 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    public struct FieldInfoValuePair
+    public class FieldInfoValuePair<T>
     {
-        public object DeclaringObject { get; private set; }
-        public FieldInfo FieldInfo { get; private set; }
+        public object DeclaringObject { get; protected set; }
+        public FieldInfo FieldInfo { get; protected set; }
+        public T Value
+        {
+            get
+            {
+                if (!typeof(T).IsAssignableFrom(FieldInfo.FieldType))
+                {
+                    throw new InvalidCastException($"Field type({FieldInfo.FieldType}) does not match type <T>({typeof(T)}).");
+                }
+                return (T)FieldInfo.GetValue(DeclaringObject);
+            }
+            set
+            {
+                FieldInfo.SetValue(DeclaringObject, value);
+            }
+        }
 
         public FieldInfoValuePair(object declaringObject, FieldInfo fieldInfo)
         {
             DeclaringObject = declaringObject;
             FieldInfo = fieldInfo;
+        }
+    }
+
+    public class FieldInfoValuePair : FieldInfoValuePair<object>
+    {
+
+        public FieldInfoValuePair(object declaringObject, FieldInfo fieldInfo) : base(declaringObject, fieldInfo)
+        {
+
         }
 
         public void SetValue(object value)
@@ -28,9 +52,18 @@ namespace Treasured.UnitySdk
             return FieldInfo.GetValue(DeclaringObject);
         }
 
-        public T GetValueAs<T>()
+        public bool TryGetValueAs<T>(out T result) 
         {
-            return (T)FieldInfo.GetValue(DeclaringObject);
+            try
+            {
+                result = (T)GetValue();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                result = default;
+                return false;
+            }
         }
 
         public bool IsNull()
@@ -50,14 +83,14 @@ namespace Treasured.UnitySdk
 
     public static class ReflectionUtilities
     {
-        public static IEnumerable<FieldInfoValuePair> GetSerializableFieldValuesOfType<T>(object target, bool includeChildren = false)
+        public static IEnumerable<FieldInfoValuePair<T>> GetSerializableFieldValuesOfType<T>(object target, bool includeChildren = false)
         {
-            List<FieldInfoValuePair> fieldValuePairs = new List<FieldInfoValuePair>();
+            List<FieldInfoValuePair<T>> fieldValuePairs = new List<FieldInfoValuePair<T>>();
             foreach (var pair in GetSerializableFieldInfoValuePair(target, includeChildren))
             {
                 if (typeof(T).IsAssignableFrom(pair.FieldInfo.FieldType))
                 {
-                    fieldValuePairs.Add(new FieldInfoValuePair(target, pair.FieldInfo));
+                    fieldValuePairs.Add(new FieldInfoValuePair<T>(target, pair.FieldInfo));
                 }
             }
             return fieldValuePairs;
