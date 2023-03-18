@@ -13,7 +13,7 @@ namespace Treasured.UnitySdk.Validation
             List<ValidationResult> results = new List<ValidationResult>();
             foreach (var reference in ReflectionUtilities.GetSerializableFieldInfoValuePairWithAttribute<RequiredFieldAttribute>(target))
             {
-                if (pair.IsNull())
+                if (reference.IsNull())
                 {
                     var fieldName = NicifyVariableName(reference.FieldInfo.Name);
                     results.Add(new ValidationResult()

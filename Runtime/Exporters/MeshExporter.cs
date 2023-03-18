@@ -258,7 +258,7 @@ namespace Treasured.UnitySdk
                 {
                     if (!meshToCombineDictionary.ContainsKey(transform.gameObject.GetInstanceID()))
                     {
-                        Debug.Log(transform.name, transform);
+                        //Debug.Log(transform.name, transform);
                         meshToCombineDictionary.Add(transform.gameObject.GetInstanceID(), transform.gameObject);
                     }
                 }

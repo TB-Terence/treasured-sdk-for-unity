@@ -151,7 +151,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _map: {fileID: 3560796474060619918}
-  enabled: 0
+  enabled: 1
 --- !u!1 &175297194
 GameObject:
   m_ObjectHideFlags: 0
@@ -835,6 +835,7 @@ MonoBehaviour:
         message: The following is an example of a Group action, which runs multiple
           actions at once. For simplicity, only two Text actions are demonstrated.
         duration: 0
+        style: fade
     00000004:
       type: {class: GroupAction, ns: Treasured.UnitySdk, asm: Treasured.UnitySdk.Runtime}
       data:
@@ -868,6 +869,7 @@ MonoBehaviour:
           as you might have noticed. You can also use the 'Pan' action to rotate
           the camera along the Y-axis. Here is an example.
         duration: 0
+        style: fade
     00000008:
       type: {class: PanAction, ns: Treasured.UnitySdk, asm: Treasured.UnitySdk.Runtime}
       data:
@@ -907,6 +909,7 @@ MonoBehaviour:
         message: What you are about to see next is a page embed that displays in
           the top-right corner. The tour will resume when you close the embed.
         duration: 0
+        style: fade
     0000000E:
       type: {class: EmbedAction, ns: Treasured.UnitySdk.Actions, asm: Treasured.UnitySdk.Runtime}
       data:
@@ -935,6 +938,7 @@ MonoBehaviour:
         message: What you are about to see next is a custom embed from OpenSea. The
           tour will resume when you click on the right arrow.
         duration: 0
+        style: fade
     00000012:
       type: {class: CustomEmbedCodeAction, ns: Treasured.UnitySdk, asm: Treasured.UnitySdk.Runtime}
       data:
@@ -967,6 +971,7 @@ MonoBehaviour:
         message: Did you know you can put a preview card for interactables? Here
           is an example of the 'Show Preview' action.
         duration: 0
+        style: fade
     00000016:
       type: {class: ShowPreviewAction, ns: Treasured.UnitySdk.Actions, asm: Treasured.UnitySdk.Runtime}
       data:
@@ -987,6 +992,7 @@ MonoBehaviour:
         message: We understand that it's a lot to grasp in a short time. Let's listen
           to the track 'Both of Us' by madiRFAN.
         duration: 0
+        style: fade
     00000019:
       type: {class: GoToAction, ns: Treasured.UnitySdk, asm: Treasured.UnitySdk.Runtime}
       data:
@@ -1016,6 +1022,7 @@ MonoBehaviour:
         enabled: 1
         message: That's it! You have finished the tour.
         duration: 0
+        style: fade
     0000001D:
       type: {class: TextAction, ns: Treasured.UnitySdk, asm: Treasured.UnitySdk.Runtime}
       data:
@@ -1023,6 +1030,7 @@ MonoBehaviour:
         enabled: 1
         message: Hello
         duration: 0
+        style: fade
     0000001E:
       type: {class: TextAction, ns: Treasured.UnitySdk, asm: Treasured.UnitySdk.Runtime}
       data:
@@ -1030,6 +1038,7 @@ MonoBehaviour:
         enabled: 1
         message: World
         duration: 5
+        style: fade
 --- !u!114 &835505554
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1510,7 +1519,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _map: {fileID: 3560796474060619918}
-  enabled: 0
+  enabled: 1
 --- !u!1 &1604894601
 GameObject:
   m_ObjectHideFlags: 0
@@ -2116,7 +2125,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _map: {fileID: 3560796474060619918}
-  enabled: 0
+  enabled: 1
   imageFormat: 3
   exportAllQualities: 0
   imageQuality: 2048
@@ -2707,6 +2716,7 @@ MonoBehaviour:
           of the 'Show Text' action. Click the 'Next' button on the navigation bar
           to proceed.
         duration: 0
+        style: fade
 --- !u!1 &2069110129
 GameObject:
   m_ObjectHideFlags: 0
@@ -2815,7 +2825,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _map: {fileID: 3560796474060619918}
-  enabled: 0
+  enabled: 1
 --- !u!1 &2091964224
 GameObject:
   m_ObjectHideFlags: 0
@@ -2981,19 +2991,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _map: {fileID: 3560796474060619918}
-  enabled: 0
+  enabled: 1
   includeTags: -1
   excludeTags: 0
-  canUseTag: 1
-  filterTag: -1
-  canUseLayerMask: 0
-  filterLayerMask:
-    serializedVersion: 2
-    m_Bits: 0
   ExportQuality: 0
   keepCombinedMesh: 0
   displayLogs: 0
-  shouldOptimizeMesh: 1
 --- !u!4 &3560796472052655692
 Transform:
   m_ObjectHideFlags: 0
@@ -3085,6 +3088,7 @@ MonoBehaviour:
         message: What you are about to see is a page embed that displays in the top-right
           corner.
         duration: 3
+        style: fade
     00000002:
       type: {class: EmbedAction, ns: Treasured.UnitySdk.Actions, asm: Treasured.UnitySdk.Runtime}
       data:
@@ -3099,6 +3103,7 @@ MonoBehaviour:
         enabled: 1
         message: Click `Next` to proceed.
         duration: 0
+        style: fade
 --- !u!114 &3560796472192446916
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3410,6 +3415,7 @@ MonoBehaviour:
         message: The following is an example of Group action, which runs multiple
           actions at once. For simplicity, only two Text actions are demonstrated.
         duration: 0
+        style: fade
     00000002:
       type: {class: GroupAction, ns: Treasured.UnitySdk, asm: Treasured.UnitySdk.Runtime}
       data:
@@ -3428,6 +3434,7 @@ MonoBehaviour:
         enabled: 1
         message: Click `Next` to proceed.
         duration: 0
+        style: fade
     00000004:
       type: {class: TextAction, ns: Treasured.UnitySdk, asm: Treasured.UnitySdk.Runtime}
       data:
@@ -3435,6 +3442,7 @@ MonoBehaviour:
         enabled: 1
         message: Hello
         duration: 0
+        style: fade
     00000005:
       type: {class: TextAction, ns: Treasured.UnitySdk, asm: Treasured.UnitySdk.Runtime}
       data:
@@ -3442,6 +3450,7 @@ MonoBehaviour:
         enabled: 1
         message: World
         duration: 5
+        style: fade
 --- !u!1 &3560796472330222024
 GameObject:
   m_ObjectHideFlags: 0
@@ -3586,6 +3595,7 @@ MonoBehaviour:
         enabled: 1
         message: What you about to see next is a custom embed from OpenSea.
         duration: 3
+        style: fade
     00000002:
       type: {class: CustomEmbedCodeAction, ns: Treasured.UnitySdk, asm: Treasured.UnitySdk.Runtime}
       data:
@@ -3604,6 +3614,7 @@ MonoBehaviour:
         enabled: 1
         message: Click `Next` to proceed.
         duration: 0
+        style: fade
 --- !u!4 &3560796472505872042
 Transform:
   m_ObjectHideFlags: 0
@@ -4407,6 +4418,7 @@ MonoBehaviour:
         message: Finally, the next action is a `Start Tour` action which runs the
           previous actions in Guided Tour mode!
         duration: 0
+        style: fade
     00000002:
       type: {class: StartTourAction, ns: Treasured.UnitySdk, asm: Treasured.UnitySdk.Runtime}
       data:
@@ -4530,6 +4542,7 @@ MonoBehaviour:
         message: The following actions will show you what you can do with the camera
           controls.
         duration: 0
+        style: fade
     00000002:
       type: {class: ButtonAction, ns: Treasured.UnitySdk, asm: Treasured.UnitySdk.Runtime}
       data:
@@ -4564,6 +4577,7 @@ MonoBehaviour:
         enabled: 1
         message: Click `Next` to proceed.
         duration: 0
+        style: fade
 --- !u!4 &3560796473852333953
 Transform:
   m_ObjectHideFlags: 0
@@ -4711,6 +4725,7 @@ MonoBehaviour:
         enabled: 1
         message: This is an example of `Show Preview` action.
         duration: 2
+        style: fade
     00000002:
       type: {class: ShowPreviewAction, ns: Treasured.UnitySdk.Actions, asm: Treasured.UnitySdk.Runtime}
       data:
@@ -4724,6 +4739,7 @@ MonoBehaviour:
         enabled: 1
         message: Click `Next` to proceed.
         duration: 0
+        style: fade
 --- !u!4 &3560796474034742957
 Transform:
   m_ObjectHideFlags: 0
@@ -4975,6 +4991,7 @@ MonoBehaviour:
         enabled: 1
         message: Let's take a two-second break.
         duration: 0
+        style: fade
     00000002:
       type: {class: SleepAction, ns: Treasured.UnitySdk, asm: Treasured.UnitySdk.Runtime}
       data:
@@ -4988,6 +5005,7 @@ MonoBehaviour:
         enabled: 1
         message: Click `Next` to proceed.
         duration: 0
+        style: fade
 --- !u!4 &3560796474134807563
 Transform:
   m_ObjectHideFlags: 0

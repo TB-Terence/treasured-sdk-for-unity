@@ -70,7 +70,7 @@ namespace Treasured.UnitySdk
                     serializer.ContractResolver = ContractResolver.Instance;
                     JObject jAction = JObject.FromObject(action, serializer);
                     jAction.WriteTo(writer);
-                    //writer.WriteEndObject();
+                    writer.WriteEndObject();
                 }
                 writer.WriteEndArray();
             }

@@ -369,11 +369,11 @@ namespace Treasured.UnitySdk
             var pairs = ReflectionUtilities.GetSerializableFieldValuesOfType<ScriptableObject>(_map);
             foreach (var pair in pairs)
             {
-                if (pair.IsNull()
+                if (pair.Value.IsNullOrNone())
                 {
-                    pair.SetValue(ScriptableObject.CreateInstance(pair.FieldInfo.FieldType));
+                    pair.Value = ScriptableObject.CreateInstance(pair.FieldInfo.FieldType);
                 }
-                if (pair.GetValue() is Exporter exporter && exporter.Map != _map)
+                if (pair.Value is Exporter exporter && exporter.Map != _map)
                 {
                     exporter.Map = _map;
                 }
@@ -386,7 +386,7 @@ namespace Treasured.UnitySdk
             _cachedEditors[_map.exportSettings] = Editor.CreateEditor(_map.exportSettings);
             // Create editors for exporters
             var exporters = ReflectionUtilities.GetSerializableFieldValuesOfType<Exporter>(target, false);
-            _exporters = exporters.Select(exporter => exporter.GetValueAs<Exporter>()).ToArray();
+            _exporters = exporters.Select(exporter => exporter.Value).ToArray();
             foreach (var exporter in _exporters)
             {
                 _cachedEditors[exporter] = Editor.CreateEditor(exporter);
@@ -685,7 +685,6 @@ namespace Treasured.UnitySdk
             serializedObject.ApplyModifiedProperties();
         }
 
-        private bool _backgroudMusicExpanded = true;
 
         [TabGroup(groupName = "Page Info")]
         private void OnPageInfoGUI()
