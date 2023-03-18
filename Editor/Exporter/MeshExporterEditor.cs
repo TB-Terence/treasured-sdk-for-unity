@@ -29,6 +29,7 @@ namespace Treasured.UnitySdk
 
         public override void OnInspectorGUI()
         {
+            serializedObject.Update();
             _includeTag.intValue = EditorGUILayout.MaskField("Include Tags", _includeTag.intValue, _tagString);
             _excludeTag.intValue = EditorGUILayout.MaskField("Exclude Tags", _excludeTag.intValue, _tagString);
 
@@ -36,6 +37,7 @@ namespace Treasured.UnitySdk
             
             EditorGUILayout.PropertyField(_keepCombinedMesh);
             EditorGUILayout.PropertyField(_displayLogs);
+            serializedObject.ApplyModifiedProperties();
         }
 
         void OnPreferenceGUI(SerializedObject serializedObject)

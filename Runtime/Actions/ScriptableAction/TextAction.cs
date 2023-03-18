@@ -5,7 +5,7 @@ using UnityEngine.Serialization;
 
 namespace Treasured.UnitySdk
 {
-    [API("showText")]
+    [API("text")]
     public class TextAction : ScriptableAction
     {
         public const string kPattern = "[^\\w]";

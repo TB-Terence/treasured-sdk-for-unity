@@ -27,7 +27,7 @@ namespace Treasured.Actions
 
         public bool TryGetActionGroup(string groupName, out ScriptableActionCollection group)
         {
-            group = _groups.FirstOrDefault(group => group.name == groupName);
+            group = _groups.FirstOrDefault(group => group != null && group.name == groupName);
             return group != null;
         }
 
