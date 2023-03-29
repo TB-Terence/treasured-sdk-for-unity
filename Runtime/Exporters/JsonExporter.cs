@@ -14,8 +14,14 @@ namespace Treasured.UnitySdk
             CheckAdditionalContent = true
         };
 
+        internal static string SchemaVersion = "v1";
+
         public Newtonsoft.Json.Formatting formatting = Formatting.Indented;
-        
+
+        [Preset(false, "v1", "v2")]
+        [OnValueChanged("UpdateSchemaVersion")]
+        public string schemaVersion = "v1";
+
         [UnityEngine.ContextMenu("Reset")]
         private void Reset()
         {
@@ -34,6 +40,11 @@ namespace Treasured.UnitySdk
         {
             TreasuredSceneValidator validator = new TreasuredSceneValidator(Map);
             return validator.GetValidationResults();
+        }
+
+        void UpdateSchemaVersion()
+        {
+            SchemaVersion = schemaVersion;
         }
     }
 }

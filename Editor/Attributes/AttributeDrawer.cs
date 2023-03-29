@@ -41,6 +41,7 @@ namespace Treasured.UnitySdk
             ShowIfAttribute showIfAttribute = fieldInfo.GetCustomAttribute<ShowIfAttribute>();
             ReadOnlyAttribute readOnlyAttribute = fieldInfo.GetCustomAttribute<ReadOnlyAttribute>();
             EnableIfAttribute enableIfAttribute = fieldInfo.GetCustomAttribute<EnableIfAttribute>();
+            PresetAttribute presetAttribute = fieldInfo.GetCustomAttribute<PresetAttribute>();
             _disabled = readOnlyAttribute != null;
             if (enableIfAttribute != null)
             {
@@ -63,6 +64,7 @@ namespace Treasured.UnitySdk
             {
                 EditorGUI.BeginChangeCheck();
                 Rect rect = PrefixLabel(new Rect(total.x, total.y, total.width, total.height), property, label);
+                GUI.SetNextControlName("AttributeDrawerControl");
                 switch (property.propertyType)
                 {
                     case SerializedPropertyType.String:
@@ -75,7 +77,19 @@ namespace Treasured.UnitySdk
                         {
                             int indent = EditorGUI.indentLevel;
                             EditorGUI.indentLevel = 0;
-                            property.stringValue = EditorGUI.TextField(rect, property.stringValue);
+                            if (presetAttribute != null && !presetAttribute.Customizable)
+                            {
+                                EditorGUI.BeginChangeCheck();
+                                var index = EditorGUI.Popup(new Rect(rect.x, rect.y, rect.width, rect.height), Array.IndexOf(presetAttribute.Values, property.stringValue), presetAttribute.Values);
+                                if (EditorGUI.EndChangeCheck())
+                                {
+                                    property.stringValue = presetAttribute.Values[index];
+                                }
+                            }
+                            else
+                            {
+                                property.stringValue = EditorGUI.TextField(rect, property.stringValue);
+                            }
                             EditorGUI.indentLevel = indent;
                         }
                         break;
@@ -89,7 +103,11 @@ namespace Treasured.UnitySdk
                 {
                     if (onValueChangedAttribute != null)
                     {
+                        // Makes sure state is updated before invoke onValueChanged functions
+                        property.serializedObject.ApplyModifiedProperties();
                         Invoke(property, onValueChangedAttribute);
+                        // Text input will lose focus when ApplyModifiedProperties(), this will make it to refocus the control
+                        EditorGUI.FocusTextInControl("AttributeDrawerControl");
                     }
                     ValidateInput(property);
                 }
@@ -180,7 +198,7 @@ namespace Treasured.UnitySdk
             {
                 controlRect = new Rect(total.x, total.y + EditorGUIUtility.singleLineHeight, total.width, total.height - EditorGUIUtility.singleLineHeight - (_isMissing ? EditorGUIUtility.singleLineHeight : 0));
             }
-            if (presetAttribute != null)
+            if (presetAttribute != null && presetAttribute.Customizable)
             {
                 controlRect = new Rect(controlRect.x, controlRect.y, controlRect.width - Styles.MiniButtonWidth - Styles.ControlSpacing, controlRect.height);
                 if (EditorGUI.DropdownButton(new Rect(total.xMax - Styles.MiniButtonWidth, labelRect.y, Styles.MiniButtonWidth, EditorGUIUtility.singleLineHeight), Styles.Dropdown, FocusType.Passive))
@@ -194,6 +212,7 @@ namespace Treasured.UnitySdk
         void ShowPresetMenu(SerializedProperty property)
         {
             PresetAttribute attr = fieldInfo.GetCustomAttribute<PresetAttribute>();
+            OnValueChangedAttribute onValueChangedAttribute = fieldInfo.GetCustomAttribute<OnValueChangedAttribute>();
             if (attr == null) return;
             GenericMenu menu = new GenericMenu();
             foreach (var item in attr.Values)
@@ -202,6 +221,11 @@ namespace Treasured.UnitySdk
                 {
                     property.stringValue = item;
                     property.serializedObject.ApplyModifiedProperties();
+                    if (onValueChangedAttribute != null)
+                    {
+                        Invoke(property, onValueChangedAttribute);
+                    }
+                    // unfocus the control so gui gets updated
                     GUI.FocusControl(null);
                 });
             }

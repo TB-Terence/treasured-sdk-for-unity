@@ -43,9 +43,15 @@ namespace Treasured.UnitySdk
 
     public class PresetAttribute : PropertyAttribute
     {
+        public bool Customizable { get; } = false;
         public string[] Values { get; private set; }
-        public PresetAttribute(params string[] values)
+        public PresetAttribute(params string[] values) : this (true, values)
         {
+        }
+
+        public PresetAttribute(bool customizable, params string[] values)
+        {
+            this.Customizable = customizable;
             Values = values;
         }
     }
