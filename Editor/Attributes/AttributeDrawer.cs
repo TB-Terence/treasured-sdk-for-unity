@@ -134,19 +134,28 @@ namespace Treasured.UnitySdk
             if (memberInfos.Length == 1)
             {
                 var target = EditorReflectionUtilities.GetDeclaringObject(property);
+                object obj = null;
                 switch (memberInfos[0])
                 {
                     case FieldInfo fieldInfo:
-                        condition = (bool)fieldInfo.GetValue(target);
+                        obj = fieldInfo.GetValue(target);
                         break;
                     case MethodInfo methodInfo:
-                        condition = (bool)methodInfo.Invoke(target, null);
+                        obj = (bool)methodInfo.Invoke(target, null);
                         break;
                     case PropertyInfo propertyInfo:
-                        condition = (bool)propertyInfo.GetValue(target, null);
+                        obj = (bool)propertyInfo.GetValue(target, null);
                         break;
                     default:
                         break;
+                }
+                if (obj is UnityEngine.Object unityObj)
+                {
+                    condition = unityObj.IsNullOrNone();
+                }
+                else if(obj.GetType() == typeof(bool))
+                {
+                    condition = (bool)obj;
                 }
             }
             return condition;
