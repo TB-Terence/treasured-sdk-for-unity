@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
@@ -45,6 +46,11 @@ namespace Treasured.UnitySdk
         public bool Contains(ScriptableAction item)
         {
             return ((ICollection<ScriptableAction>)_actions).Contains(item);
+        }
+
+        public bool Contains(string id)
+        {
+            return _actions.Any(x => x.Id.Equals(id));
         }
 
         public void CopyTo(ScriptableAction[] array, int arrayIndex)

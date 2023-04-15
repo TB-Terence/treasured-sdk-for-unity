@@ -45,7 +45,7 @@ namespace Treasured.UnitySdk
             _disabled = readOnlyAttribute != null;
             if (enableIfAttribute != null)
             {
-                _disabled = _disabled == GetCondition(property, enableIfAttribute.Getter);
+                _disabled = GetCondition(property, enableIfAttribute.Getter);
             }
             RequiredFieldAttribute requiredFieldAttribute = fieldInfo.GetCustomAttribute<RequiredFieldAttribute>();
             if (showIfAttribute != null)
@@ -141,19 +141,19 @@ namespace Treasured.UnitySdk
                         obj = fieldInfo.GetValue(target);
                         break;
                     case MethodInfo methodInfo:
-                        obj = (bool)methodInfo.Invoke(target, null);
+                        obj = methodInfo.Invoke(target, null);
                         break;
                     case PropertyInfo propertyInfo:
-                        obj = (bool)propertyInfo.GetValue(target, null);
+                        obj = propertyInfo.GetValue(target, null);
                         break;
                     default:
                         break;
                 }
                 if (obj is UnityEngine.Object unityObj)
                 {
-                    condition = unityObj.IsNullOrNone();
+                    condition = !unityObj.IsNullOrNone();
                 }
-                else if(obj.GetType() == typeof(bool))
+                else if (obj != null && obj.GetType() == typeof(bool))
                 {
                     condition = (bool)obj;
                 }

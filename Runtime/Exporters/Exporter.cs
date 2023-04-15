@@ -106,7 +106,7 @@ namespace Treasured.UnitySdk
                 {
                     argument =
                         $"treasured optimize \"{map.exportSettings.OutputDirectory}\" --skipGlb";
-                    UnityEngine.Debug.LogError("optimizing skip glb");
+                    //UnityEngine.Debug.LogError("optimizing skip glb");
                 }
 
                 // Run `treasured optimize` to optimize the glb file

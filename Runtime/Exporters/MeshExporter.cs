@@ -386,9 +386,7 @@ namespace Treasured.UnitySdk
             meshRenderer.material =
                 new Material(Resources.Load("TreasuredDefaultMaterial", typeof(Material)) as Material);
             tempGameObject.gameObject.SetActive(true);
-            
-            CreateGLB(new[]{tempGameObject.transform});
-
+          
             CreateGLB(new[] { tempGameObject.transform });
 
             if (!keepCombinedMesh)

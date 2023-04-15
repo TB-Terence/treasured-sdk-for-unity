@@ -25,6 +25,7 @@ namespace Treasured.UnitySdk
         /// Duration for the text in seconds.
         /// </summary>
         [Min(0)]
+        [Min(1)]
         public int duration;
 
         internal override ScriptableAction ConvertToScriptableAction()

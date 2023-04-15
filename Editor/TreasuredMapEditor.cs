@@ -256,7 +256,7 @@ namespace Treasured.UnitySdk
             InitializeObjectList();
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
-            Migrate();
+            ValidateSchema();
             try
             {
                 var process = Process.GetProcessById(SessionState.GetInt(SessionKeys.CLIProcessId, -1));
@@ -273,95 +273,62 @@ namespace Treasured.UnitySdk
             SceneView.duringSceneGui -= OnSceneViewGUI;
         }
 
-        private void Migrate()
+        private void ValidateSchema()
         {
-            if (!_map.migrateInfo.shouldMigrate)
-            {
-                return;
-            }
-
+            int totalUpdated = 0;
             TreasuredObject[] objects = _map.GetComponentsInChildren<TreasuredObject>(true);
-            foreach (TreasuredObject obj in objects)
+            foreach (var obj in objects)
             {
-                // initialize graph
-                if (obj.actionGraph == null)
-                {
-                    obj.actionGraph = new Treasured.Actions.ActionGraph();
-                }
-                if (obj.actionGraph.TryGetActionGroup("onSelect", out var onSelect))
-                {
-                    onSelect.Clear();
-                }
-                else
+                if (!obj.actionGraph.TryGetActionGroup("onSelect", out var onSelect))
                 {
                     onSelect = obj.actionGraph.AddActionGroup("onSelect");
                 }
-
-                foreach (var actionGroup in obj.OnClick)
+                if (obj.OnClick.Count > 0)
                 {
-                    if (actionGroup.Actions.Count > 1)
-                    {
-                        GroupAction group = new GroupAction();
-                        foreach (var action in actionGroup.Actions)
-                        {
-                            ScriptableAction scriptableAction = action.ConvertToScriptableAction();
-                            if (scriptableAction != null)
-                            {
-                                group.actions.Add(scriptableAction);
-                            }
-                        }
-                        onSelect.Add(group);
-                    }
-                    else if (actionGroup.Actions.Count == 1)
-                    {
-                        ScriptableAction scriptableAction = actionGroup.Actions[0].ConvertToScriptableAction();
-                        if (scriptableAction != null)
-                        {
-                            onSelect.Add(scriptableAction);
-                        }
-                    }
-                }
-
-                if (obj is Interactable interactable)
-                {
-                    if (obj.actionGraph.TryGetActionGroup("onHover", out var onHover))
-                    {
-                        onHover.Clear();
-                    }
-                    else
-                    {
-                        onHover = obj.actionGraph.AddActionGroup("onHover");
-                    }
-                    foreach (var actionGroup in obj.OnHover)
+                    foreach (var actionGroup in obj.OnClick)
                     {
                         if (actionGroup.Actions.Count > 1)
                         {
-                            GroupAction group = new GroupAction();
-                            foreach (var action in actionGroup.Actions)
+                            if (!onSelect.Contains(actionGroup.Id))
                             {
-                                ScriptableAction scriptableAction = action.ConvertToScriptableAction();
-                                if (scriptableAction != null)
+                                GroupAction group = new GroupAction();
+                                group.Id = actionGroup.Id;
+                                foreach (var action in actionGroup.Actions)
                                 {
-                                    group.actions.Add(scriptableAction);
+                                    ScriptableAction scriptableAction = action.ConvertToScriptableAction();
+                                    scriptableAction.Id = action.Id;
+                                    if (scriptableAction != null)
+                                    {
+                                        group.actions.Add(scriptableAction);
+                                    }
                                 }
+                                onSelect.Add(group);
+                                totalUpdated++;
                             }
-                            onHover.Add(group);
                         }
                         else if (actionGroup.Actions.Count == 1)
                         {
-                            ScriptableAction scriptableAction = actionGroup.Actions[0].ConvertToScriptableAction();
-                            if (scriptableAction != null)
+                            var firstAction = actionGroup.Actions[0];
+                            if (!onSelect.Contains(firstAction.Id))
                             {
-                                onHover.Add(scriptableAction);
+                                ScriptableAction scriptableAction = firstAction.ConvertToScriptableAction();
+                                scriptableAction.Id = firstAction.Id;
+                                if (scriptableAction != null)
+                                {
+                                    onSelect.Add(scriptableAction);
+                                    totalUpdated++;
+                                }
                             }
                         }
                     }
                 }
             }
-
-            _map.migrateInfo.shouldMigrate = false;
             serializedObject.ApplyModifiedProperties();
             serializedObject.Update();
+            if (totalUpdated > 0)
+            {
+                EditorUtility.DisplayDialog("Action Schema Update", $"Updated {totalUpdated} action(s) to Version 2.", "Ok");
+            }
         }
 
         private void InitializeScriptableObjects()
