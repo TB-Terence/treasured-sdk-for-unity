@@ -104,7 +104,10 @@ namespace Treasured.UnitySdk
 
         private void OnDrawGizmos()
         {
-            Gizmos.DrawIcon(transform.position + Vector3.up, "Packages/com.treasured.unitysdk/Resources/Hotspot.png", true);
+            if (Hitbox)
+            {
+                Gizmos.DrawIcon(Hitbox.transform.position, "Packages/com.treasured.unitysdk/Resources/Hotspot.png", true);
+            }
         }
 
         #region Editor GUI Functions

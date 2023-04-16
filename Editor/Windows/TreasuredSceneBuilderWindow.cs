@@ -349,9 +349,13 @@ namespace Treasured.UnitySdk
 
         private void OnEnable()
         {
-            if (Selection.activeGameObject.TryGetComponent<TreasuredMap>(out var map) || !(map = Selection.activeGameObject.GetComponentInParent<TreasuredMap>()).IsNullOrNone())
+            if (!Selection.activeGameObject.IsNullOrNone() && (Selection.activeGameObject.TryGetComponent<TreasuredMap>(out var map) || !(map = Selection.activeGameObject.GetComponentInParent<TreasuredMap>()).IsNullOrNone()))
             {
                 scene = map;
+            }
+            if (scene.IsNullOrNone())
+            {
+                scene = GameObject.FindObjectOfType<TreasuredMap>();
             }
             ShowSceneViewNotification(new GUIContent("Click on where you want to place the object."), 1.5f);
             SceneView.duringSceneGui -= OnSceneViewGUI;
@@ -447,32 +451,7 @@ namespace Treasured.UnitySdk
 
         private void OnGUI()
         {
-            //EditorGUILayout.LabelField("Gizmos", EditorStyles.foldoutHeader);
-            //EditorGUILayout.LabelField("Hotspot", EditorStyles.boldLabel);
-            //hotspotGizmosState.camera.enabled = EditorGUILayout.Toggle("Show Camera", hotspotGizmosState.camera.enabled);
-            //hotspotGizmosState.camera.color = EditorGUILayout.ColorField(hotspotGizmosState.camera.color);
-            //hotspotGizmosState.path.enabled = EditorGUILayout.Toggle("Show Path", hotspotGizmosState.path.enabled);
-            //hotspotGizmosState.hitbox.enabled = EditorGUILayout.Toggle("Show Hitbox", hotspotGizmosState.hitbox.enabled);
-            //if (scene == null)
-            //{
-            //    using (new EditorGUILayout.VerticalScope(GUILayout.ExpandHeight(true)))
-            //    {
-            //        GUILayout.FlexibleSpace();
-            //        EditorGUILayout.LabelField("No scene selected", EditorStyles.centeredGreyMiniLabel, GUILayout.Height(36));
-            //        using (new EditorGUILayout.HorizontalScope())
-            //        {
-            //            GUILayout.FlexibleSpace();
-            //            if (GUILayout.Button("Create New Scene", GUILayout.Width(204), GUILayout.Height(24)))
-            //            {
-            //                scene = CreateNewTreasuredScene();
-            //            }
-            //            GUILayout.FlexibleSpace();
-            //        }
-            //        GUILayout.FlexibleSpace();
-            //    }
-            //    return;
-            //}
-            if (GUILayout.Button("Create New Scene", GUILayout.Width(204), GUILayout.Height(24)))
+            if (GUILayout.Button("Create New Scene", GUILayout.Height(24)))
             {
                 scene = CreateNewTreasuredScene();
             }
@@ -557,7 +536,7 @@ namespace Treasured.UnitySdk
             SceneView.lastActiveSceneView?.Repaint();
         }
 
-        void CreateObject(Type t)
+        TreasuredObject TryCreateObject(Type t, Vector3 position)
         {
             if (!typeof(TreasuredObject).IsAssignableFrom(t))
             {
@@ -576,26 +555,22 @@ namespace Treasured.UnitySdk
             TreasuredObject obj = (TreasuredObject)newGO.AddComponent(t);
             newGO.transform.SetParent(categoryRoot);
             obj.TryInvokeMethods("OnSelectedInHierarchy");
-            // Place the new game object on floor if collider found.
-            Camera camera = SceneView.lastActiveSceneView?.camera;
-            if (Physics.Raycast(HandleUtility.GUIPointToWorldRay(Event.current.mousePosition), out var hit))
-            {
-                obj.transform.position = hit.point;
-                if (obj is Hotspot hotspot)
-                {
-                    hotspot.Camera.transform.position = hit.point + new Vector3(0, 1.5f, 0);
-                    hotspot.Camera.transform.localRotation = Quaternion.identity;
-                }
-                else if (obj is VideoRenderer videoRenderer)
-                {
-                    videoRenderer.Hitbox.transform.localScale = new Vector3(1, 1, 0.01f);
-                }
-            }
-            else
-            {
-                SceneView.lastActiveSceneView?.LookAt(obj.transform.position, camera.transform.rotation);
-            }
             EditorGUIUtility.PingObject(obj);
+            obj.transform.position = position;
+            if (obj is Hotspot hotspot)
+            {
+                if (hotspot.Hitbox.TryGetComponent<Collider>(out var collider))
+                {
+                    obj.Hitbox.transform.position = new Vector3(obj.Hitbox.transform.position.x, obj.Hitbox.transform.position.y + collider.bounds.size.y / 2, obj.Hitbox.transform.position.z);
+                }
+                hotspot.Camera.transform.position = position + new Vector3(0, 1.5f, 0);
+                hotspot.Camera.transform.localRotation = Quaternion.identity;
+            }
+            else if (obj is VideoRenderer videoRenderer)
+            {
+                videoRenderer.Hitbox.transform.localScale = new Vector3(1, 1, 0.01f);
+            }
+            return obj;
         }
 
         void ProcessEvents()
@@ -604,12 +579,45 @@ namespace Treasured.UnitySdk
             switch (toolMode)
             {
                 case ToolMode.Create:
-                    if (e.type == EventType.MouseDown && e.button == 0)
+                    if (e.type == EventType.MouseDown)
                     {
                         if (selectedTypeIndex > -1 && selectedTypeIndex < ObjectTypes.Length)
                         {
-                            CreateObject(ObjectTypes[selectedTypeIndex]);
-                            SceneView.lastActiveSceneView?.Repaint();
+                            if (e.button == 0)
+                            {
+
+                                // Place the new game object on floor if collider found.
+                                if (Physics.Raycast(HandleUtility.GUIPointToWorldRay(Event.current.mousePosition), out var hit))
+                                {
+                                    var to = hit.transform.GetComponentInParent<TreasuredObject>();
+                                    if (!to)
+                                    {
+                                        to = TryCreateObject(ObjectTypes[selectedTypeIndex], hit.point);
+                                        SceneView.lastActiveSceneView?.Repaint();
+                                    }
+                                    Selection.activeObject = to;
+                                }
+                                else
+                                {
+                                    SceneView.lastActiveSceneView.ShowNotification(new GUIContent($"Invalid Placement"), .1f);
+                                }
+                            }
+                            //else if(e.button == 1)
+                            //{
+                            //    if (Physics.Raycast(HandleUtility.GUIPointToWorldRay(e.mousePosition), out var hit))
+                            //    {
+                            //        if (hit.transform.TryGetComponent<Hitbox>(out var obj))
+                            //        {
+                            //            GenericMenu menu = new GenericMenu();
+                            //            menu.AddItem(new GUIContent("Remove"), false, () =>
+                            //            {
+                            //                GameObject.DestroyImmediate(obj.GetComponentInParent<TreasuredObject>().gameObject);
+                            //            });
+                            //            menu.ShowAsContext();
+                            //        }
+                            //    }
+                                
+                            //}
                         }
                     }
                     break;
