@@ -99,17 +99,17 @@ namespace Treasured.UnitySdk
             texture.SetPixels32(flippedPixels.ToArray());
             texture.Apply();
         }
-        
-        //void OnDrawGizmosSelected()
-        //{
-        //    Color tempColor = Gizmos.color;
-        //    Matrix4x4 tempMatrix = Gizmos.matrix;
-        //    Gizmos.matrix = Matrix4x4.TRS(this.transform.position, this.transform.rotation, Vector3.one);
 
-        //    Gizmos.color = TreasuredSDKPreferences.Instance.frustumColor;
-        //    Gizmos.DrawFrustum(Vector3.zero, 25, 0, 0.5f, 3);
-        //    Gizmos.color = tempColor;
-        //    Gizmos.matrix = tempMatrix;
-        //}
+        void OnDrawGizmosSelected()
+        {
+            Color tempColor = Gizmos.color;
+            Matrix4x4 tempMatrix = Gizmos.matrix;
+            Gizmos.matrix = Matrix4x4.TRS(this.transform.position, this.transform.rotation, Vector3.one);
+
+            Gizmos.color = TreasuredSDKPreferences.Instance.frustumColor;
+            Gizmos.DrawFrustum(Vector3.zero, 25, 0, 0.5f, 3);
+            Gizmos.color = tempColor;
+            Gizmos.matrix = tempMatrix;
+        }
     }
 }

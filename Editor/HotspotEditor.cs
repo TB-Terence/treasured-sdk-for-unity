@@ -105,7 +105,7 @@ namespace Treasured.UnitySdk
 
         private void OnSceneViewGUI(SceneView view)
         {
-            if (target is Hotspot hotspot && hotspot.Hitbox != null && hotspot.Camera != null)
+            if (target is Hotspot hotspot && hotspot != null && hotspot.Hitbox != null && hotspot.Camera != null)
             {
                 Transform cameraTransform = hotspot.Camera.transform;
                 switch (Tools.current)

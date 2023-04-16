@@ -284,6 +284,7 @@ namespace Treasured.UnitySdk
         private static readonly Type[] ObjectTypes = new Type[] { typeof(Hotspot), typeof(Interactable), typeof(SoundSource), typeof(VideoRenderer), typeof(HTMLEmbed) };
         //private static string[] ObjectTypeNames;
 
+        bool isEditing;
 
         [MenuItem("Tools/Treasured/Scene Builder", priority = 0)]
         static TreasuredSceneBuilderWindow ShowWindow()
@@ -323,6 +324,7 @@ namespace Treasured.UnitySdk
         HotspotGizmosState hotspotGizmosState = new HotspotGizmosState();
 
         ReorderableList objectList;
+        Camera previewCamera;
 
         struct ListItem
         {
@@ -377,12 +379,15 @@ namespace Treasured.UnitySdk
             //    item.Enabled = EditorGUI.ToggleLeft(rect, item.target.name, item.Enabled);
             //};
             toolMode = ToolMode.Create;
+            previewCamera = new GameObject("Preview Camera").AddComponent<Camera>();
+            previewCamera.hideFlags = HideFlags.HideAndDontSave;
             OnSelectionChange();
         }
 
         private void OnDisable()
         {
             SceneView.duringSceneGui -= OnSceneViewGUI;
+            GameObject.DestroyImmediate(previewCamera);
         }
 
         private void OnSceneViewGUI(SceneView sceneView)
@@ -395,7 +400,7 @@ namespace Treasured.UnitySdk
             switch (selection)
             {
                 case Hotspot hotspot:
-                    //Handles.DrawCamera(new Rect(Screen.width - 110, Screen.height - 130, 100, 100), Camera.main);
+                    GUI.Window(0, new Rect(Screen.width - 220, Screen.height - 190, 200, 150), PreviewWindow, new GUIContent("Preview"));
                     break;
                 default:
                     break;
@@ -420,6 +425,11 @@ namespace Treasured.UnitySdk
             Handles.EndGUI();
         }
 
+        void PreviewWindow(int windowId)
+        {
+            Handles.DrawCamera(new Rect(0, 0, 200, 150), previewCamera);
+        }
+
         private void OnSelectionChange()
         {
             if (Selection.objects.Length != 1)
@@ -432,6 +442,13 @@ namespace Treasured.UnitySdk
                 if(Selection.activeGameObject.TryGetComponent(type, out var component))
                 {
                     this.selection = component;
+                    if (component is Hotspot hotspot)
+                    {
+                        if (previewCamera != null)
+                        {
+                            previewCamera.transform.SetParent(hotspot.Camera.transform);
+                        }
+                    }
                     break;
                 }
             }
@@ -485,47 +502,50 @@ namespace Treasured.UnitySdk
             {
                 Selection.objects = scene.GetComponentsInChildren(ObjectTypes[selectedTypeIndex]).Select(c => c.gameObject).ToArray();
             }
-            switch (selection)
+            if (selection != null)
             {
-                case TreasuredMap scene:
-                    
-                    break;
-                case Hotspot hotspot:
-                    EditorGUILayout.LabelField("Hitbox Controls", EditorStyles.boldLabel);
-                    foreach (var method in ReflectionUtilities.GetMethodsWithAttribute<ControlAttribute>(hotspot))
-                    {
-                        if (GUILayout.Button(method.attribute.name))
+                switch (selection)
+                {
+                    case TreasuredMap scene:
+
+                        break;
+                    case Hotspot hotspot:
+                        EditorGUILayout.LabelField("Hitbox Controls", EditorStyles.boldLabel);
+                        foreach (var method in ReflectionUtilities.GetMethodsWithAttribute<ControlAttribute>(hotspot))
                         {
-                            method.methodInfo.Invoke(hotspot, new object[] { });
+                            if (GUILayout.Button(method.attribute.name))
+                            {
+                                method.methodInfo.Invoke(hotspot, new object[] { });
+                            }
                         }
-                    }
-                    if (GUILayout.Button("Snap to Ground"))
-                    {
-                        hotspot.SnapToGround();
-                    }
-                    EditorGUILayout.LabelField("Camera Controls", EditorStyles.boldLabel);
-                    hotspot.Camera.transform.position = EditorGUILayout.Vector3Field("Position", hotspot.Camera.transform.position);
-                    if (GUILayout.Button(toolMode != ToolMode.Record ? "Record" : "Stop Record"))
-                    {
-                        if(toolMode == ToolMode.Record)
+                        if (GUILayout.Button("Snap to Ground"))
                         {
-                            toolMode = ToolMode.None;
+                            hotspot.SnapToGround();
                         }
-                        else
+                        EditorGUILayout.LabelField("Camera Controls", EditorStyles.boldLabel);
+                        hotspot.Camera.transform.position = EditorGUILayout.Vector3Field("Position", hotspot.Camera.transform.position);
+                        if (GUILayout.Button(toolMode != ToolMode.Record ? "Record" : "Stop Record"))
                         {
-                            ShowSceneViewNotification(Styles.recordingText, 5);
-                            toolMode = ToolMode.Record;
+                            if (toolMode == ToolMode.Record)
+                            {
+                                toolMode = ToolMode.None;
+                            }
+                            else
+                            {
+                                ShowSceneViewNotification(Styles.recordingText, 5);
+                                toolMode = ToolMode.Record;
+                                PreviewCamera(hotspot.Camera);
+                            }
+                        }
+                        if (GUILayout.Button("Preview Camera"))
+                        {
                             PreviewCamera(hotspot.Camera);
                         }
-                    }
-                    if (GUILayout.Button("Preview Camera"))
-                    {
-                        PreviewCamera(hotspot.Camera);
-                    }
-                    EditorGUI.indentLevel--;
-                    break;
-                case Interactable interactable:
-                    break;
+                        EditorGUI.indentLevel--;
+                        break;
+                    case Interactable interactable:
+                        break;
+                }
             }
             //objectList.DoLayoutList();
         }
@@ -583,9 +603,8 @@ namespace Treasured.UnitySdk
                     {
                         if (selectedTypeIndex > -1 && selectedTypeIndex < ObjectTypes.Length)
                         {
-                            if (e.button == 0)
+                            if (!isEditing && e.button == 0)
                             {
-
                                 // Place the new game object on floor if collider found.
                                 if (Physics.Raycast(HandleUtility.GUIPointToWorldRay(Event.current.mousePosition), out var hit))
                                 {
@@ -596,6 +615,14 @@ namespace Treasured.UnitySdk
                                         SceneView.lastActiveSceneView?.Repaint();
                                     }
                                     Selection.activeObject = to;
+                                    if (to is TreasuredObject)
+                                    {
+                                        isEditing = true;
+                                    }
+                                    else
+                                    {
+                                        isEditing = false;
+                                    }
                                 }
                                 else
                                 {
@@ -633,7 +660,8 @@ namespace Treasured.UnitySdk
                             }
                             break;
                         case EventType.Layout:
-                            HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
+                            if(!isEditing)
+                                HandleUtility.AddDefaultControl(GUIUtility.GetControlID(FocusType.Passive));
                             break;
                     }
                     break;
