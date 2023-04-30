@@ -62,23 +62,23 @@ namespace Treasured.UnitySdk
             {
                 EditorGUILayout.PropertyField(button);
                 EditorGUILayoutUtils.TransformPropertyField(hitbox, "Hitbox");
-                bool showDeprecatedActions = SessionState.GetBool(SessionKeys.ShowDeprecatedActions, false);
-                SessionState.SetBool(SessionKeys.ShowDeprecatedActions, EditorGUILayout.ToggleLeft("Show Deprecated Actions", showDeprecatedActions));
+                //bool showDeprecatedActions = SessionState.GetBool(SessionKeys.ShowDeprecatedActions, false);
+                //SessionState.SetBool(SessionKeys.ShowDeprecatedActions, EditorGUILayout.ToggleLeft("Show Deprecated Actions", showDeprecatedActions));
                 EditorGUI.BeginChangeCheck();
                 bool isExpanded = EditorGUILayout.BeginFoldoutHeaderGroup(SessionState.GetBool(SessionKeys.ShowActionList, true), "Action Graph");
+                EditorGUILayout.EndFoldoutHeaderGroup();
                 if (EditorGUI.EndChangeCheck())
                 {
                     SessionState.SetBool(SessionKeys.ShowActionList, isExpanded);
                 }
                 if (isExpanded)
                 {
-                    if (showDeprecatedActions)
-                    {
-                        onClickListDrawer?.OnGUI();
-                    }
+                    //if (showDeprecatedActions)
+                    //{
+                    //    onClickListDrawer?.OnGUI();
+                    //}
                     EditorGUILayout.PropertyField(actionGraph);
                 }
-                EditorGUILayout.EndFoldoutHeaderGroup();
             }
             else
             {

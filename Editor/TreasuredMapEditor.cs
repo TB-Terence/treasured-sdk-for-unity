@@ -287,6 +287,7 @@ namespace Treasured.UnitySdk
                 {
                     foreach (var actionGroup in obj.OnClick)
                     {
+                        if (actionGroup == null || actionGroup.Actions == null) { continue; }
                         if (actionGroup.Actions.Count > 1)
                         {
                             if (!onSelect.Contains(actionGroup.Id))
@@ -836,7 +837,7 @@ namespace Treasured.UnitySdk
             EditorGUI.indentLevel--;
         }
 
-        [TabGroup(groupName = "Actions")]
+        //[TabGroup(groupName = "Actions")]
         private void OnActionsGUI()
         {
             EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(TreasuredMap.onSceneLoad)));
@@ -847,10 +848,17 @@ namespace Treasured.UnitySdk
         {
             if (!_map.features.guidedTour)
             {
-                EditorGUILayout.HelpBox(
-                    "Guided Tour is currently disabled. You can go to Page Info > Features to turn it on.",
+                using(new EditorGUILayout.HorizontalScope())
+                {
+                    EditorGUILayout.HelpBox(
+                    "Guided Tour is currently disabled.",
                     MessageType.Warning);
-                return;
+                    if (GUILayout.Button("Enable", GUILayout.ExpandHeight(true)))
+                    {
+                        _map.features.guidedTour = true;
+                        serializedObject.ApplyModifiedProperties();
+                    }
+                }
             }
 
             _cachedEditors[_map.graph].OnInspectorGUI();

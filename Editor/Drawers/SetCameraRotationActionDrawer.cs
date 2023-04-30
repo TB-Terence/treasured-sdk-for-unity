@@ -31,7 +31,7 @@ namespace Treasured.UnitySdk
                 {
                     SceneView.lastActiveSceneView.LookAt(SceneView.lastActiveSceneView.pivot, rotationProperty.quaternionValue);
                 }
-                speedProperty.floatValue = Mathf.Clamp(EditorGUI.FloatField(new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight * 3 + EditorGUIUtility.standardVerticalSpacing * 2, position.width, EditorGUIUtility.singleLineHeight), speedProperty.displayName, speedProperty.floatValue), 0, 10);
+                EditorGUI.PropertyField(new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight * 3 + EditorGUIUtility.standardVerticalSpacing * 2, position.width, EditorGUIUtility.singleLineHeight), speedProperty);
             }
             EditorGUI.EndProperty();
         }

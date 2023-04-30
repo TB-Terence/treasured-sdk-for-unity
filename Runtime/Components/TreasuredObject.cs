@@ -100,6 +100,10 @@ namespace Treasured.UnitySdk
 
         public ActionGraph actionGraph = new ActionGraph();
 
+        [JsonProperty("actionGroups")]
+        public ScriptableActionCollection onClick;
+        public ScriptableActionCollection onHover;
+
         #endregion
 #if UNITY_EDITOR
         // DO NOT REMOVE, called by Editor

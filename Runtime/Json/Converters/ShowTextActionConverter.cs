@@ -30,8 +30,6 @@ namespace Treasured.UnitySdk
                 writer.WriteStartObject();
                 writer.WritePropertyName("id");
                 serializer.Serialize(writer, action.Id);
-                writer.WritePropertyName("type");
-                serializer.Serialize(writer, action.Type);
                 writer.WritePropertyName("content");
                 serializer.Serialize(writer, action.content);
                 writer.WritePropertyName("style");

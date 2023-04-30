@@ -387,7 +387,7 @@ namespace Treasured.UnitySdk
         private void OnDisable()
         {
             SceneView.duringSceneGui -= OnSceneViewGUI;
-            GameObject.DestroyImmediate(previewCamera);
+            //GameObject.DestroyImmediate(previewCamera);
         }
 
         private void OnSceneViewGUI(SceneView sceneView)
@@ -400,7 +400,7 @@ namespace Treasured.UnitySdk
             switch (selection)
             {
                 case Hotspot hotspot:
-                    GUI.Window(0, new Rect(Screen.width - 220, Screen.height - 190, 200, 150), PreviewWindow, new GUIContent("Preview"));
+                    GUI.Window(0, new Rect(Screen.width - 220, Screen.height - 250, 200, 150), PreviewWindow, new GUIContent("Camera Preview"));
                     break;
                 default:
                     break;
@@ -427,12 +427,12 @@ namespace Treasured.UnitySdk
 
         void PreviewWindow(int windowId)
         {
-            Handles.DrawCamera(new Rect(0, 0, 200, 150), previewCamera);
+            Handles.DrawCamera(new Rect(0, 70, 200, 130), previewCamera);
         }
 
         private void OnSelectionChange()
         {
-            if (Selection.objects.Length != 1)
+            if (Selection.objects.Length != 1 || Selection.activeGameObject == null)
             {
                 return;
             }
@@ -447,6 +447,7 @@ namespace Treasured.UnitySdk
                         if (previewCamera != null)
                         {
                             previewCamera.transform.SetParent(hotspot.Camera.transform);
+                            previewCamera.transform.localPosition = Vector3.zero;
                         }
                     }
                     break;
