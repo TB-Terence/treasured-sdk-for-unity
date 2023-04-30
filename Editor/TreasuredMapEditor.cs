@@ -245,11 +245,15 @@ namespace Treasured.UnitySdk
 
         private bool _backgroudMusicExpanded = true;
 
+        SceneEditor _sceneEditor;
+
         public void OnEnable()
         {
             _selectedTabIndex = SessionState.GetInt(SelectedTabIndexKey, _selectedTabIndex);
             _map = target as TreasuredMap;
             _hotspots = new List<Hotspot>(_map.Hotspots);
+            _sceneEditor = ScriptableObject.CreateInstance<SceneEditor>();
+            _sceneEditor.SetMap(_map);
             InitializeScriptableObjects();
             CreateCachedEditors();
             InitializeTabGroups();
@@ -271,6 +275,7 @@ namespace Treasured.UnitySdk
         private void OnDisable()
         {
             SceneView.duringSceneGui -= OnSceneViewGUI;
+            GameObject.DestroyImmediate(_sceneEditor);
         }
 
         private void ValidateSchema()
@@ -300,7 +305,7 @@ namespace Treasured.UnitySdk
                                     scriptableAction.Id = action.Id;
                                     if (scriptableAction != null)
                                     {
-                                        group.actions.Add(scriptableAction);
+                                       // group.actions.Add(scriptableAction);
                                     }
                                 }
                                 onSelect.Add(group);
@@ -653,7 +658,6 @@ namespace Treasured.UnitySdk
             serializedObject.ApplyModifiedProperties();
         }
 
-
         [TabGroup(groupName = "Page Info")]
         private void OnPageInfoGUI()
         {
@@ -679,6 +683,8 @@ namespace Treasured.UnitySdk
         [TabGroup(groupName = "Objects")]
         private void OnObjectsGUI()
         {
+            _sceneEditor.OnGUI();
+            return;
             EditorGUI.indentLevel++;
             for (int i = 0; i < _foldoutGroupStates.Length; i++)
             {
