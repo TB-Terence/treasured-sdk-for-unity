@@ -61,7 +61,8 @@ namespace Treasured.UnitySdk
             if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit))
             {
                 transform.position = hit.point + new Vector3(0, 0.01f, 0);
-                if (TryGetComponent<BoxCollider>(out var collider))
+                var collider = GetComponentInChildren<BoxCollider>();
+                if (collider)
                 {
                     collider.center = new Vector3(0, collider.size.y / 2, 0);
                 }

@@ -247,6 +247,49 @@ namespace Treasured.UnitySdk
                     editingTarget = objectListStates[selectedTypeIndex].objects[0];
                 }
             }
+            if (state.objects.Count > 0)
+            {
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    EditorGUILayout.LabelField(
+                        new GUIContent(state.type == typeof(Hotspot) ? "Order" : string.Empty,
+                            state.type == typeof(Hotspot)
+                                ? "The order of the Hotspot for the Guide Tour."
+                                : string.Empty), GUILayout.Width(58));
+                    EditorGUILayout.LabelField(new GUIContent("Name"), GUILayout.Width(64));
+                }
+
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    int activeCount = state.objects.Count(x => x.gameObject.activeSelf);
+                    if (activeCount == state.objects.Count)
+                    {
+                        state.toggleState = GroupToggleState.All;
+                        state.enableAll = true;
+                    }
+                    else
+                    {
+                        state.toggleState = activeCount == 0
+                            ? GroupToggleState.None
+                            : GroupToggleState.Mixed;
+                        state.enableAll = false;
+                    }
+
+                    EditorGUI.showMixedValue = state.toggleState == GroupToggleState.Mixed;
+                    GUILayout.Space(3);
+                    EditorGUI.BeginChangeCheck();
+                    state.enableAll = EditorGUILayout.ToggleLeft(GUIContent.none, state.enableAll);
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        foreach (var obj in state.objects)
+                        {
+                            obj.gameObject.SetActive(state.enableAll);
+                        }
+                    }
+
+                    EditorGUI.showMixedValue = false;
+                }
+            }
             if (state.objects.Count == 0)
             {
                 EditorGUILayout.LabelField(
@@ -264,23 +307,49 @@ namespace Treasured.UnitySdk
                         using (new EditorGUILayout.HorizontalScope())
                         {
                             TreasuredObject current = state.objects[index];
-                            // TODO: width 40 only show up to 10000
-                            EditorGUI.BeginChangeCheck();
-                            bool active = EditorGUILayout.Toggle(GUIContent.none,
-                                current.gameObject.activeSelf, GUILayout.Width(20));
-                            if (EditorGUI.EndChangeCheck())
+                            using(new EditorGUILayout.VerticalScope())
                             {
-                                current.gameObject.SetActive(active);
-                            }
-
-                            EditorGUILayout.LabelField($"{index + 1}", GUILayout.Width(32));
-                            using (var hs = new EditorGUILayout.HorizontalScope())
-                            {
-                                using (new EditorGUI.DisabledGroupScope(!current.gameObject.activeSelf))
+                                using(new EditorGUILayout.HorizontalScope())
                                 {
-                                    EditorGUILayout.LabelField(
-                                        new GUIContent(current.gameObject.name, current.Id),
-                                        style: editingTarget == current ? Styles.selectedObjectLabel : Styles.objectLabel);
+                                    // TODO: width 40 only show up to 10000
+                                    EditorGUI.BeginChangeCheck();
+                                    bool active = EditorGUILayout.Toggle(GUIContent.none,
+                                        current.gameObject.activeSelf, GUILayout.Width(20));
+                                    if (EditorGUI.EndChangeCheck())
+                                    {
+                                        current.gameObject.SetActive(active);
+                                    }
+
+                                    EditorGUILayout.LabelField($"{index + 1}", GUILayout.Width(32));
+                                    using (var hs = new EditorGUILayout.HorizontalScope())
+                                    {
+                                        using (new EditorGUI.DisabledGroupScope(!current.gameObject.activeSelf))
+                                        {
+                                            EditorGUILayout.LabelField(
+                                                new GUIContent(current.gameObject.name, current.Id),
+                                                style: editingTarget == current ? Styles.selectedObjectLabel : Styles.objectLabel);
+                                        }
+                                    }
+                                }
+                                if (editingTarget == current)
+                                {
+                                    using (new GUILayout.HorizontalScope())
+                                    {
+                                        GUILayout.FlexibleSpace();
+                                        if (current is Hotspot hotspot)
+                                        {
+                                            if (GUILayout.Button("Preview"))
+                                            {
+                                                SceneView.lastActiveSceneView.LookAt(hotspot.Camera.transform.position, hotspot.Camera.transform.rotation, 0.01f);
+                                            }
+                                            if (GUILayout.Button("Snap Hitbox"))
+                                            {
+                                                hotspot.SnapToGround();
+                                            }
+                                        }
+                                        
+                                        GUILayout.FlexibleSpace();
+                                    }
                                 }
                             }
 

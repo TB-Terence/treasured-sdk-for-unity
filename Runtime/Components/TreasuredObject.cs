@@ -89,7 +89,7 @@ namespace Treasured.UnitySdk
         /// <summary>
         /// Group of action to perform when the object is selected.
         /// </summary>
-        [JsonProperty("actionGroups")]
+        [JsonIgnore]
         public List<ActionGroup> OnClick => _onClick;
 
         /// <summary>
@@ -103,6 +103,8 @@ namespace Treasured.UnitySdk
         [JsonProperty("actionGroups")]
         public ScriptableActionCollection onClick;
         public ScriptableActionCollection onHover;
+
+        public ActionCollection actionCollection = new ActionCollection();
 
         #endregion
 #if UNITY_EDITOR

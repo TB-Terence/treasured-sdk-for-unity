@@ -23,7 +23,7 @@ namespace Treasured.UnitySdk
                 string newOutputFolderName = EditorGUILayout.TextField(new GUIContent("Folder Name"), folderName.stringValue);
                 if (EditorGUI.EndChangeCheck() && !string.IsNullOrWhiteSpace(newOutputFolderName))
                 {
-                    folderName.stringValue = newOutputFolderName;
+                    folderName.stringValue = newOutputFolderName.Trim();
                 }
                 EditorGUILayout.PropertyField(optimizeScene);
             }
