@@ -26,7 +26,7 @@ namespace Treasured.UnitySdk
             {
                 if (string.IsNullOrWhiteSpace(folderName))
                 {
-                    throw new InvalidDataException("Folder name can not be empty or whitespace.");
+                    return "";
                 }
                 return Path.Combine(TreasuredSDKPreferences.Instance.customExportFolder, folderName).ToOSSpecificPath();
             }

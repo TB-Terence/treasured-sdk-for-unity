@@ -45,7 +45,6 @@ namespace Treasured.UnitySdk
         {
             public static readonly GUIContent alignView = EditorGUIUtility.TrTextContent("Align View");
             public static readonly GUIContent snapAllToGround = EditorGUIUtility.TrTextContent("Snap All on Ground");
-            public static readonly GUIContent selectAll = EditorGUIUtility.TrTextContent("Select All");
 
             public static readonly GUIContent searchObjects =
                 EditorGUIUtility.TrTextContent("Search", "Search objects by Id or name");
@@ -245,21 +244,15 @@ namespace Treasured.UnitySdk
 
         private bool _backgroudMusicExpanded = true;
 
-        SceneEditor _sceneEditor;
-
         public void OnEnable()
         {
             _selectedTabIndex = SessionState.GetInt(SelectedTabIndexKey, _selectedTabIndex);
             _map = target as TreasuredMap;
             _hotspots = new List<Hotspot>(_map.Hotspots);
-            _sceneEditor = ScriptableObject.CreateInstance<SceneEditor>();
-            _sceneEditor.SetMap(_map);
             InitializeScriptableObjects();
             CreateCachedEditors();
             InitializeTabGroups();
             InitializeObjectList();
-            SceneView.duringSceneGui -= OnSceneViewGUI;
-            SceneView.duringSceneGui += OnSceneViewGUI;
             ValidateSchema();
             try
             {
@@ -270,12 +263,6 @@ namespace Treasured.UnitySdk
             {
 
             }
-        }
-
-        private void OnDisable()
-        {
-            SceneView.duringSceneGui -= OnSceneViewGUI;
-            GameObject.DestroyImmediate(_sceneEditor);
         }
 
         private void ValidateSchema()
@@ -636,7 +623,7 @@ namespace Treasured.UnitySdk
             using (var scope = new EditorGUI.ChangeCheckScope())
             {
                 _selectedTabIndex = GUILayout.SelectionGrid(_selectedTabIndex,
-                    _tabGroupStates.Select(x => x.attribute.groupName).ToArray(), _tabGroupStates.Length,
+                    _tabGroupStates.Select(x => x.attribute.groupName).ToArray(), 3,
                     Styles.TabButton);
                 if (scope.changed)
                 {
@@ -658,20 +645,29 @@ namespace Treasured.UnitySdk
             serializedObject.ApplyModifiedProperties();
         }
 
-        [TabGroup(groupName = "Page Info")]
+        [TabGroup(groupName = "Landing Page Info")]
         private void OnPageInfoGUI()
         {
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_author"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_title"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("_description"));
-            _backgroudMusicExpanded = EditorGUILayout.Foldout(_backgroudMusicExpanded, "Background Music", true);
-            if (_backgroudMusicExpanded)
+        }
+
+        [TabGroup(groupName = "Site Settings")]
+        private void OnPageSettingsGUI()
+        {
+            EditorGUILayout.LabelField("Background Music", EditorStyles.boldLabel);
+            using(new EditorGUI.IndentLevelScope(1))
             {
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("_audioUrl"), new GUIContent("Uri", "Url to the audio file"));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("_muteOnStart"), new GUIContent("Mute", "Mute the audio at the beginning"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_muteOnStart"), new GUIContent("Mute On Start", "Mute the audio at the beginning"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(TreasuredMap.defaultBackgroundVolume)), new GUIContent("Volume"));
             }
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("_templateLoader"));
+            EditorGUILayout.LabelField("Theme", EditorStyles.boldLabel);
+            using (new EditorGUI.IndentLevelScope(1))
+            {
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("_templateLoader"));
+            }
             EditorGUILayout.PropertyField(serializedObject.FindProperty("headHTML"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("pageEmbeds"));
             SerializedProperty uiSettings = serializedObject.FindProperty("uiSettings");
@@ -680,167 +676,13 @@ namespace Treasured.UnitySdk
             EditorGUILayout.PropertyField(features);
         }
 
-        [TabGroup(groupName = "Objects")]
-        private void OnObjectsGUI()
+        [TabGroup(groupName = "Scene Management")]
+        private void OnSceneManagementGUI()
         {
-            _sceneEditor.OnGUI();
-            return;
-            EditorGUI.indentLevel++;
-            for (int i = 0; i < _foldoutGroupStates.Length; i++)
+            if (GUILayout.Button(new GUIContent("Open Scene Editor"), GUILayout.Height(32)))
             {
-                using (new GUILayout.VerticalScope(i % 2 == 0 ? Styles.BorderlessBoxEven : Styles.BorderlessBoxOdd))
-                {
-                    var state = _foldoutGroupStates[i];
-                    using (new GUILayout.HorizontalScope())
-                    {
-                        state.expanded = EditorGUILayout.Foldout(state.expanded, new GUIContent(state.groupName), true);
-                    }
-
-                    if (state.expanded)
-                    {
-                        using (new EditorGUILayout.VerticalScope())
-                        {
-                            if (state.objects.Count > 0)
-                            {
-                                using (new EditorGUILayout.HorizontalScope())
-                                {
-                                    EditorGUILayout.LabelField(
-                                        new GUIContent(state.type == typeof(Hotspot) ? "Order" : string.Empty,
-                                            state.type == typeof(Hotspot)
-                                                ? "The order of the Hotspot for the Guide Tour."
-                                                : string.Empty), GUILayout.Width(58));
-                                    EditorGUILayout.LabelField(new GUIContent("Name"), GUILayout.Width(64));
-                                    GUILayout.FlexibleSpace();
-                                    if (GUILayout.Button(GUIIcons.menu, EditorStyles.label, GUILayout.Width(18),
-                                            GUILayout.Height(20)))
-                                    {
-                                        ShowObjectListMenu(state.objects, state.type);
-                                    }
-
-                                    ;
-                                }
-
-                                using (new EditorGUILayout.HorizontalScope())
-                                {
-                                    int activeCount = state.objects.Count(x => x.gameObject.activeSelf);
-                                    if (activeCount == state.objects.Count)
-                                    {
-                                        state.toggleState = TreasuredMapEditor.GroupToggleState.All;
-                                        state.enableAll = true;
-                                    }
-                                    else
-                                    {
-                                        state.toggleState = activeCount == 0
-                                            ? GroupToggleState.None
-                                            : GroupToggleState.Mixed;
-                                        state.enableAll = false;
-                                    }
-
-                                    EditorGUI.showMixedValue = state.toggleState == GroupToggleState.Mixed;
-                                    GUILayout.Space(3);
-                                    EditorGUI.BeginChangeCheck();
-                                    state.enableAll = EditorGUILayout.ToggleLeft(GUIContent.none, state.enableAll);
-                                    if (EditorGUI.EndChangeCheck())
-                                    {
-                                        foreach (var obj in state.objects)
-                                        {
-                                            obj.gameObject.SetActive(state.enableAll);
-                                        }
-                                    }
-
-                                    EditorGUI.showMixedValue = false;
-                                }
-                            }
-
-                            if (state.objects.Count == 0)
-                            {
-                                EditorGUILayout.LabelField(
-                                    $"No {ObjectNames.NicifyVariableName(state.type.Name)} Found",
-                                    EditorStyles.centeredGreyMiniLabel);
-                            }
-                            else
-                            {
-                                using (var scope = new EditorGUILayout.ScrollViewScope(state.scrollPosition,
-                                           GUILayout.Height(state.objects.Count == 0
-                                               ? 20
-                                               : Mathf.Clamp(state.objects.Count * 20, state.objects.Count * 20, 200))))
-                                {
-                                    state.scrollPosition = scope.scrollPosition;
-                                    for (int index = 0; index < state.objects.Count; index++)
-                                    {
-                                        using (new EditorGUILayout.HorizontalScope())
-                                        {
-                                            TreasuredObject current = state.objects[index];
-                                            // TODO: width 40 only show up to 10000
-                                            EditorGUI.BeginChangeCheck();
-                                            bool active = EditorGUILayout.Toggle(GUIContent.none,
-                                                current.gameObject.activeSelf, GUILayout.Width(20));
-                                            if (EditorGUI.EndChangeCheck())
-                                            {
-                                                current.gameObject.SetActive(active);
-                                            }
-
-                                            EditorGUILayout.LabelField($"{index + 1}", GUILayout.Width(32));
-                                            using (var hs = new EditorGUILayout.HorizontalScope())
-                                            {
-                                                using (new EditorGUI.DisabledGroupScope(!current.gameObject.activeSelf))
-                                                {
-                                                    EditorGUILayout.LabelField(
-                                                        new GUIContent(current.gameObject.name, current.Id),
-                                                        style: Styles.objectLabel);
-                                                }
-                                            }
-
-                                            switch (EditorGUILayoutUtils.CreateClickZone(Event.current,
-                                                        GUILayoutUtility.GetLastRect(), MouseCursor.Link))
-                                            {
-                                                case 0:
-                                                    if (current is Hotspot hotspot)
-                                                    {
-                                                        SceneView.lastActiveSceneView.LookAt(hotspot.Camera.transform.position, hotspot.Camera.transform.rotation, 0.01f);
-                                                    }
-                                                    else
-                                                    {
-                                                        // Always oppsite to the transform.forward
-                                                        if (current.Hitbox != null)
-                                                        {
-                                                            Vector3 targetPosition = current.Hitbox.transform.position;
-                                                            Vector3 cameraPosition = current.Hitbox.transform.position +
-                                                                current.Hitbox.transform.forward * 1;
-                                                            SceneView.lastActiveSceneView.LookAt(cameraPosition,
-                                                                Quaternion.LookRotation(targetPosition -
-                                                                    cameraPosition), 1);
-                                                        }
-                                                    }
-
-                                                    EditorGUIUtility.PingObject(current);
-                                                    break;
-                                                case 1:
-                                                    GenericMenu menu = new GenericMenu();
-#if UNITY_2020_3_OR_NEWER
-                                                    menu.AddItem(new GUIContent("Rename"), false,
-                                                        () => { GameObjectUtils.RenameGO(current.gameObject); });
-                                                    menu.AddSeparator("");
-#endif
-                                                    menu.AddItem(new GUIContent("Remove"), false, (obj) =>
-                                                    {
-                                                        var go = obj as TreasuredObject;
-                                                        state.objects.Remove(go);
-                                                        GameObject.DestroyImmediate(go.gameObject);
-                                                    }, current);
-                                                    menu.ShowAsContext();
-                                                    break;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                TreasuredSceneEditorWindow.ShowWindow(_map);
             }
-
-            EditorGUI.indentLevel--;
         }
 
         //[TabGroup(groupName = "Actions")]
@@ -917,86 +759,6 @@ namespace Treasured.UnitySdk
                     }
                 }
             }
-        }
-
-        void ShowObjectListMenu(IList<TreasuredObject> objects, Type type)
-        {
-            GenericMenu menu = new GenericMenu();
-            menu.AddItem(Styles.selectAll, false,
-                () => { Selection.objects = _map.GetComponentsInChildren(type).Select(x => x.gameObject).ToArray(); });
-            menu.ShowAsContext();
-        }
-
-        private void OnSceneViewGUI(SceneView view)
-        {
-            return;
-            if (SceneView.lastActiveSceneView.size == 0.01f) // this happens when TreasuredObject is selected
-            {
-                return;
-            }
-
-            for (int i = 0; i < _map.Hotspots.Length; i++)
-            {
-                Hotspot current = _map.Hotspots[i];
-                if (!current.gameObject.activeSelf)
-                {
-                    continue;
-                }
-
-                Hotspot next = GetNextActiveHotspot(i, _map.Hotspots);
-
-                Transform hitboxTransform = current.Hitbox.transform;
-                Transform cameraTransform = current.Camera.transform;
-
-                if (Selection.activeGameObject != current.gameObject)
-                {
-                    Handles.color = Color.white;
-                    Handles.DrawDottedLine(hitboxTransform.position, cameraTransform.position, 5);
-                }
-
-                if (!_map.Loop && i == _map.Hotspots.Length - 1)
-                {
-                    continue;
-                }
-
-                if (!next)
-                {
-                    continue;
-                }
-
-                Handles.color = Color.white;
-                Handles.DrawLine(hitboxTransform.position, next.Hitbox.transform.position);
-                Vector3 direction = next.Hitbox.transform.position - hitboxTransform.position;
-                if (direction != Vector3.zero)
-                {
-                    Handles.color = Color.green;
-                    Handles.ArrowHandleCap(0, hitboxTransform.position, Quaternion.LookRotation(direction), 0.5f,
-                        EventType.Repaint);
-                }
-            }
-        }
-
-        private Hotspot GetNextActiveHotspot(int currentIndex, IList<Hotspot> list)
-        {
-            int index = currentIndex;
-            Hotspot current = list[index];
-            Hotspot next = list[(index + 1) % list.Count];
-            while (next != current)
-            {
-                if (index == list.Count - 1 && !_map.Loop)
-                {
-                    return null;
-                }
-
-                if (next.gameObject.activeSelf)
-                {
-                    return next;
-                }
-
-                next = list[++index % list.Count];
-            }
-
-            return null;
         }
     }
 }
