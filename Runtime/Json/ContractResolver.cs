@@ -106,7 +106,7 @@ namespace Treasured.UnitySdk
             {
                 contract.Converter = new ScriptableActionCollectionConverter();
             }
-            if (objectType == typeof(VideoContent) || objectType == typeof(AudioContent) || objectType == typeof(ImageContent))
+            if (objectType == typeof(VideoInfo) || objectType == typeof(AudioInfo) || objectType == typeof(ImageInfo))
             {
                 contract.Converter = new ContentConverter();
             }
@@ -114,7 +114,6 @@ namespace Treasured.UnitySdk
             {
                 contract.Converter = new PlayAudioActionConverter();
             }
-
             return contract;
         }
 

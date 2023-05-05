@@ -28,7 +28,7 @@ namespace Treasured.UnitySdk
             ScriptableActionCollection collection = value as ScriptableActionCollection;
             if (collection != null)
             {
-                writer.WriteStartArray();
+                //writer.WriteStartArray();
                 // v1
                 //writer.WritePropertyName("v1");
                 //StringBuilder sb = new StringBuilder();
@@ -48,10 +48,7 @@ namespace Treasured.UnitySdk
                 //}
                 //writer.WriteValue(sb.ToString());
                 // v2
-
-                //writer.WriteStartObject();
-                //writer.WritePropertyName("actions");
-                //writer.WriteStartArray();
+                writer.WriteStartArray();
                 foreach (var action in collection)
                 {
                     if (action == null || !action.enabled)

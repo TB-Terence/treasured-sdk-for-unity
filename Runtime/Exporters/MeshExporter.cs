@@ -79,7 +79,7 @@ namespace Treasured.UnitySdk
             var meshToCombineDictionary = PrepareMeshForExport();
             
             //  Combining meshes
-            CombineAllMeshes(meshToCombineDictionary.Values.ToList(), Map.transform);
+            CombineAllMeshes(meshToCombineDictionary.Values.ToList(), Scene.transform);
         }
 
         public Dictionary<int,GameObject> PrepareMeshForExport()
@@ -408,14 +408,14 @@ namespace Treasured.UnitySdk
             var exportOptions = new ExportOptions { TexturePathRetriever = RetrieveTexturePath };
             _gltfSceneExporter = new GLTFSceneExporter(export, exportOptions);
 
-            if (!string.IsNullOrEmpty(Map.exportSettings.OutputDirectory))
+            if (!string.IsNullOrEmpty(Scene.exportSettings.OutputDirectory))
             {
                 _gltfSceneExporter.GLBSaved += OnGLBSaved;
 
 #if UNITY_EDITOR
                 EditorUtility.DisplayProgressBar("Converting to Glb format", "Mesh Conversion in Progress..", 0.5f);
 #endif
-                _gltfSceneExporter.SaveGLB(Path.Combine(Map.exportSettings.OutputDirectory), "scene");
+                _gltfSceneExporter.SaveGLB(Path.Combine(Scene.exportSettings.OutputDirectory), "scene");
             }
         }
 

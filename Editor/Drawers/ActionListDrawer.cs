@@ -14,7 +14,7 @@ namespace Treasured.UnitySdk
 
         private bool _enabledAll = false;
 
-        private TreasuredMapEditor.GroupToggleState _toggleState;
+        private TreasuredSceneEditor.GroupToggleState _toggleState;
 
         public ActionListDrawer(SerializedObject serializedObject, SerializedProperty elements, string header)
         {
@@ -30,7 +30,7 @@ namespace Treasured.UnitySdk
                     if (typeof(ScriptableAction).IsAssignableFrom(typeof(T))) // TODO: Remove this after migrate to GuidedTourV2
                     {
                         EditorGUI.BeginChangeCheck();
-                        EditorGUI.showMixedValue = _toggleState == TreasuredMapEditor.GroupToggleState.Mixed;
+                        EditorGUI.showMixedValue = _toggleState == TreasuredSceneEditor.GroupToggleState.Mixed;
                         _enabledAll = EditorGUI.ToggleLeft(new Rect(rect.x, rect.y, rect.xMax - 120, rect.height), new GUIContent(Header, $"{(_enabledAll ? "Disable" : "Enable")} all"), _enabledAll);
                         if (EditorGUI.EndChangeCheck())
                         {
@@ -62,7 +62,6 @@ namespace Treasured.UnitySdk
                                 reorderableList.DoLayoutList(); // hacky way of resolving array index out of bounds error after clear.
                             }
                         }
-                        
                     }
                     else
                     {
@@ -113,7 +112,7 @@ namespace Treasured.UnitySdk
                         {
                             Rect buttonRect = new Rect(rect.x, rect.y, 25, EditorGUIUtility.singleLineHeight);
                             SerializedProperty enabled = element.FindPropertyRelative("enabled");
-                            if(enabled != null)
+                            if (enabled != null)
                             {
                                 EditorGUI.BeginChangeCheck();
                                 enabled.boolValue = EditorGUI.ToggleLeft(buttonRect, new GUIContent(name), enabled.boolValue);
@@ -256,12 +255,12 @@ namespace Treasured.UnitySdk
             int enabledCount = enabled.Count(x => x == true);
             if (enabledCount == enabled.Length)
             {
-                _toggleState = TreasuredMapEditor.GroupToggleState.All;
+                _toggleState = TreasuredSceneEditor.GroupToggleState.All;
                 _enabledAll = true;
             }
             else
             {
-                _toggleState = enabledCount == 0 ? TreasuredMapEditor.GroupToggleState.None : TreasuredMapEditor.GroupToggleState.Mixed;
+                _toggleState = enabledCount == 0 ? TreasuredSceneEditor.GroupToggleState.None : TreasuredSceneEditor.GroupToggleState.Mixed;
                 _enabledAll = false;
             }
         }

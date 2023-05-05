@@ -19,7 +19,7 @@ namespace Treasured.UnitySdk
             var videoDirectory = CreateExportDirectoryInfo().FullName;
             var rootDirectory = Directory.GetCurrentDirectory();
 
-            foreach (var obj in Map.GetComponentsInChildren<TreasuredObject>())
+            foreach (var obj in Scene.GetComponentsInChildren<TreasuredObject>())
             {
                 if (obj is VideoRenderer videoRenderer)
                 {

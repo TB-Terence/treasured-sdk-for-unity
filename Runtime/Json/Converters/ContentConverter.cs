@@ -8,7 +8,7 @@ namespace Treasured.UnitySdk
     {
         public override bool CanConvert(Type objectType)
         {
-            return objectType == typeof(VideoContent) || objectType == typeof(AudioContent) || objectType == typeof(ImageContent);
+            return objectType == typeof(VideoInfo) || objectType == typeof(AudioInfo) || objectType == typeof(ImageInfo);
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
@@ -20,7 +20,7 @@ namespace Treasured.UnitySdk
         {
             switch (value)
             {
-                case VideoContent video:
+                case VideoInfo video:
                     writer.WriteStartObject();
                     writer.WritePropertyName(nameof(VideoRenderer.src));
                     writer.WriteValue(video.Uri);
@@ -32,7 +32,7 @@ namespace Treasured.UnitySdk
                     writer.WriteValue(video.autoplay);
                     writer.WriteEndObject();
                     break;
-                case AudioContent audio:
+                case AudioInfo audio:
                     writer.WriteStartObject();
                     writer.WritePropertyName("src");
                     writer.WriteValue(audio.Uri);
@@ -46,7 +46,7 @@ namespace Treasured.UnitySdk
                     writer.WriteValue(audio.muted);
                     writer.WriteEndObject();
                     break;
-                case ImageContent image:
+                case ImageInfo image:
                     break;
                 default:
                     break;

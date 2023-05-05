@@ -6,27 +6,22 @@ namespace Treasured.UnitySdk
 {
     internal abstract class TreasuredObjectEditor : Editor
     {
-        public static class Styles
-        {
-            public static readonly GUIContent missingMapComponent = EditorGUIUtility.TrTextContent("Missing Treasured Map Component in parent.", "", "Warning");
-        }
-
         protected ComponentCardAttribute componentCardAttribute;
-        protected TreasuredMap map;
+        protected TreasuredScene scene;
         private Texture2D _icon;
 
         protected virtual void OnEnable()
         {
-            map = (target as TreasuredObject).Map;
+            scene = (target as TreasuredObject).Scene;
             componentCardAttribute = (ComponentCardAttribute)this.GetType().GetCustomAttributes(typeof(ComponentCardAttribute), false).FirstOrDefault();
             _icon = Resources.Load<Texture2D>(componentCardAttribute.iconName);
         }
 
         public override void OnInspectorGUI()
         {
-            if (map == null)
+            if (scene == null)
             {
-                EditorGUILayout.LabelField(Styles.missingMapComponent);
+                EditorGUILayout.HelpBox("Missing Treasured Scene Component in parent.", MessageType.Error);
                 return;
             }
             if (componentCardAttribute != null)

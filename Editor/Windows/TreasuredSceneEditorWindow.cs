@@ -56,20 +56,20 @@ namespace Treasured.UnitySdk
             {
                 return ShowWindow(null);
             }
-            var scene = Selection.activeGameObject.GetComponent<TreasuredMap>();
+            var scene = Selection.activeGameObject.GetComponent<TreasuredScene>();
             if (scene == null)
             {
-                scene = Selection.activeGameObject.GetComponentInParent<TreasuredMap>();
+                scene = Selection.activeGameObject.GetComponentInParent<TreasuredScene>();
             }
             return ShowWindow(scene);
         }
 
-        public static TreasuredSceneEditorWindow ShowWindow(TreasuredMap scene)
+        public static TreasuredSceneEditorWindow ShowWindow(TreasuredScene scene)
         {
             var window = EditorWindow.GetWindow<TreasuredSceneEditorWindow>();
             window.scene = scene;
             window.titleContent = new GUIContent("Treasured Scene Editor", Resources.Load<Texture2D>("Treasured_Logo"));
-            window.minSize = new Vector2(300, 300);
+            window.minSize = new Vector2(200, 300);
             window.InitializeObjectListStates();
             window.Show();
             return window;
@@ -78,10 +78,11 @@ namespace Treasured.UnitySdk
         public enum EditorMode
         {
             CreateNew,
-            Edit
+            Edit,
+            Record
         }
 
-        public TreasuredMap scene;
+        public TreasuredScene scene;
         int selectedTypeIndex = 0;
         EditorMode editorMode;
         /// <summary>
@@ -120,7 +121,7 @@ namespace Treasured.UnitySdk
         public class ObjectListState
         {
             public Type type;
-            public TreasuredMap scene;
+            public TreasuredScene scene;
             public List<TreasuredObject> objects;
             public Vector2 scrollPosition;
             public GroupToggleState toggleState;
@@ -186,57 +187,76 @@ namespace Treasured.UnitySdk
             Handles.BeginGUI();
             ProcessEvents();
             Handles.EndGUI();
-            if (editorMode == EditorMode.Edit && EditingTarget != null)
+            switch (editorMode)
             {
-                // TODO: Add Hotspot Camera Preview using Overlays on version 2021.3
-                switch (Tools.current)
-                {
-                    case Tool.Move:
-                        Transform transform = EditingTarget.transform;
-                        EditorGUI.BeginChangeCheck();
-                        Vector3 newPosition = Handles.PositionHandle(transform.position, transform.rotation);
-                        if (EditorGUI.EndChangeCheck())
+                case EditorMode.CreateNew:
+                    break;
+                case EditorMode.Edit:
+                    if (EditingTarget != null)
+                    {
+                        // TODO: Add Hotspot Camera Preview using Overlays on version 2021.3
+                        switch (Tools.current)
                         {
-                            Undo.RecordObject(transform, $"Move {EditingTarget.name}");
-                            transform.position = newPosition;
-                        }
-                        switch (EditingTarget)
-                        {
-                            case Hotspot hotspot:
-                                Transform cameraTransform = hotspot.Camera.transform;
+                            case Tool.Move:
+                                Transform transform = EditingTarget.transform;
                                 EditorGUI.BeginChangeCheck();
-                                Vector3 newCameraPosition = Handles.PositionHandle(cameraTransform.position, cameraTransform.rotation);
+                                Vector3 newPosition = Handles.PositionHandle(transform.position, transform.rotation);
                                 if (EditorGUI.EndChangeCheck())
                                 {
-                                    Undo.RecordObject(cameraTransform, "Move Hotspot Camera");
-                                    cameraTransform.position = newCameraPosition;
+                                    Undo.RecordObject(transform, $"Move {EditingTarget.name}");
+                                    transform.position = newPosition;
                                 }
-                                break;
-                        }
-                        break;
-                    case Tool.Rotate:
-                        switch (EditingTarget)
-                        {
-                            case Hotspot hotspot:
-                                //Screen.width - 220, Screen.height - 250, 200, 150
-                                Transform cameraTransform = hotspot.Camera.transform;
-                                EditorGUI.BeginChangeCheck();
-                                Quaternion newCameraRotation = Handles.RotationHandle(cameraTransform.rotation, cameraTransform.position);
-                                if (EditorGUI.EndChangeCheck())
+                                switch (EditingTarget)
                                 {
-                                    Undo.RecordObject(cameraTransform, "Rotate Hotspot Camera");
-                                    cameraTransform.rotation = newCameraRotation;
+                                    case Hotspot hs:
+                                        Transform cameraTransform = hs.Camera.transform;
+                                        EditorGUI.BeginChangeCheck();
+                                        Vector3 newCameraPosition = Handles.PositionHandle(cameraTransform.position, cameraTransform.rotation);
+                                        if (EditorGUI.EndChangeCheck())
+                                        {
+                                            Undo.RecordObject(cameraTransform, "Move Hotspot Camera");
+                                            cameraTransform.position = newCameraPosition;
+                                        }
+                                        break;
                                 }
-                                float size = HandleUtility.GetHandleSize(hotspot.transform.position);
-                                Handles.color = Color.blue;
-                                Handles.ArrowHandleCap(0, cameraTransform.position, cameraTransform.rotation, size, EventType.Repaint);
+                                break;
+                            case Tool.Rotate:
+                                switch (EditingTarget)
+                                {
+                                    case Hotspot hs:
+                                        //Screen.width - 220, Screen.height - 250, 200, 150
+                                        Transform cameraTransform = hs.Camera.transform;
+                                        EditorGUI.BeginChangeCheck();
+                                        Quaternion newCameraRotation = Handles.RotationHandle(cameraTransform.rotation, cameraTransform.position);
+                                        if (EditorGUI.EndChangeCheck())
+                                        {
+                                            Undo.RecordObject(cameraTransform, "Rotate Hotspot Camera");
+                                            cameraTransform.rotation = newCameraRotation;
+                                        }
+                                        float size = HandleUtility.GetHandleSize(hs.transform.position);
+                                        Handles.color = Color.blue;
+                                        Handles.ArrowHandleCap(0, cameraTransform.position, cameraTransform.rotation, size, EventType.Repaint);
+                                        break;
+                                }
+                                break;
+                            case Tool.Scale:
                                 break;
                         }
-                        break;
-                    case Tool.Scale:
-                        break;
-                }
+                    }
+                    break;
+                case EditorMode.Record:
+                    if (EditingTarget != null && EditingTarget is Hotspot hotspot)
+                    {
+                        if (Event.current.button == 0)
+                        {
+                            Ray ray = HandleUtility.GUIPointToWorldRay(Event.current.mousePosition);
+                            hotspot.Camera.transform.rotation = Quaternion.LookRotation(ray.direction);
+                            SceneView.lastActiveSceneView.LookAt(hotspot.Camera.transform.position, hotspot.Camera.transform.rotation, 0.01f);
+                        }
+                    }
+                    break;
             }
+            
             if(showHotspotPath) DrawHotspotPath();
         }
 
@@ -284,7 +304,7 @@ namespace Treasured.UnitySdk
             using (new EditorGUILayout.VerticalScope())
             {
                 EditorGUI.BeginChangeCheck();
-                scene = (TreasuredMap)EditorGUILayout.ObjectField(new GUIContent("Scene"), scene, typeof(TreasuredMap), true);
+                scene = (TreasuredScene)EditorGUILayout.ObjectField(new GUIContent("Scene"), scene, typeof(TreasuredScene), true);
                 if (EditorGUI.EndChangeCheck())
                 {
                     InitializeObjectListStates();
@@ -296,7 +316,7 @@ namespace Treasured.UnitySdk
                     if (GUILayout.Button("Create New Scene"))
                     {
                         GameObject newScene = new GameObject("Treasured Scene");
-                        scene = newScene.AddComponent<TreasuredMap>();
+                        scene = newScene.AddComponent<TreasuredScene>();
                         Selection.activeGameObject = newScene;
                         InitializeObjectListStates();
                     }
@@ -310,11 +330,14 @@ namespace Treasured.UnitySdk
                 }
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    if (GUILayout.Button("Focus"))
+                    using(new EditorGUI.DisabledGroupScope(EditingTarget == null))
                     {
-                        Zoom(zooming);
+                        if (GUILayout.Button(new GUIContent("Focus", "Focus on selected object.")))
+                        {
+                            Zoom(zooming);
+                        }
                     }
-                    if (GUILayout.Button("Overview"))
+                    if (GUILayout.Button(new GUIContent("Overall View", "Zoom out the scene to give overall view.")))
                     {
                         EditingTarget = null;
                         Zoom(10);
@@ -340,13 +363,17 @@ namespace Treasured.UnitySdk
                 EditorGUILayout.LabelField("Mode", EditorStyles.boldLabel);
                 EditorGUI.BeginChangeCheck();
                 var state = objectListStates[selectedTypeIndex];
-                editorMode = (EditorMode)GUILayout.SelectionGrid((int)editorMode, Styles.mode, Styles.icons.Length, GUILayout.Height(32f));
+                using (new EditorGUI.DisabledGroupScope(!(EditingTarget is Hotspot)))
+                {
+                    editorMode = (EditorMode)GUILayout.SelectionGrid((int)editorMode, Styles.mode, Styles.icons.Length, GUILayout.Height(32f));
+                }
                 if (EditorGUI.EndChangeCheck())
                 {
                     switch (editorMode)
                     {
                         case EditorMode.CreateNew:
                             EditingTarget = null;
+                            Zoom(10);
                             break;
                         case EditorMode.Edit:
                             if (EditingTarget == null && objectListStates[selectedTypeIndex].objects.Count > 0)
@@ -468,16 +495,14 @@ namespace Treasured.UnitySdk
                                     {
                                         using (new GUILayout.HorizontalScope())
                                         {
-                                            GUILayout.FlexibleSpace();
-                                            if (current is Hotspot hotspot)
+                                            // Object Related Buttons
+                                            if (EditingTarget is Hotspot hotspot)
                                             {
-                                                if (GUILayout.Button("Snap Hitbox"))
+                                                if (GUILayout.Button("Record Look Direction"))
                                                 {
-                                                    hotspot.SnapToGround();
+                                                    editorMode = EditorMode.Record;
                                                 }
                                             }
-
-                                            GUILayout.FlexibleSpace();
                                         }
                                     }
                                 }
@@ -534,12 +559,12 @@ namespace Treasured.UnitySdk
                         center += hotspot.transform.position;
                     }
                     center /= hotspots.Length;
-                    SceneView.lastActiveSceneView.LookAtDirect(center, Quaternion.Euler(45f, 45f, 0), amount);
+                    SceneView.lastActiveSceneView.LookAt(center, Quaternion.Euler(45f, 45f, 0), amount);
                 }
                 else
                 {
                     // Set the camera position and rotation for an isometric view
-                    SceneView.lastActiveSceneView.LookAtDirect(EditingTarget.transform.position, Quaternion.Euler(45f, 45f, 0), amount);
+                    SceneView.lastActiveSceneView.LookAt(EditingTarget.transform.position, Quaternion.Euler(45f, 45f, 0), amount);
                 }
             }
         }
@@ -606,7 +631,7 @@ namespace Treasured.UnitySdk
                         Handles.DrawDottedLine(hitboxTransform.position, cameraTransform.position, 5);
                     }
 
-                    if (!scene.Loop && i == scene.Hotspots.Length - 1)
+                    if (!scene.sceneInfo.loopHotspots && i == scene.Hotspots.Length - 1)
                     {
                         continue;
                     }
@@ -636,7 +661,7 @@ namespace Treasured.UnitySdk
             Hotspot next = list[(index + 1) % list.Count];
             while (next != current)
             {
-                if (index == list.Count - 1 && !scene.Loop)
+                if (index == list.Count - 1 && !scene.sceneInfo.loopHotspots)
                 {
                     return null;
                 }

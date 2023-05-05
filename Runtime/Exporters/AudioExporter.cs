@@ -22,7 +22,7 @@ namespace Treasured.UnitySdk
             var audioDirectory = CreateExportDirectoryInfo().FullName;
             var rootDirectory = Directory.GetCurrentDirectory();
 
-            foreach (var obj in Map.GetComponentsInChildren<TreasuredObject>())
+            foreach (var obj in Scene.GetComponentsInChildren<TreasuredObject>())
             {
                 foreach (var actionGroup in obj.OnClick)
                 {

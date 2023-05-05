@@ -12,20 +12,24 @@ namespace Treasured.UnitySdk
     internal class GuidedTourGraphEditor : Editor 
     {
         public static GuidedTourGraph Current { get; private set; }
-        public TreasuredMap Map { get; set; }
+        public TreasuredScene Scene { get; set; }
         public sealed class GuidedTourModalEditorWindow : EditorWindow
         {
             private static readonly Vector2 WINDOW_SIZE = new Vector2(500, 600);
 
             public SerializedObject serializedObject;
+            public ScriptableActionCollection asc;
+            Editor editor;
             private Vector2 _scrollPosition;
 
-            public static void ShowModal(UnityEngine.Object obj)
+            public static GuidedTourModalEditorWindow ShowModal(UnityEngine.Object obj)
             {
                 bool isOpened = EditorWindow.HasOpenInstances<GuidedTourModalEditorWindow>();
                 var window = EditorWindow.GetWindow<GuidedTourModalEditorWindow>();
-                window.serializedObject = new SerializedObject(obj);
+                window.asc = ((GuidedTour)obj).actionScripts;
                 window.titleContent = new GUIContent("Guided Tour Editor");
+                window.editor = Editor.CreateEditor(window.asc);
+                window.serializedObject = new SerializedObject(obj);
                 var mainWindowPos = EditorGUIUtility.GetMainWindowPosition();
                 var windowSize = new Vector2(Math.Min(WINDOW_SIZE.x, mainWindowPos.size.x), Math.Min(WINDOW_SIZE.y, mainWindowPos.size.y));
                 if (!isOpened)
@@ -33,11 +37,17 @@ namespace Treasured.UnitySdk
                     window.position = new Rect(mainWindowPos.center - windowSize / 2, windowSize);
                 }
                 window.Show();
+                return window;
+            }
+
+            private void OnInspectorUpdate()
+            {
+                
             }
 
             private void OnGUI()
             {
-                if (serializedObject == null)
+                if (asc.IsNullOrNone())
                 {
                     this.Close();
                     return;
@@ -45,7 +55,8 @@ namespace Treasured.UnitySdk
                 using (var scope = new EditorGUILayout.ScrollViewScope(_scrollPosition))
                 {
                     _scrollPosition = scope.scrollPosition;
-                    EditorGUIUtils.DrawPropertiesExcluding(serializedObject, "m_Script");
+                    EditorGUIUtils.DrawPropertiesExcluding(serializedObject, "m_Script", "actionScripts");
+                    editor.OnInspectorGUI();
                 }
             }
         }
@@ -55,7 +66,7 @@ namespace Treasured.UnitySdk
         private void OnEnable()
         {
             Current = target as GuidedTourGraph;
-            rl = new ReorderableList(serializedObject, serializedObject.FindProperty(nameof(GuidedTourGraph.tours)));
+            rl = new ReorderableList(new SerializedObject(target), serializedObject.FindProperty(nameof(GuidedTourGraph.tours)));
             rl.drawHeaderCallback = (Rect rect) =>
             {
                 using (new EditorGUI.DisabledGroupScope(rl.serializedProperty.arraySize == 0))
@@ -93,8 +104,8 @@ namespace Treasured.UnitySdk
                 menu.AddItem(new GUIContent("Quick Tour/Navigate Through Hotspots"), false, () =>
                 {
                     GuidedTour tour = CreateNew(list, "Quick Tour");
-                    tour.actionScripts = new ScriptableActionCollection();
-                    foreach (var hotspot in Map.Hotspots)
+                    tour.actionScripts = ScriptableObject.CreateInstance<ScriptableActionCollection>();
+                    foreach (var hotspot in Scene.Hotspots)
                     {
                         tour.actionScripts.Add(new GoToAction()
                         {
@@ -135,8 +146,9 @@ namespace Treasured.UnitySdk
             }
             elementProperty.serializedObject.Update();
             elementProperty.serializedObject.ApplyModifiedProperties();
-            GuidedTourModalEditorWindow.ShowModal(tour);
+            var window = GuidedTourModalEditorWindow.ShowModal(tour);
             list.index = list.count - 1;
+            window.Repaint();
             return tour as GuidedTour;
         }
 

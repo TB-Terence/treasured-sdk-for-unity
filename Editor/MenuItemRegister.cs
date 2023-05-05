@@ -12,6 +12,7 @@ namespace Treasured.UnitySdk
     /// </summary>
     internal static class MenuItemRegister
     {
+        #region Tools
         [MenuItem("Tools/Treasured/Upgrade Treasured CLI", priority = 99)]
         static void UpgradeTreasuredCLI()
         {
@@ -100,6 +101,15 @@ namespace Treasured.UnitySdk
         {
             Client.Add("https://github.com/TB-Terence/treasured-sdk-for-unity.git#exp");
         }
+        #endregion
+        #region CONTEXT
+        [MenuItem("CONTEXT/TreasuredMap/Reset Migrate Info")]
+        static void ResetMigrateInfo(MenuCommand command)
+        {
+            TreasuredMap map = (TreasuredMap)command.context;
+            map.migrateInfo.shouldMigrate = true;
+        }
+        #endregion
 
         static bool IsTreasuredMapSelected()
         {

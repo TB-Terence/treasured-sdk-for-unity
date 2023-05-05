@@ -11,7 +11,7 @@ namespace Treasured.UnitySdk
             (target as TreasuredObject)?.TryInvokeMethods("OnSelectedInHierarchy");
             if (target is SoundSource soundSource)
             {
-                soundSource.audioContent ??= new AudioContent()
+                soundSource.audioContent ??= new AudioInfo()
                 {
                     volume = soundSource.Volume,
                     loop = soundSource.Loop,

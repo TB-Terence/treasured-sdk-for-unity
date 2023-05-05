@@ -47,7 +47,7 @@ namespace Treasured.UnitySdk
         public override List<ValidationResult> CanExport()
         {
             var result = base.CanExport();
-            if (Map.Hotspots == null || Map.Hotspots.Length == 0)
+            if (Scene.Hotspots == null || Scene.Hotspots.Length == 0)
             {
                 result.Add(new ValidationResult() { name = "No active hotspot(s)", description = "No active hotspot(s) found under this map object.", type = ValidationResult.ValidationResultType.Error, priority = -1 });
             }
@@ -63,7 +63,7 @@ namespace Treasured.UnitySdk
             var imageQualities = Enum.GetValues(typeof(ImageQuality)).Cast<ImageQuality>();
 
             //  Overriding export settings for Production export
-            if (Map.exportSettings.ExportType == ExportType.ProductionExport)
+            if (Scene.exportSettings.ExportType == ExportType.ProductionExport)
             {
                 ExportCubemap(ImageQuality.High);
                 return;
@@ -84,7 +84,7 @@ namespace Treasured.UnitySdk
 
         private void ExportCubemap(ImageQuality imageQuality)
         {
-            var hotspots = ValidateHotspots(Map);
+            var hotspots = ValidateHotspots(Scene);
             var camera = ValidateCamera(); // use default camera settings to render 360 images
 
             #region Get camera settings
@@ -123,7 +123,7 @@ namespace Treasured.UnitySdk
                     {
                         throw new System.NotSupportedException("Current graphic device/platform does not support RenderToCubemap.");
                     }
-                    var path = Directory.CreateDirectory(Path.Combine(Map.exportSettings.OutputDirectory, "images", exportAllQualities ? imageQuality.ToString().ToLower() : "", current.Id).ToOSSpecificPath());
+                    var path = Directory.CreateDirectory(Path.Combine(Scene.exportSettings.OutputDirectory, "images", exportAllQualities ? imageQuality.ToString().ToLower() : "", current.Id).ToOSSpecificPath());
                     switch (cubemapFormat)
                     {
                         case CubemapFormat._3x2:
@@ -184,7 +184,7 @@ namespace Treasured.UnitySdk
         }
 
 
-        private Hotspot[] ValidateHotspots(TreasuredMap map)
+        private Hotspot[] ValidateHotspots(TreasuredScene map)
         {
             var hotspots = map.Hotspots;
             if (hotspots == null || hotspots.Length == 0)
@@ -278,7 +278,7 @@ namespace Treasured.UnitySdk
 
         public override void OnPreExport()
         {
-            string path = Path.Combine(Map.exportSettings.OutputDirectory, "images");
+            string path = Path.Combine(Scene.exportSettings.OutputDirectory, "images");
             if (Directory.Exists(path))
                 Directory.Delete(path, true);
             flipY = true;

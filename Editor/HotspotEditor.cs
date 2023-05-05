@@ -45,13 +45,6 @@ namespace Treasured.UnitySdk
                 onClickListDrawer = new ActionGroupListDrawer(serializedObject, _onClick);
             }
             hotspot?.TryInvokeMethods("OnSelectedInHierarchy");
-            SceneView.duringSceneGui -= OnSceneViewGUI;
-            SceneView.duringSceneGui += OnSceneViewGUI;
-        }
-
-        private void OnDisable()
-        {
-            SceneView.duringSceneGui -= OnSceneViewGUI;
         }
 
         public override void OnInspectorGUI()
@@ -62,6 +55,10 @@ namespace Treasured.UnitySdk
             {
                 EditorGUILayout.PropertyField(button);
                 EditorGUILayoutUtils.TransformPropertyField(hitbox, "Hitbox");
+                if (GUILayout.Button("Snap Hitbox"))
+                {
+                    (target as Hotspot).SnapToGround();
+                }
                 //bool showDeprecatedActions = SessionState.GetBool(SessionKeys.ShowDeprecatedActions, false);
                 //SessionState.SetBool(SessionKeys.ShowDeprecatedActions, EditorGUILayout.ToggleLeft("Show Deprecated Actions", showDeprecatedActions));
                 EditorGUI.BeginChangeCheck();
@@ -103,80 +100,5 @@ namespace Treasured.UnitySdk
             serializedObject.ApplyModifiedProperties();
         }
 
-        private void OnSceneViewGUI(SceneView view)
-        {
-            if (target is Hotspot hotspot && hotspot != null && hotspot.Hitbox != null && hotspot.Camera != null)
-            {
-                Transform cameraTransform = hotspot.Camera.transform;
-                switch (Tools.current)
-                {
-                    case Tool.Move:
-                        EditorGUI.BeginChangeCheck();
-                        Vector3 newCameraPosition = Handles.PositionHandle(cameraTransform.position, cameraTransform.rotation);
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            Undo.RecordObject(cameraTransform, "Move Hotspot Camera Position");
-                            cameraTransform.position = newCameraPosition;
-                        }
-                        break;
-                    case Tool.Rotate:
-                        EditorGUI.BeginChangeCheck();
-                        Quaternion newCameraRotation = Handles.RotationHandle(cameraTransform.rotation, cameraTransform.position);
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            Undo.RecordObject(cameraTransform, "Rotate Hotspot Camera");
-                            cameraTransform.rotation = newCameraRotation;
-                        }
-                        float size = HandleUtility.GetHandleSize(hotspot.transform.position);
-                        Handles.color = Color.blue;
-                        Handles.ArrowHandleCap(0, cameraTransform.position, cameraTransform.rotation, size, EventType.Repaint);
-                        break;
-                }
-                Handles.color = Color.white;
-                Handles.DrawDottedLine(hotspot.Hitbox.transform.position, hotspot.Camera.transform.position, 5);
-                Matrix4x4 matrix = Handles.matrix;
-                //if (!showVisibleTargetsOnly)
-                //{
-                //    foreach (var obj in map.GetComponentsInChildren<TreasuredObject>())
-                //    {
-                //        if (obj == target || obj.Hitbox == null)
-                //        {
-                //            continue;
-                //        }
-                //        if (obj is Hotspot)
-                //        {
-                //            Handles.color = new Color(1, 0, 0, 0.8f);
-                //        }
-                //        else if (obj is Interactable)
-                //        {
-                //            Handles.color = new Color(0, 1, 0, 0.8f);
-                //        }
-                //        Handles.matrix = Matrix4x4.TRS(obj.Hitbox.transform.position, obj.Hitbox.transform.rotation, Vector3.one);
-                //        Handles.DrawWireCube(Vector3.zero, obj.Hitbox.transform.localScale);
-                //    }
-                //}
-                //else
-                //{
-                //    foreach (var target in visibleTargets)
-                //    {
-                //        if (target.Hitbox == null)
-                //        {
-                //            continue;
-                //        }
-                //        if (target is Hotspot)
-                //        {
-                //            Handles.color = new Color(1, 0, 0, 0.8f);
-                //        }
-                //        else if (target is Interactable)
-                //        {
-                //            Handles.color = new Color(0, 1, 0, 0.8f);
-                //        }
-                //        Handles.matrix = Matrix4x4.TRS(target.Hitbox.transform.position, target.Hitbox.transform.rotation, Vector3.one);
-                //        Handles.DrawWireCube(Vector3.zero, target.Hitbox.transform.localScale);
-                //    }
-                //}
-                Handles.matrix = matrix;
-            }
-        }
     }
 }

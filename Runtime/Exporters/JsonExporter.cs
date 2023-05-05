@@ -18,10 +18,6 @@ namespace Treasured.UnitySdk
 
         public Newtonsoft.Json.Formatting formatting = Formatting.Indented;
 
-        [Preset(false, "v1", "v2")]
-        [OnValueChanged("UpdateSchemaVersion")]
-        public string schemaVersion = "v1";
-
         [UnityEngine.ContextMenu("Reset")]
         private void Reset()
         {
@@ -31,20 +27,15 @@ namespace Treasured.UnitySdk
 
         public override void Export()
         {
-            string jsonPath = Path.Combine(Map.exportSettings.OutputDirectory, "data.json");
-            string json = JsonConvert.SerializeObject(Map, formatting, JsonSettings);
+            string jsonPath = Path.Combine(Scene.exportSettings.OutputDirectory, "data.json");
+            string json = JsonConvert.SerializeObject(Scene, formatting, JsonSettings);
             File.WriteAllText(jsonPath, json);
         }
 
         public override List<ValidationResult> CanExport()
         {
-            TreasuredSceneValidator validator = new TreasuredSceneValidator(Map);
+            TreasuredSceneValidator validator = new TreasuredSceneValidator(Scene);
             return validator.GetValidationResults();
-        }
-
-        void UpdateSchemaVersion()
-        {
-            SchemaVersion = schemaVersion;
         }
     }
 }
