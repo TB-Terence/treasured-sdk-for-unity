@@ -18,5 +18,10 @@ namespace Treasured.UnitySdk
         public string thumbnailUrl = "";
         [JsonProperty("code")]
         public ScriptableActionCollection actionScripts;
+
+        private void OnEnable()
+        {
+            actionScripts = ScriptableObject.CreateInstance<ScriptableActionCollection>();
+        }
     }
 }

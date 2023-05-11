@@ -7,7 +7,7 @@ using UnityEngine.Video;
 namespace Treasured.UnitySdk
 {
     [Serializable]
-    public abstract class MediaContent<T> where T : UnityEngine.Object
+    public abstract class MediaInfo<T> where T : UnityEngine.Object
     {
         [JsonIgnore]
         [OnValueChanged(nameof(UpdateUri))]
@@ -56,7 +56,7 @@ namespace Treasured.UnitySdk
     }
 
     [Serializable]
-    public sealed class AudioContent : MediaContent<AudioClip>
+    public sealed class AudioInfo : MediaInfo<AudioClip>
     {
         [Range(0, 100)]
         public int volume = 50;
@@ -71,7 +71,7 @@ namespace Treasured.UnitySdk
     }
 
     [Serializable]
-    public sealed class ImageContent : MediaContent<Texture2D>
+    public sealed class ImageInfo : MediaInfo<Texture2D>
     {
         public override string GetLocalPathPrefix()
         {
@@ -80,7 +80,7 @@ namespace Treasured.UnitySdk
     }
 
     [Serializable]
-    public sealed class VideoContent : MediaContent<VideoClip>
+    public sealed class VideoInfo : MediaInfo<VideoClip>
     {
         [Range(0, 100)]
         public int volume = 50;

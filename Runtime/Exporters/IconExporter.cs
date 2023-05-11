@@ -21,7 +21,7 @@ namespace Treasured.UnitySdk
         {
             HashSet<string> iconNames = new HashSet<string>();
             string iconDirectory = CreateExportDirectoryInfo().FullName;
-            foreach (var obj in Map.GetComponentsInChildren<TreasuredObject>())
+            foreach (var obj in Scene.GetComponentsInChildren<TreasuredObject>())
             {
                 if (obj.button == null || obj.button.asset == null || string.IsNullOrWhiteSpace(obj.button.asset.svg))
                 {

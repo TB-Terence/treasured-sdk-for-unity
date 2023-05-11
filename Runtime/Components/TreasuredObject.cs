@@ -42,10 +42,12 @@ namespace Treasured.UnitySdk
         [FormerlySerializedAs("_actionGroups")]
         [SerializeReference]
         [Obsolete]
+        // TODO: Remove after merge
         private List<ActionGroup> _onClick = new List<ActionGroup>();
 
         [SerializeReference]
         [Obsolete]
+        // TODO: Remove after merge
         private List<ActionGroup> _onHover = new List<ActionGroup>();
 
         #endregion
@@ -55,7 +57,7 @@ namespace Treasured.UnitySdk
         /// Reference of the Map for this object.
         /// </summary>
         [JsonIgnore]
-        public TreasuredMap Map => GetComponentInParent<TreasuredMap>();
+        public TreasuredScene Scene => GetComponentInParent<TreasuredScene>();
 
         /// <summary>
         /// Global unique identifier for the object.(Read Only)
@@ -89,16 +91,25 @@ namespace Treasured.UnitySdk
         /// <summary>
         /// Group of action to perform when the object is selected.
         /// </summary>
+        // TODO: Remove after merge
         [JsonProperty("actionGroups")]
         public List<ActionGroup> OnClick => _onClick;
 
         /// <summary>
         /// Group of action to perform when the user hovers over the object.
         /// </summary>
+        // TODO: Remove after merge
         [JsonIgnore]
         public List<ActionGroup> OnHover => _onHover;
 
         public ActionGraph actionGraph = new ActionGraph();
+
+        // TODO: Remove after merge
+        [JsonIgnore]
+        public ScriptableActionCollection onClick;
+        // TODO: Remove after merge
+        [JsonIgnore]
+        public ScriptableActionCollection onHover;
 
         #endregion
 #if UNITY_EDITOR

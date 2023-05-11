@@ -13,7 +13,8 @@ namespace Treasured.UnitySdk
         private struct Tab
         {
             public string name;
-            public ActionListDrawer<ScriptableAction> drawer;
+            //public ActionListDrawer<ScriptableAction> drawer;
+            public Editor editor;
         }
 
         private List<Tab> tabs;
@@ -30,19 +31,22 @@ namespace Treasured.UnitySdk
                 for(int i = 0; i < groups.arraySize; i++)
                 {
                     SerializedProperty collection = groups.GetArrayElementAtIndex(i);
-                    string name = ObjectNames.NicifyVariableName(collection.FindPropertyRelative("name").stringValue);
+                    ScriptableActionCollection asc = (ScriptableActionCollection)collection.objectReferenceValue;
+                    if (asc.IsNullOrNone()) continue;
+                    string name = ObjectNames.NicifyVariableName(asc.name);
                     names.Add(name);
                     tabs.Add(new Tab()
                     {
                         name = name,
-                        drawer = new ActionListDrawer<ScriptableAction>(collection.serializedObject, collection.FindPropertyRelative("_actions"), "")
-                    });
+                        editor = Editor.CreateEditor(asc)
+                        //drawer = new ActionListDrawer<ScriptableAction>(collection.serializedObject, collection.FindPropertyRelative("_actions"), "")
+                    });// ; ;
                 }
             }
-            _selectedIndex = GUI.SelectionGrid(position, _selectedIndex, tabs.Select(t => t.name).ToArray(), tabs.Count, TreasuredMapEditor.Styles.TabButton);
+            _selectedIndex = GUI.SelectionGrid(position, _selectedIndex, tabs.Select(t => t.name).ToArray(), tabs.Count, TreasuredSceneEditor.Styles.TabButton);
             if (_selectedIndex >= 0 && _selectedIndex < tabs.Count)
             {
-                tabs[_selectedIndex].drawer.OnGUILayout();
+                tabs[_selectedIndex].editor.OnInspectorGUI();//.drawer.OnGUILayout();
             }
         }
 

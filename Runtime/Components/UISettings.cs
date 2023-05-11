@@ -12,6 +12,7 @@ namespace Treasured.UnitySdk
         public bool projectDomeOntoGeometry = true;
         public bool showOnboarding = false;
         public bool showCursor = true;
+        [UnityEngine.HideInInspector]
         public bool darkMode = false;
     }
 }

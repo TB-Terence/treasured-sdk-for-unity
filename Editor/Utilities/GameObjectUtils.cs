@@ -200,6 +200,7 @@ namespace Treasured.UnitySdk
 
         public static void RenameGO(GameObject go)
         {
+#if UNITY_2020_3_OR_NEWER
             var sceneHierarchyWindowType = typeof(EditorWindow).Assembly.GetType("UnityEditor.SceneHierarchyWindow");
             if (sceneHierarchyWindowType == null)
             {
@@ -238,6 +239,7 @@ namespace Treasured.UnitySdk
             var treeView = treeViewPI.GetValue(sceneHierarchy);
             setSelectionMI.Invoke(treeView, new object[] { new int[] { go.GetInstanceID() }, true });
             beginNameEditingMI.Invoke(treeView, new object[] { 0 });
+#endif
         }
 #endif
     }

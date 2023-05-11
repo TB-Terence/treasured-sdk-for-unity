@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Treasured.UnitySdk
 {
     [Serializable]
-    public class ScriptableActionCollection : ScriptableObject, IEnumerable<ScriptableAction>, ICollection<ScriptableAction>
+    public class ActionCollection : IEnumerable<ScriptableAction>, ICollection<ScriptableAction>
     {
         [SerializeField]
         [HideInInspector]

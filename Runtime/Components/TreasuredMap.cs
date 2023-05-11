@@ -2,6 +2,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine.Serialization;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
@@ -48,25 +49,21 @@ namespace Treasured.UnitySdk
         private string _description;
         public string Description { get => _description; set => _title = _description; }
 
-        [SerializeField]
-        [JsonProperty("audioUrl")]
         [TextArea(3, 3)]
-        private string _audioUrl;
+        [FormerlySerializedAs("_audioUrl")]
+        public string audioUrl;
         [Range(0, 100)]
         public int defaultBackgroundVolume = 100;
-        [SerializeField]
-        [JsonProperty("muteOnStart")]
-        private bool _muteOnStart;
-        [SerializeField]
+        [FormerlySerializedAs("_muteOnStart")]
+        public bool muteOnStart;
+        [FormerlySerializedAs("_templateLoader")]
         [JsonProperty("loader")]
-        private TemplateLoader _templateLoader;
+        public TemplateLoader templateLoader;
         #endregion
 
         #region Guide Tour
-        [SerializeField]
-        private bool _loop;
-
-        public bool Loop { get => _loop; set => _loop = value; }
+        [FormerlySerializedAs("_loop")]
+        public bool loop;
 
         [JsonProperty("guidedTours")]
         public GuidedTourGraph graph;
@@ -82,10 +79,6 @@ namespace Treasured.UnitySdk
 
         #region Export Properties
         public ImageFormat Format { get => cubemapExporter.imageFormat; }
-        #endregion
-
-        #region Actions
-        public ScriptableActionCollection onSceneLoad;
         #endregion
 
         #region Objects
@@ -161,9 +154,9 @@ namespace Treasured.UnitySdk
         private void OnValidate()
         {
             //  Set default Auto Camera Rotation to false for all except for modern loader template 
-            if (_templateLoader != null && _templateLoader.template != "modern")
+            if (templateLoader != null && templateLoader.template != "modern")
             {
-                _templateLoader.autoCameraRotation = false;
+                templateLoader.autoCameraRotation = false;
             }
         }
     }

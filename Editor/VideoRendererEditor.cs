@@ -22,7 +22,7 @@ namespace Treasured.UnitySdk
                 {
                     ScaleByRatio();
                 }
-                videoRenderer.videoContent ??= new VideoContent()
+                videoRenderer.videoContent ??= new VideoInfo()
                 {
                     volume = videoRenderer.volume,
                     remoteUri = videoRenderer.src,

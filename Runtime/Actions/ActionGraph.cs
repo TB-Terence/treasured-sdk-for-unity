@@ -16,10 +16,8 @@ namespace Treasured.Actions
         {
             if (!TryGetActionGroup(groupName, out var group))
             {
-                group = new ScriptableActionCollection
-                {
-                    name = groupName
-                };
+                group = ScriptableObject.CreateInstance<ScriptableActionCollection>();
+                group.name = groupName;
                 _groups.Add(group);
             }
             return group;

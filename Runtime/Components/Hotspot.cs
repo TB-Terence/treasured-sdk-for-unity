@@ -61,7 +61,8 @@ namespace Treasured.UnitySdk
             if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit))
             {
                 transform.position = hit.point + new Vector3(0, 0.01f, 0);
-                if (TryGetComponent<BoxCollider>(out var collider))
+                var collider = GetComponentInChildren<BoxCollider>();
+                if (collider)
                 {
                     collider.center = new Vector3(0, collider.size.y / 2, 0);
                 }
@@ -81,12 +82,12 @@ namespace Treasured.UnitySdk
             get
             {
                 var targets = new List<TreasuredObject>();
-                TreasuredMap map = GetComponentInParent<TreasuredMap>();
-                if (!map || !Camera)
+                TreasuredScene scene = GetComponentInParent<TreasuredScene>();
+                if (!scene || !Camera)
                 {
                     return new List<TreasuredObject>();
                 }
-                var objects = map.GetComponentsInChildren<TreasuredObject>();
+                var objects = scene.GetComponentsInChildren<TreasuredObject>();
                 foreach (var obj in objects)
                 {
                     if (obj.Id.Equals(this.Id) || obj.Hitbox == null)
@@ -104,7 +105,10 @@ namespace Treasured.UnitySdk
 
         private void OnDrawGizmos()
         {
-            Gizmos.DrawIcon(transform.position + Vector3.up, "Packages/com.treasured.unitysdk/Resources/Hotspot.png", true);
+            if (Hitbox)
+            {
+                Gizmos.DrawIcon(Hitbox.transform.position, "Packages/com.treasured.unitysdk/Resources/Hotspot.png", true);
+            }
         }
 
         #region Editor GUI Functions

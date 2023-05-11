@@ -20,7 +20,6 @@ namespace Treasured.UnitySdk
         protected override void OnEnable()
         {
             base.OnEnable();
-            map = (target as Interactable).Map;
             (target as Interactable).TryInvokeMethods("OnSelectedInHierarchy");
             button = serializedObject.FindProperty(nameof(TreasuredObject.button));
             hitbox = serializedObject.FindProperty("_hitbox");
@@ -74,7 +73,7 @@ namespace Treasured.UnitySdk
             if (target is Interactable interactable && interactable.Hitbox != null)
             {
                 Matrix4x4 matrix = Handles.matrix;
-                foreach (var obj in map.GetComponentsInChildren<TreasuredObject>())
+                foreach (var obj in scene.GetComponentsInChildren<TreasuredObject>())
                 {
                     if (obj == target)
                     {

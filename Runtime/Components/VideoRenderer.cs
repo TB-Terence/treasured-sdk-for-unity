@@ -17,7 +17,7 @@ namespace Treasured.UnitySdk
         [JsonIgnore]
         public VideoClip VideoClip;
 
-        public VideoContent videoContent;
+        public VideoInfo videoContent;
 
         [Url]
         [JsonIgnore]

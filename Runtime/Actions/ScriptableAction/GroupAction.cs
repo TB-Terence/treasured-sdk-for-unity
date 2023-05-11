@@ -6,10 +6,11 @@ namespace Treasured.UnitySdk
     public class GroupAction : ScriptableAction
     {
         public ScriptableActionCollection actions;
+        //public ActionCollection actions;
 
-        public GroupAction()
+        private void OnEnable()
         {
-            actions = new ScriptableActionCollection();
+           // actions = ScriptableObject.CreateInstance<ScriptableActionCollection>();
         }
     }
 }

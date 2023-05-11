@@ -7,10 +7,10 @@ namespace Treasured.UnitySdk.Validation
     public sealed class TreasuredSceneValidator : Validator
     {
         private static RequiredFieldValidator s_requiredFieldValidator_map;
-        private TreasuredMap _map;
-        public TreasuredSceneValidator(TreasuredMap map) : base(map)
+        private TreasuredScene scene;
+        public TreasuredSceneValidator(TreasuredScene map) : base(map)
         {
-            this._map = map;
+            this.scene = map;
             s_requiredFieldValidator_map = new RequiredFieldValidator(map);
         }
 
@@ -55,7 +55,7 @@ namespace Treasured.UnitySdk.Validation
         IEnumerable<ValidationResult> GetSelectObjectReferenceValidationResults()
         {
             List<ValidationResult> results = new List<ValidationResult>();
-            var treasuredObjects = _map.GetComponentsInChildren<TreasuredObject>();
+            var treasuredObjects = scene.GetComponentsInChildren<TreasuredObject>();
             foreach (var obj in treasuredObjects)
             {
                 if (obj is Hotspot hotspot && hotspot.Camera == null)
@@ -144,7 +144,7 @@ namespace Treasured.UnitySdk.Validation
 
         IEnumerable<ValidationResult> GetHotspotPathValidationResult(){
             List<ValidationResult> results = new List<ValidationResult>();
-            var hotspots = _map.Hotspots;
+            var hotspots = scene.Hotspots;
             if (hotspots.Length > 2)
             {
                 for (int i = 0; i < hotspots.Length; i++)
@@ -186,12 +186,12 @@ namespace Treasured.UnitySdk.Validation
 
         IEnumerable<ValidationResult> GetGuidedTourSrcValidationResult()
         {
-            if (!_map.features.guidedTour)
+            if (!scene.features.guidedTour)
             {
                 return Enumerable.Empty<ValidationResult>();
             }
             List<ValidationResult> results = new List<ValidationResult>();
-            var tours = _map.graph.tours;
+            var tours = scene.graph.tours;
             foreach (var tour in tours)
             {
                 if (tour.actionScripts == null) continue;

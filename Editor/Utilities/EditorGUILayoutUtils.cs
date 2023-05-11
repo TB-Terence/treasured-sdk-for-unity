@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Treasured.UnitySdk.Utilities;
 using UnityEditor;
 using UnityEngine;
 
@@ -371,6 +372,22 @@ namespace Treasured.UnitySdk
                         }
                     }
                 }
+            }
+        }
+
+        public static void PropertyFieldWithHeader(SerializedProperty property)
+        {
+            if (property.propertyType == SerializedPropertyType.Generic)
+            {
+                EditorGUILayout.LabelField(property.displayName, EditorStyles.boldLabel);
+                using(new EditorGUI.IndentLevelScope(1))
+                {
+                    EditorGUIUtils.DrawPropertyWithoutFoldout(property);
+                }
+            }
+            else
+            {
+                EditorGUILayout.PropertyField(property);
             }
         }
     }

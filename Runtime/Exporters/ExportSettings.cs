@@ -24,7 +24,7 @@ namespace Treasured.UnitySdk
         {
             get
             {
-                if (string.IsNullOrEmpty(folderName))
+                if (string.IsNullOrWhiteSpace(folderName))
                 {
                     return "";
                 }
