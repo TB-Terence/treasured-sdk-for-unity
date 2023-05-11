@@ -496,13 +496,13 @@ namespace Treasured.UnitySdk
                                         using (new GUILayout.HorizontalScope())
                                         {
                                             // Object Related Buttons
-                                            if (EditingTarget is Hotspot hotspot)
-                                            {
-                                                if (GUILayout.Button("Record Look Direction"))
-                                                {
-                                                    editorMode = EditorMode.Record;
-                                                }
-                                            }
+                                            //if (EditingTarget is Hotspot hotspot)
+                                            //{
+                                            //    if (GUILayout.Button("Record Look Direction"))
+                                            //    {
+                                            //        editorMode = EditorMode.Record;
+                                            //    }
+                                            //}
                                         }
                                     }
                                 }

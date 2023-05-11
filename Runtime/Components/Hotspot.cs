@@ -82,12 +82,12 @@ namespace Treasured.UnitySdk
             get
             {
                 var targets = new List<TreasuredObject>();
-                TreasuredMap map = GetComponentInParent<TreasuredMap>();
-                if (!map || !Camera)
+                TreasuredScene scene = GetComponentInParent<TreasuredScene>();
+                if (!scene || !Camera)
                 {
                     return new List<TreasuredObject>();
                 }
-                var objects = map.GetComponentsInChildren<TreasuredObject>();
+                var objects = scene.GetComponentsInChildren<TreasuredObject>();
                 foreach (var obj in objects)
                 {
                     if (obj.Id.Equals(this.Id) || obj.Hitbox == null)
