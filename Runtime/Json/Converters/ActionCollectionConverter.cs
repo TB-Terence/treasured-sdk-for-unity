@@ -9,13 +9,13 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    internal class ScriptableActionCollectionConverter : JsonConverter
+    internal class ActionCollectionConverter : JsonConverter
     {
         public override bool CanRead => false;
 
         public override bool CanConvert(Type objectType)
         {
-            return objectType == typeof(ScriptableActionCollection);
+            return objectType == typeof(ActionCollectionConverter);
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
@@ -25,29 +25,9 @@ namespace Treasured.UnitySdk
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            ScriptableActionCollection collection = value as ScriptableActionCollection;
+            ActionCollection collection = value as ActionCollection;
             if (collection != null)
             {
-                //writer.WriteStartArray();
-                // v1
-                //writer.WritePropertyName("v1");
-                //StringBuilder sb = new StringBuilder();
-                //foreach (var action in collection)
-                //{
-                //    if (!action.enabled)
-                //    {
-                //        continue;
-                //    }
-                //    Type type = action.GetType();
-                //    APIAttribute attribute = type.GetCustomAttributes<APIAttribute>().FirstOrDefault();
-                //    if (attribute == null)
-                //    {
-                //        continue;
-                //    }
-                //    sb.AppendLine($"{(attribute.IsAsync ? "await " : "")}{attribute.Domain}.{attribute.FunctionName}({JsonConvert.SerializeObject(action, Formatting.None, JsonExporter.JsonSettings)})");
-                //}
-                //writer.WriteValue(sb.ToString());
-                // v2
                 writer.WriteStartArray();
                 foreach (var action in collection)
                 {
@@ -55,7 +35,6 @@ namespace Treasured.UnitySdk
                     {
                         continue;
                     }
-
                     writer.WriteStartObject();
                     writer.WritePropertyName("id");
                     writer.WriteValue(action.Id);

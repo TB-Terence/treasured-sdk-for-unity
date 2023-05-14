@@ -4,7 +4,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Treasured.UnitySdk
 {
-    public class ContentConverter : JsonConverter
+    public class MediaInfoConverter : JsonConverter
     {
         public override bool CanConvert(Type objectType)
         {

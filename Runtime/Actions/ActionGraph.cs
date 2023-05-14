@@ -10,20 +10,20 @@ namespace Treasured.Actions
     public class ActionGraph
     {
         [SerializeReference]
-        private List<ScriptableActionCollection> _groups = new List<ScriptableActionCollection>();
+        private List<ActionCollection> _groups = new List<ActionCollection>();
         
-        public ScriptableActionCollection AddActionGroup(string groupName)
+        public ActionCollection AddActionGroup(string groupName)
         {
             if (!TryGetActionGroup(groupName, out var group))
             {
-                group = ScriptableObject.CreateInstance<ScriptableActionCollection>();
+                group = new ActionCollection();
                 group.name = groupName;
                 _groups.Add(group);
             }
             return group;
         }
 
-        public bool TryGetActionGroup(string groupName, out ScriptableActionCollection group)
+        public bool TryGetActionGroup(string groupName, out ActionCollection group)
         {
             group = _groups.FirstOrDefault(group => group != null && group.name == groupName);
             return group != null;
@@ -39,7 +39,7 @@ namespace Treasured.Actions
             return TryGetActionGroup(groupName, out var group) && _groups.Remove(group);
         }
 
-        public IEnumerable<ScriptableActionCollection> GetGroups()
+        public IEnumerable<ActionCollection> GetGroups()
         {
             return _groups;
         }

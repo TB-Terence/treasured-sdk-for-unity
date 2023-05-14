@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -10,6 +11,7 @@ namespace Treasured.UnitySdk
     public class PlayAudioAction : Action
     {
         [FormerlySerializedAs("_position")]
+        [JsonConverter(typeof(StringEnumConverter))]
         public EmbedPosition position = EmbedPosition.TopRight;
 
         [JsonIgnore][OnValueChanged("AudioClipChanged")]

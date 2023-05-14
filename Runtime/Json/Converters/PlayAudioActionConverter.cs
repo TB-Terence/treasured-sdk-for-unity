@@ -34,6 +34,9 @@ namespace Treasured.UnitySdk
                 writer.WritePropertyName("id");
                 writer.WriteValue(newAction.Id);
 
+                writer.WritePropertyName("type");
+                writer.WriteValue(newAction.Type);
+
                 writer.WritePropertyName("position");
                 writer.WriteValue(newAction.position);
 

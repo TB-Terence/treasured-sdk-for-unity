@@ -9,6 +9,7 @@ namespace Treasured.UnitySdk
     [Serializable]
     public class ActionCollection : IEnumerable<ScriptableAction>, ICollection<ScriptableAction>
     {
+        public string name;
         [SerializeField]
         [HideInInspector]
         private string _id = Guid.NewGuid().ToString();

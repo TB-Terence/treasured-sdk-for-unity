@@ -32,7 +32,10 @@ namespace Treasured.UnitySdk
             scene.sceneInfo.backgroundMusicInfo.remoteUri = map.audioUrl;
 
             scene.themeInfo.darkMode = map.uiSettings.darkMode;
-            scene.themeInfo.templateLoader = map.templateLoader;
+            scene.themeInfo.templateLoader = new TemplateLoader();
+            scene.themeInfo.templateLoader.template = map.templateLoader.template;
+            scene.themeInfo.templateLoader.imageUrl = map.templateLoader.imageUrl;
+            scene.themeInfo.templateLoader.autoCameraRotation = map.templateLoader.autoCameraRotation;
 
             scene.features = map.features;
 

@@ -265,10 +265,11 @@ namespace Treasured.UnitySdk
                                     scriptableAction.Id = action.Id;
                                     if (scriptableAction != null)
                                     {
-                                       // group.actions.Add(scriptableAction);
+                                        group.actions.Add(scriptableAction);
                                     }
                                 }
                                 onSelect.Add(group);
+                                actionGroup.Actions.Clear();
                                 totalUpdated++;
                             }
                         }
@@ -283,6 +284,7 @@ namespace Treasured.UnitySdk
                                 {
                                     onSelect.Add(scriptableAction);
                                     totalUpdated++;
+                                    actionGroup.Actions.Clear();
                                 }
                             }
                         }
@@ -290,17 +292,20 @@ namespace Treasured.UnitySdk
                 }
                 if (!obj.onClick.IsNullOrNone() && obj.onClick.Count > 0)
                 {
+                    List<int> indices = new List<int>();
+                    for (int i = 0; i < obj.onClick.Count; i++)
+                    {
+
+                    }
                     foreach (var action in obj.onClick)
                     {
-                        if (action != null)
+                        if (action != null && !onSelect.Contains(action.Id))
                         {
-                            if (!onSelect.Contains(action.Id))
-                            {
-                                onSelect.Add(action);
-                                totalUpdated++;
-                            }
+                            onSelect.Add(action);
+                            totalUpdated++;
                         }
                     }
+                    obj.onClick.Clear();
                 }
             }
             serializedObject.ApplyModifiedProperties();
