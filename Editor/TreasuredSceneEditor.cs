@@ -248,48 +248,48 @@ namespace Treasured.UnitySdk
                 {
                     onSelect = obj.actionGraph.AddActionGroup("onSelect");
                 }
-                //if (obj.OnClick.Count > 0)
-                //{
-                //    foreach (var actionGroup in obj.OnClick)
-                //    {
-                //        if (actionGroup == null || actionGroup.Actions == null) { continue; }
-                //        if (actionGroup.Actions.Count > 1)
-                //        {
-                //            if (!onSelect.Contains(actionGroup.Id))
-                //            {
-                //                GroupAction group = new GroupAction();
-                //                group.Id = actionGroup.Id;
-                //                foreach (var action in actionGroup.Actions)
-                //                {
-                //                    ScriptableAction scriptableAction = action.ConvertToScriptableAction();
-                //                    scriptableAction.Id = action.Id;
-                //                    if (scriptableAction != null)
-                //                    {
-                //                        group.actions.Add(scriptableAction);
-                //                    }
-                //                }
-                //                onSelect.Add(group);
-                //                actionGroup.Actions.Clear();
-                //                totalUpdated++;
-                //            }
-                //        }
-                //        else if (actionGroup.Actions.Count == 1)
-                //        {
-                //            var firstAction = actionGroup.Actions[0];
-                //            if (!onSelect.Contains(firstAction.Id))
-                //            {
-                //                ScriptableAction scriptableAction = firstAction.ConvertToScriptableAction();
-                //                scriptableAction.Id = firstAction.Id;
-                //                if (scriptableAction != null)
-                //                {
-                //                    onSelect.Add(scriptableAction);
-                //                    totalUpdated++;
-                //                    actionGroup.Actions.Clear();
-                //                }
-                //            }
-                //        }
-                //    }
-                //}
+                if (obj.OnClick.Count > 0)
+                {
+                    foreach (var actionGroup in obj.OnClick)
+                    {
+                        if (actionGroup == null || actionGroup.Actions == null) { continue; }
+                        if (actionGroup.Actions.Count > 1)
+                        {
+                            if (!onSelect.Contains(actionGroup.Id))
+                            {
+                                GroupAction group = new GroupAction();
+                                group.Id = actionGroup.Id;
+                                foreach (var action in actionGroup.Actions)
+                                {
+                                    ScriptableAction scriptableAction = action.ConvertToScriptableAction();
+                                    scriptableAction.Id = action.Id;
+                                    if (scriptableAction != null)
+                                    {
+                                        group.actions.Add(scriptableAction);
+                                    }
+                                }
+                                onSelect.Add(group);
+                                actionGroup.Actions.Clear();
+                                totalUpdated++;
+                            }
+                        }
+                        else if (actionGroup.Actions.Count == 1)
+                        {
+                            var firstAction = actionGroup.Actions[0];
+                            if (!onSelect.Contains(firstAction.Id))
+                            {
+                                ScriptableAction scriptableAction = firstAction.ConvertToScriptableAction();
+                                scriptableAction.Id = firstAction.Id;
+                                if (scriptableAction != null)
+                                {
+                                    onSelect.Add(scriptableAction);
+                                    totalUpdated++;
+                                    actionGroup.Actions.Clear();
+                                }
+                            }
+                        }
+                    }
+                }
                 if (!obj.onClick.IsNullOrNone() && obj.onClick.Count > 0)
                 {
                     List<int> indices = new List<int>();

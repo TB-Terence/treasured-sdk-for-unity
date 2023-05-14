@@ -57,7 +57,6 @@ namespace Treasured.UnitySdk
         public ExportInfo exportInfo = new ExportInfo();
 
         [JsonProperty("author")]
-        [RequiredField]
         [Tooltip("The name of the individual, company or organization.")]
         public string creator;
         [RequiredField]
