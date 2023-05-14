@@ -29,7 +29,7 @@ namespace Treasured.UnitySdk
             scene.title = map.Title;
             scene.description = map.Description;
 
-            scene.sceneInfo.backgroundMusicInfo.remoteUri = map.audioUrl;
+            scene.sceneInfo.backgroundMusicInfo.Uri = map.audioUrl;
 
             scene.themeInfo.darkMode = map.uiSettings.darkMode;
             scene.themeInfo.templateLoader = new TemplateLoader();

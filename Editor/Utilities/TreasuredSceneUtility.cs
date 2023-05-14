@@ -6,39 +6,39 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    internal static class TreasuredMapUtility
+    internal static class TreasuredSceneUtility
     {
         /// <summary>
-        /// Creates a new object of type <typeparamref name="T"/> and add it to the TreasuredMap under a game object with <paramref name="categoryName"/>.
+        /// Creates a new object of type <typeparamref name="T"/> and add it to the TreasuredScene under a game object with <paramref name="categoryName"/>.
         /// Create new object if the category root not found. Place the new game object on floor if collider found otherwise place it at (0, 0, 0)
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="map">The parent of the new object.</param>
+        /// <param name="scene">The parent of the new object.</param>
         /// <returns>Treasured Object of Type <typeparamref name="T"/></returns>
-        public static T CreateObject<T>(this TreasuredMap map) where T : TreasuredObject
+        public static T CreateObject<T>(this TreasuredScene scene) where T : TreasuredObject
         {
-            return (T)CreateObject(map, typeof(T));
+            return (T)CreateObject(scene, typeof(T));
         }
 
         /// <summary>
-        /// Creates an object under <paramref name="map"/> with proper hierarchy setup.
+        /// Creates an object under <paramref name="scene"/> with proper hierarchy setup.
         /// </summary>
         /// <param name="map"></param>
         /// <param name="t"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentException"></exception>
-        public static TreasuredObject CreateObject(this TreasuredMap map, Type t)
+        public static TreasuredObject CreateObject(this TreasuredScene scene, Type t)
         {
             if (!typeof(TreasuredObject).IsAssignableFrom(t))
             {
                 throw new ArgumentException($"Type dismatch. {t.Name} is not a type of TreasuredObject.");
             }
             string categoryName = ObjectNames.NicifyVariableName(t.Name + "s");
-            Transform categoryRoot = map.transform.Find(categoryName);
+            Transform categoryRoot = scene.transform.Find(categoryName);
             if (categoryRoot == null)
             {
                 categoryRoot = new GameObject(categoryName).transform;
-                categoryRoot.SetParent(map.transform);
+                categoryRoot.SetParent(scene.transform);
             }
             string uniqueName = UnityEditor.GameObjectUtility.GetUniqueNameForSibling(categoryRoot, ObjectNames.NicifyVariableName(t.Name));
             GameObject newGO = new GameObject(uniqueName);

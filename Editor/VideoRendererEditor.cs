@@ -22,13 +22,6 @@ namespace Treasured.UnitySdk
                 {
                     ScaleByRatio();
                 }
-                videoRenderer.videoContent ??= new VideoInfo()
-                {
-                    volume = videoRenderer.volume,
-                    remoteUri = videoRenderer.src,
-                    autoplay = videoRenderer.autoplay,
-                    loop = videoRenderer.loop
-                };
             }
         }
 
@@ -43,7 +36,7 @@ namespace Treasured.UnitySdk
             serializedObject.Update();
             SerializedProperty lockAspectRatio = serializedObject.FindProperty("_lockAspectRatio");
             SerializedProperty aspectRatio = serializedObject.FindProperty("_aspectRatio");
-            SerializedProperty videoContent = serializedObject.FindProperty(nameof(VideoRenderer.videoContent));
+            SerializedProperty videoContent = serializedObject.FindProperty(nameof(VideoRenderer.videoInfo));
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(lockAspectRatio);

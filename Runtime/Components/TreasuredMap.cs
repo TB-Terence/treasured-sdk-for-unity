@@ -147,9 +147,6 @@ namespace Treasured.UnitySdk
 
         [JsonIgnore]
         public VideoExporter VideoExporter;
-        
-        [SerializeField]
-        internal MigrateInfo migrateInfo;
 
         private void OnValidate()
         {

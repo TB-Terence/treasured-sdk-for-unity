@@ -9,23 +9,14 @@ namespace Treasured.UnitySdk
         private void OnEnable()
         {
             (target as TreasuredObject)?.TryInvokeMethods("OnSelectedInHierarchy");
-            if (target is SoundSource soundSource)
-            {
-                soundSource.audioContent ??= new AudioInfo()
-                {
-                    volume = soundSource.Volume,
-                    loop = soundSource.Loop,
-                    remoteUri = soundSource.Src
-                };
-            }
         }
 
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
 
-            SerializedProperty distance = serializedObject.FindProperty("Distance");
-            SerializedProperty auidoContent = serializedObject.FindProperty(nameof(SoundSource.audioContent));
+            SerializedProperty auidoContent = serializedObject.FindProperty(nameof(SoundSource.audioInfo));
+            SerializedProperty distance = serializedObject.FindProperty("distance");
 
             EditorGUILayout.PropertyField(auidoContent);
             EditorGUI.BeginChangeCheck();
@@ -37,7 +28,7 @@ namespace Treasured.UnitySdk
                 if (hitBoxTransform)
                 {
                     hitBoxTransform.localScale =
-                        new Vector3(soundSource.Distance, soundSource.Distance, soundSource.Distance);
+                        new Vector3(soundSource.distance, soundSource.distance, soundSource.distance);
                 }
             }
 

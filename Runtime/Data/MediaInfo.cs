@@ -16,19 +16,29 @@ namespace Treasured.UnitySdk
         [ShowIf(nameof(IsLocalContent))]
         [ReadOnly]
         [TextArea(3, 5)]
-        [JsonIgnore]
-        private string _localUri;
+        private string _localUri = String.Empty;
+        [SerializeField]
         [ShowIf(nameof(IsRemoteContent))]
         [TextArea(3, 5)]
-        [JsonIgnore]
-        public string remoteUri;
+        private string _remoteUri = String.Empty;
 
         [JsonProperty("uri")]
         public string Uri
         {
             get
             {
-                return IsLocalContent() ? _localUri : remoteUri;
+                return IsLocalContent() ? _localUri : _remoteUri;
+            }
+            set
+            {
+                if (IsLocalContent())
+                {
+                    _localUri = value;
+                }
+                else
+                {
+                    _remoteUri = value;
+                }
             }
         }
 

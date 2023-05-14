@@ -17,7 +17,7 @@ namespace Treasured.UnitySdk
         [JsonIgnore]
         public VideoClip VideoClip;
 
-        public VideoInfo videoContent;
+        public VideoInfo videoInfo;
 
         [Url]
         [JsonIgnore]
@@ -48,5 +48,44 @@ namespace Treasured.UnitySdk
                 return ratios.Length == 2 ? float.Parse(ratios[0]) / float.Parse(ratios[1]) : 1;
             }
         }
+
+        // TODO: Remove these after use new format
+        #region Deprecated Properties
+        [JsonProperty("src")]
+        string Src
+        {
+            get
+            {
+                return videoInfo.Uri;
+            }
+        }
+
+        [JsonProperty("loop")]
+        bool Loop
+        {
+            get
+            {
+                return videoInfo.loop;
+            }
+        }
+
+        [JsonProperty("volume")]
+        int Volume
+        {
+            get
+            {
+                return videoInfo.volume;
+            }
+        }
+
+        [JsonProperty("autoPlay")]
+        bool AutoPlay
+        {
+            get
+            {
+                return videoInfo.autoplay;
+            }
+        }
+        #endregion
     }
 }
