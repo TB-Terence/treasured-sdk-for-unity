@@ -25,11 +25,18 @@ namespace Treasured.UnitySdk
             {
                 map.name = "Treasured Scene";
             }
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("_templateLoader"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("headHTML"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("pageEmbeds"));
+            SerializedProperty uiSettings = serializedObject.FindProperty("uiSettings");
+            EditorGUILayout.PropertyField(uiSettings);
+            SerializedProperty features = serializedObject.FindProperty("features");
+            EditorGUILayout.PropertyField(features);
             scene.creator = map.Author;
             scene.title = map.Title;
             scene.description = map.Description;
 
-            scene.sceneInfo.backgroundMusicInfo.Uri = map.audioUrl;
+            scene.sceneInfo.backgroundMusicInfo.Path = map.audioUrl;
 
             scene.themeInfo.darkMode = map.uiSettings.darkMode;
             scene.themeInfo.templateLoader = new TemplateLoader();

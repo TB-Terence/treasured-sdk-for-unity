@@ -48,7 +48,6 @@ namespace Treasured.UnitySdk
                 return ratios.Length == 2 ? float.Parse(ratios[0]) / float.Parse(ratios[1]) : 1;
             }
         }
-
         // TODO: Remove these after use new format
         #region Deprecated Properties
         [JsonProperty("src")]
@@ -56,7 +55,7 @@ namespace Treasured.UnitySdk
         {
             get
             {
-                return videoInfo.Uri;
+                return videoInfo.Path;
             }
         }
 

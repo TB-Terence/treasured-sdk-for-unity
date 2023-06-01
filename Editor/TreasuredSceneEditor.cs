@@ -210,7 +210,6 @@ namespace Treasured.UnitySdk
         private FoldoutGroupState[] _foldoutGroupStates;
 
         private TreasuredScene scene;
-        private Exporter[] _exporters;
 
         private Process _npmProcess;
 
@@ -315,7 +314,7 @@ namespace Treasured.UnitySdk
                     volume = video.volume,
                     autoplay = video.autoplay,
                     loop = video.loop,
-                    Uri = video.src
+                    Path = video.src
                 };
             }
             foreach (var sound in scene.Audios)
@@ -325,7 +324,7 @@ namespace Treasured.UnitySdk
                     volume = sound.volume,
                     autoplay = false,
                     loop = sound.loop,
-                    Uri = sound.src
+                    Path = sound.src
                 };
             }
             serializedObject.ApplyModifiedProperties();
@@ -356,13 +355,6 @@ namespace Treasured.UnitySdk
         {
             // Create editors for export setting
             _cachedEditors[scene.exportSettings] = Editor.CreateEditor(scene.exportSettings);
-            // Create editors for exporters
-            var exporters = ReflectionUtilities.GetSerializableFieldValuesOfType<Exporter>(target, false);
-            _exporters = exporters.Select(exporter => exporter.Value).ToArray();
-            foreach (var exporter in _exporters)
-            {
-                _cachedEditors[exporter] = Editor.CreateEditor(exporter);
-            }
             // Create editor for guided tour graph
             _cachedEditors[scene.graph] = Editor.CreateEditor(scene.graph);
             if (_cachedEditors[scene.graph] is GuidedTourGraphEditor editor)
@@ -461,11 +453,7 @@ namespace Treasured.UnitySdk
                     {
                         try
                         {
-                            Exporter.Export(scene);
-                        }
-                        catch (ValidationException e)
-                        {
-                            SceneExporterWindow.Show(scene, e);
+                            TreasuredSceneExporterWindow.Show(scene);
                         }
                         catch (ContextException e)
                         {
@@ -697,55 +685,6 @@ namespace Treasured.UnitySdk
             }
 
             _cachedEditors[scene.graph].OnInspectorGUI();
-        }
-
-        [TabGroup(groupName = "Export Settings")]
-        private void OnExportGUI()
-        {
-            EditorGUI.BeginChangeCheck();
-            _cachedEditors[scene.exportSettings].OnInspectorGUI();
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField("Exporter Settings", EditorStyles.boldLabel);
-            GUILayout.FlexibleSpace();
-            if (GUILayout.Button(new GUIContent("Reset to Default",
-                    "Reset all exporter settings to Default Preferences")))
-            {
-                try
-                {
-                    foreach (var exporter in _exporters)
-                    {
-                        var source = TreasuredSDKPreferences.Instance.exporters.FirstOrDefault(e =>
-                            e.GetType() == exporter.GetType());
-                        if (source == null)
-                        {
-                            continue;
-                        }
-
-                        SerializedObject serializedObject = new SerializedObject(source);
-                        SerializedProperty current = serializedObject.GetIterator();
-                        while (current.Next(true))
-                        {
-                            _cachedEditors[exporter].serializedObject.CopyFromSerializedProperty(current);
-                        }
-                        _cachedEditors[exporter].serializedObject.ApplyModifiedProperties();
-                    }
-                }
-                catch (Exception e)
-                {
-                    throw e;
-                }
-            }
-            EditorGUILayout.EndHorizontal();
-            using (new EditorGUI.IndentLevelScope(1))
-            {
-                foreach (var exporter in _exporters)
-                {
-                    using (var scope = new ExporterEditor.ExporterScope(_cachedEditors[exporter].serializedObject.FindProperty(nameof(Exporter.enabled))))
-                    {
-                        _cachedEditors[exporter].OnInspectorGUI();
-                    }
-                }
-            }
         }
     }
 }

@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using UnityEngine;
 using UnityEngine.Video;
+using UnityEngine.Serialization;
 
 namespace Treasured.UnitySdk
 {
@@ -10,34 +11,36 @@ namespace Treasured.UnitySdk
     public abstract class MediaInfo<T> where T : UnityEngine.Object
     {
         [JsonIgnore]
-        [OnValueChanged(nameof(UpdateUri))]
+        [OnValueChanged(nameof(UpdatePath))]
         public T asset;
         [SerializeField]
         [ShowIf(nameof(IsLocalContent))]
         [ReadOnly]
         [TextArea(3, 5)]
-        private string _localUri = String.Empty;
+        [FormerlySerializedAs("_localUri")]
+        private string _localPath = String.Empty;
         [SerializeField]
         [ShowIf(nameof(IsRemoteContent))]
         [TextArea(3, 5)]
-        private string _remoteUri = String.Empty;
+        [FormerlySerializedAs("_remoteUri")]
+        private string _remotePath = String.Empty;
 
-        [JsonProperty("uri")]
-        public string Uri
+        [JsonProperty("path")]
+        public string Path
         {
             get
             {
-                return IsLocalContent() ? _localUri : _remoteUri;
+                return IsLocalContent() ? _localPath : _remotePath;
             }
             set
             {
                 if (IsLocalContent())
                 {
-                    _localUri = value;
+                    _localPath = value;
                 }
                 else
                 {
-                    _remoteUri = value;
+                    _remotePath = value;
                 }
             }
         }
@@ -54,12 +57,12 @@ namespace Treasured.UnitySdk
 
         public abstract string GetLocalPathPrefix();
 
-        void UpdateUri()
+        void UpdatePath()
         {
 #if UNITY_EDITOR
             if (IsLocalContent())
             {
-                _localUri = $"{GetLocalPathPrefix()}/" + Path.GetFileName(UnityEditor.AssetDatabase.GetAssetPath(asset));
+                _localPath = $"{GetLocalPathPrefix()}/" + System.IO.Path.GetFileName(UnityEditor.AssetDatabase.GetAssetPath(asset));
             }
 #endif
         }

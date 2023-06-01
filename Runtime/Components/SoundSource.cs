@@ -28,7 +28,7 @@ namespace Treasured.UnitySdk
         {
             get
             {
-                return audioInfo.Uri;
+                return audioInfo.Path;
             }
         }
 

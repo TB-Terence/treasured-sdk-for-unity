@@ -148,7 +148,7 @@ namespace Treasured.UnitySdk
         [JsonProperty]
         bool loop => sceneInfo.loopHotspots;
         [JsonProperty]
-        string audioUrl => sceneInfo.backgroundMusicInfo.Uri; 
+        string audioUrl => sceneInfo.backgroundMusicInfo.Path; 
         [JsonProperty]
         bool muteOnStart => sceneInfo.backgroundMusicInfo.muted;
         [JsonProperty]

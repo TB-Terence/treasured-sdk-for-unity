@@ -23,7 +23,7 @@ namespace Treasured.UnitySdk
                 case VideoInfo video:
                     writer.WriteStartObject();
                     writer.WritePropertyName(nameof(VideoRenderer.src));
-                    writer.WriteValue(video.Uri);
+                    writer.WriteValue(video.Path);
                     writer.WritePropertyName(nameof(VideoRenderer.volume));
                     writer.WriteValue(video.volume);
                     writer.WritePropertyName(nameof(VideoRenderer.loop));
@@ -35,7 +35,7 @@ namespace Treasured.UnitySdk
                 case AudioInfo audio:
                     writer.WriteStartObject();
                     writer.WritePropertyName("src");
-                    writer.WriteValue(audio.Uri);
+                    writer.WriteValue(audio.Path);
                     writer.WritePropertyName("volume");
                     writer.WriteValue(audio.volume);
                     writer.WritePropertyName("loop");

@@ -14,19 +14,18 @@ namespace Treasured.UnitySdk
         {
             serializedObject.Update();
             ExportSettings settings = target as ExportSettings;
-            EditorGUILayout.LabelField("Export Settings", EditorStyles.boldLabel);
-            using(new EditorGUI.IndentLevelScope(1))
+            SerializedProperty folderName = serializedObject.FindProperty(nameof(ExportSettings.folderName));
+            SerializedProperty optimizeScene = serializedObject.FindProperty(nameof(ExportSettings.optimizeScene));
+            EditorGUILayoutUtils.FolderField(ref TreasuredSDKPreferences.Instance.customExportFolder, "Directory");
+            EditorGUI.BeginChangeCheck();
+            string newOutputFolderName = EditorGUILayout.TextField(new GUIContent("Folder Name"), folderName.stringValue);
+            if (EditorGUI.EndChangeCheck() && !string.IsNullOrWhiteSpace(newOutputFolderName))
             {
-                SerializedProperty folderName = serializedObject.FindProperty(nameof(ExportSettings.folderName));
-                SerializedProperty optimizeScene = serializedObject.FindProperty(nameof(ExportSettings.optimizeScene));
-                EditorGUI.BeginChangeCheck();
-                string newOutputFolderName = EditorGUILayout.TextField(new GUIContent("Folder Name"), folderName.stringValue);
-                if (EditorGUI.EndChangeCheck() && !string.IsNullOrWhiteSpace(newOutputFolderName))
-                {
-                    folderName.stringValue = newOutputFolderName.Trim();
-                }
-                EditorGUILayout.PropertyField(optimizeScene);
+                folderName.stringValue = newOutputFolderName.Trim();
             }
+            EditorGUILayout.PropertyField(optimizeScene);
+            SerializedProperty thumbnail = serializedObject.FindProperty(nameof(ExportSettings.thumbnail));
+            EditorGUILayout.PropertyField(thumbnail);
             serializedObject.ApplyModifiedProperties();
         }
     }

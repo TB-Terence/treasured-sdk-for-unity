@@ -14,6 +14,7 @@ namespace Treasured.UnitySdk
     [CustomPropertyDrawer(typeof(ButtonAttribute), true)]
     [CustomPropertyDrawer(typeof(RequiredFieldAttribute), true)]
     [CustomPropertyDrawer(typeof(PresetAttribute), true)]
+    [CustomPropertyDrawer(typeof(LabelAttribute), true)]
     public class AttributeDrawer : PropertyDrawer
     {
         public static class Styles
@@ -35,6 +36,8 @@ namespace Treasured.UnitySdk
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
+            LabelAttribute labelAttribute = fieldInfo.GetCustomAttribute<LabelAttribute>();
+            label = labelAttribute != null && !string.IsNullOrWhiteSpace(labelAttribute.Text) ? new GUIContent(labelAttribute.Text) : label;
             EditorGUI.BeginProperty(position, label, property);
             property.serializedObject.Update();
             ValidateInput(property);
@@ -68,7 +71,6 @@ namespace Treasured.UnitySdk
                 switch (property.propertyType)
                 {
                     case SerializedPropertyType.String:
-                        
                         if (textAreaAttribute != null)
                         {
                             property.stringValue = EditorGUI.TextArea(rect, property.stringValue);
@@ -202,7 +204,7 @@ namespace Treasured.UnitySdk
             PresetAttribute presetAttribute = fieldInfo.GetCustomAttribute<PresetAttribute>();
             Rect labelRect = new Rect(total.x, total.y, total.width, EditorGUIUtility.singleLineHeight);
             // inline rect
-            Rect controlRect = EditorGUI.PrefixLabel(labelRect, new GUIContent(!_isMissing ? property.displayName : $"{property.displayName} <color={Styles.RequiredColorHex}>*</color>", property.tooltip), Styles.RichText);
+            Rect controlRect = EditorGUI.PrefixLabel(labelRect, new GUIContent(!_isMissing ? label.text : $"{label.text} <color={Styles.RequiredColorHex}>*</color>", property.tooltip), Styles.RichText);
             if (textAreaAttribute != null)
             {
                 controlRect = new Rect(total.x, total.y + EditorGUIUtility.singleLineHeight, total.width, total.height - EditorGUIUtility.singleLineHeight - (_isMissing ? EditorGUIUtility.singleLineHeight : 0));

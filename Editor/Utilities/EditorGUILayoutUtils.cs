@@ -317,6 +317,26 @@ namespace Treasured.UnitySdk
             }
         }
 
+        public static void FolderField(ref string path, string label)
+        {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                var newPath = path;
+                using (new EditorGUI.DisabledGroupScope(true))
+                {
+                    newPath = EditorGUILayout.TextField(label, path);
+                }
+                if (GUILayout.Button(EditorGUIUtility.TrIconContent("FolderOpened On Icon"), EditorStyles.label, GUILayout.Width(20), GUILayout.Height(18)))
+                {
+                    newPath = EditorUtility.OpenFolderPanel(label, path, "");
+                    if (!string.IsNullOrEmpty(newPath))
+                    {
+                        path = newPath.Replace("\\", "/");
+                    }
+                }
+            }
+        }
+
         public static void ComponentCard(Texture2D icon, string title, string description, string helpUrl = "")
         {
             using (new EditorGUILayout.VerticalScope(Styles.componentCardBox))

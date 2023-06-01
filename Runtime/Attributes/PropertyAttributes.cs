@@ -97,6 +97,16 @@ namespace Treasured.UnitySdk
         }
     }
 
+    [AttributeUsage(AttributeTargets.Field)]
+    public class LabelAttribute : PropertyAttribute
+    {
+        public string Text { get; private set; }
+        public LabelAttribute(string content)
+        {
+            Text = content;
+        }
+    }
+
     public interface IMethodInvoker
     {
         public string CallbackName { get; }
