@@ -229,52 +229,108 @@ namespace Treasured.UnitySdk
         private UnityEngine.Rendering.HighDefinition.HDAdditionalCameraData _cameraData;
         private UnityEngine.Rendering.HighDefinition.HDAdditionalCameraData.AntialiasingMode _antiAliasing;
         private UnityEngine.Rendering.HighDefinition.HDAdditionalCameraData.SMAAQualityLevel _SMAAQuality;
-        private Dictionary<VolumeComponent, List<IParameterOverwrite>> _parameterOverwrites = new Dictionary<VolumeComponent, List<IParameterOverwrite>>();
 
-        private interface IParameterOverwrite
+        public interface IOverwritableParameter
         {
-            public VolumeComponent Component { get; }
-            public FieldInfo FieldInfo { get; }
+            public bool Enabled { get; set; }
+            public string FieldName { get; set; }
             public object OverwriteValue { get; set; }
-            public void Overwrite();
+            public bool GlobalOnly { get; set; }
+            public void Overwrite(VolumeComponent component);
             public void Revert();
         }
-        private struct ParameterOverwrite<T> : IParameterOverwrite
+        public class OverwritableParameter<T> : IOverwritableParameter
         {
-            /// <summary>
-            /// <see cref="VolumeComponent"/> on HDRP profile to overwrite.
-            /// </summary>
-            public VolumeComponent Component { get; private set; }
-            /// <summary>
-            /// Field Info of the <see cref="VolumeParameter"/>
-            /// </summary>
-            public FieldInfo FieldInfo { get; private set; }
-            public T InitialValue { get; private set; }
+            public bool Enabled { get; set; } = true;
+            public string FieldName { get; set; }
             public object OverwriteValue { get; set; }
-            
-            public ParameterOverwrite(VolumeComponent component, string fieldName, T overwriteValue)
+            public bool GlobalOnly { get; set; }
+
+            VolumeComponent component;
+            FieldInfo fieldInfo;
+            T initialValue;
+
+            public OverwritableParameter(string fieldName, T overwriteValue, bool globalOnly = false)
             {
-                this.Component = component;
-                this.FieldInfo = component.GetType().GetField(fieldName);
+                this.FieldName = fieldName;
                 this.OverwriteValue = overwriteValue;
-                this.InitialValue = ((VolumeParameter<T>)this.FieldInfo.GetValue(component)).value;
+                this.GlobalOnly = globalOnly;
             }
 
-            public void Overwrite()
+            public void Overwrite(VolumeComponent component)
             {
-                ((VolumeParameter<T>)FieldInfo.GetValue(Component)).value = (T)OverwriteValue;
+                if (!Enabled) return;
+                this.component = component;
+                this.fieldInfo = component.GetType().GetField(FieldName);
+                this.initialValue = ((VolumeParameter<T>)fieldInfo.GetValue(component)).value;
+                ((VolumeParameter<T>)fieldInfo.GetValue(component)).value = (T)OverwriteValue;
+                Debug.LogError($"Overwriting {FieldName} on {this.component.name} from {this.initialValue} to {this.OverwriteValue}");
             }
 
             public void Revert()
             {
-                ((VolumeParameter<T>)FieldInfo.GetValue(Component)).value = InitialValue;
-            }
-
-            public override int GetHashCode()
-            {
-                return Component.GetHashCode();
+                if (!Enabled || component == null || fieldInfo == null) return;
+                ((VolumeParameter<T>)fieldInfo.GetValue(component)).value = this.initialValue;
+                Debug.LogError($"Reverting {FieldName} on {this.component.name} from {this.OverwriteValue} to {this.initialValue}");
             }
         }
+
+        public Dictionary<Type, IList<IOverwritableParameter>> OverwritableComponents = new Dictionary<Type, IList<IOverwritableParameter>>()
+        {
+            {
+                typeof(UnityEngine.Rendering.HighDefinition.Exposure), new IOverwritableParameter[]
+                {
+                    new OverwritableParameter<UnityEngine.Rendering.HighDefinition.ExposureMode>(
+                        nameof(UnityEngine.Rendering.HighDefinition.Exposure.mode),
+                        UnityEngine.Rendering.HighDefinition.ExposureMode.Fixed, true),
+                }
+            },
+            {
+                typeof(UnityEngine.Rendering.HighDefinition.LensDistortion), new IOverwritableParameter[]
+                {
+                    new OverwritableParameter<float>(nameof(UnityEngine.Rendering.HighDefinition.LensDistortion.scale), 1),
+                    new OverwritableParameter<float>("intensity", 0),
+                }
+            },
+            { 
+                typeof(UnityEngine.Rendering.HighDefinition.AmbientOcclusion), new IOverwritableParameter[]
+                {
+                    new OverwritableParameter<float>("intensity", 0)
+                } 
+            }
+            ,
+            { 
+                typeof(UnityEngine.Rendering.HighDefinition.Bloom), new IOverwritableParameter[]
+                {
+                    new OverwritableParameter<float>("intensity", 0)
+                } 
+            },
+            { 
+                typeof(UnityEngine.Rendering.HighDefinition.MotionBlur), new IOverwritableParameter[]
+                {
+                    new OverwritableParameter<float>("intensity", 0)
+                } 
+            },
+            { 
+                typeof(UnityEngine.Rendering.HighDefinition.FilmGrain), new IOverwritableParameter[]
+                {
+                    new OverwritableParameter<float>("intensity", 0)
+                } 
+            },
+            { 
+                typeof(UnityEngine.Rendering.HighDefinition.ChromaticAberration), new IOverwritableParameter[]
+                {
+                    new OverwritableParameter<float>("intensity", 0)
+                } 
+            },
+            { 
+                typeof(UnityEngine.Rendering.HighDefinition.DepthOfField), new IOverwritableParameter[]
+                {
+                    new OverwritableParameter<float>(nameof(UnityEngine.Rendering.HighDefinition.DepthOfField.farMaxBlur), 0),
+                    new OverwritableParameter<float>(nameof(UnityEngine.Rendering.HighDefinition.DepthOfField.nearMaxBlur), 0)
+                } 
+            }
+        };
 
         public override void OnPreExport()
         {
@@ -282,7 +338,7 @@ namespace Treasured.UnitySdk
             if (Directory.Exists(path))
                 Directory.Delete(path, true);
             flipY = true;
-            _parameterOverwrites.Clear();
+            //_parameterOverwrites.Clear();
             _cameraData = ValidateCamera().gameObject.GetComponent<UnityEngine.Rendering.HighDefinition.HDAdditionalCameraData>();
             _antiAliasing = _cameraData.antialiasing;
             _cameraData.antialiasing = UnityEngine.Rendering.HighDefinition.HDAdditionalCameraData.AntialiasingMode.SubpixelMorphologicalAntiAliasing;
@@ -292,47 +348,24 @@ namespace Treasured.UnitySdk
             {
                 foreach (var component in volume.profile.components)
                 {
-                    switch (component)
+                    if (OverwritableComponents.TryGetValue(component.GetType(), out var paramenters))
                     {
-                        case UnityEngine.Rendering.HighDefinition.Exposure e:
-                            if(volume.isGlobal)
-                                AddParameterOverwrite(new ParameterOverwrite<UnityEngine.Rendering.HighDefinition.ExposureMode>(component, nameof(UnityEngine.Rendering.HighDefinition.Exposure.mode), UnityEngine.Rendering.HighDefinition.ExposureMode.Fixed));
-                            break;
-                        case UnityEngine.Rendering.HighDefinition.LensDistortion ld:
-                            AddParameterOverwrite(new ParameterOverwrite<float>(component, nameof(UnityEngine.Rendering.HighDefinition.LensDistortion.scale), 1));
-                            AddParameterOverwrite(new ParameterOverwrite<float>(component, nameof(UnityEngine.Rendering.HighDefinition.LensDistortion.intensity), 0));
-                            break;
-                        // intensity
-                        case UnityEngine.Rendering.HighDefinition.AmbientOcclusion ao:
-                        case UnityEngine.Rendering.HighDefinition.Bloom b:
-                        case UnityEngine.Rendering.HighDefinition.MotionBlur mb:
-                        case UnityEngine.Rendering.HighDefinition.FilmGrain fg:
-                        case UnityEngine.Rendering.HighDefinition.Vignette v:
-                        case UnityEngine.Rendering.HighDefinition.ChromaticAberration ca:
-                            AddParameterOverwrite(new ParameterOverwrite<float>(component, "intensity", 0));
-                            break;
-                        case UnityEngine.Rendering.HighDefinition.DepthOfField dof:
-                            if(dof.focusMode == UnityEngine.Rendering.HighDefinition.DepthOfFieldMode.UsePhysicalCamera)
-                            {
-                                AddParameterOverwrite(new ParameterOverwrite<UnityEngine.Rendering.HighDefinition.DepthOfFieldMode>(component, nameof(UnityEngine.Rendering.HighDefinition.DepthOfField.farMaxBlur), 0));
-                                AddParameterOverwrite(new ParameterOverwrite<UnityEngine.Rendering.HighDefinition.DepthOfFieldMode>(component, nameof(UnityEngine.Rendering.HighDefinition.DepthOfField.nearMaxBlur), 0));
-                            }
-                            break;
-                        default:
-                            break;
+                        foreach (var parameter in paramenters)
+                        {
+                            parameter.Overwrite(component);
+                        }
                     }
                 }
             }
         }
 
-        private void AddParameterOverwrite<T>(ParameterOverwrite<T> overwrite)
+        private void AddOverwrite<T>(OverwritableParameter<T> overwrite)
         {
-            if (!_parameterOverwrites.ContainsKey(overwrite.Component))
+            if (!OverwritableComponents.ContainsKey(typeof(T)))
             {
-                _parameterOverwrites[overwrite.Component] = new List<IParameterOverwrite>();
+                OverwritableComponents[typeof(T)] = new List<IOverwritableParameter>();
             }
-            _parameterOverwrites[overwrite.Component].Add(overwrite);
-            overwrite.Overwrite();
+            OverwritableComponents[typeof(T)].Add(overwrite);
         }
 
         public override void OnPostExport()
@@ -342,14 +375,13 @@ namespace Treasured.UnitySdk
                 _cameraData.antialiasing = _antiAliasing;
                 _cameraData.SMAAQuality = _SMAAQuality;
             }
-            foreach (var overwrites in _parameterOverwrites.Values)
+            foreach (var overwrites in OverwritableComponents.Values)
             {
                 foreach (var overwrite in overwrites)
                 {
                     overwrite.Revert();
                 }
             }
-            _parameterOverwrites.Clear();
         }
 #endif
     }
