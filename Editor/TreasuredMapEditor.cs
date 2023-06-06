@@ -25,12 +25,11 @@ namespace Treasured.UnitySdk
             {
                 map.name = "Treasured Scene";
             }
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("_templateLoader"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("headHTML"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("pageEmbeds"));
-            SerializedProperty uiSettings = serializedObject.FindProperty("uiSettings");
-            EditorGUILayout.PropertyField(uiSettings);
-            SerializedProperty features = serializedObject.FindProperty("features");
+            EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(TreasuredMap.templateLoader)));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(TreasuredMap.headHTML)));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(TreasuredMap.pageEmbeds)));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(TreasuredMap.uiSettings)));
+            SerializedProperty features = serializedObject.FindProperty(nameof(TreasuredMap.features));
             EditorGUILayout.PropertyField(features);
             scene.creator = map.Author;
             scene.title = map.Title;
