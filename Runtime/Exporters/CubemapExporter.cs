@@ -97,6 +97,8 @@ namespace Treasured.UnitySdk
 
             Cubemap cubemap = new Cubemap(_useCustomWidth ? _customCubemapWidth : (int)imageQuality, TextureFormat.ARGB32, false);
             Texture2D texture = null;
+            Texture2D thumbnailTexture = new Texture2D(1920, 1080, TextureFormat.ARGB32, false);
+
             switch (cubemapFormat)
             {
                 case CubemapFormat._3x2:
@@ -109,6 +111,13 @@ namespace Treasured.UnitySdk
             //  If imageFormat is KTX2 then export images as png and then later convert them to KTX2 format  
             ImageFormat imageFormatParser = imageFormat == ImageFormat.Ktx2 ? ImageFormat.PNG : imageFormat;
 
+            if (Scene.thumbnail.type == ThumbnailType.FromCurrentView)
+            {
+#if UNITY_EDITOR
+                ScreenShot(thumbnailTexture, UnityEditor.SceneView.lastActiveSceneView.camera);
+#endif
+            }
+
             try
             {
                 for (int index = 0; index < count; index++)
@@ -116,6 +125,12 @@ namespace Treasured.UnitySdk
                     Hotspot current = hotspots[index];
                     string progressTitle = $"Capturing Hotspots";
                     string progressText = $"{current.name}";
+
+                    if (Scene.thumbnail.type == ThumbnailType.FromHotspot && Scene.thumbnail.hotspot == current)
+                    {
+                        Camera.main.transform.SetPositionAndRotation(current.Camera.transform.position, current.Camera.transform.rotation);
+                        ScreenShot(thumbnailTexture, camera);
+                    }
 
                     camera.transform.SetPositionAndRotation(current.Camera.transform.position, Quaternion.identity);
 
@@ -183,6 +198,17 @@ namespace Treasured.UnitySdk
             }
         }
 
+        void ScreenShot(Texture2D texture, Camera camera)
+        {
+            RenderTexture rt = new RenderTexture(texture.width, texture.height, 24);
+            camera.targetTexture = rt;
+            camera.Render();
+            RenderTexture.active = rt;
+            texture.ReadPixels(new Rect(0, 0, texture.width, texture.height), 0, 0);
+            camera.targetTexture = null;
+            RenderTexture.active = null;
+            ImageUtilies.Encode(texture, Scene.exportSettings.OutputDirectory, "thumbnail", ImageFormat.WEBP);
+        }
 
         private Hotspot[] ValidateHotspots(TreasuredScene scene)
         {
@@ -264,14 +290,14 @@ namespace Treasured.UnitySdk
                 this.fieldInfo = component.GetType().GetField(FieldName);
                 this.initialValue = ((VolumeParameter<T>)fieldInfo.GetValue(component)).value;
                 ((VolumeParameter<T>)fieldInfo.GetValue(component)).value = (T)OverwriteValue;
-                Debug.LogError($"Overwriting {FieldName} on {this.component.name} from {this.initialValue} to {this.OverwriteValue}");
+                //Debug.LogError($"Overwriting {FieldName} on {this.component.name} from {this.initialValue} to {this.OverwriteValue}");
             }
 
             public void Revert()
             {
                 if (!Enabled || component == null || fieldInfo == null) return;
                 ((VolumeParameter<T>)fieldInfo.GetValue(component)).value = this.initialValue;
-                Debug.LogError($"Reverting {FieldName} on {this.component.name} from {this.OverwriteValue} to {this.initialValue}");
+                //Debug.LogError($"Reverting {FieldName} on {this.component.name} from {this.OverwriteValue} to {this.initialValue}");
             }
         }
 

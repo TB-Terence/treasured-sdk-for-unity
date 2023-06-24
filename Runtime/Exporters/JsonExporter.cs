@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Treasured.UnitySdk.Validation;
+using UnityEngine;
 
 namespace Treasured.UnitySdk
 {

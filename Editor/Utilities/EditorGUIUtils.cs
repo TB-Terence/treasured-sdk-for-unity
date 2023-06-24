@@ -24,16 +24,19 @@ namespace Treasured.UnitySdk.Utilities
             SerializedProperty iterator = serializedProperty.Copy();
             SerializedProperty endProperty = serializedProperty.GetEndProperty();
             bool enterChildren = true;
-            while (iterator.NextVisible(enterChildren))
+            using (new EditorGUILayout.VerticalScope())
             {
-                if (endProperty != null && iterator.propertyPath == endProperty.propertyPath)
+                while (iterator.NextVisible(enterChildren))
                 {
-                    break;
-                }
-                enterChildren = false;
-                if (!ExcludingProperties.Contains(iterator.name))
-                {
-                    EditorGUILayout.PropertyField(iterator, true);
+                    if (endProperty != null && iterator.propertyPath == endProperty.propertyPath)
+                    {
+                        break;
+                    }
+                    enterChildren = false;
+                    if (!ExcludingProperties.Contains(iterator.name))
+                    {
+                        EditorGUILayout.PropertyField(iterator, true);
+                    }
                 }
             }
         }

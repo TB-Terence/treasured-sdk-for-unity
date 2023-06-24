@@ -194,8 +194,8 @@ namespace Treasured.UnitySdk.Validation
             var tours = scene.graph.tours;
             foreach (var tour in tours)
             {
-                if (tour.actionScripts == null) continue;
-                foreach (var action in tour.actionScripts)
+                if (tour.actions == null) continue;
+                foreach (ScriptableAction action in tour.actions)
                 {
                     if ((action is AudioAction audioAction && string.IsNullOrWhiteSpace(audioAction.src)) || (action is Actions.EmbedAction embedAction && string.IsNullOrWhiteSpace(embedAction.src)))
                     {

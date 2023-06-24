@@ -356,11 +356,11 @@ namespace Treasured.UnitySdk
             // Create editors for export setting
             _cachedEditors[scene.exportSettings] = Editor.CreateEditor(scene.exportSettings);
             // Create editor for guided tour graph
-            _cachedEditors[scene.graph] = Editor.CreateEditor(scene.graph);
-            if (_cachedEditors[scene.graph] is GuidedTourGraphEditor editor)
-            {
-                editor.Scene = scene;
-            }
+            //_cachedEditors[scene.graph] = Editor.CreateEditor(scene.graph);
+            //if (_cachedEditors[scene.graph] is GuidedTourGraphEditor editor)
+            //{
+            //    editor.Scene = scene;
+            //}
         }
 
         private void InitializeTabGroups()
@@ -404,7 +404,6 @@ namespace Treasured.UnitySdk
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-
             Texture2D TreasuredLogo = Resources.Load<Texture2D>("Treasured_Logo");
             EditorGUILayout.Space(10);
             using (new EditorGUILayout.HorizontalScope())
@@ -620,27 +619,39 @@ namespace Treasured.UnitySdk
                 GUILayout.FlexibleSpace();
             }
 
-            using (var scope = new EditorGUI.ChangeCheckScope())
+            if (GUILayout.Button(new GUIContent("Open Scene Editor"), GUILayout.Height(32)))
             {
-                _selectedTabIndex = GUILayout.SelectionGrid(_selectedTabIndex,
-                    _tabGroupStates.Select(x => x.attribute.groupName).ToArray(), 3,
-                    Styles.TabButton);
-                if (scope.changed)
-                {
-                    SessionState.SetInt(SelectedTabIndexKey, _selectedTabIndex);
-                }
+                TreasuredSceneEditorWindow.ShowWindow(scene);
             }
 
-            for (int i = 0; i < _tabGroupStates.Length; i++)
+            if (GUILayout.Button(new GUIContent("Open Guided Tour Editor"), GUILayout.Height(32)))
             {
-                var state = _tabGroupStates[i];
-                if (state.tabIndex != _selectedTabIndex)
-                {
-                    continue;
-                }
-
-                state.gui.Invoke(this, null);
+                GuidedTourEditorWindow.ShowWindow(scene);
             }
+
+            OnPageSettingsGUI();
+
+            //using (var scope = new EditorGUI.ChangeCheckScope())
+            //{
+            //    _selectedTabIndex = GUILayout.SelectionGrid(_selectedTabIndex,
+            //        _tabGroupStates.Select(x => x.attribute.groupName).ToArray(), 3,
+            //        Styles.TabButton);
+            //    if (scope.changed)
+            //    {
+            //        SessionState.SetInt(SelectedTabIndexKey, _selectedTabIndex);
+            //    }
+            //}
+
+            //for (int i = 0; i < _tabGroupStates.Length; i++)
+            //{
+            //    var state = _tabGroupStates[i];
+            //    if (state.tabIndex != _selectedTabIndex)
+            //    {
+            //        continue;
+            //    }
+
+            //    state.gui.Invoke(this, null);
+            //}
 
             serializedObject.ApplyModifiedProperties();
         }
@@ -648,6 +659,9 @@ namespace Treasured.UnitySdk
         [TabGroup(groupName = "Scene Info")]
         private void OnPageSettingsGUI()
         {
+            serializedObject.Update();
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("thumbnail"));
+            serializedObject.ApplyModifiedProperties();
             EditorGUILayout.PropertyField(serializedObject.FindProperty("creator"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("title"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("description"));
@@ -657,34 +671,34 @@ namespace Treasured.UnitySdk
             EditorGUILayoutUtils.PropertyFieldWithHeader(serializedObject.FindProperty("features"));
         }
 
-        [TabGroup(groupName = "Scene Objects")]
-        private void OnSceneManagementGUI()
-        {
-            if (GUILayout.Button(new GUIContent("Open Scene Editor"), GUILayout.Height(32)))
-            {
-                TreasuredSceneEditorWindow.ShowWindow(scene);
-            }
-        }
+        //[TabGroup(groupName = "Scene Objects")]
+        //private void OnSceneManagementGUI()
+        //{
+        //    if (GUILayout.Button(new GUIContent("Open Scene Editor"), GUILayout.Height(32)))
+        //    {
+        //        TreasuredSceneEditorWindow.ShowWindow(scene);
+        //    }
+        //}
 
-        [TabGroup(groupName = "Guided Tour")]
-        private void OnGuidedTourGUI()
-        {
-            if (!scene.features.guidedTour)
-            {
-                using(new EditorGUILayout.HorizontalScope())
-                {
-                    EditorGUILayout.HelpBox(
-                    "Guided Tour is currently disabled.",
-                    MessageType.Warning);
-                    if (GUILayout.Button("Enable", GUILayout.ExpandHeight(true)))
-                    {
-                        scene.features.guidedTour = true;
-                        serializedObject.ApplyModifiedProperties();
-                    }
-                }
-            }
+        //[TabGroup(groupName = "Guided Tour")]
+        //private void OnGuidedTourGUI()
+        //{
+        //    if (!scene.features.guidedTour)
+        //    {
+        //        using(new EditorGUILayout.HorizontalScope())
+        //        {
+        //            EditorGUILayout.HelpBox(
+        //            "Guided Tour is currently disabled.",
+        //            MessageType.Warning);
+        //            if (GUILayout.Button("Enable", GUILayout.ExpandHeight(true)))
+        //            {
+        //                scene.features.guidedTour = true;
+        //                serializedObject.ApplyModifiedProperties();
+        //            }
+        //        }
+        //    }
 
-            _cachedEditors[scene.graph].OnInspectorGUI();
-        }
+        //    _cachedEditors[scene.graph].OnInspectorGUI();
+        //}
     }
 }

@@ -24,8 +24,6 @@ namespace Treasured.UnitySdk
                 folderName.stringValue = newOutputFolderName.Trim();
             }
             EditorGUILayout.PropertyField(optimizeScene);
-            SerializedProperty thumbnail = serializedObject.FindProperty(nameof(ExportSettings.thumbnail));
-            EditorGUILayout.PropertyField(thumbnail);
             serializedObject.ApplyModifiedProperties();
         }
     }

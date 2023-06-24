@@ -19,7 +19,6 @@ namespace Treasured.UnitySdk
         public string folderName;
         [Tooltip("Optimize the cubemaps and the scene.glb to decrease the final file size.Keep in mind that this will result in a longer export process.")]
         public bool optimizeScene = true;
-        public Thumbnail thumbnail;
 
         public string OutputDirectory
         {

@@ -17,11 +17,11 @@ namespace Treasured.UnitySdk
         [TextArea(3, 5)]
         public string thumbnailUrl = "";
         [JsonProperty("code")]
-        public ScriptableActionCollection actionScripts;
+        public ActionCollection actions = new ActionCollection();
 
-        private void OnEnable()
-        {
-            actionScripts = ScriptableObject.CreateInstance<ScriptableActionCollection>();
-        }
+        //private void OnEnable()
+        //{
+        //    actionScripts = ScriptableObject.CreateInstance<ActionCollection>();
+        //}
     }
 }

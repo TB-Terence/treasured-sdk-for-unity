@@ -29,7 +29,7 @@ namespace Treasured.UnitySdk
             if (collection != null)
             {
                 writer.WriteStartArray();
-                foreach (var action in collection)
+                foreach (ScriptableAction action in collection)
                 {
                     if (action == null || !action.enabled)
                     {

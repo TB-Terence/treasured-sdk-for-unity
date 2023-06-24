@@ -41,20 +41,13 @@ namespace Treasured.UnitySdk
             public bool darkMode = false;
         }
 
-        [Serializable]
-        public class ExportInfo
-        {
-            
-        }
-
-
         [SerializeField]
         [ReadOnly]
         [GUID]
         internal string _id = Guid.NewGuid().ToString();
         public string Id { get => _id; }
 
-        public ExportInfo exportInfo = new ExportInfo();
+        public Thumbnail thumbnail = new Thumbnail();
 
         [JsonProperty("author")]
         [Tooltip("The name of the individual, company or organization.")]

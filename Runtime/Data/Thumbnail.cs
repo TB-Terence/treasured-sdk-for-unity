@@ -3,22 +3,27 @@ using System;
 
 namespace Treasured.UnitySdk
 {
+    public enum ThumbnailType
+    {
+        FromCurrentView,
+        FromHotspot,
+        //Custom
+    }
+
     [Serializable]
     public class Thumbnail
     {
-        public enum ThumbnailType
-        {
-            FromCurrentView,
-            FromHotspot,
-            Custom
-        }
+        
 
         [JsonIgnore]
         public ThumbnailType type;
+        //[JsonIgnore]
+        //public int hotspotIndex;
+        [ShowIf("IsFromHotspot")]
         [JsonIgnore]
-        public int hotspotIndex;
-        [JsonIgnore]
-        public ImageInfo customImage;
+        public Hotspot hotspot;
+        //[JsonIgnore]
+        //public ImageInfo customImage;
 
         [JsonProperty]
         string Path
@@ -27,12 +32,17 @@ namespace Treasured.UnitySdk
             {
                 switch (type)
                 {
-                    case ThumbnailType.Custom:
-                        return customImage.Path;
+                    //case ThumbnailType.Custom:
+                    //    return customImage.Path;
                     default:
-                        return "thumbnail.jpg";
+                        return "thumbnail.webp";
                 }
             }
+        }
+
+        bool IsFromHotspot()
+        {
+            return type == ThumbnailType.FromHotspot;
         }
     }
 }
