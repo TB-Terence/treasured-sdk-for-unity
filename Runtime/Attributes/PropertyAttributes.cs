@@ -101,9 +101,9 @@ namespace Treasured.UnitySdk
     public class LabelAttribute : PropertyAttribute
     {
         public string Text { get; private set; }
-        public LabelAttribute(string content)
+        public LabelAttribute(string text)
         {
-            Text = content;
+            Text = text;
         }
     }
 

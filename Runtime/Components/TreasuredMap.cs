@@ -125,7 +125,7 @@ namespace Treasured.UnitySdk
         [Code]
         public string headHTML;
 
-        public CustomEmbed[] pageEmbeds = new CustomEmbed[0];
+        public CustomHTML[] pageEmbeds = new CustomHTML[0];
 
         [JsonIgnore]
         public ExportSettings exportSettings;

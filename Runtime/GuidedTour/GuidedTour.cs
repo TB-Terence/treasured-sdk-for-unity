@@ -17,6 +17,7 @@ namespace Treasured.UnitySdk
         [TextArea(3, 5)]
         public string thumbnailUrl = "";
         [JsonProperty("code")]
+        [SerializeReference]
         public ActionCollection actions = new ActionCollection();
 
         //private void OnEnable()

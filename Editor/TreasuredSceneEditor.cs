@@ -667,6 +667,7 @@ namespace Treasured.UnitySdk
             EditorGUILayout.PropertyField(serializedObject.FindProperty("description"));
             EditorGUILayoutUtils.PropertyFieldWithHeader(serializedObject.FindProperty("sceneInfo"));
             EditorGUILayoutUtils.PropertyFieldWithHeader(serializedObject.FindProperty("themeInfo"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(TreasuredMap.pageEmbeds)));
             EditorGUILayoutUtils.PropertyFieldWithHeader(serializedObject.FindProperty("uiSettings"));
             EditorGUILayoutUtils.PropertyFieldWithHeader(serializedObject.FindProperty("features"));
         }

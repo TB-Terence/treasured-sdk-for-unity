@@ -145,7 +145,7 @@ namespace Treasured.UnitySdk
             //{
             //    property.ValueProvider = new ScriptableObjectValueProvider(CreateMemberValueProvider(member), type);
             //}
-            if (property.PropertyType == typeof(CustomEmbed))
+            if (property.PropertyType == typeof(CustomHTML))
             {
                 property.ValueProvider = new ObjectValueProvider(CreateMemberValueProvider(member), type);
             }

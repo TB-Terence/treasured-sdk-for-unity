@@ -37,6 +37,7 @@ namespace Treasured.UnitySdk
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             LabelAttribute labelAttribute = fieldInfo.GetCustomAttribute<LabelAttribute>();
+            Debug.LogError(labelAttribute?.Text);
             label = labelAttribute != null && !string.IsNullOrWhiteSpace(labelAttribute.Text) ? new GUIContent(labelAttribute.Text) : label;
             EditorGUI.BeginProperty(position, label, property);
             property.serializedObject.Update();

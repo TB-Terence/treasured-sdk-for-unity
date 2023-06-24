@@ -102,8 +102,8 @@ namespace Treasured.UnitySdk
             };
             actionList.onSelectCallback += (ReorderableList list) =>
             {
-                //SerializedObject serializedObject = new SerializedObject(scene.graph.tours[tourList.index].actions);
-                //selectedAction = serializedObject.FindProperty("_actions").GetArrayElementAtIndex(list.index);
+                SerializedProperty actionCollection = serializedTour.FindProperty("actions");
+                selectedAction = actionCollection.FindPropertyRelative("_actions").GetArrayElementAtIndex(list.index);
             };
         }
 

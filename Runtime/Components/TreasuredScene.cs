@@ -32,7 +32,6 @@ namespace Treasured.UnitySdk
             }
         }
 
-
         [Serializable]
         public class ThemeInfo
         {
@@ -89,6 +88,8 @@ namespace Treasured.UnitySdk
 
         [JsonProperty("guidedTours")]
         public GuidedTourGraph graph;
+
+        public CustomHTML[] pageEmbeds = new CustomHTML[0];
 
         #region Features
         public FeatureSettings features = new FeatureSettings();
