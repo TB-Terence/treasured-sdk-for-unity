@@ -47,6 +47,8 @@ namespace Treasured.UnitySdk
             {
                 wordWrap = true
             };
+
+            public const string kClickToPreview = "Click to Preview";
         }
 
         [MenuItem("Tools/Treasured/Scene Editor", priority = 0)]
@@ -133,13 +135,11 @@ namespace Treasured.UnitySdk
                 {
                     this.objects = new List<TreasuredObject>();
                 }
+                this.objects.Clear();
                 var objects = scene.GetComponentsInChildren(type, true);
                 foreach (var obj in objects)
                 {
-                    if (!this.objects.Contains(obj))
-                    {
-                        this.objects.Add((TreasuredObject)obj);
-                    }
+                    this.objects.Add((TreasuredObject)obj);
                 }
             }
 
@@ -150,6 +150,7 @@ namespace Treasured.UnitySdk
             InitializeObjectListStates();
             SceneView.duringSceneGui -= OnSceneView;
             SceneView.duringSceneGui += OnSceneView;
+            Undo.undoRedoPerformed += () => { objectListStates[selectedTypeIndex].UpdateObjectList(); };
         }
 
         private void OnDisable()
@@ -404,8 +405,8 @@ namespace Treasured.UnitySdk
                             new GUIContent(state.type == typeof(Hotspot) ? "Order" : string.Empty,
                                 state.type == typeof(Hotspot)
                                     ? "The order of the Hotspot for the Guide Tour."
-                                    : string.Empty), GUILayout.Width(58));
-                        EditorGUILayout.LabelField(new GUIContent("Name"), GUILayout.Width(64));
+                                    : string.Empty), EditorStyles.boldLabel, GUILayout.Width(58));
+                        EditorGUILayout.LabelField(new GUIContent("Name"), EditorStyles.boldLabel);
                     }
 
                     using (new EditorGUILayout.HorizontalScope())
@@ -486,7 +487,7 @@ namespace Treasured.UnitySdk
                                             using (new EditorGUI.DisabledGroupScope(!current.gameObject.activeSelf))
                                             {
                                                 EditorGUILayout.LabelField(
-                                                    new GUIContent(current.gameObject.name, current.Id),
+                                                    new GUIContent(current.gameObject.name, Styles.kClickToPreview),
                                                     style: EditingTarget == current ? Styles.selectedObjectLabel : Styles.objectLabel);
                                             }
                                         }
@@ -506,7 +507,6 @@ namespace Treasured.UnitySdk
                                         }
                                     }
                                 }
-
                                 switch (EditorGUILayoutUtils.CreateClickZone(Event.current,
                                             GUILayoutUtility.GetLastRect(), MouseCursor.Link))
                                 {
@@ -522,6 +522,7 @@ namespace Treasured.UnitySdk
                                         }
                                         break;
                                     case 1:
+                                        EditingTarget = current;
                                         GenericMenu menu = new GenericMenu();
 #if UNITY_2020_3_OR_NEWER
                                         menu.AddItem(new GUIContent("Rename"), false,
@@ -532,7 +533,13 @@ namespace Treasured.UnitySdk
                                         {
                                             var go = obj as TreasuredObject;
                                             state.objects.Remove(go);
-                                            GameObject.DestroyImmediate(go.gameObject);
+                                            Undo.SetCurrentGroupName($"Remove {go.gameObject.name}");
+                                            Undo.DestroyObjectImmediate(go.gameObject);
+                                        }, current);
+                                        menu.AddSeparator("");
+                                        menu.AddItem(new GUIContent("Copy ID"), false, (obj) =>
+                                        {
+                                            GUIUtility.systemCopyBuffer = current.Id;
                                         }, current);
                                         menu.ShowAsContext();
                                         break;
