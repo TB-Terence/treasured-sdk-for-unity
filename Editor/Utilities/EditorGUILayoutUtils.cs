@@ -317,7 +317,7 @@ namespace Treasured.UnitySdk
             }
         }
 
-        public static void FolderField(ref string path, string label)
+        public static void FolderField(ref string path, string label, string tooltip = "")
         {
             using (new EditorGUILayout.HorizontalScope())
             {
@@ -326,7 +326,7 @@ namespace Treasured.UnitySdk
                 {
                     newPath = EditorGUILayout.TextField(label, path);
                 }
-                if (GUILayout.Button(EditorGUIUtility.TrIconContent("FolderOpened On Icon"), EditorStyles.label, GUILayout.Width(20), GUILayout.Height(18)))
+                if (GUILayout.Button(EditorGUIUtility.TrIconContent("FolderOpened On Icon", tooltip), EditorStyles.label, GUILayout.Width(20), GUILayout.Height(18)))
                 {
                     newPath = EditorUtility.OpenFolderPanel(label, path, "");
                     if (!string.IsNullOrEmpty(newPath))

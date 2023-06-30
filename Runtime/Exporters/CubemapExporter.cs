@@ -60,25 +60,18 @@ namespace Treasured.UnitySdk
 
         public override void Export()
         {
-            var imageQualities = Enum.GetValues(typeof(ImageQuality)).Cast<ImageQuality>();
-
-            //  Overriding export settings for Production export
-            if (Scene.exportSettings.ExportType == ExportType.ProductionExport)
+            if (Scene.exportSettings.ExportType == ExportType.Production || !exportAllQualities)
             {
                 ExportCubemap(ImageQuality.High);
-                return;
             }
-
-            if (exportAllQualities)
+            else
             {
+                // export all qualities
+                var imageQualities = Enum.GetValues(typeof(ImageQuality)).Cast<ImageQuality>();
                 foreach (var quality in imageQualities)
                 {
                     ExportCubemap(quality);
                 }
-            }
-            else
-            {
-                ExportCubemap(imageQuality);
             }
         }
 

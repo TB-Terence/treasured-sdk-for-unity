@@ -99,7 +99,7 @@ namespace Treasured.UnitySdk
                 string argument;
 
                 if (scene.exportSettings.optimizeScene
-                    || scene.exportSettings.ExportType == ExportType.ProductionExport)
+                    || scene.exportSettings.ExportType == ExportType.Production)
                 {
                     argument =
                         $"treasured optimize \"{scene.exportSettings.OutputDirectory}\"";

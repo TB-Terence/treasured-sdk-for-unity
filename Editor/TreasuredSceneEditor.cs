@@ -429,26 +429,14 @@ namespace Treasured.UnitySdk
             using (new EditorGUILayout.HorizontalScope())
             {
                 GUILayout.FlexibleSpace();
-                using (new EditorGUI.DisabledGroupScope(!Directory.Exists(scene.exportSettings.OutputDirectory)))
-                {
-                    if (GUILayout.Button(
-                            EditorGUIUtility.TrTextContent("Directory ↗",
-                                "Open the current output folder in the File Explorer. This function is enabled when the directory exist."),
-                            Styles.exportButton, GUILayout.MaxWidth(150)))
-                    {
-                        EditorUtility.OpenWithDefaultApp(scene.exportSettings.OutputDirectory);
-                    }
-                }
-
-                GUILayout.Space(10f);
                 using (new EditorGUI.DisabledGroupScope(String.IsNullOrEmpty(scene.exportSettings.OutputDirectory) ||
                                                         !Regex.Match(scene.exportSettings.OutputDirectory,
                                                             @"[a-zA-Z0-9\-]").Success))
                 {
                     if (GUILayout.Button(
-                            EditorGUIUtility.TrTextContentWithIcon(scene.exportSettings.ExportType == ExportType.Export ? "Export" : "Production Export",
+                            EditorGUIUtility.TrTextContentWithIcon("Exporter",
                                 $"Export scene to {TreasuredSDKPreferences.Instance.customExportFolder}/{scene.exportSettings.folderName}",
-                                "SceneLoadIn"), Styles.exportButton, scene.exportSettings.ExportType == ExportType.ProductionExport ? GUILayout.MaxWidth(200) : GUILayout.MaxWidth(150)))
+                                "SceneLoadIn"), Styles.exportButton, scene.exportSettings.ExportType == ExportType.Production ? GUILayout.MaxWidth(200) : GUILayout.MaxWidth(150)))
                     {
                         try
                         {
@@ -475,19 +463,6 @@ namespace Treasured.UnitySdk
                         finally
                         {
                             EditorUtility.ClearProgressBar();
-                        }
-                    }
-                    
-                    if (EditorGUILayout.DropdownButton(EditorGUIUtility.TrTextContentWithIcon("", "Select Export type", "d_icon dropdown"), FocusType.Passive, Styles.exportButton, GUILayout.Height(30)))
-                    {
-                        GenericMenu menu = new GenericMenu();
-                        menu.AddItem(new GUIContent("Export"), false, HandleItemClicked, ExportType.Export);
-                        menu.AddItem(new GUIContent("Production Export"), false, HandleItemClicked, ExportType.ProductionExport);
-                        menu.ShowAsContext();
-                        
-                        void HandleItemClicked(object parameter)
-                        {
-                            scene.exportSettings.ExportType = (ExportType)parameter;
                         }
                     }
                 }
@@ -671,35 +646,5 @@ namespace Treasured.UnitySdk
             EditorGUILayoutUtils.PropertyFieldWithHeader(serializedObject.FindProperty("uiSettings"));
             EditorGUILayoutUtils.PropertyFieldWithHeader(serializedObject.FindProperty("features"));
         }
-
-        //[TabGroup(groupName = "Scene Objects")]
-        //private void OnSceneManagementGUI()
-        //{
-        //    if (GUILayout.Button(new GUIContent("Open Scene Editor"), GUILayout.Height(32)))
-        //    {
-        //        TreasuredSceneEditorWindow.ShowWindow(scene);
-        //    }
-        //}
-
-        //[TabGroup(groupName = "Guided Tour")]
-        //private void OnGuidedTourGUI()
-        //{
-        //    if (!scene.features.guidedTour)
-        //    {
-        //        using(new EditorGUILayout.HorizontalScope())
-        //        {
-        //            EditorGUILayout.HelpBox(
-        //            "Guided Tour is currently disabled.",
-        //            MessageType.Warning);
-        //            if (GUILayout.Button("Enable", GUILayout.ExpandHeight(true)))
-        //            {
-        //                scene.features.guidedTour = true;
-        //                serializedObject.ApplyModifiedProperties();
-        //            }
-        //        }
-        //    }
-
-        //    _cachedEditors[scene.graph].OnInspectorGUI();
-        //}
     }
 }

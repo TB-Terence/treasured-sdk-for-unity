@@ -37,7 +37,7 @@ namespace Treasured.UnitySdk
     
     public enum ExportType
     {
-        Export,
-        ProductionExport,
+        Local,
+        Production,
     }
 }
