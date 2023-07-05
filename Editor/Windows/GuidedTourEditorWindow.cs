@@ -150,11 +150,15 @@ namespace Treasured.UnitySdk
                                     {
                                         rotation = hotspot.Camera.transform.rotation
                                     });
-                                    if (!hotspot.actionGraph.TryGetActionGroup("onSelect", out var onSelect)) continue;
-                                    foreach (var action in onSelect)
+                                    tour.actions.Add(new SleepAction()
                                     {
-                                        tour.actions.Add(action);
-                                    }
+                                        duration = 3
+                                    });
+                                    //if (!hotspot.actionGraph.TryGetActionGroup("onSelect", out var onSelect)) continue;
+                                    //foreach (var action in onSelect)
+                                    //{
+                                    //    tour.actions.Add(action);
+                                    //}
                                 }
                                 serializedTour.Update();
                                 serializedTour.ApplyModifiedProperties();
