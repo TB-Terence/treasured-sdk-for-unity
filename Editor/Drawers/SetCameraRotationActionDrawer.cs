@@ -22,14 +22,16 @@ namespace Treasured.UnitySdk
                 {
                     SceneView.lastActiveSceneView.LookAtDirect(SceneView.lastActiveSceneView.pivot, rotationProperty.quaternionValue);
                 }
-                float buttonWidth = position.width / 2;
-                if(GUI.Button(new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight * 2 + EditorGUIUtility.standardVerticalSpacing, buttonWidth, EditorGUIUtility.singleLineHeight), "Get Current Rotation"))
+                if (GUI.Button(new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight * 2 + EditorGUIUtility.standardVerticalSpacing, position.width, EditorGUIUtility.singleLineHeight), !RotationRecorder.IsRecording ? "Start Recording" : "Stop Recording"))
                 {
-                    rotationProperty.quaternionValue = SceneView.lastActiveSceneView.camera.transform.rotation;
-                }
-                if (GUI.Button(new Rect(position.x + buttonWidth, position.y + EditorGUIUtility.singleLineHeight * 2 + EditorGUIUtility.standardVerticalSpacing, buttonWidth, EditorGUIUtility.singleLineHeight), "Set to Rotation"))
-                {
-                    SceneView.lastActiveSceneView.LookAt(SceneView.lastActiveSceneView.pivot, rotationProperty.quaternionValue);
+                    if (!RotationRecorder.IsRecording)
+                    {
+                        RotationRecorder.Start(rotationProperty);
+                    }
+                    else
+                    {
+                        RotationRecorder.Complete();
+                    }
                 }
                 EditorGUI.PropertyField(new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight * 3 + EditorGUIUtility.standardVerticalSpacing * 2, position.width, EditorGUIUtility.singleLineHeight), speedProperty);
             }
