@@ -27,6 +27,7 @@ namespace Treasured.UnitySdk
         ReorderableList tourList;
         Vector2 actionListScrollPosition;
         ReorderableList actionList;
+        Vector2 actionInfoScrollPosition;
 
         SerializedObject serializedObject;
         SerializedObject serializedTour;
@@ -254,7 +255,10 @@ namespace Treasured.UnitySdk
                     using (var actionScope = new GUILayout.ScrollViewScope(actionListScrollPosition, GUILayout.ExpandHeight(true)))
                     {
                         actionListScrollPosition = actionScope.scrollPosition;
-                        actionList?.DoLayoutList();
+                        if (serializedTour != null)
+                        {
+                            actionList?.DoLayoutList();
+                        }
                     }
                 }
                 using (new GUILayout.VerticalScope())
@@ -270,17 +274,21 @@ namespace Treasured.UnitySdk
                         EditorGUILayout.LabelField("No Tour is selected", EditorStyles.centeredGreyMiniLabel);
                     }
                     EditorGUI.indentLevel--;
-                    GUILayout.Label("Action Info", EditorStyles.whiteLargeLabel);
+                        GUILayout.Label("Action Info", EditorStyles.whiteLargeLabel);
                     EditorGUI.indentLevel++;
-                    if (selectedAction != null)
+                    using (var actionInfoScope = new GUILayout.ScrollViewScope(actionInfoScrollPosition, GUILayout.ExpandHeight(true)))
                     {
-                        selectedAction.serializedObject.Update();
-                        EditorGUIUtils.DrawPropertyWithoutFoldout(selectedAction);
-                        selectedAction.serializedObject.ApplyModifiedProperties();
-                    }
-                    else
-                    {
-                        EditorGUILayout.LabelField("No action is selected", EditorStyles.centeredGreyMiniLabel);
+                        actionInfoScrollPosition = actionInfoScope.scrollPosition;
+                        if (selectedAction != null)
+                        {
+                            selectedAction.serializedObject.Update();
+                            EditorGUIUtils.DrawPropertyWithoutFoldout(selectedAction);
+                            selectedAction.serializedObject.ApplyModifiedProperties();
+                        }
+                        else
+                        {
+                            EditorGUILayout.LabelField("No action is selected", EditorStyles.centeredGreyMiniLabel);
+                        }
                     }
                     EditorGUI.indentLevel--;
                 }
