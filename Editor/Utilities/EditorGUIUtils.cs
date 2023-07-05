@@ -22,6 +22,7 @@ namespace Treasured.UnitySdk.Utilities
         public static void DrawPropertyWithoutFoldout(SerializedProperty serializedProperty)
         {
             SerializedProperty iterator = serializedProperty.Copy();
+            iterator.serializedObject.Update();
             SerializedProperty endProperty = serializedProperty.GetEndProperty();
             bool enterChildren = true;
             using (new EditorGUILayout.VerticalScope())
@@ -36,6 +37,10 @@ namespace Treasured.UnitySdk.Utilities
                     if (!ExcludingProperties.Contains(iterator.name))
                     {
                         EditorGUILayout.PropertyField(iterator, true);
+                        if (GUI.changed)
+                        {
+                            iterator.serializedObject.ApplyModifiedProperties();
+                        }
                     }
                 }
             }

@@ -44,6 +44,7 @@ namespace Treasured.UnitySdk
             scene.themeInfo.templateLoader.autoCameraRotation = map.templateLoader.autoCameraRotation;
 
             scene.features = map.features;
+            scene.features.guidedTour = true;
 
             scene.exportSettings = ScriptableObject.CreateInstance<ExportSettings>();
             scene.exportSettings.folderName = map.exportSettings.folderName;

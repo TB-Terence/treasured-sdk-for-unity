@@ -270,7 +270,9 @@ namespace Treasured.UnitySdk
                     EditorGUI.indentLevel++;
                     if (selectedAction != null)
                     {
+                        selectedAction.serializedObject.Update();
                         EditorGUIUtils.DrawPropertyWithoutFoldout(selectedAction);
+                        selectedAction.serializedObject.ApplyModifiedProperties();
                     }
                     else
                     {
