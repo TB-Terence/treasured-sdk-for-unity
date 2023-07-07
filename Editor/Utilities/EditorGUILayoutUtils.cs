@@ -170,6 +170,26 @@ namespace Treasured.UnitySdk
             serializedTransform.ApplyModifiedProperties();
         }
 
+        public static void TransformPropertyField(GUIContent label, Transform transform)
+        {
+            EditorGUILayout.LabelField(label, EditorStyles.boldLabel);
+            using(new EditorGUI.IndentLevelScope(2))
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.PrefixLabel(new GUIContent("Position"));
+                transform.localPosition = EditorGUILayout.Vector3Field(GUIContent.none, transform.localPosition);
+                EditorGUILayout.EndHorizontal();
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.PrefixLabel(new GUIContent("Rotation"));
+                transform.localRotation = Quaternion.Euler(EditorGUILayout.Vector3Field(GUIContent.none, transform.localRotation.eulerAngles));
+                EditorGUILayout.EndHorizontal();
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.PrefixLabel(new GUIContent("Scale"));
+                transform.localScale = EditorGUILayout.Vector3Field(GUIContent.none, transform.localScale);
+                EditorGUILayout.EndHorizontal();
+            }
+        }
+
         public static void TransformPropertyField(SerializedProperty serializedProperty, string name, bool showPosition = true, bool showRotation = true, bool showScale = true)
         {
             if (serializedProperty == null)

@@ -26,7 +26,24 @@ namespace Treasured.UnitySdk
                 {
                     if (!RotationRecorder.IsRecording)
                     {
-                        RotationRecorder.Start(rotationProperty);
+                        if(property.serializedObject.targetObject is Hotspot hotspot)
+                        {
+                            RotationRecorder.Start(hotspot.Camera.transform.position, rotationProperty.quaternionValue, (endRotation) =>
+                            {
+                                rotationProperty.quaternionValue = endRotation;
+                            });
+                        }
+                        else
+                        {
+                            TreasuredObject to = property.serializedObject.targetObject as TreasuredObject;
+                            if (to)
+                            {
+                                RotationRecorder.Start(to.transform.position, to.transform.rotation, (endRotation) =>
+                                {
+                                    rotationProperty.quaternionValue = endRotation;
+                                });
+                            }
+                        }
                     }
                     else
                     {

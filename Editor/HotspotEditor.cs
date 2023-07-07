@@ -17,12 +17,9 @@ namespace Treasured.UnitySdk
         private SerializedProperty _onClick;
         private SerializedProperty actionGraph;
 
-        private SerializedObject serializedHitboxTransform;
         private SerializedObject serializedCameraTransform;
 
         private bool showVisibleTargetsOnly;
-
-        List<TreasuredObject> visibleTargets = new List<TreasuredObject>();
 
         protected override void OnEnable()
         {
@@ -32,10 +29,6 @@ namespace Treasured.UnitySdk
             hitbox = serializedObject.FindProperty("_hitbox");
             _onClick = serializedObject.FindProperty("_onClick");
             actionGraph = serializedObject.FindProperty(nameof(TreasuredObject.actionGraph));
-            if (hotspot.Hitbox)
-            {
-                serializedHitboxTransform = new SerializedObject(hotspot.Hitbox.transform);
-            }
             if (hotspot.Camera)
             {
                 serializedCameraTransform = new SerializedObject(hotspot.Camera.transform);
@@ -55,12 +48,6 @@ namespace Treasured.UnitySdk
             {
                 EditorGUILayout.PropertyField(button);
                 EditorGUILayoutUtils.TransformPropertyField(hitbox, "Hitbox");
-                if (GUILayout.Button("Snap Hitbox"))
-                {
-                    (target as Hotspot).SnapToGround();
-                }
-                //bool showDeprecatedActions = SessionState.GetBool(SessionKeys.ShowDeprecatedActions, false);
-                //SessionState.SetBool(SessionKeys.ShowDeprecatedActions, EditorGUILayout.ToggleLeft("Show Deprecated Actions", showDeprecatedActions));
                 EditorGUI.BeginChangeCheck();
                 bool isExpanded = EditorGUILayout.BeginFoldoutHeaderGroup(SessionState.GetBool(SessionKeys.ShowActionList, true), "Action Graph");
                 EditorGUILayout.EndFoldoutHeaderGroup();
@@ -70,33 +57,29 @@ namespace Treasured.UnitySdk
                 }
                 if (isExpanded)
                 {
-                    //if (showDeprecatedActions)
-                    //{
-                    //    onClickListDrawer?.OnGUI();
-                    //}
                     EditorGUILayout.PropertyField(actionGraph);
                 }
             }
             else
             {
-                EditorGUILayout.HelpBox($"Multi-Editing is disabled.", MessageType.Info);
+                EditorGUILayout.HelpBox($"Multi-Editing for Action is disabled.", MessageType.Info);
             }
-            EditorGUILayout.BeginFoldoutHeaderGroup(true, "Debug");
-            using (new EditorGUI.IndentLevelScope())
-            {
-                EditorGUI.BeginChangeCheck();
-                var newValue = EditorGUILayout.Toggle(new GUIContent("Show Visible Targets Only"), showVisibleTargetsOnly);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    showVisibleTargetsOnly = newValue;
-                    if (newValue)
-                    {
-                        visibleTargets = (target as Hotspot).VisibleTargets;
-                    }
-                    SceneView.lastActiveSceneView.Repaint();
-                }
-            }
-            EditorGUILayout.EndFoldoutHeaderGroup();
+            //EditorGUILayout.BeginFoldoutHeaderGroup(true, "Debug");
+            //using (new EditorGUI.IndentLevelScope())
+            //{
+            //    EditorGUI.BeginChangeCheck();
+            //    var newValue = EditorGUILayout.Toggle(new GUIContent("Show Visible Targets Only"), showVisibleTargetsOnly);
+            //    if (EditorGUI.EndChangeCheck())
+            //    {
+            //        showVisibleTargetsOnly = newValue;
+            //        if (newValue)
+            //        {
+            //            visibleTargets = (target as Hotspot).VisibleTargets;
+            //        }
+            //        SceneView.lastActiveSceneView.Repaint();
+            //    }
+            //}
+            //EditorGUILayout.EndFoldoutHeaderGroup();
             serializedObject.ApplyModifiedProperties();
         }
 

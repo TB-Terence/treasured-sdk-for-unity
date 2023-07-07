@@ -121,7 +121,7 @@ namespace Treasured.UnitySdk
                 throw new DirectoryNotFoundException();
             }
             string extension = format.ToString().ToLower();
-            string path = $"{directory}/{fileName}.{extension}";
+            string path = $"{directory}/{fileName}.{extension}".ToOSSpecificPath();
             byte[] bytes = format == ImageFormat.JPG ? texture.EncodeToJPG(imageQualityPercentage) : texture.EncodeToPNG();
             switch (format)
             {

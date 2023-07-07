@@ -1,46 +1,44 @@
-﻿using UnityEditor;
+﻿using System;
+using UnityEditor;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    public class RotationRecorder : EditorWindow
+    [InitializeOnLoad]
+    public class RotationRecorder
     {
+        public class Styles
+        {
+            public static readonly GUIContent recordOn = EditorGUIUtility.TrIconContent("Record On", "Stop Record Camera Rotation");
+            public static readonly GUIContent recordOff = EditorGUIUtility.TrIconContent("Record Off", "Start Record Camera Rotation");
+        }
         public static bool IsRecording { get; private set; }
-        static SerializedProperty SerializedProperty;
-        static bool movedToTarget;
-        static Vector3 StartingPosition;
+        static Vector3 StartPosition;
+        static Quaternion StartRotation;
+        static Action<Quaternion> EndRotation;
 
-        public static void Start(SerializedProperty serializedProperty)
+        static RotationRecorder()
+        {
+            SceneView.duringSceneGui -= OnSceneView;
+            EditorApplication.hierarchyChanged += Complete;
+        }
+
+        public static void Start(Vector3 startPosition, Quaternion startRotation, Action<Quaternion> endRotation)
         {
             IsRecording = true;
             SceneView.duringSceneGui -= OnSceneView;
             SceneView.duringSceneGui += OnSceneView;
-            if (serializedProperty != null)
-            {
-                SerializedProperty = serializedProperty;
-                movedToTarget = false;
-            }
-        }
-
-        public static void StartAtPosition(Vector3 startingPosition, SerializedProperty serializedProperty)
-        {
-            Start(serializedProperty);
-            StartingPosition = startingPosition;
-            SceneView.lastActiveSceneView.LookAt(startingPosition);
+            StartPosition = startPosition;
+            StartRotation = startRotation;
+            EndRotation = endRotation;
+            LookAt(StartPosition, StartRotation);
         }
 
         static void OnSceneView(SceneView sceneView)
         {
             if (IsRecording)
             {
-                if (!movedToTarget)
-                {
-                    SceneView.lastActiveSceneView.ShowNotification(new GUIContent("Click anywhere to move to target position"));
-                }
-                else
-                {
-                    SceneView.lastActiveSceneView.ShowNotification(new GUIContent("Click anywhere on the scene to record rotation\nClick 'Stop Recording' to exit"));
-                }
+                SceneView.lastActiveSceneView.ShowNotification(new GUIContent("Click anywhere on the scene to record rotation\nClick 'Stop Recording' to exit"));
                 Event e = Event.current;
                 switch (e.type)
                 {
@@ -49,19 +47,8 @@ namespace Treasured.UnitySdk
                         {
                             Ray ray = HandleUtility.GUIPointToWorldRay(e.mousePosition);
                             Quaternion lookDirection = Quaternion.LookRotation(ray.direction);
-                            if (SerializedProperty.serializedObject.targetObject is Hotspot hotspot)
-                            {
-                                if (!movedToTarget)
-                                {
-                                    movedToTarget = true;
-                                }
-                                else
-                                {
-                                    SerializedProperty.quaternionValue = lookDirection;
-                                    SerializedProperty.serializedObject.ApplyModifiedProperties();
-                                }
-                                SceneView.lastActiveSceneView.LookAt(hotspot.Camera.transform.position, lookDirection, 0.01f);
-                            }
+                            LookAt(StartPosition, lookDirection);
+                            EndRotation.Invoke(lookDirection);
                         }
                         break;
                     case EventType.Layout:
@@ -71,12 +58,17 @@ namespace Treasured.UnitySdk
             }
         }
 
+        static void LookAt(Vector3 postion, Quaternion rotation)
+        {
+            SceneView.lastActiveSceneView.orthographic = false;
+            SceneView.lastActiveSceneView.LookAt(postion, rotation, 0.01f);
+            SceneView.lastActiveSceneView.Repaint();
+        }
+
         public static void Complete()
         {
             IsRecording = false;
             SceneView.duringSceneGui -= OnSceneView;
-            movedToTarget = false;
-            if (!IsRecording) return;
         }
     }
 }

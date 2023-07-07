@@ -20,6 +20,7 @@ namespace Treasured.UnitySdk
             };
 
             public static readonly GUIContent plus = EditorGUIUtility.TrIconContent("CreateAddNew", "Create New");
+            public static readonly GUIContent snapHitboxButton = EditorGUIUtility.TrIconContent("d_RaycastCollider Icon", "Snap Hitbox");
 
             public static readonly GUIContent[] mode = new GUIContent[]
             {
@@ -491,20 +492,40 @@ namespace Treasured.UnitySdk
                                                     style: EditingTarget == current ? Styles.selectedObjectLabel : Styles.objectLabel);
                                             }
                                         }
+                                        if (EditingTarget == current)
+                                        {
+                                            GUILayout.FlexibleSpace();
+                                            using (new GUILayout.HorizontalScope())
+                                            {
+                                                if (current is Hotspot hotspot)
+                                                {
+                                                    if (GUILayout.Button(RotationRecorder.IsRecording ? RotationRecorder.Styles.recordOn : RotationRecorder.Styles.recordOff, EditorStyles.label, GUILayout.Width(18)))
+                                                    {
+                                                        if (!RotationRecorder.IsRecording)
+                                                        {
+                                                            RotationRecorder.Start(hotspot.Camera.transform.position, hotspot.Camera.transform.rotation, (rotation) =>
+                                                            {
+                                                                hotspot.Camera.transform.rotation = rotation;
+                                                            });
+                                                        }
+                                                        else
+                                                        {
+                                                            RotationRecorder.Complete();
+                                                        }
+                                                    }
+                                                }
+                                                if (GUILayout.Button(Styles.snapHitboxButton, EditorStyles.label, GUILayout.Width(18), GUILayout.Height(18)))
+                                                {
+                                                    EditingTarget.Hitbox.SnapToGround();
+                                                }
+                                            }
+                                        }
                                     }
                                     if (EditingTarget == current)
                                     {
-                                        using (new GUILayout.HorizontalScope())
-                                        {
-                                            // Object Related Buttons
-                                            //if (EditingTarget is Hotspot hotspot)
-                                            //{
-                                            //    if (GUILayout.Button("Record Look Direction"))
-                                            //    {
-                                            //        editorMode = EditorMode.Record;
-                                            //    }
-                                            //}
-                                        }
+                                        EditorGUI.indentLevel+=4;
+                                        EditorGUILayoutUtils.TransformPropertyField(new GUIContent("Hitbox"), EditingTarget.Hitbox.transform);
+                                        EditorGUI.indentLevel-=4;
                                     }
                                 }
                                 switch (EditorGUILayoutUtils.CreateClickZone(Event.current,

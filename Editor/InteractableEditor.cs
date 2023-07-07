@@ -40,7 +40,7 @@ namespace Treasured.UnitySdk
             base.OnInspectorGUI();
             serializedObject.Update();
             EditorGUILayout.PropertyField(button);
-            EditorGUILayoutUtils.ComponentTransformPropertyField(hitbox, serializedHitboxTransform, "Hitbox");
+            EditorGUILayoutUtils.TransformPropertyField(hitbox, "Hitbox");
             if (targets.Length == 1)
             {
                 EditorGUI.BeginChangeCheck();
@@ -56,7 +56,7 @@ namespace Treasured.UnitySdk
             }
             else
             {
-                EditorGUILayout.HelpBox($"Multi-Editing for Actions is disabled.", MessageType.None);
+                EditorGUILayout.HelpBox($"Multi-Editing for Action is disabled.", MessageType.None);
             }
             serializedObject.ApplyModifiedProperties();
         }
