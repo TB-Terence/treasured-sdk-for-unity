@@ -190,6 +190,47 @@ namespace Treasured.UnitySdk
             }
         }
 
+        public static void HitboxField(TreasuredObject to, bool showPosition = true, bool showRotation = true, bool showScale = true)
+        {
+            bool isExpanded = SessionState.GetBool(SessionKeys.HitboxHeaderGroup, true);
+            isExpanded = EditorGUILayout.BeginFoldoutHeaderGroup(isExpanded, new GUIContent("Hitbox"));
+            if (isExpanded)
+            {
+                EditorGUI.indentLevel++;
+                to.Hitbox = (Hitbox)EditorGUILayout.ObjectField(new GUIContent("Hitbox"), to.Hitbox, typeof(Hitbox), true);
+                EditorGUI.indentLevel++;
+                Undo.RecordObject(to.Hitbox.transform, "Hitbox transform");
+                if (showPosition)
+                    to.Hitbox.transform.localPosition = EditorGUILayout.Vector3Field(new GUIContent("Position"), to.Hitbox.transform.localPosition);
+                if (showRotation)
+                    to.Hitbox.transform.localEulerAngles = EditorGUILayout.Vector3Field(new GUIContent("Rotation"), to.Hitbox.transform.localRotation.eulerAngles);
+                if (showScale)
+                    to.Hitbox.transform.localScale = EditorGUILayout.Vector3Field(new GUIContent("Scale"), to.Hitbox.transform.localScale);
+                if (GUILayout.Button("Snap to Ground"))
+                {
+                    to.Hitbox.SnapToGround();
+                }
+                EditorGUI.indentLevel--;
+                EditorGUI.indentLevel--;
+            }
+            EditorGUILayout.EndFoldoutHeaderGroup();
+            SessionState.SetBool(SessionKeys.HitboxHeaderGroup, isExpanded);
+        }
+
+        public static void TransformField(Transform transform, bool showPosition = true, bool showRotation = true, bool showScale = true)
+        {
+            transform = (Transform)EditorGUILayout.ObjectField(new GUIContent("Transform"), transform, typeof(Hitbox), true);
+            Undo.RecordObject(transform, "Transform");
+            EditorGUI.indentLevel++;
+            if (showPosition)
+                transform.localPosition = EditorGUILayout.Vector3Field(new GUIContent("Position"), transform.localPosition);
+            if (showRotation)
+                transform.localEulerAngles = EditorGUILayout.Vector3Field(new GUIContent("Rotation"), transform.localRotation.eulerAngles);
+            if (showScale)
+                transform.localScale = EditorGUILayout.Vector3Field(new GUIContent("Scale"), transform.localScale);
+            EditorGUI.indentLevel--;
+        }
+
         public static void TransformPropertyField(SerializedProperty serializedProperty, string name, bool showPosition = true, bool showRotation = true, bool showScale = true)
         {
             if (serializedProperty == null)
@@ -361,34 +402,6 @@ namespace Treasured.UnitySdk
         {
             using (new EditorGUILayout.VerticalScope(Styles.componentCardBox))
             {
-                //using (new EditorGUILayout.VerticalScope())
-                //{
-                //    using (new EditorGUILayout.HorizontalScope())
-                //    {
-                //        GUILayout.Space(20);
-                //        GUILayout.Label(icon, GUILayout.Width(42f), GUILayout.Height(42f));
-                //        using (new EditorGUILayout.VerticalScope())
-                //        {
-                //            GUILayout.Label(title, Styles.componentCardName);
-                //        }
-                //        GUILayout.FlexibleSpace();
-                //    }
-                //    GUILayout.Label(description, Styles.componentCardDescription);
-                //}
-                //using (new EditorGUILayout.VerticalScope())
-                //{
-                //    using (new EditorGUILayout.HorizontalScope())
-                //    {
-                //        GUILayout.Space(20);
-                //        GUILayout.Label(icon, GUILayout.Width(42f), GUILayout.Height(42f));
-                //        using (new EditorGUILayout.VerticalScope())
-                //        {
-                //            GUILayout.Label(title, Styles.componentCardName);
-                //        }
-                //        GUILayout.FlexibleSpace();
-                //    }
-                //    GUILayout.Label(description, Styles.componentCardDescription);
-                //}
                 using (new EditorGUILayout.HorizontalScope())
                 {
                     GUILayout.Label(icon, GUILayout.Width(42f), GUILayout.Height(42f));
@@ -406,7 +419,7 @@ namespace Treasured.UnitySdk
                     using (new EditorGUILayout.HorizontalScope())
                     {
                         GUILayout.FlexibleSpace();
-                        if (GUILayout.Button("More Info", EditorStyles.linkLabel))
+                        if (GUILayout.Button("Learn More", EditorStyles.linkLabel))
                         {
                             EditorUtility.OpenWithDefaultApp(helpUrl);
                         }

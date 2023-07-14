@@ -20,12 +20,13 @@ namespace Treasured.UnitySdk
         private SerializedObject serializedCameraTransform;
 
         private bool showVisibleTargetsOnly;
+        private Hotspot hotspot;
 
         protected override void OnEnable()
         {
             base.OnEnable();
-            var hotspot = target as Hotspot;
-            button = serializedObject.FindProperty(nameof(TreasuredObject.button));
+            hotspot = target as Hotspot;
+            button = serializedObject.FindProperty(nameof(TreasuredObject.icon));
             hitbox = serializedObject.FindProperty("_hitbox");
             _onClick = serializedObject.FindProperty("_onClick");
             actionGraph = serializedObject.FindProperty(nameof(TreasuredObject.actionGraph));
@@ -46,8 +47,16 @@ namespace Treasured.UnitySdk
             serializedObject.Update();
             if (serializedObject.targetObjects.Length == 1)
             {
+                EditorGUILayoutUtils.HitboxField(hotspot, true, false, false);
+                EditorGUILayout.LabelField("Camera", EditorStyles.boldLabel);
+                EditorGUI.indentLevel++;
+                EditorGUILayoutUtils.TransformField(hotspot.Camera.transform, true, true, false);
+                if (GUILayout.Button("Preview"))
+                {
+                    EditorUtils.PreviewCamera(hotspot.Camera);
+                }
+                EditorGUI.indentLevel--;
                 EditorGUILayout.PropertyField(button);
-                EditorGUILayoutUtils.TransformPropertyField(hitbox, "Hitbox");
                 EditorGUI.BeginChangeCheck();
                 bool isExpanded = EditorGUILayout.BeginFoldoutHeaderGroup(SessionState.GetBool(SessionKeys.ShowActionList, true), "Action Graph");
                 EditorGUILayout.EndFoldoutHeaderGroup();

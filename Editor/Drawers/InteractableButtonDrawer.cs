@@ -18,12 +18,12 @@ namespace Treasured.UnitySdk
             EditorGUI.BeginProperty(position, label, property);
             property.serializedObject.Update();
             EditorGUI.BeginChangeCheck();
-            var expanded = EditorGUI.Foldout(new Rect(position.x, position.y, position.width, k_SingleLineHeightWithSpace), SessionState.GetBool(SessionKeys.ShowInteractableButtonFoldout, true), label);
+            var isExpanded = EditorGUI.BeginFoldoutHeaderGroup(new Rect(position.x, position.y, position.width, k_SingleLineHeightWithSpace), SessionState.GetBool(SessionKeys.ShowInteractableButtonFoldout, true), label);
             if (EditorGUI.EndChangeCheck())
             {
-                SessionState.SetBool(SessionKeys.ShowInteractableButtonFoldout, expanded);
+                SessionState.SetBool(SessionKeys.ShowInteractableButtonFoldout, isExpanded);
             }
-            if (expanded)
+            if (isExpanded)
             {
                 using (new EditorGUI.IndentLevelScope(1))
                 {
@@ -57,6 +57,7 @@ namespace Treasured.UnitySdk
                                 using (new EditorGUI.IndentLevelScope(1))
                                 {
                                     Transform transform = transformProperty.objectReferenceValue as Transform;
+                                    Undo.RecordObject(transform, "Icon Transform");
                                     transform.localPosition = EditorGUI.Vector3Field(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 3, position.width, EditorGUIUtility.singleLineHeight), "Position", transform.localPosition);
                                     transform.localEulerAngles = EditorGUI.Vector3Field(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 4, position.width, EditorGUIUtility.singleLineHeight), "Rotation", transform.localEulerAngles);
                                     transform.localScale = EditorGUI.Vector3Field(new Rect(position.x, position.y + k_SingleLineHeightWithSpace * 5, position.width, EditorGUIUtility.singleLineHeight), "Size", transform.localScale);
@@ -67,6 +68,7 @@ namespace Treasured.UnitySdk
                     }
                 }
             }
+            EditorGUI.EndFoldoutHeaderGroup();
             property.serializedObject.ApplyModifiedProperties();
             EditorGUI.EndProperty();
         }

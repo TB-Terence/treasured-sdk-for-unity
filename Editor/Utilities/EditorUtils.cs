@@ -186,6 +186,11 @@ namespace Treasured.UnitySdk.Utilities
 
             return types;
         }
+
+        internal static void PreviewCamera(HotspotCamera hotspotCamera)
+        {
+            SceneView.lastActiveSceneView.LookAt(hotspotCamera.transform.position, hotspotCamera.transform.rotation, 0.01f);
+        }
     }
     
     

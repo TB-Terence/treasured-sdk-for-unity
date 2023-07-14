@@ -341,7 +341,6 @@ namespace Treasured.UnitySdk
                     }
                     if (GUILayout.Button(new GUIContent("Overall View", "Zoom out the scene to give overall view.")))
                     {
-                        EditingTarget = null;
                         Zoom(10);
                     }
                 }
@@ -524,7 +523,11 @@ namespace Treasured.UnitySdk
                                     if (EditingTarget == current)
                                     {
                                         EditorGUI.indentLevel+=4;
-                                        EditorGUILayoutUtils.TransformPropertyField(new GUIContent("Hitbox"), EditingTarget.Hitbox.transform);
+                                        EditorGUILayout.LabelField("Hitbox", EditorStyles.boldLabel);
+                                        Undo.RecordObject(EditingTarget.Hitbox.transform, "Hitbox Position");
+                                        EditorGUI.indentLevel+= 1;
+                                        EditingTarget.Hitbox.transform.localPosition = EditorGUILayout.Vector3Field(new GUIContent("Position"), EditingTarget.Hitbox.transform.localPosition);
+                                        EditorGUI.indentLevel-= 1;
                                         EditorGUI.indentLevel-=4;
                                     }
                                 }
