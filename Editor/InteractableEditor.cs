@@ -41,7 +41,7 @@ namespace Treasured.UnitySdk
         {
             base.OnInspectorGUI();
             serializedObject.Update();
-            EditorGUILayoutUtils.HitboxField(interactable.Hitbox, true, false, false);
+            EditorGUILayoutUtils.HitboxField(interactable.Hitbox, true, true, true);
             EditorGUILayout.PropertyField(button);
             if (targets.Length == 1)
             {
