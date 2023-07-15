@@ -47,15 +47,8 @@ namespace Treasured.UnitySdk
             serializedObject.Update();
             if (serializedObject.targetObjects.Length == 1)
             {
-                EditorGUILayoutUtils.HitboxField(hotspot, true, false, false);
-                EditorGUILayout.LabelField("Camera", EditorStyles.boldLabel);
-                EditorGUI.indentLevel++;
-                EditorGUILayoutUtils.TransformField(hotspot.Camera.transform, true, true, false);
-                if (GUILayout.Button("Preview"))
-                {
-                    EditorUtils.PreviewCamera(hotspot.Camera);
-                }
-                EditorGUI.indentLevel--;
+                EditorGUILayoutUtils.CameraField(hotspot.Camera);
+                EditorGUILayoutUtils.HitboxField(hotspot.Hitbox, true, false, false);
                 EditorGUILayout.PropertyField(button);
                 EditorGUI.BeginChangeCheck();
                 bool isExpanded = EditorGUILayout.BeginFoldoutHeaderGroup(SessionState.GetBool(SessionKeys.ShowActionList, true), "Action Graph");

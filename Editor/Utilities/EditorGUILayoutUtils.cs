@@ -30,6 +30,7 @@ namespace Treasured.UnitySdk
         {
             public static GUIStyle Link = new GUIStyle() { stretchWidth = false, normal = { textColor = new Color(0f, 0.47f, 0.85f) } };
             public static readonly GUIContent requiredField = EditorGUIUtility.TrIconContent("Error", "Required field");
+            public static readonly GUIContent findInSceneIcon = EditorGUIUtility.TrIconContent("d_Search Icon", "Find in Scene");
             public static readonly GUIContent transformLabel = new GUIContent("Transform");
 
             public static readonly GUIStyle componentCardName = new GUIStyle(EditorStyles.boldLabel)
@@ -190,25 +191,57 @@ namespace Treasured.UnitySdk
             }
         }
 
-        public static void HitboxField(TreasuredObject to, bool showPosition = true, bool showRotation = true, bool showScale = true)
+        public static void CameraField(HotspotCamera camera)
         {
-            bool isExpanded = SessionState.GetBool(SessionKeys.HitboxHeaderGroup, true);
-            isExpanded = EditorGUILayout.BeginFoldoutHeaderGroup(isExpanded, new GUIContent("Hitbox"));
+            bool isExpanded = SessionState.GetBool(SessionKeys.CameraHeaderGroup, true);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                isExpanded = EditorGUILayout.BeginFoldoutHeaderGroup(isExpanded, new GUIContent("Camera"));
+                if (GUILayout.Button(Styles.findInSceneIcon, EditorStyles.label, GUILayout.Width(20), GUILayout.Height(18)))
+                {
+                    EditorUtils.Focus(1, camera.transform);
+                }
+            }
             if (isExpanded)
             {
                 EditorGUI.indentLevel++;
-                to.Hitbox = (Hitbox)EditorGUILayout.ObjectField(new GUIContent("Hitbox"), to.Hitbox, typeof(Hitbox), true);
+                EditorGUILayoutUtils.TransformField(camera.transform, true, true, false);
+                if (GUILayout.Button("Preview"))
+                {
+                    EditorUtils.PreviewCamera(camera);
+                }
+                EditorGUI.indentLevel--;
+            }
+            EditorGUILayout.EndFoldoutHeaderGroup();
+            SessionState.SetBool(SessionKeys.CameraHeaderGroup, isExpanded);
+        }
+
+        public static void HitboxField(Hitbox hitbox, bool showPosition = true, bool showRotation = true, bool showScale = true)
+        {
+            bool isExpanded = SessionState.GetBool(SessionKeys.HitboxHeaderGroup, true);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                isExpanded = EditorGUILayout.BeginFoldoutHeaderGroup(isExpanded, new GUIContent("Hitbox"));
+                if (GUILayout.Button(Styles.findInSceneIcon, EditorStyles.label, GUILayout.Width(20), GUILayout.Height(18)))
+                {
+                    EditorUtils.Focus(1, hitbox.transform);
+                }
+            }
+            if (isExpanded)
+            {
                 EditorGUI.indentLevel++;
-                Undo.RecordObject(to.Hitbox.transform, "Hitbox transform");
+                hitbox = (Hitbox)EditorGUILayout.ObjectField(new GUIContent("Hitbox"), hitbox, typeof(Hitbox), true);
+                EditorGUI.indentLevel++;
+                Undo.RecordObject(hitbox.transform, "Hitbox transform");
                 if (showPosition)
-                    to.Hitbox.transform.localPosition = EditorGUILayout.Vector3Field(new GUIContent("Position"), to.Hitbox.transform.localPosition);
+                    hitbox.transform.localPosition = EditorGUILayout.Vector3Field(new GUIContent("Position"), hitbox.transform.localPosition);
                 if (showRotation)
-                    to.Hitbox.transform.localEulerAngles = EditorGUILayout.Vector3Field(new GUIContent("Rotation"), to.Hitbox.transform.localRotation.eulerAngles);
+                    hitbox.transform.localEulerAngles = EditorGUILayout.Vector3Field(new GUIContent("Rotation"), hitbox.transform.localRotation.eulerAngles);
                 if (showScale)
-                    to.Hitbox.transform.localScale = EditorGUILayout.Vector3Field(new GUIContent("Scale"), to.Hitbox.transform.localScale);
+                    hitbox.transform.localScale = EditorGUILayout.Vector3Field(new GUIContent("Scale"), hitbox.transform.localScale);
                 if (GUILayout.Button("Snap to Ground"))
                 {
-                    to.Hitbox.SnapToGround();
+                    hitbox.SnapToGround();
                 }
                 EditorGUI.indentLevel--;
                 EditorGUI.indentLevel--;

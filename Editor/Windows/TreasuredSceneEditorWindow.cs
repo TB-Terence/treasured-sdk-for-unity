@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Treasured.UnitySdk.Utilities;
 using UnityEditor;
 using UnityEngine;
 
@@ -336,12 +337,12 @@ namespace Treasured.UnitySdk
                     {
                         if (GUILayout.Button(new GUIContent("Focus", "Focus on selected object.")))
                         {
-                            Zoom(zooming);
+                            EditorUtils.Focus(zooming, EditingTarget.transform);
                         }
                     }
                     if (GUILayout.Button(new GUIContent("Overall View", "Zoom out the scene to give overall view.")))
                     {
-                        Zoom(10);
+                        EditorUtils.Focus(10, scene.Hotspots.Select(x => x.transform).ToArray());
                     }
                 }
                 EditorGUILayout.LabelField("Object Type", EditorStyles.boldLabel);
@@ -374,7 +375,7 @@ namespace Treasured.UnitySdk
                     {
                         case EditorMode.CreateNew:
                             EditingTarget = null;
-                            Zoom(10);
+                            EditorUtils.Focus(10, scene.Hotspots.Select(x => x.transform).ToArray());
                             break;
                         case EditorMode.Edit:
                             if (EditingTarget == null && objectListStates[selectedTypeIndex].objects.Count > 0)
@@ -542,7 +543,7 @@ namespace Treasured.UnitySdk
                                         }
                                         else
                                         {
-                                            Zoom(3);
+                                            EditorUtils.Focus(3, EditingTarget.transform);
                                         }
                                         break;
                                     case 1:
@@ -571,31 +572,6 @@ namespace Treasured.UnitySdk
                             }
                         }
                     }
-                }
-            }
-        }
-
-        void Zoom(int amount)
-        {
-            Camera sceneCamera = SceneView.lastActiveSceneView.camera;
-            if (sceneCamera != null)
-            {
-                if (EditingTarget == null)
-                {
-                    // Calcuate average position from all hotspots
-                    Vector3 center = Vector3.zero;
-                    var hotspots = scene.Hotspots;
-                    foreach (Hotspot hotspot in hotspots)
-                    {
-                        center += hotspot.transform.position;
-                    }
-                    center /= hotspots.Length;
-                    SceneView.lastActiveSceneView.LookAt(center, Quaternion.Euler(45f, 45f, 0), amount);
-                }
-                else
-                {
-                    // Set the camera position and rotation for an isometric view
-                    SceneView.lastActiveSceneView.LookAt(EditingTarget.transform.position, Quaternion.Euler(45f, 45f, 0), amount);
                 }
             }
         }

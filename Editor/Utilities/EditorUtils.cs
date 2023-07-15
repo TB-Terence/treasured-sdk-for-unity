@@ -191,6 +191,30 @@ namespace Treasured.UnitySdk.Utilities
         {
             SceneView.lastActiveSceneView.LookAt(hotspotCamera.transform.position, hotspotCamera.transform.rotation, 0.01f);
         }
+
+        public static void Focus(int amount, params Transform[] targets)
+        {
+            Camera sceneCamera = SceneView.lastActiveSceneView.camera;
+            if (sceneCamera != null)
+            {
+                if (targets.Length > 1)
+                {
+                    // Calcuate average position from all hotspots
+                    Vector3 center = Vector3.zero;
+                    foreach (Transform target in targets)
+                    {
+                        center += target.transform.position;
+                    }
+                    center /= targets.Length;
+                    SceneView.lastActiveSceneView.LookAt(center, Quaternion.Euler(45f, 45f, 0), amount);
+                }
+                else if(targets.Length == 1)
+                {
+                    // Set the camera position and rotation for an isometric view
+                    SceneView.lastActiveSceneView.LookAt(targets[0].transform.position, Quaternion.Euler(45f, 45f, 0), amount);
+                }
+            }
+        }
     }
     
     

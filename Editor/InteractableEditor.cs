@@ -16,11 +16,13 @@ namespace Treasured.UnitySdk
         private SerializedProperty actionGraph;
 
         private SerializedObject serializedHitboxTransform;
+        private Interactable interactable;
 
         protected override void OnEnable()
         {
             base.OnEnable();
-            (target as Interactable).TryInvokeMethods("OnSelectedInHierarchy");
+            interactable = target as Interactable;
+            interactable.TryInvokeMethods("OnSelectedInHierarchy");
             button = serializedObject.FindProperty(nameof(TreasuredObject.icon));
             hitbox = serializedObject.FindProperty("_hitbox");
             serializedHitboxTransform = new SerializedObject((target as Interactable).Hitbox.transform);
@@ -39,8 +41,8 @@ namespace Treasured.UnitySdk
         {
             base.OnInspectorGUI();
             serializedObject.Update();
+            EditorGUILayoutUtils.HitboxField(interactable.Hitbox, true, false, false);
             EditorGUILayout.PropertyField(button);
-            EditorGUILayoutUtils.TransformPropertyField(hitbox, "Hitbox");
             if (targets.Length == 1)
             {
                 EditorGUI.BeginChangeCheck();
