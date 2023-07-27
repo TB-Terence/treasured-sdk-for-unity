@@ -476,5 +476,31 @@ namespace Treasured.UnitySdk
                 EditorGUILayout.PropertyField(property);
             }
         }
+
+        static Dictionary<string, bool> _foldoutState = new Dictionary<string, bool>();
+
+        public static void PropertyFieldFoldout(SerializedProperty property)
+        {
+            if (property.propertyType == SerializedPropertyType.Generic)
+            {
+                if(!_foldoutState.TryGetValue(property.propertyPath, out var state))
+                {
+                    _foldoutState[property.propertyPath] = true;
+                }
+                _foldoutState[property.propertyPath] = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutState[property.propertyPath], property.displayName);
+                if (_foldoutState[property.propertyPath])
+                {
+                    using (new EditorGUI.IndentLevelScope(1))
+                    {
+                        EditorGUIUtils.DrawPropertyWithoutFoldout(property);
+                    }
+                }
+                EditorGUILayout.EndFoldoutHeaderGroup();
+            }
+            else
+            {
+                EditorGUILayout.PropertyField(property);
+            }
+        }
     }
 }

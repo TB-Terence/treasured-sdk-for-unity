@@ -631,20 +631,28 @@ namespace Treasured.UnitySdk
             serializedObject.ApplyModifiedProperties();
         }
 
-        [TabGroup(groupName = "Scene Info")]
+        bool pageInfoFoldoutState = true;
+
         private void OnPageSettingsGUI()
         {
             serializedObject.Update();
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("thumbnail"));
-            serializedObject.ApplyModifiedProperties();
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("creator"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("title"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("description"));
-            EditorGUILayoutUtils.PropertyFieldWithHeader(serializedObject.FindProperty("sceneInfo"));
-            EditorGUILayoutUtils.PropertyFieldWithHeader(serializedObject.FindProperty("themeInfo"));
+            pageInfoFoldoutState = EditorGUILayout.BeginFoldoutHeaderGroup(pageInfoFoldoutState, "Page Info");
+            if (pageInfoFoldoutState)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("creator"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("title"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("description"));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty("thumbnail"));
+                serializedObject.ApplyModifiedProperties();
+                EditorGUI.indentLevel--;
+            }
+            EditorGUILayout.EndFoldoutHeaderGroup();
+            EditorGUILayoutUtils.PropertyFieldFoldout(serializedObject.FindProperty("sceneInfo"));
+            EditorGUILayoutUtils.PropertyFieldFoldout(serializedObject.FindProperty("themeInfo"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(TreasuredMap.pageEmbeds)));
-            EditorGUILayoutUtils.PropertyFieldWithHeader(serializedObject.FindProperty("uiSettings"));
-            EditorGUILayoutUtils.PropertyFieldWithHeader(serializedObject.FindProperty("features"));
+            EditorGUILayoutUtils.PropertyFieldFoldout(serializedObject.FindProperty("uiSettings"));
+            EditorGUILayoutUtils.PropertyFieldFoldout(serializedObject.FindProperty("features"));
         }
     }
 }

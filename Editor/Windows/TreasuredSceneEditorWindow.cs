@@ -73,7 +73,6 @@ namespace Treasured.UnitySdk
             var window = EditorWindow.GetWindow<TreasuredSceneEditorWindow>();
             window.scene = scene;
             window.titleContent = new GUIContent("Treasured Scene Editor", Resources.Load<Texture2D>("Treasured_Logo"));
-            window.minSize = new Vector2(200, 300);
             window.InitializeObjectListStates();
             window.Show();
             return window;
@@ -105,7 +104,7 @@ namespace Treasured.UnitySdk
                 if(_editingTarget != null)
                 {
                     Selection.activeGameObject = _editingTarget.gameObject;
-                    editorMode = EditorMode.Edit;
+                    //editorMode = EditorMode.Edit;
                 }
             }
         }
@@ -283,13 +282,13 @@ namespace Treasured.UnitySdk
                                     var to = hit.transform.GetComponentInParent<TreasuredObject>();
                                     if (!to)
                                     {
-                                        TryCreateObject(ObjectTypes[selectedTypeIndex], hit.point);
+                                        EditingTarget = TryCreateObject(ObjectTypes[selectedTypeIndex], hit.point);
                                     }
                                 }
                                 else
                                 {
                                     // Place object at origin if no hit found.
-                                    TryCreateObject(ObjectTypes[selectedTypeIndex], Vector3.zero);
+                                    EditingTarget = TryCreateObject(ObjectTypes[selectedTypeIndex], Vector3.zero);
                                 }
                                 objectListStates[selectedTypeIndex].UpdateObjectList();
                                 UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
@@ -398,181 +397,181 @@ namespace Treasured.UnitySdk
                         }
                     }
                 }
-                if (state.objects.Count > 0)
-                {
-                    using (new EditorGUILayout.HorizontalScope())
-                    {
-                        EditorGUILayout.LabelField(
-                            new GUIContent(state.type == typeof(Hotspot) ? "Order" : string.Empty,
-                                state.type == typeof(Hotspot)
-                                    ? "The order of the Hotspot for the Guide Tour."
-                                    : string.Empty), EditorStyles.boldLabel, GUILayout.Width(58));
-                        EditorGUILayout.LabelField(new GUIContent("Name"), EditorStyles.boldLabel);
-                    }
+//                if (state.objects.Count > 0)
+//                {
+//                    using (new EditorGUILayout.HorizontalScope())
+//                    {
+//                        EditorGUILayout.LabelField(
+//                            new GUIContent(state.type == typeof(Hotspot) ? "Order" : string.Empty,
+//                                state.type == typeof(Hotspot)
+//                                    ? "The order of the Hotspot for the Guide Tour."
+//                                    : string.Empty), EditorStyles.boldLabel, GUILayout.Width(58));
+//                        EditorGUILayout.LabelField(new GUIContent("Name"), EditorStyles.boldLabel);
+//                    }
 
-                    using (new EditorGUILayout.HorizontalScope())
-                    {
-                        int activeCount = state.objects.Count(x => x.gameObject.activeSelf);
-                        if (activeCount == state.objects.Count)
-                        {
-                            state.toggleState = GroupToggleState.All;
-                            state.enableAll = true;
-                        }
-                        else
-                        {
-                            state.toggleState = activeCount == 0
-                                ? GroupToggleState.None
-                                : GroupToggleState.Mixed;
-                            state.enableAll = false;
-                        }
+//                    using (new EditorGUILayout.HorizontalScope())
+//                    {
+//                        int activeCount = state.objects.Count(x => x.gameObject.activeSelf);
+//                        if (activeCount == state.objects.Count)
+//                        {
+//                            state.toggleState = GroupToggleState.All;
+//                            state.enableAll = true;
+//                        }
+//                        else
+//                        {
+//                            state.toggleState = activeCount == 0
+//                                ? GroupToggleState.None
+//                                : GroupToggleState.Mixed;
+//                            state.enableAll = false;
+//                        }
 
-                        EditorGUI.showMixedValue = state.toggleState == GroupToggleState.Mixed;
-                        GUILayout.Space(3);
-                        EditorGUI.BeginChangeCheck();
-                        state.enableAll = EditorGUILayout.ToggleLeft(GUIContent.none, state.enableAll);
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            foreach (var obj in state.objects)
-                            {
-                                obj.gameObject.SetActive(state.enableAll);
-                            }
-                        }
+//                        EditorGUI.showMixedValue = state.toggleState == GroupToggleState.Mixed;
+//                        GUILayout.Space(3);
+//                        EditorGUI.BeginChangeCheck();
+//                        state.enableAll = EditorGUILayout.ToggleLeft(GUIContent.none, state.enableAll);
+//                        if (EditorGUI.EndChangeCheck())
+//                        {
+//                            foreach (var obj in state.objects)
+//                            {
+//                                obj.gameObject.SetActive(state.enableAll);
+//                            }
+//                        }
 
-                        EditorGUI.showMixedValue = false;
-                    }
-                }
-                if (state.objects.Count == 0)
-                {
-                    GUILayout.FlexibleSpace();
-                    EditorGUILayout.LabelField(
-                        $"No {ObjectNames.NicifyVariableName(state.type.Name)} Found",
-                        Styles.wordWrapCenteredGreyMiniLabel);
-                    using (new GUILayout.HorizontalScope())
-                    {
-                        GUILayout.FlexibleSpace();
-                        if (GUILayout.Button(Styles.plus, GUILayout.Width(64)))
-                        {
-                            var go = TryCreateObject(ObjectTypes[selectedTypeIndex], Vector3.zero);
-                            EditingTarget = go;
-                        }
-                        GUILayout.FlexibleSpace();
-                    }
-                    GUILayout.FlexibleSpace();
-                }
-                else
-                {
-                    using (var scope = new EditorGUILayout.ScrollViewScope(state.scrollPosition, GUILayout.ExpandHeight(true)))
-                    {
-                        state.scrollPosition = scope.scrollPosition;
-                        for (int index = 0; index < state.objects.Count; index++)
-                        {
-                            using (new EditorGUILayout.HorizontalScope())
-                            {
-                                TreasuredObject current = state.objects[index];
-                                using (new EditorGUILayout.VerticalScope())
-                                {
-                                    using (new EditorGUILayout.HorizontalScope())
-                                    {
-                                        // TODO: width 40 only show up to 10000
-                                        EditorGUI.BeginChangeCheck();
-                                        bool active = EditorGUILayout.Toggle(GUIContent.none,
-                                            current.gameObject.activeSelf, GUILayout.Width(20));
-                                        if (EditorGUI.EndChangeCheck())
-                                        {
-                                            current.gameObject.SetActive(active);
-                                        }
+//                        EditorGUI.showMixedValue = false;
+//                    }
+//                }
+//                if (state.objects.Count == 0)
+//                {
+//                    GUILayout.FlexibleSpace();
+//                    EditorGUILayout.LabelField(
+//                        $"No {ObjectNames.NicifyVariableName(state.type.Name)} Found",
+//                        Styles.wordWrapCenteredGreyMiniLabel);
+//                    using (new GUILayout.HorizontalScope())
+//                    {
+//                        GUILayout.FlexibleSpace();
+//                        if (GUILayout.Button(Styles.plus, GUILayout.Width(64)))
+//                        {
+//                            var go = TryCreateObject(ObjectTypes[selectedTypeIndex], Vector3.zero);
+//                            EditingTarget = go;
+//                        }
+//                        GUILayout.FlexibleSpace();
+//                    }
+//                    GUILayout.FlexibleSpace();
+//                }
+//                else
+//                {
+//                    using (var scope = new EditorGUILayout.ScrollViewScope(state.scrollPosition, GUILayout.ExpandHeight(true)))
+//                    {
+//                        state.scrollPosition = scope.scrollPosition;
+//                        for (int index = 0; index < state.objects.Count; index++)
+//                        {
+//                            using (new EditorGUILayout.HorizontalScope())
+//                            {
+//                                TreasuredObject current = state.objects[index];
+//                                using (new EditorGUILayout.VerticalScope())
+//                                {
+//                                    using (new EditorGUILayout.HorizontalScope())
+//                                    {
+//                                        // TODO: width 40 only show up to 10000
+//                                        EditorGUI.BeginChangeCheck();
+//                                        bool active = EditorGUILayout.Toggle(GUIContent.none,
+//                                            current.gameObject.activeSelf, GUILayout.Width(20));
+//                                        if (EditorGUI.EndChangeCheck())
+//                                        {
+//                                            current.gameObject.SetActive(active);
+//                                        }
 
-                                        EditorGUILayout.LabelField($"{index + 1}", GUILayout.Width(32));
-                                        using (var hs = new EditorGUILayout.HorizontalScope())
-                                        {
-                                            using (new EditorGUI.DisabledGroupScope(!current.gameObject.activeSelf))
-                                            {
-                                                EditorGUILayout.LabelField(
-                                                    new GUIContent(current.gameObject.name, Styles.kClickToPreview),
-                                                    style: EditingTarget == current ? Styles.selectedObjectLabel : Styles.objectLabel);
-                                            }
-                                        }
-                                        if (EditingTarget == current)
-                                        {
-                                            GUILayout.FlexibleSpace();
-                                            using (new GUILayout.HorizontalScope())
-                                            {
-                                                if (current is Hotspot hotspot)
-                                                {
-                                                    if (GUILayout.Button(RotationRecorder.IsRecording ? RotationRecorder.Styles.recordOn : RotationRecorder.Styles.recordOff, EditorStyles.label, GUILayout.Width(18)))
-                                                    {
-                                                        if (!RotationRecorder.IsRecording)
-                                                        {
-                                                            RotationRecorder.Start(hotspot.Camera.transform.position, hotspot.Camera.transform.rotation, (rotation) =>
-                                                            {
-                                                                hotspot.Camera.transform.rotation = rotation;
-                                                            });
-                                                        }
-                                                        else
-                                                        {
-                                                            RotationRecorder.Complete();
-                                                        }
-                                                    }
-                                                }
-                                                if (GUILayout.Button(Styles.snapHitboxButton, EditorStyles.label, GUILayout.Width(18), GUILayout.Height(18)))
-                                                {
-                                                    EditingTarget.Hitbox.SnapToGround();
-                                                }
-                                            }
-                                        }
-                                    }
-                                    if (EditingTarget == current)
-                                    {
-                                        EditorGUI.indentLevel+=4;
-                                        EditorGUILayout.LabelField("Hitbox", EditorStyles.boldLabel);
-                                        Undo.RecordObject(EditingTarget.Hitbox.transform, "Hitbox Position");
-                                        EditorGUI.indentLevel+= 1;
-                                        EditingTarget.Hitbox.transform.localPosition = EditorGUILayout.Vector3Field(new GUIContent("Position"), EditingTarget.Hitbox.transform.localPosition);
-                                        EditorGUI.indentLevel-= 1;
-                                        EditorGUI.indentLevel-=4;
-                                    }
-                                }
-                                switch (EditorGUILayoutUtils.CreateClickZone(Event.current,
-                                            GUILayoutUtility.GetLastRect(), MouseCursor.Link))
-                                {
-                                    case 0:
-                                        EditingTarget = current;
-                                        if (EditingTarget is Hotspot hotspot)
-                                        {
-                                            SceneView.lastActiveSceneView.LookAt(hotspot.Camera.transform.position, hotspot.Camera.transform.rotation, 0.01f);
-                                        }
-                                        else
-                                        {
-                                            EditorUtils.Focus(3, EditingTarget.transform);
-                                        }
-                                        break;
-                                    case 1:
-                                        EditingTarget = current;
-                                        GenericMenu menu = new GenericMenu();
-#if UNITY_2020_3_OR_NEWER
-                                        menu.AddItem(new GUIContent("Rename"), false,
-                                            () => { GameObjectUtils.RenameGO(current.gameObject); });
-                                        menu.AddSeparator("");
-#endif
-                                        menu.AddItem(new GUIContent("Remove"), false, (obj) =>
-                                        {
-                                            var go = obj as TreasuredObject;
-                                            state.objects.Remove(go);
-                                            Undo.SetCurrentGroupName($"Remove {go.gameObject.name}");
-                                            Undo.DestroyObjectImmediate(go.gameObject);
-                                        }, current);
-                                        menu.AddSeparator("");
-                                        menu.AddItem(new GUIContent("Copy ID"), false, (obj) =>
-                                        {
-                                            GUIUtility.systemCopyBuffer = current.Id;
-                                        }, current);
-                                        menu.ShowAsContext();
-                                        break;
-                                }
-                            }
-                        }
-                    }
-                }
+//                                        EditorGUILayout.LabelField($"{index + 1}", GUILayout.Width(32));
+//                                        using (var hs = new EditorGUILayout.HorizontalScope())
+//                                        {
+//                                            using (new EditorGUI.DisabledGroupScope(!current.gameObject.activeSelf))
+//                                            {
+//                                                EditorGUILayout.LabelField(
+//                                                    new GUIContent(current.gameObject.name, Styles.kClickToPreview),
+//                                                    style: EditingTarget == current ? Styles.selectedObjectLabel : Styles.objectLabel);
+//                                            }
+//                                        }
+//                                        if (EditingTarget == current)
+//                                        {
+//                                            GUILayout.FlexibleSpace();
+//                                            using (new GUILayout.HorizontalScope())
+//                                            {
+//                                                if (current is Hotspot hotspot)
+//                                                {
+//                                                    if (GUILayout.Button(RotationRecorder.IsRecording ? RotationRecorder.Styles.recordOn : RotationRecorder.Styles.recordOff, EditorStyles.label, GUILayout.Width(18)))
+//                                                    {
+//                                                        if (!RotationRecorder.IsRecording)
+//                                                        {
+//                                                            RotationRecorder.Start(hotspot.Camera.transform.position, hotspot.Camera.transform.rotation, (rotation) =>
+//                                                            {
+//                                                                hotspot.Camera.transform.rotation = rotation;
+//                                                            });
+//                                                        }
+//                                                        else
+//                                                        {
+//                                                            RotationRecorder.Complete();
+//                                                        }
+//                                                    }
+//                                                }
+//                                                if (GUILayout.Button(Styles.snapHitboxButton, EditorStyles.label, GUILayout.Width(18), GUILayout.Height(18)))
+//                                                {
+//                                                    EditingTarget.Hitbox.SnapToGround();
+//                                                }
+//                                            }
+//                                        }
+//                                    }
+//                                    if (EditingTarget == current)
+//                                    {
+//                                        EditorGUI.indentLevel+=4;
+//                                        EditorGUILayout.LabelField("Hitbox", EditorStyles.boldLabel);
+//                                        Undo.RecordObject(EditingTarget.Hitbox.transform, "Hitbox Position");
+//                                        EditorGUI.indentLevel+= 1;
+//                                        EditingTarget.Hitbox.transform.localPosition = EditorGUILayout.Vector3Field(new GUIContent("Position"), EditingTarget.Hitbox.transform.localPosition);
+//                                        EditorGUI.indentLevel-= 1;
+//                                        EditorGUI.indentLevel-=4;
+//                                    }
+//                                }
+//                                switch (EditorGUILayoutUtils.CreateClickZone(Event.current,
+//                                            GUILayoutUtility.GetLastRect(), MouseCursor.Link))
+//                                {
+//                                    case 0:
+//                                        EditingTarget = current;
+//                                        if (EditingTarget is Hotspot hotspot)
+//                                        {
+//                                            SceneView.lastActiveSceneView.LookAt(hotspot.Camera.transform.position, hotspot.Camera.transform.rotation, 0.01f);
+//                                        }
+//                                        else
+//                                        {
+//                                            EditorUtils.Focus(3, EditingTarget.transform);
+//                                        }
+//                                        break;
+//                                    case 1:
+//                                        EditingTarget = current;
+//                                        GenericMenu menu = new GenericMenu();
+//#if UNITY_2020_3_OR_NEWER
+//                                        menu.AddItem(new GUIContent("Rename"), false,
+//                                            () => { GameObjectUtils.RenameGO(current.gameObject); });
+//                                        menu.AddSeparator("");
+//#endif
+//                                        menu.AddItem(new GUIContent("Remove"), false, (obj) =>
+//                                        {
+//                                            var go = obj as TreasuredObject;
+//                                            state.objects.Remove(go);
+//                                            Undo.SetCurrentGroupName($"Remove {go.gameObject.name}");
+//                                            Undo.DestroyObjectImmediate(go.gameObject);
+//                                        }, current);
+//                                        menu.AddSeparator("");
+//                                        menu.AddItem(new GUIContent("Copy ID"), false, (obj) =>
+//                                        {
+//                                            GUIUtility.systemCopyBuffer = current.Id;
+//                                        }, current);
+//                                        menu.ShowAsContext();
+//                                        break;
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
             }
         }
 
