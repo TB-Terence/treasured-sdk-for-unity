@@ -47,7 +47,7 @@ namespace Treasured.UnitySdk
                     }
                     else
                     {
-                        RotationRecorder.Complete();
+                        RotationRecorder.Stop();
                     }
                 }
                 EditorGUI.PropertyField(new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight * 3 + EditorGUIUtility.standardVerticalSpacing * 2, position.width, EditorGUIUtility.singleLineHeight), speedProperty);

@@ -20,7 +20,7 @@ namespace Treasured.UnitySdk
         static RotationRecorder()
         {
             SceneView.duringSceneGui -= OnSceneView;
-            EditorApplication.hierarchyChanged += Complete;
+            EditorApplication.hierarchyChanged += Stop;
         }
 
         public static void Start(Vector3 startPosition, Quaternion startRotation, Action<Quaternion> endRotation)
@@ -65,7 +65,7 @@ namespace Treasured.UnitySdk
             SceneView.lastActiveSceneView.Repaint();
         }
 
-        public static void Complete()
+        public static void Stop()
         {
             IsRecording = false;
             SceneView.duringSceneGui -= OnSceneView;

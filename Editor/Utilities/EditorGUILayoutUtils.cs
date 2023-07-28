@@ -206,6 +206,20 @@ namespace Treasured.UnitySdk
             {
                 EditorGUI.indentLevel++;
                 EditorGUILayoutUtils.TransformField(camera.transform, true, true, false);
+                if (GUILayout.Button($"{(RotationRecorder.IsRecording ? "Stop" : "Start")} Record Rotation"))
+                {
+                    if(!RotationRecorder.IsRecording)
+                    {
+                        RotationRecorder.Start(camera.transform.position, camera.transform.rotation, (endRotation) =>
+                        {
+                            camera.transform.rotation = endRotation;
+                        });
+                    }
+                    else
+                    {
+                        RotationRecorder.Stop();
+                    }
+                }
                 if (GUILayout.Button("Preview"))
                 {
                     EditorUtils.PreviewCamera(camera);
