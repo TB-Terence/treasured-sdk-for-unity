@@ -11,7 +11,6 @@ namespace Treasured.UnitySdk
     [ComponentCard("Hotspot", "Hotspots are used to allow the user to navigate through the scene.", "Hotspot", "https://www.notion.so/treasured/Hotspots-aec47e5d3b59492cb2c00637baa1ead4")]
     internal class HotspotEditor : TreasuredObjectEditor
     {
-        private ActionGroupListDrawer onClickListDrawer;
         private SerializedProperty button;
         private SerializedProperty hitbox;
         private SerializedProperty _onClick;
@@ -33,10 +32,6 @@ namespace Treasured.UnitySdk
             if (hotspot.Camera)
             {
                 serializedCameraTransform = new SerializedObject(hotspot.Camera.transform);
-            }
-            if (serializedObject.targetObjects.Length == 1)
-            {
-                onClickListDrawer = new ActionGroupListDrawer(serializedObject, _onClick);
             }
             hotspot?.TryInvokeMethods("OnSelectedInHierarchy");
         }

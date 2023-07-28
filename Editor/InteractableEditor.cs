@@ -10,7 +10,6 @@ namespace Treasured.UnitySdk
     [ComponentCard("Interactable", "Interactables are used to allow the user to click to interact with the scene in the browser.", "", "https://www.notion.so/treasured/Interactables-b34a557d38fa41af94062bfd6bd48fc3")]
     internal class InteractableEditor : TreasuredObjectEditor
     {
-        private ActionGroupListDrawer onClickListDrawer;
         private SerializedProperty button;
         private SerializedProperty hitbox;
         private SerializedProperty actionGraph;
@@ -26,7 +25,6 @@ namespace Treasured.UnitySdk
             button = serializedObject.FindProperty(nameof(TreasuredObject.icon));
             hitbox = serializedObject.FindProperty("_hitbox");
             serializedHitboxTransform = new SerializedObject((target as Interactable).Hitbox.transform);
-            onClickListDrawer = new ActionGroupListDrawer(serializedObject, serializedObject.FindProperty("_onClick"));
             actionGraph = serializedObject.FindProperty(nameof(TreasuredObject.actionGraph));
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
