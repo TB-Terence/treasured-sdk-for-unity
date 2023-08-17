@@ -13,8 +13,8 @@ namespace Treasured.UnitySdk
         {
             public static readonly GUIContent[] icons = new GUIContent[]
             {
-                EditorGUIUtility.TrIconContent(Resources.Load<Texture2D>("Hotspot"), "Hotspot"),
-                EditorGUIUtility.TrIconContent("GameObject On Icon", "Interactable"),
+                EditorGUIUtility.TrIconContent(Resources.Load<Texture2D>("Hotspot"), "[Hotspot] Hotspots are used to allow the user to navigate through the scene."),
+                EditorGUIUtility.TrIconContent("GameObject On Icon", "[Interactable] Interactables are used to allow the user to click to interact with the scene in the browser."),
                 EditorGUIUtility.TrIconContent("d_SceneViewAudio", "Sound Source"),
                 EditorGUIUtility.TrIconContent("d_Profiler.Video", "Video Renderer"),
                 EditorGUIUtility.TrIconContent("d_BuildSettings.WebGL", "HTML Embed")
@@ -75,6 +75,8 @@ namespace Treasured.UnitySdk
             window.titleContent = new GUIContent("Treasured Scene Editor", Resources.Load<Texture2D>("Treasured_Logo"));
             window.InitializeObjectListStates();
             window.Show();
+            window.minSize = new Vector2(230, 120);
+            window.maxSize = new Vector2(230, 120);
             return window;
         }
 
@@ -87,6 +89,7 @@ namespace Treasured.UnitySdk
 
         public TreasuredScene scene;
         int selectedTypeIndex = 0;
+        int selectedModeIndex = 0;
         EditorMode editorMode;
         /// <summary>
         /// Getter for EditingTarget, use EditingTarget to set value to automatically change Selection.activeGameObject and EditorMode
@@ -111,6 +114,10 @@ namespace Treasured.UnitySdk
         ObjectListState[] objectListStates;
         int zooming = 1;
         bool showHotspotPath = false;
+
+        bool enableCameraPreview;
+
+        bool enableClickToCreate = false;
 
         private static readonly Type[] ObjectTypes = new Type[] { typeof(Hotspot), typeof(Interactable), typeof(SoundSource), typeof(VideoRenderer), typeof(HTMLEmbed) };
 
@@ -151,12 +158,22 @@ namespace Treasured.UnitySdk
             InitializeObjectListStates();
             SceneView.duringSceneGui -= OnSceneView;
             SceneView.duringSceneGui += OnSceneView;
-            Undo.undoRedoPerformed += () => { objectListStates[selectedTypeIndex].UpdateObjectList(); };
+            Undo.undoRedoPerformed += () => { 
+                objectListStates[selectedTypeIndex]?.UpdateObjectList(); 
+            };
         }
 
         private void OnDisable()
         {
             SceneView.duringSceneGui -= OnSceneView;
+        }
+
+        void OnPreviewCamera()
+        {
+            if (Selection.activeGameObject is GameObject go && go.scene != null && go.TryGetComponent(out Hotspot hotspot))
+            {
+                EditorUtils.PreviewCamera(hotspot.Camera);
+            }
         }
 
         void InitializeObjectListStates()
@@ -306,7 +323,10 @@ namespace Treasured.UnitySdk
             using (new EditorGUILayout.VerticalScope())
             {
                 EditorGUI.BeginChangeCheck();
+                float labelWidth = EditorGUIUtility.labelWidth;
+                EditorGUIUtility.labelWidth = 50;
                 scene = (TreasuredScene)EditorGUILayout.ObjectField(new GUIContent("Scene"), scene, typeof(TreasuredScene), true);
+                EditorGUIUtility.labelWidth = labelWidth;
                 if (EditorGUI.EndChangeCheck())
                 {
                     InitializeObjectListStates();
@@ -325,253 +345,29 @@ namespace Treasured.UnitySdk
                     GUILayout.FlexibleSpace();
                     return;
                 }
-                EditorGUILayout.LabelField("Camera", EditorStyles.boldLabel);
-                using (new EditorGUI.IndentLevelScope(1))
+                if (GUILayout.Button(new GUIContent("Overall View", "Zoom out the scene to give overall view.")))
                 {
-                    zooming = EditorGUILayout.IntSlider(new GUIContent("Zooming Amount"), zooming, 1, 10);
+                    EditorUtils.Focus(10, scene.Hotspots.Select(x => x.transform).ToArray());
                 }
-                using (new EditorGUILayout.HorizontalScope())
-                {
-                    using(new EditorGUI.DisabledGroupScope(EditingTarget == null))
-                    {
-                        if (GUILayout.Button(new GUIContent("Focus", "Focus on selected object.")))
-                        {
-                            EditorUtils.Focus(zooming, EditingTarget.transform);
-                        }
-                    }
-                    if (GUILayout.Button(new GUIContent("Overall View", "Zoom out the scene to give overall view.")))
-                    {
-                        EditorUtils.Focus(10, scene.Hotspots.Select(x => x.transform).ToArray());
-                    }
-                }
-                EditorGUILayout.LabelField("Object Type", EditorStyles.boldLabel);
                 EditorGUI.BeginChangeCheck();
-                selectedTypeIndex = GUILayout.SelectionGrid(selectedTypeIndex, Styles.icons, Styles.icons.Length, GUILayout.Height(32f));
+                enableCameraPreview = GUILayout.Toggle(enableCameraPreview, new GUIContent("Enable Camera Preview", "Move to Camera preview upon select Hotspot"));
                 if (EditorGUI.EndChangeCheck())
                 {
-                    switch (editorMode)
+                    if (enableCameraPreview)
                     {
-                        case EditorMode.CreateNew:
-                            SceneView.lastActiveSceneView.ShowNotification(new GUIContent($"Click on where you want to place the {Styles.icons[selectedTypeIndex].tooltip}"), 1.5f);
-                            SceneView.lastActiveSceneView.Repaint();
-                            break;
-                        case EditorMode.Edit:
-                            SceneView.lastActiveSceneView.ShowNotification(new GUIContent($"Click on the object you want to edit from the list below"), 1.5f);
-                            SceneView.lastActiveSceneView.Repaint();
-                            break;
+                        Selection.selectionChanged += OnPreviewCamera;
+                        OnPreviewCamera();
+                    }
+                    else
+                    {
+                        Selection.selectionChanged -= OnPreviewCamera;
                     }
                 }
-                EditorGUILayout.LabelField("Mode", EditorStyles.boldLabel);
-                EditorGUI.BeginChangeCheck();
-                var state = objectListStates[selectedTypeIndex];
-                using (new EditorGUI.DisabledGroupScope(!(EditingTarget is Hotspot)))
+                enableClickToCreate = GUILayout.Toggle(enableClickToCreate, new GUIContent("Enable Click to Create", "Click to Create allows you to quickly create selected type by clicking in the scene"));
+                using (new EditorGUI.DisabledGroupScope(!enableClickToCreate))
                 {
-                    editorMode = (EditorMode)GUILayout.SelectionGrid((int)editorMode, Styles.mode, Styles.icons.Length, GUILayout.Height(32f));
+                    selectedTypeIndex = GUILayout.SelectionGrid(selectedTypeIndex, Styles.icons, Styles.icons.Length, GUILayout.Height(32));
                 }
-                if (EditorGUI.EndChangeCheck())
-                {
-                    switch (editorMode)
-                    {
-                        case EditorMode.CreateNew:
-                            EditingTarget = null;
-                            EditorUtils.Focus(10, scene.Hotspots.Select(x => x.transform).ToArray());
-                            break;
-                        case EditorMode.Edit:
-                            if (EditingTarget == null && objectListStates[selectedTypeIndex].objects.Count > 0)
-                            {
-                                EditingTarget = objectListStates[selectedTypeIndex].objects[0];
-                            }
-                            break;
-                    }
-                }
-                if (selectedTypeIndex == 0)
-                {
-                    EditorGUILayout.LabelField("Gizmos", EditorStyles.boldLabel);
-                    using(new EditorGUI.IndentLevelScope(1))
-                    {
-                        EditorGUI.BeginChangeCheck();
-                        showHotspotPath = EditorGUILayout.Toggle("Show Hotspot Path", showHotspotPath);
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            SceneView.lastActiveSceneView.Repaint();
-                        }
-                    }
-                }
-//                if (state.objects.Count > 0)
-//                {
-//                    using (new EditorGUILayout.HorizontalScope())
-//                    {
-//                        EditorGUILayout.LabelField(
-//                            new GUIContent(state.type == typeof(Hotspot) ? "Order" : string.Empty,
-//                                state.type == typeof(Hotspot)
-//                                    ? "The order of the Hotspot for the Guide Tour."
-//                                    : string.Empty), EditorStyles.boldLabel, GUILayout.Width(58));
-//                        EditorGUILayout.LabelField(new GUIContent("Name"), EditorStyles.boldLabel);
-//                    }
-
-//                    using (new EditorGUILayout.HorizontalScope())
-//                    {
-//                        int activeCount = state.objects.Count(x => x.gameObject.activeSelf);
-//                        if (activeCount == state.objects.Count)
-//                        {
-//                            state.toggleState = GroupToggleState.All;
-//                            state.enableAll = true;
-//                        }
-//                        else
-//                        {
-//                            state.toggleState = activeCount == 0
-//                                ? GroupToggleState.None
-//                                : GroupToggleState.Mixed;
-//                            state.enableAll = false;
-//                        }
-
-//                        EditorGUI.showMixedValue = state.toggleState == GroupToggleState.Mixed;
-//                        GUILayout.Space(3);
-//                        EditorGUI.BeginChangeCheck();
-//                        state.enableAll = EditorGUILayout.ToggleLeft(GUIContent.none, state.enableAll);
-//                        if (EditorGUI.EndChangeCheck())
-//                        {
-//                            foreach (var obj in state.objects)
-//                            {
-//                                obj.gameObject.SetActive(state.enableAll);
-//                            }
-//                        }
-
-//                        EditorGUI.showMixedValue = false;
-//                    }
-//                }
-//                if (state.objects.Count == 0)
-//                {
-//                    GUILayout.FlexibleSpace();
-//                    EditorGUILayout.LabelField(
-//                        $"No {ObjectNames.NicifyVariableName(state.type.Name)} Found",
-//                        Styles.wordWrapCenteredGreyMiniLabel);
-//                    using (new GUILayout.HorizontalScope())
-//                    {
-//                        GUILayout.FlexibleSpace();
-//                        if (GUILayout.Button(Styles.plus, GUILayout.Width(64)))
-//                        {
-//                            var go = TryCreateObject(ObjectTypes[selectedTypeIndex], Vector3.zero);
-//                            EditingTarget = go;
-//                        }
-//                        GUILayout.FlexibleSpace();
-//                    }
-//                    GUILayout.FlexibleSpace();
-//                }
-//                else
-//                {
-//                    using (var scope = new EditorGUILayout.ScrollViewScope(state.scrollPosition, GUILayout.ExpandHeight(true)))
-//                    {
-//                        state.scrollPosition = scope.scrollPosition;
-//                        for (int index = 0; index < state.objects.Count; index++)
-//                        {
-//                            using (new EditorGUILayout.HorizontalScope())
-//                            {
-//                                TreasuredObject current = state.objects[index];
-//                                using (new EditorGUILayout.VerticalScope())
-//                                {
-//                                    using (new EditorGUILayout.HorizontalScope())
-//                                    {
-//                                        // TODO: width 40 only show up to 10000
-//                                        EditorGUI.BeginChangeCheck();
-//                                        bool active = EditorGUILayout.Toggle(GUIContent.none,
-//                                            current.gameObject.activeSelf, GUILayout.Width(20));
-//                                        if (EditorGUI.EndChangeCheck())
-//                                        {
-//                                            current.gameObject.SetActive(active);
-//                                        }
-
-//                                        EditorGUILayout.LabelField($"{index + 1}", GUILayout.Width(32));
-//                                        using (var hs = new EditorGUILayout.HorizontalScope())
-//                                        {
-//                                            using (new EditorGUI.DisabledGroupScope(!current.gameObject.activeSelf))
-//                                            {
-//                                                EditorGUILayout.LabelField(
-//                                                    new GUIContent(current.gameObject.name, Styles.kClickToPreview),
-//                                                    style: EditingTarget == current ? Styles.selectedObjectLabel : Styles.objectLabel);
-//                                            }
-//                                        }
-//                                        if (EditingTarget == current)
-//                                        {
-//                                            GUILayout.FlexibleSpace();
-//                                            using (new GUILayout.HorizontalScope())
-//                                            {
-//                                                if (current is Hotspot hotspot)
-//                                                {
-//                                                    if (GUILayout.Button(RotationRecorder.IsRecording ? RotationRecorder.Styles.recordOn : RotationRecorder.Styles.recordOff, EditorStyles.label, GUILayout.Width(18)))
-//                                                    {
-//                                                        if (!RotationRecorder.IsRecording)
-//                                                        {
-//                                                            RotationRecorder.Start(hotspot.Camera.transform.position, hotspot.Camera.transform.rotation, (rotation) =>
-//                                                            {
-//                                                                hotspot.Camera.transform.rotation = rotation;
-//                                                            });
-//                                                        }
-//                                                        else
-//                                                        {
-//                                                            RotationRecorder.Complete();
-//                                                        }
-//                                                    }
-//                                                }
-//                                                if (GUILayout.Button(Styles.snapHitboxButton, EditorStyles.label, GUILayout.Width(18), GUILayout.Height(18)))
-//                                                {
-//                                                    EditingTarget.Hitbox.SnapToGround();
-//                                                }
-//                                            }
-//                                        }
-//                                    }
-//                                    if (EditingTarget == current)
-//                                    {
-//                                        EditorGUI.indentLevel+=4;
-//                                        EditorGUILayout.LabelField("Hitbox", EditorStyles.boldLabel);
-//                                        Undo.RecordObject(EditingTarget.Hitbox.transform, "Hitbox Position");
-//                                        EditorGUI.indentLevel+= 1;
-//                                        EditingTarget.Hitbox.transform.localPosition = EditorGUILayout.Vector3Field(new GUIContent("Position"), EditingTarget.Hitbox.transform.localPosition);
-//                                        EditorGUI.indentLevel-= 1;
-//                                        EditorGUI.indentLevel-=4;
-//                                    }
-//                                }
-//                                switch (EditorGUILayoutUtils.CreateClickZone(Event.current,
-//                                            GUILayoutUtility.GetLastRect(), MouseCursor.Link))
-//                                {
-//                                    case 0:
-//                                        EditingTarget = current;
-//                                        if (EditingTarget is Hotspot hotspot)
-//                                        {
-//                                            SceneView.lastActiveSceneView.LookAt(hotspot.Camera.transform.position, hotspot.Camera.transform.rotation, 0.01f);
-//                                        }
-//                                        else
-//                                        {
-//                                            EditorUtils.Focus(3, EditingTarget.transform);
-//                                        }
-//                                        break;
-//                                    case 1:
-//                                        EditingTarget = current;
-//                                        GenericMenu menu = new GenericMenu();
-//#if UNITY_2020_3_OR_NEWER
-//                                        menu.AddItem(new GUIContent("Rename"), false,
-//                                            () => { GameObjectUtils.RenameGO(current.gameObject); });
-//                                        menu.AddSeparator("");
-//#endif
-//                                        menu.AddItem(new GUIContent("Remove"), false, (obj) =>
-//                                        {
-//                                            var go = obj as TreasuredObject;
-//                                            state.objects.Remove(go);
-//                                            Undo.SetCurrentGroupName($"Remove {go.gameObject.name}");
-//                                            Undo.DestroyObjectImmediate(go.gameObject);
-//                                        }, current);
-//                                        menu.AddSeparator("");
-//                                        menu.AddItem(new GUIContent("Copy ID"), false, (obj) =>
-//                                        {
-//                                            GUIUtility.systemCopyBuffer = current.Id;
-//                                        }, current);
-//                                        menu.ShowAsContext();
-//                                        break;
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
             }
         }
 
