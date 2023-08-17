@@ -33,30 +33,15 @@ namespace Treasured.UnitySdk
         }
         #endregion
 
-        /// <summary>
-        /// Snap the hotspot to ground if it hits collider.
-        /// </summary>
-        internal void SnapToGround()
+        private void OnEnable()
         {
-            // Temporarily disable self colliders
-            var colliders = GetComponents<Collider>();
-            Queue<bool> queue = new Queue<bool>();
-            foreach (var collider in colliders)
+            // add default action group for onSelect event
+            actionGraph.AddActionGroup("onSelect");
+            if (_camera == null)
             {
-                queue.Enqueue(collider.enabled);
-                collider.enabled = false;
-            }
-            if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit hit))
-            {
-                transform.position = hit.point + new Vector3(0, 0.01f, 0);
-                if (TryGetComponent<BoxCollider>(out var collider))
-                {
-                    collider.center = new Vector3(0, collider.size.y / 2, 0);
-                }
-            }
-            foreach (var collider in colliders)
-            {
-                collider.enabled = queue.Dequeue();
+                _camera = gameObject.FindOrCreateChild<HotspotCamera>("Camera");
+                _camera.transform.localPosition = Hitbox.transform.localPosition;
+                _camera.transform.localRotation = Quaternion.Euler(Hitbox.transform.localEulerAngles);
             }
         }
 
@@ -69,12 +54,12 @@ namespace Treasured.UnitySdk
             get
             {
                 var targets = new List<TreasuredObject>();
-                TreasuredMap map = GetComponentInParent<TreasuredMap>();
-                if (!map || !Camera)
+                TreasuredScene scene = GetComponentInParent<TreasuredScene>();
+                if (!scene || !Camera)
                 {
                     return new List<TreasuredObject>();
                 }
-                var objects = map.GetComponentsInChildren<TreasuredObject>();
+                var objects = scene.GetComponentsInChildren<TreasuredObject>();
                 foreach (var obj in objects)
                 {
                     if (obj.Id.Equals(this.Id) || obj.Hitbox == null)
@@ -90,6 +75,14 @@ namespace Treasured.UnitySdk
             }
         }
 
+        private void OnDrawGizmos()
+        {
+            if (Hitbox)
+            {
+                Gizmos.DrawIcon(Hitbox.transform.position, "Packages/com.treasured.unitysdk/Resources/Hotspot.png", true);
+            }
+        }
+
         #region Editor GUI Functions
 #if UNITY_EDITOR
         void OnSelectedInHierarchy()
@@ -100,11 +93,6 @@ namespace Treasured.UnitySdk
                 _camera.transform.localPosition = Hitbox.transform.localPosition;
                 _camera.transform.localRotation = Quaternion.Euler(Hitbox.transform.localEulerAngles);
             }
-        }
-
-        void OnSceneViewFocus()
-        {
-            Camera?.Preview();
         }
 #endif
         #endregion

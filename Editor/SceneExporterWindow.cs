@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Treasured.UnitySdk.Validation;
@@ -28,17 +28,17 @@ namespace Treasured.UnitySdk
             public ValidationResult validationResult;
         }
 
-        public TreasuredMap map;
+        public TreasuredScene scene;
         public List<ListItem> results = new List<ListItem>();
 
         private ValidationResult.ValidationResultType _type = ValidationResult.ValidationResultType.Warning | ValidationResult.ValidationResultType.Error | ValidationResult.ValidationResultType.Info;
         private Vector2 _scrollPosition;
         private bool hasError = false;
 
-        public static void Show(TreasuredMap map, ValidationException e)
+        public static void Show(TreasuredScene scene, ValidationException e)
         {
             var window = EditorWindow.GetWindow<SceneExporterWindow>(true, "Scene Exporter", true);
-            window.map = map;
+            window.scene = scene;
             window.results = e.results.Select(result => new ListItem() { validationResult = result}).OrderBy(x => x.validationResult.priority).ToList();
             Styles.tabs[0].text = $"({e.infos.Count})";
             Styles.tabs[1].text = $"({e.warnings.Count})";
@@ -83,7 +83,7 @@ namespace Treasured.UnitySdk
                 GUILayout.FlexibleSpace();
                 if (GUILayout.Button(hasError ? "Force Export" : "Export"))
                 {
-                    Exporter.ForceExport(map);
+                    Exporter.ForceExport(scene);
                     this.Close();
                 }
             }
@@ -128,7 +128,7 @@ namespace Treasured.UnitySdk
                 EditorGUILayout.EndFoldoutHeaderGroup();
             }
         }
-
+        
         private MessageType GetMessageType(ValidationResult.ValidationResultType validationResultType)
         {
             switch (validationResultType)

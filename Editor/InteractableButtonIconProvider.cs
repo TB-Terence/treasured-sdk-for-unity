@@ -73,9 +73,9 @@ namespace Treasured.UnitySdk
 
         static void OnHierarchyWindowItemOnGUI(int instanceID, Rect selectionRect)
         {
-            if (EditorUtility.InstanceIDToObject(instanceID) is GameObject go && go.TryGetComponent<TreasuredObject>(out var to) && to.button != null && !to.button.asset.IsNullOrNone() && !to.button.asset.icon.IsNullOrNone())
+            if (EditorUtility.InstanceIDToObject(instanceID) is GameObject go && go.TryGetComponent<TreasuredObject>(out var to) && to.icon != null && !to.icon.asset.IsNullOrNone() && !to.icon.asset.icon.IsNullOrNone())
             {
-                EditorGUI.LabelField(new Rect(selectionRect.xMax - EditorGUIUtility.singleLineHeight, selectionRect.y, EditorGUIUtility.singleLineHeight, EditorGUIUtility.singleLineHeight), new GUIContent(to.button.asset.icon));
+                EditorGUI.LabelField(new Rect(selectionRect.xMax - EditorGUIUtility.singleLineHeight, selectionRect.y, EditorGUIUtility.singleLineHeight, EditorGUIUtility.singleLineHeight), new GUIContent(to.icon.asset.icon));
             }
         }
 

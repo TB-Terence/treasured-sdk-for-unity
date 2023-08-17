@@ -1,4 +1,5 @@
 using System.IO;
+using Treasured.UnitySdk.Utilities;
 using UnityEditor;
 using UnityEngine;
 
@@ -33,34 +34,9 @@ namespace Treasured.UnitySdk
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
-
             SerializedProperty lockAspectRatio = serializedObject.FindProperty("_lockAspectRatio");
             SerializedProperty aspectRatio = serializedObject.FindProperty("_aspectRatio");
-            SerializedProperty src = serializedObject.FindProperty(nameof(VideoRenderer.src));
-            SerializedProperty volume = serializedObject.FindProperty(nameof(VideoRenderer.volume));
-            SerializedProperty loop = serializedObject.FindProperty(nameof(VideoRenderer.loop));
-            SerializedProperty autoPlay = serializedObject.FindProperty(nameof(VideoRenderer.autoplay));
-            SerializedProperty videoClip = serializedObject.FindProperty(nameof(VideoRenderer.VideoClip));
-            SerializedProperty onClick = serializedObject.FindProperty(nameof(VideoRenderer.onClick));
-            
-            var videoRenderer = (VideoRenderer)target;
-
-            EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(videoClip);
-            if (EditorGUI.EndChangeCheck())
-            {
-                src.stringValue = !videoClip.objectReferenceValue.IsNullOrNone()
-                    ? "videos/" + Path.GetFileName(AssetDatabase.GetAssetPath(videoClip.objectReferenceValue))
-                    : string.Empty;
-                
-                src.serializedObject.ApplyModifiedProperties();
-                src.serializedObject.Update();
-            }
-
-            using (new EditorGUI.DisabledScope(!videoRenderer.VideoClip.IsNullOrNone()))
-            {
-                EditorGUILayout.PropertyField(src);
-            }
+            SerializedProperty videoContent = serializedObject.FindProperty(nameof(VideoRenderer.videoInfo));
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(lockAspectRatio);
@@ -79,15 +55,13 @@ namespace Treasured.UnitySdk
                 if (EditorGUI.EndChangeCheck())
                 {
                     aspectRatio.stringValue = ASPECT_RATIO_OPTIONS[newIndex];
-                    serializedObject.ApplyModifiedProperties();
                     ScaleByRatio();
                 }
             }
-            EditorGUILayout.PropertyField(volume);
-            EditorGUILayout.PropertyField(loop);
-            EditorGUILayout.PropertyField(autoPlay);
-            EditorGUILayout.PropertyField(onClick);
 
+            serializedObject.ApplyModifiedProperties();
+            serializedObject.Update();
+            EditorGUILayout.PropertyField(videoContent);
             serializedObject.ApplyModifiedProperties();
         }
 

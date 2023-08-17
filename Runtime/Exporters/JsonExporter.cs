@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Treasured.UnitySdk.Validation;
+using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
@@ -14,8 +15,10 @@ namespace Treasured.UnitySdk
             CheckAdditionalContent = true
         };
 
+        internal static string SchemaVersion = "v1";
+
         public Newtonsoft.Json.Formatting formatting = Formatting.Indented;
-        
+
         [UnityEngine.ContextMenu("Reset")]
         private void Reset()
         {
@@ -25,14 +28,14 @@ namespace Treasured.UnitySdk
 
         public override void Export()
         {
-            string jsonPath = Path.Combine(Map.exportSettings.OutputDirectory, "data.json");
-            string json = JsonConvert.SerializeObject(Map, formatting, JsonSettings);
+            string jsonPath = Path.Combine(Scene.exportSettings.OutputDirectory, "data.json");
+            string json = JsonConvert.SerializeObject(Scene, formatting, JsonSettings);
             File.WriteAllText(jsonPath, json);
         }
 
         public override List<ValidationResult> CanExport()
         {
-            TreasuredSceneValidator validator = new TreasuredSceneValidator(Map);
+            TreasuredSceneValidator validator = new TreasuredSceneValidator(Scene);
             return validator.GetValidationResults();
         }
     }

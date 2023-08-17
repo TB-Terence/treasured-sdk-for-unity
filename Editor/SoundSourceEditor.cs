@@ -15,18 +15,10 @@ namespace Treasured.UnitySdk
         {
             serializedObject.Update();
 
-            SerializedProperty id = serializedObject.FindProperty("_id");
-            SerializedProperty src = serializedObject.FindProperty("Src");
-            SerializedProperty volume = serializedObject.FindProperty("Volume");
-            SerializedProperty loop = serializedObject.FindProperty("Loop");
-            SerializedProperty distance = serializedObject.FindProperty("Distance");
-            SerializedProperty onClick = serializedObject.FindProperty(nameof(SoundSource.onClick));
+            SerializedProperty auidoContent = serializedObject.FindProperty(nameof(SoundSource.audioInfo));
+            SerializedProperty distance = serializedObject.FindProperty("distance");
 
-            EditorGUILayout.PropertyField(id);
-            EditorGUILayout.PropertyField(src);
-            EditorGUILayout.PropertyField(volume);
-            EditorGUILayout.PropertyField(loop);
-
+            EditorGUILayout.PropertyField(auidoContent);
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(distance);
             if (EditorGUI.EndChangeCheck())
@@ -36,10 +28,9 @@ namespace Treasured.UnitySdk
                 if (hitBoxTransform)
                 {
                     hitBoxTransform.localScale =
-                        new Vector3(soundSource.Distance, soundSource.Distance, soundSource.Distance);
+                        new Vector3(soundSource.distance, soundSource.distance, soundSource.distance);
                 }
             }
-            EditorGUILayout.PropertyField(onClick);
 
             serializedObject.ApplyModifiedProperties();
         }

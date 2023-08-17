@@ -1,29 +1,31 @@
-﻿using UnityEditor;
+﻿using System.Collections.Generic;
+using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
     [CustomEditor(typeof(Interactable))]
     [CanEditMultipleObjects]
-    internal class InteractableEditor : UnityEditor.Editor
+    [ComponentCard("Interactable", "Interactables are used to allow the user to click to interact with the scene in the browser.", "", "https://www.notion.so/treasured/Interactables-b34a557d38fa41af94062bfd6bd48fc3")]
+    internal class InteractableEditor : TreasuredObjectEditor
     {
-        private ActionGroupListDrawer onClickActionGroupDrawer;
         private SerializedProperty button;
         private SerializedProperty hitbox;
-        private SerializedProperty onClick;
+        private SerializedProperty actionGraph;
 
-        private TreasuredMap map;
         private SerializedObject serializedHitboxTransform;
+        private Interactable interactable;
 
-        private void OnEnable()
+        protected override void OnEnable()
         {
-            map = (target as Interactable).Map;
-            (target as Interactable).TryInvokeMethods("OnSelectedInHierarchy");
-            button = serializedObject.FindProperty(nameof(TreasuredObject.button));
+            base.OnEnable();
+            interactable = target as Interactable;
+            interactable.TryInvokeMethods("OnSelectedInHierarchy");
+            button = serializedObject.FindProperty(nameof(TreasuredObject.icon));
             hitbox = serializedObject.FindProperty("_hitbox");
             serializedHitboxTransform = new SerializedObject((target as Interactable).Hitbox.transform);
-            onClickActionGroupDrawer = new ActionGroupListDrawer(serializedObject, serializedObject.FindProperty("_onClick"));
-            onClick = serializedObject.FindProperty("onClick");
+            actionGraph = serializedObject.FindProperty(nameof(TreasuredObject.actionGraph));
             SceneView.duringSceneGui -= OnSceneViewGUI;
             SceneView.duringSceneGui += OnSceneViewGUI;
         }
@@ -35,37 +37,37 @@ namespace Treasured.UnitySdk
 
         public override void OnInspectorGUI()
         {
-            if (map == null)
-            {
-                EditorGUILayout.LabelField(HotspotEditor.Styles.missingMapComponent);
-                return;
-            }
+            base.OnInspectorGUI();
             serializedObject.Update();
+            EditorGUILayoutUtils.HitboxField(interactable.Hitbox, true, true, true);
             EditorGUILayout.PropertyField(button);
-            EditorGUILayoutUtils.ComponentTransformPropertyField(hitbox, serializedHitboxTransform, "Hitbox");
             if (targets.Length == 1)
             {
-                bool showDeprecatedActions = SessionState.GetBool(SessionKeys.ShowDeprecatedActions, false);
-                SessionState.SetBool(SessionKeys.ShowDeprecatedActions, EditorGUILayout.ToggleLeft("Show Deprecated Actions", showDeprecatedActions));
-                if(showDeprecatedActions)
+                EditorGUI.BeginChangeCheck();
+                bool isExpanded = EditorGUILayout.BeginFoldoutHeaderGroup(SessionState.GetBool(SessionKeys.ShowActionList, true), "Action Graph");
+                if (EditorGUI.EndChangeCheck())
                 {
-                    onClickActionGroupDrawer.OnGUI(true);
+                    SessionState.SetBool(SessionKeys.ShowActionList, isExpanded);
                 }
-                EditorGUILayout.PropertyField(onClick);
+                if (isExpanded)
+                {
+                    EditorGUILayout.PropertyField(actionGraph);
+                }
             }
             else
             {
-                EditorGUILayout.HelpBox($"Multi-Editing for Actions is disabled.", MessageType.None);
+                EditorGUILayout.HelpBox($"Multi-Editing for Action is disabled.", MessageType.None);
             }
             serializedObject.ApplyModifiedProperties();
         }
 
         private void OnSceneViewGUI(SceneView view)
         {
+            return;
             if (target is Interactable interactable && interactable.Hitbox != null)
             {
                 Matrix4x4 matrix = Handles.matrix;
-                foreach (var obj in map.GetComponentsInChildren<TreasuredObject>())
+                foreach (var obj in scene.GetComponentsInChildren<TreasuredObject>())
                 {
                     if (obj == target)
                     {

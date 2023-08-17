@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -47,7 +48,7 @@ namespace Treasured.UnitySdk
         public override List<ValidationResult> CanExport()
         {
             var result = base.CanExport();
-            if (Map.Hotspots == null || Map.Hotspots.Length == 0)
+            if (Scene.Hotspots == null || Scene.Hotspots.Length == 0)
             {
                 result.Add(new ValidationResult() { name = "No active hotspot(s)", description = "No active hotspot(s) found under this map object.", type = ValidationResult.ValidationResultType.Error, priority = -1 });
             }
@@ -60,31 +61,24 @@ namespace Treasured.UnitySdk
 
         public override void Export()
         {
-            var imageQualities = Enum.GetValues(typeof(ImageQuality)).Cast<ImageQuality>();
-
-            //  Overriding export settings for Production export
-            if (Map.exportSettings.ExportType == ExportType.ProductionExport)
+            if (Scene.exportSettings.ExportType == ExportType.Production || !exportAllQualities)
             {
                 ExportCubemap(ImageQuality.High);
-                return;
             }
-            
-            if (exportAllQualities)
+            else
             {
+                // export all qualities
+                var imageQualities = Enum.GetValues(typeof(ImageQuality)).Cast<ImageQuality>();
                 foreach (var quality in imageQualities)
                 {
                     ExportCubemap(quality);
                 }
             }
-            else
-            {
-                ExportCubemap(imageQuality);
-            }
         }
 
         private void ExportCubemap(ImageQuality imageQuality)
         {
-            var hotspots = ValidateHotspots(Map);
+            var hotspots = ValidateHotspots(Scene);
             var camera = ValidateCamera(); // use default camera settings to render 360 images
 
             #region Get camera settings
@@ -94,9 +88,11 @@ namespace Treasured.UnitySdk
             #endregion
 
             int count = hotspots.Length;
-            
+
             Cubemap cubemap = new Cubemap(_useCustomWidth ? _customCubemapWidth : (int)imageQuality, TextureFormat.ARGB32, false);
             Texture2D texture = null;
+            Texture2D thumbnailTexture = new Texture2D(1920, 1080, TextureFormat.ARGB32, false);
+
             switch (cubemapFormat)
             {
                 case CubemapFormat._3x2:
@@ -109,6 +105,13 @@ namespace Treasured.UnitySdk
             //  If imageFormat is KTX2 then export images as png and then later convert them to KTX2 format  
             ImageFormat imageFormatParser = imageFormat == ImageFormat.Ktx2 ? ImageFormat.PNG : imageFormat;
 
+            if (Scene.thumbnail.type == ThumbnailType.FromCurrentView)
+            {
+#if UNITY_EDITOR
+                ScreenShot(thumbnailTexture, UnityEditor.SceneView.lastActiveSceneView.camera);
+#endif
+            }
+
             try
             {
                 for (int index = 0; index < count; index++)
@@ -117,13 +120,19 @@ namespace Treasured.UnitySdk
                     string progressTitle = $"Capturing Hotspots";
                     string progressText = $"{current.name}";
 
+                    if (Scene.thumbnail.type == ThumbnailType.FromHotspot && Scene.thumbnail.hotspot == current)
+                    {
+                        Camera.main.transform.SetPositionAndRotation(current.Camera.transform.position, current.Camera.transform.rotation);
+                        ScreenShot(thumbnailTexture, camera);
+                    }
+
                     camera.transform.SetPositionAndRotation(current.Camera.transform.position, Quaternion.identity);
 
                     if (!camera.RenderToCubemap(cubemap))
                     {
                         throw new System.NotSupportedException("Current graphic device/platform does not support RenderToCubemap.");
                     }
-                    var path = Directory.CreateDirectory(Path.Combine(Map.exportSettings.OutputDirectory, "images", exportAllQualities ? imageQuality.ToString().ToLower() : "", current.Id).ToOSSpecificPath());
+                    var path = Directory.CreateDirectory(Path.Combine(Scene.exportSettings.OutputDirectory, "images", exportAllQualities ? imageQuality.ToString().ToLower() : "", current.Id).ToOSSpecificPath());
                     switch (cubemapFormat)
                     {
                         case CubemapFormat._3x2:
@@ -183,10 +192,21 @@ namespace Treasured.UnitySdk
             }
         }
 
-
-        private Hotspot[] ValidateHotspots(TreasuredMap map)
+        void ScreenShot(Texture2D texture, Camera camera)
         {
-            var hotspots = map.Hotspots;
+            RenderTexture rt = new RenderTexture(texture.width, texture.height, 24);
+            camera.targetTexture = rt;
+            camera.Render();
+            RenderTexture.active = rt;
+            texture.ReadPixels(new Rect(0, 0, texture.width, texture.height), 0, 0);
+            camera.targetTexture = null;
+            RenderTexture.active = null;
+            ImageUtilies.Encode(texture, Scene.exportSettings.OutputDirectory, "thumbnail", ImageFormat.WEBP);
+        }
+
+        private Hotspot[] ValidateHotspots(TreasuredScene scene)
+        {
+            var hotspots = scene.Hotspots;
             if (hotspots == null || hotspots.Length == 0)
             {
                 throw new InvalidOperationException("No active hotspots.");
@@ -264,17 +284,18 @@ namespace Treasured.UnitySdk
                 this.fieldInfo = component.GetType().GetField(FieldName);
                 this.initialValue = ((VolumeParameter<T>)fieldInfo.GetValue(component)).value;
                 ((VolumeParameter<T>)fieldInfo.GetValue(component)).value = (T)OverwriteValue;
-                Debug.LogError($"Overwriting {FieldName} on {this.component.name} from {this.initialValue} to {this.OverwriteValue}");
+                //Debug.LogError($"Overwriting {FieldName} on {this.component.name} from {this.initialValue} to {this.OverwriteValue}");
             }
 
             public void Revert()
             {
                 if (!Enabled || component == null || fieldInfo == null) return;
                 ((VolumeParameter<T>)fieldInfo.GetValue(component)).value = this.initialValue;
-                Debug.LogError($"Reverting {FieldName} on {this.component.name} from {this.OverwriteValue} to {this.initialValue}");
+                //Debug.LogError($"Reverting {FieldName} on {this.component.name} from {this.OverwriteValue} to {this.initialValue}");
             }
         }
 
+        [JsonIgnore]
         public Dictionary<Type, IList<IOverwritableParameter>> OverwritableComponents = new Dictionary<Type, IList<IOverwritableParameter>>()
         {
             {
@@ -292,49 +313,49 @@ namespace Treasured.UnitySdk
                     new OverwritableParameter<float>("intensity", 0),
                 }
             },
-            { 
+            {
                 typeof(UnityEngine.Rendering.HighDefinition.AmbientOcclusion), new IOverwritableParameter[]
                 {
                     new OverwritableParameter<float>("intensity", 0)
-                } 
+                }
             }
             ,
-            { 
+            {
                 typeof(UnityEngine.Rendering.HighDefinition.Bloom), new IOverwritableParameter[]
                 {
                     new OverwritableParameter<float>("intensity", 0)
-                } 
+                }
             },
-            { 
+            {
                 typeof(UnityEngine.Rendering.HighDefinition.MotionBlur), new IOverwritableParameter[]
                 {
                     new OverwritableParameter<float>("intensity", 0)
-                } 
+                }
             },
-            { 
+            {
                 typeof(UnityEngine.Rendering.HighDefinition.FilmGrain), new IOverwritableParameter[]
                 {
                     new OverwritableParameter<float>("intensity", 0)
-                } 
+                }
             },
-            { 
+            {
                 typeof(UnityEngine.Rendering.HighDefinition.ChromaticAberration), new IOverwritableParameter[]
                 {
                     new OverwritableParameter<float>("intensity", 0)
-                } 
+                }
             },
-            { 
+            {
                 typeof(UnityEngine.Rendering.HighDefinition.DepthOfField), new IOverwritableParameter[]
                 {
                     new OverwritableParameter<float>(nameof(UnityEngine.Rendering.HighDefinition.DepthOfField.farMaxBlur), 0),
                     new OverwritableParameter<float>(nameof(UnityEngine.Rendering.HighDefinition.DepthOfField.nearMaxBlur), 0)
-                } 
+                }
             }
         };
 
         public override void OnPreExport()
         {
-            string path = Path.Combine(Map.exportSettings.OutputDirectory, "images");
+            string path = Path.Combine(Scene.exportSettings.OutputDirectory, "images");
             if (Directory.Exists(path))
                 Directory.Delete(path, true);
             flipY = true;
@@ -370,7 +391,7 @@ namespace Treasured.UnitySdk
 
         public override void OnPostExport()
         {
-            if(_cameraData)
+            if (_cameraData)
             {
                 _cameraData.antialiasing = _antiAliasing;
                 _cameraData.SMAAQuality = _SMAAQuality;

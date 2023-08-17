@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
@@ -6,7 +7,21 @@ namespace Treasured.UnitySdk
     [API("sleep")]
     public class SleepAction : ScriptableAction
     {
-        [Min(1)]
-        public int duration = 1000;
+        [Tooltip("Duration in seconds")]
+        [Min(0)]
+        [JsonIgnore]
+        public float duration = 1;
+
+        /// <summary>
+        /// Duration in milliseconds
+        /// </summary>
+        [JsonProperty]
+        public float Duration
+        {
+            get
+            {
+                return duration * 1000;
+            }
+        }
     }
 }

@@ -12,6 +12,7 @@ namespace Treasured.UnitySdk
     /// </summary>
     internal static class MenuItemRegister
     {
+        #region Tools
         [MenuItem("Tools/Treasured/Upgrade Treasured CLI", priority = 99)]
         static void UpgradeTreasuredCLI()
         {
@@ -100,16 +101,17 @@ namespace Treasured.UnitySdk
         {
             Client.Add("https://github.com/TB-Terence/treasured-sdk-for-unity.git#exp");
         }
+        #endregion
 
-        static bool IsTreasuredMapSelected()
+        static bool IsTreasuredSceneSelected()
         {
-            return Selection.activeGameObject?.GetComponentInParent<TreasuredMap>();
+            return Selection.activeGameObject?.GetComponentInParent<TreasuredScene>();
         }
 
         static void CreateNew<T>() where T : TreasuredObject
         {
-            TreasuredMap map = Selection.activeGameObject?.GetComponentInParent<TreasuredMap>();
-            map?.CreateObject<T>();
+            TreasuredScene scene = Selection.activeGameObject?.GetComponentInParent<TreasuredScene>();
+            scene?.CreateObject<T>();
         }
 
         [MenuItem("GameObject/Treasured/Sound Source", false, 49)]
@@ -121,7 +123,7 @@ namespace Treasured.UnitySdk
         [MenuItem("GameObject/Treasured/Sound Source", true, 49)]
         static bool CanCreateSoundSource()
         {
-            return IsTreasuredMapSelected();
+            return IsTreasuredSceneSelected();
         }
 
         [MenuItem("GameObject/Treasured/Hotspot", false, 49)]
@@ -133,7 +135,7 @@ namespace Treasured.UnitySdk
         [MenuItem("GameObject/Treasured/Hotspot", true, 49)]
         static bool CanCreateHotspot()
         {
-            return IsTreasuredMapSelected();
+            return IsTreasuredSceneSelected();
         }
 
         [MenuItem("GameObject/Treasured/Interactable", false, 49)]
@@ -145,7 +147,7 @@ namespace Treasured.UnitySdk
         [MenuItem("GameObject/Treasured/Interactable", true, 49)]
         static bool CanCreateInteractable()
         {
-            return IsTreasuredMapSelected();
+            return IsTreasuredSceneSelected();
         }
 
         [MenuItem("GameObject/Treasured/Video Renderer", false, 49)]
@@ -157,7 +159,7 @@ namespace Treasured.UnitySdk
         [MenuItem("GameObject/Treasured/Video Renderer", true, 49)]
         static bool CanCreateVideoRenderer()
         {
-            return IsTreasuredMapSelected();
+            return IsTreasuredSceneSelected();
         }
 
         [MenuItem("GameObject/Treasured/HTML Embed", false, 49)]
@@ -169,28 +171,28 @@ namespace Treasured.UnitySdk
         [MenuItem("GameObject/Treasured/HTML Embed", true, 49)]
         static bool CanCreateHTMLEmbed()
         {
-            return IsTreasuredMapSelected();
+            return IsTreasuredSceneSelected();
         }
 
-        [MenuItem("GameObject/Treasured/Empty Map", false, 49)]
-        static void CreateEmptyMap()
+        [MenuItem("GameObject/Treasured/Empty Scene", false, 49)]
+        static void CreateEmptyScene()
         {
-            GameObject map = new GameObject("Treasured Map", typeof(TreasuredMap));
+            GameObject map = new GameObject("Treasured Scene", typeof(TreasuredScene));
             if (Selection.activeGameObject)
             {
                 map.transform.SetParent(Selection.activeGameObject.transform);
             }
         }
 
-        [MenuItem("GameObject/Treasured/Empty Map", true, 49)]
-        static bool CanCreateEmptyMap()
+        [MenuItem("GameObject/Treasured/Empty Scene", true, 49)]
+        static bool CanCreateEmptyScene()
         {
             if (Selection.activeGameObject == null)
             {
                 return true;
             }
 
-            return !Selection.activeGameObject.GetComponentInParent<TreasuredMap>();
+            return !Selection.activeGameObject.GetComponentInParent<TreasuredScene>();
         }
     }
 }

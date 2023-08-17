@@ -1,19 +1,57 @@
-﻿using UnityEngine;
+﻿using Newtonsoft.Json;
+using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Treasured.UnitySdk
 {
     [AddComponentMenu("Treasured/Sound Source")]
     public class SoundSource : TreasuredObject
     {
+        [JsonIgnore]
         [Url]
-        public string Src;
+        [FormerlySerializedAs("Src")]
+        public string src;
 
+        [JsonIgnore]
         [Range(0, 100)]
-        public int Volume = 100;
+        [FormerlySerializedAs("Volume")]
+        public int volume = 100;
 
-        public bool Loop = true;
+        [JsonIgnore]
+        [FormerlySerializedAs("Loop")]
+        public bool loop = true;
 
+        public AudioInfo audioInfo;
+
+        [JsonProperty("src")]
+        string Src
+        {
+            get
+            {
+                return audioInfo.Path;
+            }
+        }
+
+        [JsonProperty("volume")]
+        int Volume
+        {
+            get
+            {
+                return audioInfo.volume;
+            }
+        }
+
+        [JsonProperty("loop")]
+        bool Loop
+        {
+            get
+            {
+                return audioInfo.loop;
+            }
+        }
+
+        [FormerlySerializedAs("Distance")]
         [Range(0, 100)]
-        public int Distance = 3;
+        public int distance = 3;
     }
 }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Treasured.UnitySdk.Validation;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Newtonsoft.Json;
 
 namespace Treasured.UnitySdk
@@ -14,14 +15,15 @@ namespace Treasured.UnitySdk
         /// <summary>
         /// Reference to the map object for the export process. Used internally.
         /// </summary>
+        [FormerlySerializedAs("_map")]
         [HideInInspector]
         [SerializeField]
-        private TreasuredMap _map;
+        private TreasuredScene _scene;
         [HideInInspector]
         public bool enabled = true;
 
         [JsonIgnore]
-        public TreasuredMap Map { get => _map; }
+        public TreasuredScene Scene { get => _scene; set => _scene = value; }
 
         public virtual List<ValidationResult> CanExport()
         {
@@ -37,12 +39,12 @@ namespace Treasured.UnitySdk
 
         public virtual DirectoryInfo CreateExportDirectoryInfo()
         {
-            return Directory.CreateDirectory(Path.Combine(Map.exportSettings.OutputDirectory));
+            return Directory.CreateDirectory(Path.Combine(Scene.exportSettings.OutputDirectory));
         }
 
-        public static void Export(TreasuredMap map)
+        public static void Export(TreasuredScene scene)
         {
-            var fieldValues = ReflectionUtilities.GetSerializableFieldValuesOfType<Exporter>(map);
+            var fieldValues = ReflectionUtilities.GetSerializableFieldValuesOfType<Exporter>(scene);
             List<ValidationResult> validationResults = new List<ValidationResult>();
             foreach (var field in fieldValues)
             {
@@ -55,18 +57,18 @@ namespace Treasured.UnitySdk
             {
                 throw new ValidationException(validationResults);
             }
-            ForceExport(map);
+            ForceExport(scene);
         }
 
-        public static void ForceExport(TreasuredMap map)
+        public static void ForceExport(TreasuredScene scene)
         {
-            if (string.IsNullOrWhiteSpace(map.exportSettings.folderName))
+            if (string.IsNullOrWhiteSpace(scene.exportSettings.folderName))
             {
                 throw new ArgumentException($"Export Settings > Folder Name is empty.");
             }
-            var exporterPairs = ReflectionUtilities.GetSerializableFieldValuesOfType<Exporter>(map);
-            DataValidator.ValidateMap(map);
-            var exportPath = Path.Combine(map.exportSettings.OutputDirectory);
+            var exporterPairs = ReflectionUtilities.GetSerializableFieldValuesOfType<Exporter>(scene);
+            DataValidator.ValidateMap(scene);
+            var exportPath = scene.exportSettings.OutputDirectory;
             if (!Directory.Exists(exportPath))
             {
                 Directory.CreateDirectory(exportPath); // try create the directory if not exist.
@@ -92,21 +94,21 @@ namespace Treasured.UnitySdk
                 }
             }
 
-            if (map.cubemapExporter.enabled || map.meshExporter.enabled)
+            if (scene.cubemapExporter.enabled || scene.meshExporter.enabled)
             {
                 string argument;
 
-                if (map.exportSettings.optimizeScene
-                    || map.exportSettings.ExportType == ExportType.ProductionExport)
+                if (scene.exportSettings.optimizeScene
+                    || scene.exportSettings.ExportType == ExportType.Production)
                 {
                     argument =
-                        $"treasured optimize \"{map.exportSettings.OutputDirectory}\"";
+                        $"treasured optimize \"{scene.exportSettings.OutputDirectory}\"";
                 }
                 else
                 {
                     argument =
-                        $"treasured optimize \"{map.exportSettings.OutputDirectory}\" --skipGlb";
-                    UnityEngine.Debug.LogError("optimizing skip glb");
+                        $"treasured optimize \"{scene.exportSettings.OutputDirectory}\" --skipGlb";
+                    //UnityEngine.Debug.LogError("optimizing skip glb");
                 }
 
                 // Run `treasured optimize` to optimize the glb file
@@ -121,7 +123,7 @@ namespace Treasured.UnitySdk
                     while (!npmProcess.HasExited)
                     {
                         if (UnityEditor.EditorUtility.DisplayCancelableProgressBar("Finalizing Export",
-                            $"Please wait. Processing {map.exportSettings.folderName}...", 50 / 100f))
+                            $"Please wait. Processing {scene.exportSettings.folderName}...", 50 / 100f))
                         {
                             ProcessUtilities.KillProcess(npmProcess);
                             throw new OperationCanceledException();

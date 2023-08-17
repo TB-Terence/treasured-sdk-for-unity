@@ -11,5 +11,11 @@ namespace Treasured.UnitySdk
         public static readonly string CustomIconsFolder = "TreasuredSDK_CustomIconsFolderKey";
 
         public static readonly string ShowDeprecatedActions = "TreasuredSDK_ShowDeprecatedActions";
+
+        public static readonly string CLIProcessId = "TreasuredSDK_CLIProcessId";
+
+        // Treasured Object
+        public static readonly string CameraHeaderGroup = "TreasuredSDK_CameraHeaderGroup";
+        public static readonly string HitboxHeaderGroup = "TreasuredSDK_HitboxHeaderGroup";
     }
 }

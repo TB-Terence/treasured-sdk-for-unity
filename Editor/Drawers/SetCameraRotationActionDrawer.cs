@@ -22,16 +22,35 @@ namespace Treasured.UnitySdk
                 {
                     SceneView.lastActiveSceneView.LookAtDirect(SceneView.lastActiveSceneView.pivot, rotationProperty.quaternionValue);
                 }
-                float buttonWidth = position.width / 2;
-                if(GUI.Button(new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight * 2 + EditorGUIUtility.standardVerticalSpacing, buttonWidth, EditorGUIUtility.singleLineHeight), "Get Current Rotation"))
+                if (GUI.Button(new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight * 2 + EditorGUIUtility.standardVerticalSpacing, position.width, EditorGUIUtility.singleLineHeight), !RotationRecorder.IsRecording ? "Start Recording" : "Stop Recording"))
                 {
-                    rotationProperty.quaternionValue = SceneView.lastActiveSceneView.camera.transform.rotation;
+                    if (!RotationRecorder.IsRecording)
+                    {
+                        if(property.serializedObject.targetObject is Hotspot hotspot)
+                        {
+                            RotationRecorder.Start(hotspot.Camera.transform.position, rotationProperty.quaternionValue, (endRotation) =>
+                            {
+                                rotationProperty.quaternionValue = endRotation;
+                            });
+                        }
+                        else
+                        {
+                            TreasuredObject to = property.serializedObject.targetObject as TreasuredObject;
+                            if (to)
+                            {
+                                RotationRecorder.Start(to.transform.position, to.transform.rotation, (endRotation) =>
+                                {
+                                    rotationProperty.quaternionValue = endRotation;
+                                });
+                            }
+                        }
+                    }
+                    else
+                    {
+                        RotationRecorder.Stop();
+                    }
                 }
-                if (GUI.Button(new Rect(position.x + buttonWidth, position.y + EditorGUIUtility.singleLineHeight * 2 + EditorGUIUtility.standardVerticalSpacing, buttonWidth, EditorGUIUtility.singleLineHeight), "Set to Rotation"))
-                {
-                    SceneView.lastActiveSceneView.LookAt(SceneView.lastActiveSceneView.pivot, rotationProperty.quaternionValue);
-                }
-                speedProperty.floatValue = Mathf.Clamp(EditorGUI.FloatField(new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight * 3 + EditorGUIUtility.standardVerticalSpacing * 2, position.width, EditorGUIUtility.singleLineHeight), speedProperty.displayName, speedProperty.floatValue), 0, 10);
+                EditorGUI.PropertyField(new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight * 3 + EditorGUIUtility.standardVerticalSpacing * 2, position.width, EditorGUIUtility.singleLineHeight), speedProperty);
             }
             EditorGUI.EndProperty();
         }

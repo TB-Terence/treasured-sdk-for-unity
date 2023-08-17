@@ -13,7 +13,8 @@ namespace Treasured.UnitySdk
         [HideInInspector]
         [GUID]
         private string _id = Guid.NewGuid().ToString();
-        public string Id { get => _id; }
+        [JsonIgnore]
+        public string Id { internal set { _id = value; } get => _id; }
 
         [JsonIgnore]
         [HideInInspector]

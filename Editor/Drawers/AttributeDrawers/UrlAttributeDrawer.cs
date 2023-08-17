@@ -50,19 +50,19 @@ namespace Treasured.UnitySdk
             menu.ShowAsContext();
         }
 
-        [Button]
+        [Button("OpenInBrowser")]
         void OpenInBrowser(SerializedProperty serializedProperty)
         {
             Application.OpenURL(serializedProperty.stringValue);
         }
 
-        [Button]
+        [Button("Copy")]
         void Copy(SerializedProperty serializedProperty)
         {
             GUIUtility.systemCopyBuffer = serializedProperty.stringValue;
         }
 
-        [Button]
+        [Button("Paste")]
         void Paste(SerializedProperty serializedProperty)
         {
             serializedProperty.stringValue = GUIUtility.systemCopyBuffer;

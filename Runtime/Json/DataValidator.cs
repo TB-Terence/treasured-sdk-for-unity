@@ -6,9 +6,9 @@ namespace Treasured.UnitySdk
 {
     internal static class DataValidator
     {
-        public static void ValidateMap(TreasuredMap map)
+        public static void ValidateMap(TreasuredScene scene)
         {
-            var objects = map.GetComponentsInChildren<TreasuredObject>();
+            var objects = scene.GetComponentsInChildren<TreasuredObject>();
             FixDuplicateIds(objects);
         }
 

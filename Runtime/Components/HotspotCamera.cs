@@ -99,26 +99,22 @@ namespace Treasured.UnitySdk
             texture.SetPixels32(flippedPixels.ToArray());
             texture.Apply();
         }
-        
-        public void Preview()
-        {
-#if UNITY_EDITOR
-            UnityEditor.SceneView.lastActiveSceneView.LookAt(transform.position, transform.rotation, 0.01f);
-#endif
-        }
 
-#if UNITY_EDITOR
-        void OnDrawGizmosSelected()
+        void OnDrawGizmos()
         {
             Color tempColor = Gizmos.color;
             Matrix4x4 tempMatrix = Gizmos.matrix;
+
+            Gizmos.color = Color.white;
+            Gizmos.DrawLine(this.transform.GetComponentInParent<Hotspot>().transform.position, this.transform.position);
+
             Gizmos.matrix = Matrix4x4.TRS(this.transform.position, this.transform.rotation, Vector3.one);
 
             Gizmos.color = TreasuredSDKPreferences.Instance.frustumColor;
             Gizmos.DrawFrustum(Vector3.zero, 25, 0, 0.5f, 3);
+
             Gizmos.color = tempColor;
             Gizmos.matrix = tempMatrix;
         }
-#endif
     }
 }

@@ -6,8 +6,49 @@ namespace Treasured.UnitySdk.Utilities
 {
     internal sealed class EditorGUIUtils
     {
+        public static readonly string[] ExcludingProperties = new string[] { "m_Script" };
+
+        /// <summary>
+        /// Draw properties excluding the ones defined in <see cref="ExcludingProperties"/>
+        /// </summary>
+        /// <param name="serializedObject"></param>
+        public static void DrawProperties(SerializedObject serializedObject)
+        {
+            serializedObject.Update();
+            DrawPropertiesExcluding(serializedObject, ExcludingProperties);
+            serializedObject.ApplyModifiedProperties();
+        }
+
+        public static void DrawPropertyWithoutFoldout(SerializedProperty serializedProperty)
+        {
+            SerializedProperty iterator = serializedProperty.Copy();
+            iterator.serializedObject.Update();
+            SerializedProperty endProperty = serializedProperty.GetEndProperty();
+            bool enterChildren = true;
+            using (new EditorGUILayout.VerticalScope())
+            {
+                while (iterator.NextVisible(enterChildren))
+                {
+                    if (endProperty != null && iterator.propertyPath == endProperty.propertyPath)
+                    {
+                        break;
+                    }
+                    enterChildren = false;
+                    if (!ExcludingProperties.Contains(iterator.name))
+                    {
+                        EditorGUILayout.PropertyField(iterator, true);
+                        if (GUI.changed)
+                        {
+                            iterator.serializedObject.ApplyModifiedProperties();
+                        }
+                    }
+                }
+            }
+        }
+
         public static void DrawPropertiesExcluding(SerializedObject serializedObject, params string[] propertyToExclude)
         {
+            serializedObject.Update();
             SerializedProperty iterator = serializedObject.GetIterator();
             bool enterChildren = true;
             while (iterator.NextVisible(enterChildren))
@@ -18,6 +59,7 @@ namespace Treasured.UnitySdk.Utilities
                     EditorGUILayout.PropertyField(iterator, true);
                 }
             }
+            serializedObject.ApplyModifiedProperties();
         }
 
         public static float DrawPropertiesExcluding(Rect rect, SerializedObject serializedObject, params string[] propertyToExclude)

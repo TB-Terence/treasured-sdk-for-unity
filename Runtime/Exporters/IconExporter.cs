@@ -21,19 +21,19 @@ namespace Treasured.UnitySdk
         {
             HashSet<string> iconNames = new HashSet<string>();
             string iconDirectory = CreateExportDirectoryInfo().FullName;
-            foreach (var obj in Map.GetComponentsInChildren<TreasuredObject>())
+            foreach (var obj in Scene.GetComponentsInChildren<TreasuredObject>())
             {
-                if (obj.button == null || obj.button.asset == null || string.IsNullOrWhiteSpace(obj.button.asset.svg))
+                if (obj.icon == null || obj.icon.asset == null || string.IsNullOrWhiteSpace(obj.icon.asset.svg))
                 {
                     continue;
                 }
                 // TODO : Validate XML file
-                if (iconNames.Contains(obj.button.asset.name))
+                if (iconNames.Contains(obj.icon.asset.name))
                 {
                     continue;
                 }
-                File.WriteAllText(Path.Combine(iconDirectory, $"{obj.button.asset.name}.svg").ToOSSpecificPath(), obj.button.asset.svg);
-                iconNames.Add(obj.button.asset.name);
+                File.WriteAllText(Path.Combine(iconDirectory, $"{obj.icon.asset.name}.svg").ToOSSpecificPath(), obj.icon.asset.svg);
+                iconNames.Add(obj.icon.asset.name);
             }
         }
     }

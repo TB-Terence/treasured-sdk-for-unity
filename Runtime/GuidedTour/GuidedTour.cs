@@ -14,8 +14,15 @@ namespace Treasured.UnitySdk
         public string title = "New Tour";
         [TextArea(3, 5)]
         public string description = "";
+        [TextArea(3, 5)]
         public string thumbnailUrl = "";
         [JsonProperty("code")]
-        public ScriptableActionCollection actionScripts;
+        [SerializeReference]
+        public ActionCollection actions = new ActionCollection();
+
+        //private void OnEnable()
+        //{
+        //    actionScripts = ScriptableObject.CreateInstance<ActionCollection>();
+        //}
     }
 }

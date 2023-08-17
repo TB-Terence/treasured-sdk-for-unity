@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using UnityEditor;
 using UnityEditorInternal;
@@ -15,7 +14,7 @@ namespace Treasured.UnitySdk
 
         private bool _enabledAll = false;
 
-        private TreasuredMapEditor.GroupToggleState _toggleState;
+        private TreasuredSceneEditor.GroupToggleState _toggleState;
 
         public ActionListDrawer(SerializedObject serializedObject, SerializedProperty elements, string header)
         {
@@ -31,8 +30,8 @@ namespace Treasured.UnitySdk
                     if (typeof(ScriptableAction).IsAssignableFrom(typeof(T))) // TODO: Remove this after migrate to GuidedTourV2
                     {
                         EditorGUI.BeginChangeCheck();
-                        EditorGUI.showMixedValue = _toggleState == TreasuredMapEditor.GroupToggleState.Mixed;
-                        _enabledAll = EditorGUI.ToggleLeft(new Rect(rect.x, rect.y, rect.xMax - 120, rect.height), new GUIContent(Header, $"{(_enabledAll ? "Disable" : "Enable")} all"), _enabledAll);
+                        EditorGUI.showMixedValue = _toggleState == TreasuredSceneEditor.GroupToggleState.Mixed;
+                        _enabledAll = EditorGUI.ToggleLeft(new Rect(rect.x, rect.y, rect.xMax - 190, rect.height), new GUIContent(Header, $"{(_enabledAll ? "Disable" : "Enable")} all"), _enabledAll);
                         if (EditorGUI.EndChangeCheck())
                         {
                             for (int i = 0; i < elements.arraySize; i++)
@@ -44,16 +43,6 @@ namespace Treasured.UnitySdk
                             UpdateToggleState(elements);
                         }
                         bool disabled = elements.arraySize == 0;
-                        //if (GUI.Button(new Rect(rect.xMax - 190, rect.y, 80, rect.height), new GUIContent("Expand All"), EditorStyles.boldLabel))
-                        //{
-                        //    ChangeExpandedState(true);
-                        //    reorderableList.DoLayoutList();
-                        //}
-                        //if (GUI.Button(new Rect(rect.xMax - 120, rect.y, 80, rect.height), new GUIContent("Collapse All"), EditorStyles.boldLabel))
-                        //{
-                        //    ChangeExpandedState(false);
-                        //    reorderableList.DoLayoutList();
-                        //}
                         using (new EditorGUI.DisabledGroupScope(disabled))
                         {
                             if (GUI.Button(new Rect(rect.xMax - 40, rect.y, 40, rect.height), new GUIContent("Clear", "Remove all actions"), disabled ? EditorStyles.boldLabel : DefaultStyles.ClearButton))
@@ -63,7 +52,6 @@ namespace Treasured.UnitySdk
                                 reorderableList.DoLayoutList(); // hacky way of resolving array index out of bounds error after clear.
                             }
                         }
-                        
                     }
                     else
                     {
@@ -73,75 +61,77 @@ namespace Treasured.UnitySdk
                 drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
                 {
                     SerializedProperty element = elements.GetArrayElementAtIndex(index);
-                    using (new EditorGUI.IndentLevelScope(1))
+                    element.serializedObject.Update();
+                    string name = element.managedReferenceFullTypename.Substring(element.managedReferenceFullTypename.LastIndexOf('.') + 1);
+                    if (name.EndsWith("Action") && name.Length > 6)
                     {
-                        string name = element.managedReferenceFullTypename.Substring(element.managedReferenceFullTypename.LastIndexOf('.') + 1);
-                        if (name.EndsWith("Action") && name.Length > 6)
+                        name = name.Substring(0, name.Length - 6);
+                    }
+                    if (name.Length > 1)
+                    {
+                        name = char.ToLower(name[0]) + name.Substring(1);
+                    }
+                    name = ObjectNames.NicifyVariableName(name);
+                    SerializedProperty targetProperty = element.FindPropertyRelative("target");
+                    if (targetProperty != null && targetProperty.propertyType == SerializedPropertyType.ObjectReference)
+                    {
+                        if (!targetProperty.objectReferenceValue.IsNullOrNone())
                         {
-                            name = name.Substring(0, name.Length - 6);
+                            name += $" ({targetProperty.objectReferenceValue.name})";;
                         }
-                        if (name.Length > 1)
+                        else
                         {
-                            name = char.ToLower(name[0]) + name.Substring(1);
+                            name += $" (Not selected)";
                         }
-                        name = ObjectNames.NicifyVariableName(name);
-                        SerializedProperty targetProperty = element.FindPropertyRelative("target");
-                        if (targetProperty != null && targetProperty.propertyType == SerializedPropertyType.ObjectReference)
+                        EditorGUILayoutUtils.CreateDropZone(rect, DragAndDropVisualMode.Link, (targets) =>
                         {
-                            if (!targetProperty.objectReferenceValue.IsNullOrNone())
+                            if (targets.Length > 0)
                             {
-                                name += $" ({targetProperty.objectReferenceValue.name})";;
-                            }
-                            else
-                            {
-                                name += $" (Not selected)";
-                            }
-                            EditorGUILayoutUtils.CreateDropZone(rect, DragAndDropVisualMode.Link, (targets) =>
-                            {
-                                if (targets.Length > 0)
+                                var target = targets[0];
+                                if (!target.IsNullOrNone())
                                 {
-                                    var target = targets[0];
-                                    if (!target.IsNullOrNone())
-                                    {
-                                        targetProperty.objectReferenceValue = target;
-                                        targetProperty.serializedObject.ApplyModifiedProperties();
-                                    }
+                                    targetProperty.objectReferenceValue = target;
+                                    targetProperty.serializedObject.ApplyModifiedProperties();
                                 }
-                            });
-                        }
-                        if (typeof(ScriptableAction).IsAssignableFrom(typeof(T))) // TODO: Remove this after migrate to GuidedTourV2
-                        {
-                            Rect buttonRect = new Rect(rect.x, rect.y, 25, EditorGUIUtility.singleLineHeight);
-                            SerializedProperty enabled = element.FindPropertyRelative("enabled");
-                            if(enabled != null)
-                            {
-                                EditorGUI.BeginChangeCheck();
-                                enabled.boolValue = EditorGUI.ToggleLeft(buttonRect, new GUIContent(name), enabled.boolValue);
-                                if (EditorGUI.EndChangeCheck())
-                                {
-                                    UpdateToggleState(elements);
-                                }
-                                EditorGUI.PropertyField(new Rect(rect.x + 25, rect.y, rect.width - 64, rect.height), element, new GUIContent(name), true);
                             }
-                            else
+                        });
+                    }
+                    if (typeof(ScriptableAction).IsAssignableFrom(typeof(T))) // TODO: Remove this after migrate to GuidedTourV2
+                    {
+                        Rect buttonRect = new Rect(rect.x, rect.y, 14, EditorGUIUtility.singleLineHeight);
+                        SerializedProperty enabled = element.FindPropertyRelative("enabled");
+                        if (enabled != null)
+                        {
+                            EditorGUI.BeginChangeCheck();
+                            enabled.boolValue = EditorGUI.ToggleLeft(buttonRect, GUIContent.none, enabled.boolValue);
+                            if (EditorGUI.EndChangeCheck())
                             {
-                                EditorGUI.LabelField(new Rect(rect.x + 25, rect.y, rect.width - 64, rect.height), "Unknown Type. You should remove this item.");
+                                UpdateToggleState(elements);
+                            }
+                            using(new EditorGUI.DisabledScope(!enabled.boolValue))
+                            {
+                                EditorGUI.PropertyField(new Rect(rect.x + 28, rect.y, rect.width - 64, rect.height), element, new GUIContent(name), true);
                             }
                         }
                         else
                         {
-                            EditorGUI.PropertyField(rect, element, new GUIContent(name), true);
-                        }
-                        if (GUI.Button(new Rect(rect.xMax - 40, rect.y, 20, EditorGUIUtility.singleLineHeight), EditorGUIUtility.TrIconContent("Toolbar Plus More", "Insert After"), EditorStyles.label))
-                        {
-                            ShowAddMenu();
-                        }
-                        if (GUI.Button(new Rect(rect.xMax - 20, rect.y, 20, EditorGUIUtility.singleLineHeight), EditorGUIUtility.TrIconContent("Toolbar Minus", "Remove"), EditorStyles.label))
-                        {
-                            elements.RemoveElementAtIndex(index);
-                            reorderableList.DoLayoutList();
+                            EditorGUI.LabelField(new Rect(rect.x + 28, rect.y, rect.width - 64, rect.height), "Unknown Type. You should remove this item.");
                         }
                     }
+                    else
+                    {
+                        EditorGUI.PropertyField(rect, element, new GUIContent(name), true);
+                    }
+                    if (GUI.Button(new Rect(rect.xMax - 40, rect.y, 20, EditorGUIUtility.singleLineHeight), EditorGUIUtility.TrIconContent("Toolbar Plus More", "Insert After"), EditorStyles.label))
+                    {
+                        ShowAddMenu();
+                    }
+                    if (GUI.Button(new Rect(rect.xMax - 20, rect.y, 20, EditorGUIUtility.singleLineHeight), EditorGUIUtility.TrIconContent("Toolbar Minus", "Remove"), EditorStyles.label))
+                    {
+                        elements.RemoveElementAtIndex(index);
+                        reorderableList.DoLayoutList();
+                    }
+                    element.serializedObject.ApplyModifiedProperties();
                 },
                 elementHeightCallback = (int index) =>
                 {
@@ -149,7 +139,7 @@ namespace Treasured.UnitySdk
                 },
                 onAddDropdownCallback = (Rect buttonRect, ReorderableList list) =>
                 {
-                    ShowAddMenu();
+                    ShowAddMenu(false);
                 },
                 onRemoveCallback = (ReorderableList list) =>
                 {
@@ -158,16 +148,7 @@ namespace Treasured.UnitySdk
             };
         }
 
-        private void ChangeExpandedState(bool expanded)
-        {
-            for (int i = 0; i < reorderableList.serializedProperty.arraySize; i++)
-            {
-                SerializedProperty element = reorderableList.serializedProperty.GetArrayElementAtIndex(i);
-                element.isExpanded = expanded;
-            }
-        }
-
-        private void ShowAddMenu()
+        private void ShowAddMenu(bool insertAfterCurrent = true)
         {
             var actionTypes = TypeCache.GetTypesDerivedFrom<T>().Where(x => !x.IsAbstract && !x.IsDefined(typeof(ObsoleteAttribute), true));
             GenericMenu menu = new GenericMenu();
@@ -177,9 +158,10 @@ namespace Treasured.UnitySdk
                 string nicfyName = GetNicifyActionName(type);
                 menu.AddItem(new GUIContent(attribute != null ? $"{attribute.Path}/{nicfyName}" : nicfyName), false, () =>
                 {
-                    SerializedProperty element = reorderableList.serializedProperty.InsertManagedObject(type, reorderableList.index);
-                    element.isExpanded = true;
+                    SerializedProperty element = reorderableList.serializedProperty.InsertManagedObject(type, insertAfterCurrent ? reorderableList.index : reorderableList.count);
+                    element.isExpanded = element.managedReferenceFullTypename.EndsWith("GroupAction") ? false : true;
                     element.serializedObject.ApplyModifiedProperties();
+                    reorderableList.index++;
                 });
                 CreateActionGroupAttribute[] linkedActionAttributes = (CreateActionGroupAttribute[])Attribute.GetCustomAttributes(type, typeof(CreateActionGroupAttribute));
                 if (linkedActionAttributes != null && linkedActionAttributes.Length > 0)
@@ -198,14 +180,15 @@ namespace Treasured.UnitySdk
                         }
                         menu.AddItem(new GUIContent(pathBuilder.ToString()), false, () =>
                         {
-                            int index = reorderableList.index;
-                            SerializedProperty element = reorderableList.serializedProperty.InsertManagedObject(type, index);
+                            int index = reorderableList.index == -1 ? -1 : insertAfterCurrent ? reorderableList.index : reorderableList.count;
+                            SerializedProperty element = reorderableList.serializedProperty.InsertManagedObject(type, index++);
                             foreach (var linkedType in linkedActionAttribute.Types)
                             {
-                                reorderableList.serializedProperty.InsertManagedObject(linkedType, ++index);
+                                reorderableList.serializedProperty.InsertManagedObject(linkedType, index++);
                             }
-                            element.isExpanded = true;
+                            element.isExpanded = element.managedReferenceFullTypename.EndsWith("GroupAction") ? false: true;
                             element.serializedObject.ApplyModifiedProperties();
+                            reorderableList.index = index > reorderableList.count - 1 ? reorderableList.count - 1 : index;
                         });
                     }
                 }
@@ -253,14 +236,15 @@ namespace Treasured.UnitySdk
             int enabledCount = enabled.Count(x => x == true);
             if (enabledCount == enabled.Length)
             {
-                _toggleState = TreasuredMapEditor.GroupToggleState.All;
+                _toggleState = TreasuredSceneEditor.GroupToggleState.All;
                 _enabledAll = true;
             }
             else
             {
-                _toggleState = enabledCount == 0 ? TreasuredMapEditor.GroupToggleState.None : TreasuredMapEditor.GroupToggleState.Mixed;
+                _toggleState = enabledCount == 0 ? TreasuredSceneEditor.GroupToggleState.None : TreasuredSceneEditor.GroupToggleState.Mixed;
                 _enabledAll = false;
             }
+            elements.serializedObject.ApplyModifiedProperties();
         }
     }
 }

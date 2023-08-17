@@ -77,17 +77,16 @@ namespace Treasured.UnitySdk
         public override void Export()
         {
             var meshToCombineDictionary = PrepareMeshForExport();
-
+            
             //  Combining meshes
-            CombineAllMeshes(meshToCombineDictionary.Values.ToList(), Map.transform);
+            CombineAllMeshes(meshToCombineDictionary.Values.ToList(), Scene.transform);
         }
 
-        public Dictionary<int, GameObject> PrepareMeshForExport()
+        public Dictionary<int,GameObject> PrepareMeshForExport()
         {
 #if UNITY_EDITOR
             EditorUtility.DisplayProgressBar("Preparing Mesh", "Processing all the meshes in progress..", 0.5f);
 #endif
-
             meshToCombineDictionary = new Dictionary<int, GameObject>();
 
             //  Find terrain from the scene
@@ -126,9 +125,7 @@ namespace Treasured.UnitySdk
                     throw new ApplicationException("Export Canceled by the user");
                 }
 #endif
-
                 currentIndex++;
-
                 //  If gameObject is disabled then skip adding it to export
                 if (!gameObject.activeInHierarchy)
                 {
@@ -231,7 +228,7 @@ namespace Treasured.UnitySdk
                 {
                     if (!meshToCombineDictionary.ContainsKey(transform.gameObject.GetInstanceID()))
                     {
-                        Debug.Log(transform.name, transform);
+                        //Debug.Log(transform.name, transform);
                         meshToCombineDictionary.Add(transform.gameObject.GetInstanceID(), transform.gameObject);
                     }
                 }
@@ -261,7 +258,7 @@ namespace Treasured.UnitySdk
                 {
                     if (!meshToCombineDictionary.ContainsKey(transform.gameObject.GetInstanceID()))
                     {
-                        Debug.Log(transform.name, transform);
+                        //Debug.Log(transform.name, transform);
                         meshToCombineDictionary.Add(transform.gameObject.GetInstanceID(), transform.gameObject);
                     }
                 }
@@ -389,9 +386,7 @@ namespace Treasured.UnitySdk
             meshRenderer.material =
                 new Material(Resources.Load("TreasuredDefaultMaterial", typeof(Material)) as Material);
             tempGameObject.gameObject.SetActive(true);
-            
-            CreateGLB(new[]{tempGameObject.transform});
-
+          
             CreateGLB(new[] { tempGameObject.transform });
 
             if (!keepCombinedMesh)
@@ -413,24 +408,22 @@ namespace Treasured.UnitySdk
             var exportOptions = new ExportOptions { TexturePathRetriever = RetrieveTexturePath };
             _gltfSceneExporter = new GLTFSceneExporter(export, exportOptions);
 
-            if (!string.IsNullOrEmpty(Map.exportSettings.OutputDirectory))
+            if (!string.IsNullOrEmpty(Scene.exportSettings.OutputDirectory))
             {
                 _gltfSceneExporter.GLBSaved += OnGLBSaved;
 
 #if UNITY_EDITOR
                 EditorUtility.DisplayProgressBar("Converting to Glb format", "Mesh Conversion in Progress..", 0.5f);
 #endif
-
-                _gltfSceneExporter.SaveGLB(Path.Combine(Map.exportSettings.OutputDirectory), "scene");
+                _gltfSceneExporter.SaveGLB(Path.Combine(Scene.exportSettings.OutputDirectory), "scene");
             }
         }
 
-        private async void OnGLBSaved()
+        private void OnGLBSaved()
         {
 #if UNITY_EDITOR
             EditorUtility.ClearProgressBar();
 #endif
-
             _gltfSceneExporter.GLBSaved -= OnGLBSaved;
         }
 

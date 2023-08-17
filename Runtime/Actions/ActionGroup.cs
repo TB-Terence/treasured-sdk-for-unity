@@ -10,6 +10,9 @@ namespace Treasured.UnitySdk
     [Serializable]
     public class ActionGroup : ScriptableObject
     {
+        [SerializeField]
+        private string _id = Guid.NewGuid().ToString();
+        public string Id { get { return _id; } }
         [SerializeReference]
         private List<Action> _actions = new List<Action>();
 

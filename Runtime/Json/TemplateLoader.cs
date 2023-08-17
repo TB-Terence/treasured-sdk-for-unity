@@ -8,12 +8,16 @@ namespace Treasured.UnitySdk
     {
         [RequiredField]
         [Preset("minimal", "simple", "standard", "modern")]
-        public string template;
-
-        [ShowIf("template", "modern")]
+        public string template = "minimal";
+        [ShowIf(nameof(ShowAutoCameraRotation))]
         public bool autoCameraRotation;
 
         [TextArea(3, 3)]
         public string imageUrl;
+
+        bool ShowAutoCameraRotation()
+        {
+            return !string.IsNullOrEmpty(template) && template.Equals("modern");
+        }
     }
 }

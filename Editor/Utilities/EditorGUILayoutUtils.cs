@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Treasured.UnitySdk.Utilities;
 using UnityEditor;
 using UnityEngine;
 
@@ -25,11 +26,31 @@ namespace Treasured.UnitySdk
             }
         }
 
-        static class Styles
+        public static class Styles
         {
             public static GUIStyle Link = new GUIStyle() { stretchWidth = false, normal = { textColor = new Color(0f, 0.47f, 0.85f) } };
             public static readonly GUIContent requiredField = EditorGUIUtility.TrIconContent("Error", "Required field");
+            public static readonly GUIContent findInSceneIcon = EditorGUIUtility.TrIconContent("d_Search Icon", "Find in Scene");
             public static readonly GUIContent transformLabel = new GUIContent("Transform");
+
+            public static readonly GUIStyle componentCardName = new GUIStyle(EditorStyles.boldLabel)
+            {
+                wordWrap = false,
+                fontSize = 18,
+                alignment = TextAnchor.MiddleLeft,
+                normal = { textColor = Color.white },
+                fixedHeight = 42
+            };
+            public static readonly GUIStyle componentCardDescription = new GUIStyle("label")
+            {
+                alignment = TextAnchor.UpperLeft,
+                wordWrap = true,
+                fontStyle = FontStyle.Italic
+            };
+            public static readonly GUIStyle componentCardBox = new GUIStyle("helpBox")
+            {
+                padding = new RectOffset(10, 10, 10, 10)
+            };
         }
 
         private static object transformRotationGUI;
@@ -131,36 +152,6 @@ namespace Treasured.UnitySdk
             return clicked;
         }
 
-        /// <summary>
-        /// Show Error icon if the field is missing.
-        /// </summary>
-        /// <param name="property"></param>
-        /// <returns>Return true if data is missing otherwise false.</returns>
-        public static bool RequiredPropertyField(SerializedProperty property)
-        {
-            bool missingData = false;
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                // TODO: possible turn this into Func<bool> with custom condition check
-                switch (property.propertyType)
-                {
-                    case SerializedPropertyType.String:
-                        missingData = string.IsNullOrWhiteSpace(property.stringValue);
-                        break;
-                }
-                // fixes TextArea indent
-                if (missingData)
-                {
-                    EditorGUILayout.PropertyField(property, EditorGUIUtility.TrTextContent(property.displayName, property.tooltip, "Error"));
-                }
-                else
-                {
-                    EditorGUILayout.PropertyField(property);
-                }
-            }
-            return missingData;
-        }
-
         public static void ComponentTransformPropertyField(SerializedProperty component, SerializedObject serializedTransform, string name, bool showPosition = true, bool showRotation = true, bool showScale = true)
         {
             if (serializedTransform == null)
@@ -178,6 +169,113 @@ namespace Treasured.UnitySdk
                 TransformPropertyFields(localPosition, localRotation, localScale, showPosition, showRotation, showScale);
             }
             serializedTransform.ApplyModifiedProperties();
+        }
+
+        public static void TransformPropertyField(GUIContent label, Transform transform)
+        {
+            EditorGUILayout.LabelField(label, EditorStyles.boldLabel);
+            using(new EditorGUI.IndentLevelScope(2))
+            {
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.PrefixLabel(new GUIContent("Position"));
+                transform.localPosition = EditorGUILayout.Vector3Field(GUIContent.none, transform.localPosition);
+                EditorGUILayout.EndHorizontal();
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.PrefixLabel(new GUIContent("Rotation"));
+                transform.localRotation = Quaternion.Euler(EditorGUILayout.Vector3Field(GUIContent.none, transform.localRotation.eulerAngles));
+                EditorGUILayout.EndHorizontal();
+                EditorGUILayout.BeginHorizontal();
+                EditorGUILayout.PrefixLabel(new GUIContent("Scale"));
+                transform.localScale = EditorGUILayout.Vector3Field(GUIContent.none, transform.localScale);
+                EditorGUILayout.EndHorizontal();
+            }
+        }
+
+        public static void CameraField(HotspotCamera camera)
+        {
+            bool isExpanded = SessionState.GetBool(SessionKeys.CameraHeaderGroup, true);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                isExpanded = EditorGUILayout.BeginFoldoutHeaderGroup(isExpanded, new GUIContent("Camera"));
+                if (GUILayout.Button(Styles.findInSceneIcon, EditorStyles.label, GUILayout.Width(20), GUILayout.Height(18)))
+                {
+                    EditorUtils.Focus(1, camera.transform);
+                }
+            }
+            if (isExpanded)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayoutUtils.TransformField(camera.transform, true, true, false);
+                if (GUILayout.Button($"{(RotationRecorder.IsRecording ? "Stop" : "Start")} Record Rotation"))
+                {
+                    if(!RotationRecorder.IsRecording)
+                    {
+                        RotationRecorder.Start(camera.transform.position, camera.transform.rotation, (endRotation) =>
+                        {
+                            camera.transform.rotation = endRotation;
+                        });
+                    }
+                    else
+                    {
+                        RotationRecorder.Stop();
+                    }
+                }
+                if (GUILayout.Button("Preview"))
+                {
+                    EditorUtils.PreviewCamera(camera);
+                }
+                EditorGUI.indentLevel--;
+            }
+            EditorGUILayout.EndFoldoutHeaderGroup();
+            SessionState.SetBool(SessionKeys.CameraHeaderGroup, isExpanded);
+        }
+
+        public static void HitboxField(Hitbox hitbox, bool showPosition = true, bool showRotation = true, bool showScale = true)
+        {
+            bool isExpanded = SessionState.GetBool(SessionKeys.HitboxHeaderGroup, true);
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                isExpanded = EditorGUILayout.BeginFoldoutHeaderGroup(isExpanded, new GUIContent("Hitbox"));
+                if (GUILayout.Button(Styles.findInSceneIcon, EditorStyles.label, GUILayout.Width(20), GUILayout.Height(18)))
+                {
+                    EditorUtils.Focus(1, hitbox.transform);
+                }
+            }
+            if (isExpanded)
+            {
+                EditorGUI.indentLevel++;
+                hitbox = (Hitbox)EditorGUILayout.ObjectField(new GUIContent("Hitbox"), hitbox, typeof(Hitbox), true);
+                EditorGUI.indentLevel++;
+                Undo.RecordObject(hitbox.transform, "Hitbox transform");
+                if (showPosition)
+                    hitbox.transform.localPosition = EditorGUILayout.Vector3Field(new GUIContent("Position"), hitbox.transform.localPosition);
+                if (showRotation)
+                    hitbox.transform.localEulerAngles = EditorGUILayout.Vector3Field(new GUIContent("Rotation"), hitbox.transform.localRotation.eulerAngles);
+                if (showScale)
+                    hitbox.transform.localScale = EditorGUILayout.Vector3Field(new GUIContent("Scale"), hitbox.transform.localScale);
+                if (GUILayout.Button("Snap to Ground"))
+                {
+                    hitbox.SnapToGround();
+                }
+                EditorGUI.indentLevel--;
+                EditorGUI.indentLevel--;
+            }
+            EditorGUILayout.EndFoldoutHeaderGroup();
+            SessionState.SetBool(SessionKeys.HitboxHeaderGroup, isExpanded);
+        }
+
+        public static void TransformField(Transform transform, bool showPosition = true, bool showRotation = true, bool showScale = true)
+        {
+            transform = (Transform)EditorGUILayout.ObjectField(new GUIContent("Transform"), transform, typeof(Hitbox), true);
+            Undo.RecordObject(transform, "Transform");
+            EditorGUI.indentLevel++;
+            if (showPosition)
+                transform.localPosition = EditorGUILayout.Vector3Field(new GUIContent("Position"), transform.localPosition);
+            if (showRotation)
+                transform.localEulerAngles = EditorGUILayout.Vector3Field(new GUIContent("Rotation"), transform.localRotation.eulerAngles);
+            if (showScale)
+                transform.localScale = EditorGUILayout.Vector3Field(new GUIContent("Scale"), transform.localScale);
+            EditorGUI.indentLevel--;
         }
 
         public static void TransformPropertyField(SerializedProperty serializedProperty, string name, bool showPosition = true, bool showRotation = true, bool showScale = true)
@@ -324,6 +422,98 @@ namespace Treasured.UnitySdk
                         serializedProperty.serializedObject.ApplyModifiedProperties();
                     }
                 }
+            }
+        }
+
+        public static void FolderField(ref string path, string label, string tooltip = "")
+        {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                var newPath = path;
+                using (new EditorGUI.DisabledGroupScope(true))
+                {
+                    newPath = EditorGUILayout.TextField(label, path);
+                }
+                if (GUILayout.Button(EditorGUIUtility.TrIconContent("FolderOpened On Icon", tooltip), EditorStyles.label, GUILayout.Width(20), GUILayout.Height(18)))
+                {
+                    newPath = EditorUtility.OpenFolderPanel(label, path, "");
+                    if (!string.IsNullOrEmpty(newPath))
+                    {
+                        path = newPath.Replace("\\", "/");
+                    }
+                }
+            }
+        }
+
+        public static void ComponentCard(Texture2D icon, string title, string description, string helpUrl = "")
+        {
+            using (new EditorGUILayout.VerticalScope(Styles.componentCardBox))
+            {
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    GUILayout.Label(icon, GUILayout.Width(42f), GUILayout.Height(42f));
+                    using (new EditorGUILayout.VerticalScope())
+                    {
+                        using (new EditorGUILayout.VerticalScope())
+                        {
+                            GUILayout.Label(title, Styles.componentCardName);
+                        }
+                        GUILayout.Label(description, Styles.componentCardDescription);
+                    }
+                }
+                if (!string.IsNullOrEmpty(helpUrl))
+                {
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        GUILayout.FlexibleSpace();
+                        if (GUILayout.Button("Learn More", EditorStyles.linkLabel))
+                        {
+                            EditorUtility.OpenWithDefaultApp(helpUrl);
+                        }
+                    }
+                }
+            }
+        }
+
+        public static void PropertyFieldWithHeader(SerializedProperty property)
+        {
+            if (property.propertyType == SerializedPropertyType.Generic)
+            {
+                EditorGUILayout.LabelField(property.displayName, EditorStyles.boldLabel);
+                using(new EditorGUI.IndentLevelScope(1))
+                {
+                    EditorGUIUtils.DrawPropertyWithoutFoldout(property);
+                }
+            }
+            else
+            {
+                EditorGUILayout.PropertyField(property);
+            }
+        }
+
+        static Dictionary<string, bool> _foldoutState = new Dictionary<string, bool>();
+
+        public static void PropertyFieldFoldout(SerializedProperty property)
+        {
+            if (property.propertyType == SerializedPropertyType.Generic)
+            {
+                if(!_foldoutState.TryGetValue(property.propertyPath, out var state))
+                {
+                    _foldoutState[property.propertyPath] = true;
+                }
+                _foldoutState[property.propertyPath] = EditorGUILayout.BeginFoldoutHeaderGroup(_foldoutState[property.propertyPath], property.displayName);
+                if (_foldoutState[property.propertyPath])
+                {
+                    using (new EditorGUI.IndentLevelScope(1))
+                    {
+                        EditorGUIUtils.DrawPropertyWithoutFoldout(property);
+                    }
+                }
+                EditorGUILayout.EndFoldoutHeaderGroup();
+            }
+            else
+            {
+                EditorGUILayout.PropertyField(property);
             }
         }
     }

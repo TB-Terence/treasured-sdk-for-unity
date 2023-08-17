@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Treasured.Actions;
 using UnityEngine;
 
 namespace Treasured.UnitySdk
@@ -81,9 +82,9 @@ namespace Treasured.UnitySdk
             {
                 contract.Converter = new ExporterConverter();
             }
-            if (objectType == typeof(ScriptableActionCollection))
+            if (objectType == typeof(ActionGraph))
             {
-                contract.Converter = new ScriptableActionCollectionConverter();
+                contract.Converter = new ActionGraphConverter();
             }
             if (objectType == typeof(GoToAction))
             {
@@ -101,12 +102,18 @@ namespace Treasured.UnitySdk
             {
                 contract.Converter = new GuidedTourGraphConverter();
             }
-
+            if (objectType == typeof(ActionCollection))
+            {
+                contract.Converter = new ActionCollectionConverter();
+            }
+            if (objectType == typeof(VideoInfo) || objectType == typeof(AudioInfo) || objectType == typeof(ImageInfo))
+            {
+                contract.Converter = new MediaInfoConverter();
+            }
             if (objectType == typeof(PlayAudioAction))
             {
                 contract.Converter = new PlayAudioActionConverter();
             }
-
             return contract;
         }
 
@@ -118,7 +125,7 @@ namespace Treasured.UnitySdk
                 // filter out `name` field if type is subclass of TreasuredObject OR if DeclaringType of the property is subclass of MonoBehaviour
                 properties = properties.Where(x => (x.PropertyName.Equals("name") && type.IsSubclassOf(typeof(TreasuredObject))) || x.DeclaringType.IsSubclassOf(typeof(MonoBehaviour))).ToList();
             }
-            else if (type == typeof(ScriptableActionCollection) || type == typeof(GuidedTourGraph) || type == typeof(GuidedTour) || type == typeof(ActionGroup) || typeof(Exporter).IsAssignableFrom(type) || typeof(TreasuredSDKPreferences).IsAssignableFrom(type))
+            else if (type == typeof(GuidedTourGraph) || type == typeof(GuidedTour) || type == typeof(ActionGroup) || typeof(Exporter).IsAssignableFrom(type) || typeof(TreasuredSDKPreferences).IsAssignableFrom(type))
             {
                 properties = properties.Where(x => !x.PropertyName.Equals("name") && !x.PropertyName.Equals("hideFlags")).ToList();
             }
@@ -134,11 +141,11 @@ namespace Treasured.UnitySdk
             JsonProperty property = base.CreateProperty(member, memberSerialization);
             property.Order = GetOrder(property); // Manually assign the order since we can't add JsonProperty(order) to the `name` field of UnityEngine.Object
             Type type = property.PropertyType;
-            if (typeof(ScriptableActionCollection).IsAssignableFrom(type))
-            {
-                property.ValueProvider = new ScriptableObjectValueProvider(CreateMemberValueProvider(member), type);
-            }
-            else if (property.PropertyType == typeof(CustomEmbed))
+            //if (typeof(ScriptableActionCollection).IsAssignableFrom(type))
+            //{
+            //    property.ValueProvider = new ScriptableObjectValueProvider(CreateMemberValueProvider(member), type);
+            //}
+            if (property.PropertyType == typeof(CustomHTML))
             {
                 property.ValueProvider = new ObjectValueProvider(CreateMemberValueProvider(member), type);
             }

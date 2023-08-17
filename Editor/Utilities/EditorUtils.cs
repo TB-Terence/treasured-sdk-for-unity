@@ -89,7 +89,7 @@ namespace Treasured.UnitySdk.Utilities
             return obj;
         }
         
-        private static object GetValue_Imp(object source, string name)
+        internal static object GetValue_Imp(object source, string name)
         {
             if (source == null)
             {
@@ -117,8 +117,8 @@ namespace Treasured.UnitySdk.Utilities
 
             return null;
         }
-        
-        private static object GetValue_Imp(object source, string name, int index)
+
+        internal static object GetValue_Imp(object source, string name, int index)
         {
             IEnumerable enumerable = GetValue_Imp(source, name) as IEnumerable;
             if (enumerable == null)
@@ -185,6 +185,35 @@ namespace Treasured.UnitySdk.Utilities
             }
 
             return types;
+        }
+
+        internal static void PreviewCamera(HotspotCamera hotspotCamera)
+        {
+            SceneView.lastActiveSceneView.LookAt(hotspotCamera.transform.position, hotspotCamera.transform.rotation, 0.01f);
+        }
+
+        public static void Focus(int amount, params Transform[] targets)
+        {
+            Camera sceneCamera = SceneView.lastActiveSceneView.camera;
+            if (sceneCamera != null)
+            {
+                if (targets.Length > 1)
+                {
+                    // Calcuate average position from all hotspots
+                    Vector3 center = Vector3.zero;
+                    foreach (Transform target in targets)
+                    {
+                        center += target.transform.position;
+                    }
+                    center /= targets.Length;
+                    SceneView.lastActiveSceneView.LookAt(center, Quaternion.Euler(45f, 45f, 0), amount);
+                }
+                else if(targets.Length == 1)
+                {
+                    // Set the camera position and rotation for an isometric view
+                    SceneView.lastActiveSceneView.LookAt(targets[0].transform.position, Quaternion.Euler(45f, 45f, 0), amount);
+                }
+            }
         }
     }
     

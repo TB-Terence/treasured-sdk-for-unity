@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using Treasured.Actions;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -32,22 +33,23 @@ namespace Treasured.UnitySdk
         private string _icon;
 
         [JsonProperty("button")]
-        [FormerlySerializedAs("icon")]
-        public InteractableButton button;
+        [FormerlySerializedAs("button")]
+        public InteractableButton icon;
 
         [SerializeField]
         private Hitbox _hitbox;
 
         [FormerlySerializedAs("_actionGroups")]
         [SerializeReference]
+        [Obsolete]
+        // TODO: Remove after merge
         private List<ActionGroup> _onClick = new List<ActionGroup>();
 
         [SerializeReference]
+        [Obsolete]
+        // TODO: Remove after merge
         private List<ActionGroup> _onHover = new List<ActionGroup>();
 
-        [JsonProperty("actionGroups")]
-        public ScriptableActionCollection onClick;
-        public ScriptableActionCollection onHover;
         #endregion
 
         #region Properties
@@ -55,7 +57,7 @@ namespace Treasured.UnitySdk
         /// Reference of the Map for this object.
         /// </summary>
         [JsonIgnore]
-        public TreasuredMap Map => GetComponentInParent<TreasuredMap>();
+        public TreasuredScene Scene => GetComponentInParent<TreasuredScene>();
 
         /// <summary>
         /// Global unique identifier for the object.(Read Only)
@@ -68,6 +70,16 @@ namespace Treasured.UnitySdk
         {
             get
             {
+                if (_hitbox == null)
+                {
+                    _hitbox = gameObject.FindOrCreateChild<Hitbox>("Hitbox");
+                    _hitbox.transform.localPosition = Vector3.zero;
+                    _hitbox.transform.localRotation = Quaternion.identity;
+                    if (TryGetComponent<BoxCollider>(out var collider) && collider.isTrigger)
+                    {
+                        _hitbox.transform.localScale = collider.size;
+                    }
+                }
                 return _hitbox;
             }
             set
@@ -79,41 +91,31 @@ namespace Treasured.UnitySdk
         /// <summary>
         /// Group of action to perform when the object is selected.
         /// </summary>
+        // TODO: Remove after merge
+        [JsonProperty("actionGroups")]
         public List<ActionGroup> OnClick => _onClick;
 
         /// <summary>
         /// Group of action to perform when the user hovers over the object.
         /// </summary>
+        // TODO: Remove after merge
         [JsonIgnore]
         public List<ActionGroup> OnHover => _onHover;
 
-        //public Color ObjectId
-        //{
-        //    get
-        //    {
-        //        int seed = Id.GetHashCode();
-        //        System.Random rand = new System.Random(seed);
-        //        byte[] buffer = new byte[3];
-        //        rand.NextBytes(buffer);
-        //        return new Color32(buffer[0], buffer[1], buffer[2], 255); // ColorUtility.ToHtmlStringRGB internally uses Color32 and use Color causes some precision error in the final output
-        //    }
-        //}
-        #endregion
+        public ActionGraph actionGraph = new ActionGraph();
 
+        // TODO: Remove after merge
+        [JsonIgnore]
+        public ScriptableActionCollection onClick;
+        // TODO: Remove after merge
+        [JsonIgnore]
+        public ScriptableActionCollection onHover;
+
+        #endregion
 #if UNITY_EDITOR
         // DO NOT REMOVE, called by Editor
         void OnSelectedInHierarchy()
         {
-            if (Hitbox == null)
-            {
-                Hitbox = gameObject.FindOrCreateChild<Hitbox>("Hitbox");
-                Hitbox.transform.localPosition = Vector3.zero;
-                Hitbox.transform.localRotation = Quaternion.identity;
-                if (TryGetComponent<BoxCollider>(out var collider) && collider.isTrigger)
-                {
-                    Hitbox.transform.localScale = collider.size;
-                }
-            }
             if (Hitbox)
             {
                 var renderer = GetComponentInChildren<Renderer>();
