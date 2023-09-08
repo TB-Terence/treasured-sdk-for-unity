@@ -1,4 +1,7 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
@@ -7,6 +10,8 @@ namespace Treasured.UnitySdk.Utilities
     internal sealed class EditorGUIUtils
     {
         public static readonly string[] ExcludingProperties = new string[] { "m_Script" };
+
+        private static Dictionary<string, (bool, bool)> customDrawerList = new Dictionary<string, (bool, bool)>();
 
         /// <summary>
         /// Draw properties excluding the ones defined in <see cref="ExcludingProperties"/>
@@ -18,6 +23,8 @@ namespace Treasured.UnitySdk.Utilities
             DrawPropertiesExcluding(serializedObject, ExcludingProperties);
             serializedObject.ApplyModifiedProperties();
         }
+
+        
 
         public static void DrawPropertyWithoutFoldout(SerializedProperty serializedProperty)
         {

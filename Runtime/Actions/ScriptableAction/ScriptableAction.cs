@@ -23,6 +23,7 @@ namespace Treasured.UnitySdk
         /// <summary>
         /// Actual type of the action in string format without Action suffix.
         /// </summary>
+        [JsonIgnore]
         public string Type
         {
             get

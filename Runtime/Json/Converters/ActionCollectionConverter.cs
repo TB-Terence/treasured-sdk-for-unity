@@ -15,7 +15,7 @@ namespace Treasured.UnitySdk
 
         public override bool CanConvert(Type objectType)
         {
-            return objectType == typeof(ActionCollectionConverter);
+            return objectType == typeof(ActionCollection);
         }
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
@@ -46,7 +46,19 @@ namespace Treasured.UnitySdk
                     serializer.ContractResolver = ContractResolver.Instance;
                     JObject jAction = JObject.FromObject(action, serializer);
                     jAction.WriteTo(writer);
+                    //writer.WriteStartObject();
+                    //foreach (var property in jAction.Properties())
+                    //{
+                    //    writer.WritePropertyName(property.Name);
+                    //                        //    writer.WriteValue(property.Value);
+                    //    // serializer.Serialize(writer, property.Value);
+                    //    //Debug.LogError(property.Name);
+                    //    //JObject jObject = JObject.FromObject(property.Value, serializer);
+                        
+                    //    //jObject.WriteTo(writer);
+                    //}
                     //writer.WriteEndObject();
+                    writer.WriteEndObject();
                 }
                 writer.WriteEndArray();
             }

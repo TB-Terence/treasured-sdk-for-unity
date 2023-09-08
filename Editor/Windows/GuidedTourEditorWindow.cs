@@ -22,6 +22,15 @@ namespace Treasured.UnitySdk
             return window;
         }
 
+        private static GuidedTourGraph _current;
+        public static GuidedTourGraph Current
+        {
+            get
+            {
+                return _current;
+            }
+        }
+
         TreasuredScene scene;
         Vector2 tourListScrollPosition;
         ReorderableList tourList;
@@ -47,6 +56,7 @@ namespace Treasured.UnitySdk
             {
                 tourList = new ReorderableList(scene.graph.tours, typeof(GuidedTour));
             }
+            _current = scene.graph;
             tourList.index = 0;
             tourList.onSelectCallback += OnTourChanged;
             tourList.draggable = false;
@@ -155,14 +165,29 @@ namespace Treasured.UnitySdk
                                     {
                                         duration = 3
                                     });
-                                    //if (!hotspot.actionGraph.TryGetActionGroup("onSelect", out var onSelect)) continue;
-                                    //foreach (var action in onSelect)
-                                    //{
-                                    //    tour.actions.Add(action);
-                                    //}
                                 }
                                 serializedTour.Update();
                                 serializedTour.ApplyModifiedProperties();
+                            });
+                            menu.AddItem(new GUIContent("Quick Tour/Navigate Through Hotspots with On Select"), false, () =>
+                            {
+                                GuidedTour tour = CreateNew(tourList, scene.graph, "Quick Tour");
+                                foreach (var hotspot in scene.Hotspots)
+                                {
+                                    tour.actions.Add(new GoToAction()
+                                    {
+                                        target = hotspot
+                                    });
+                                    tour.actions.Add(new SetCameraRotationAction()
+                                    {
+                                        rotation = hotspot.Camera.transform.rotation
+                                    });
+                                    if (!hotspot.actionGraph.TryGetActionGroup("onSelect", out var onSelect)) continue;
+                                    foreach (var action in onSelect)
+                                    {
+                                        tour.actions.Add(action);
+                                    }
+                                }
                             });
                             menu.ShowAsContext();
                         }
@@ -196,15 +221,21 @@ namespace Treasured.UnitySdk
                                 GenericMenu menu = new GenericMenu();
                                 foreach (var type in actionTypes)
                                 {
+                                    // TODO: Fix tour picker drawer
+                                    if (type.Equals(typeof(StartTourAction))) continue;
                                     CategoryAttribute attribute = (CategoryAttribute)Attribute.GetCustomAttribute(type, typeof(CategoryAttribute));
                                     string nicfyName = GetNicifyActionName(type);
                                     menu.AddItem(new GUIContent(attribute != null ? $"{attribute.Path}/{nicfyName}" : nicfyName), false, () =>
                                     {
                                         scene.graph.tours[tourList.index].actions.Add(Activator.CreateInstance(type));
-                                    //SerializedProperty element = actionList.serializedProperty.InsertManagedObject(type, insertAfterCurrent ? actionList.index : actionList.count);
-                                    //element.isExpanded = element.managedReferenceFullTypename.EndsWith("GroupAction") ? false : true;
-                                    //element.serializedObject.ApplyModifiedProperties();
-                                    actionList.index++;
+                                        //SerializedProperty element = actionList.serializedProperty.InsertManagedObject(type, insertAfterCurrent ? actionList.index : actionList.count);
+                                        //element.isExpanded = element.managedReferenceFullTypename.EndsWith("GroupAction") ? false : true;
+                                        serializedTour.Update();
+                                        serializedTour.ApplyModifiedProperties();
+                                        // TODO: Update scroll view
+                                        actionListScrollPosition.y = float.MaxValue;
+                                        actionList.index = actionList.count - 1;
+                                        selectedAction = serializedTour.FindProperty($"actions").FindPropertyRelative("_actions").GetArrayElementAtIndex(actionList.count - 1);
                                     });
                                     //CreateActionGroupAttribute[] linkedActionAttributes = (CreateActionGroupAttribute[])Attribute.GetCustomAttributes(type, typeof(CreateActionGroupAttribute));
                                     //if (linkedActionAttributes != null && linkedActionAttributes.Length > 0)
@@ -274,7 +305,7 @@ namespace Treasured.UnitySdk
                         EditorGUILayout.LabelField("No Tour is selected", EditorStyles.centeredGreyMiniLabel);
                     }
                     EditorGUI.indentLevel--;
-                        GUILayout.Label("Action Info", EditorStyles.whiteLargeLabel);
+                    GUILayout.Label("Action Info", EditorStyles.whiteLargeLabel);
                     EditorGUI.indentLevel++;
                     using (var actionInfoScope = new GUILayout.ScrollViewScope(actionInfoScrollPosition, GUILayout.ExpandHeight(true)))
                     {

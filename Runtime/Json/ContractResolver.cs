@@ -86,18 +86,6 @@ namespace Treasured.UnitySdk
             {
                 contract.Converter = new ActionGraphConverter();
             }
-            if (objectType == typeof(GoToAction))
-            {
-                contract.Converter = new GoToActionConverter();
-            }
-            if (objectType == typeof(StartTourAction))
-            {
-                contract.Converter = new StartTourActionConverter();
-            }
-            if (objectType == typeof(ShowPreviewAction) || objectType == typeof(Actions.ShowPreviewAction))
-            {
-                contract.Converter = new ShowPreviewActionConverter();
-            }
             if (objectType == typeof(GuidedTourGraph))
             {
                 contract.Converter = new GuidedTourGraphConverter();
