@@ -15,6 +15,7 @@ namespace Treasured.UnitySdk
     [CustomPropertyDrawer(typeof(RequiredFieldAttribute), true)]
     [CustomPropertyDrawer(typeof(PresetAttribute), true)]
     [CustomPropertyDrawer(typeof(LabelAttribute), true)]
+    [CustomPropertyDrawer(typeof(DescriptionAttribute), true)]
     public class AttributeDrawer : PropertyDrawer
     {
         public static class Styles
@@ -27,6 +28,11 @@ namespace Treasured.UnitySdk
             public static readonly GUIStyle RichText = new GUIStyle(EditorStyles.label)
             {
                 richText = true
+            };
+            public static readonly GUIStyle EnumDescription = new GUIStyle(EditorStyles.centeredGreyMiniLabel)
+            {
+                wordWrap = true,
+                alignment = TextAnchor.UpperLeft
             };
         }
 
@@ -45,6 +51,7 @@ namespace Treasured.UnitySdk
             ReadOnlyAttribute readOnlyAttribute = fieldInfo.GetCustomAttribute<ReadOnlyAttribute>();
             EnableIfAttribute enableIfAttribute = fieldInfo.GetCustomAttribute<EnableIfAttribute>();
             PresetAttribute presetAttribute = fieldInfo.GetCustomAttribute<PresetAttribute>();
+            DescriptionAttribute descriptionAttribute = fieldInfo.GetCustomAttribute<DescriptionAttribute>();
             _disabled = readOnlyAttribute != null;
             if (enableIfAttribute != null)
             {
@@ -127,6 +134,12 @@ namespace Treasured.UnitySdk
             }
             property.serializedObject.ApplyModifiedProperties();
             EditorGUI.EndProperty();
+            if (descriptionAttribute != null && property.propertyType == SerializedPropertyType.Enum)
+            {
+                var content = new GUIContent(descriptionAttribute?.Descriptions[property.enumValueIndex]);
+                var rect = GUILayoutUtility.GetRect(content, Styles.EnumDescription);
+                EditorGUI.LabelField(new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight, rect.width, rect.height), content, Styles.EnumDescription);
+            }
         }
 
         bool GetCondition(SerializedProperty property, string getter)
@@ -248,6 +261,7 @@ namespace Treasured.UnitySdk
             if (!_showProperty) { return -EditorGUIUtility.standardVerticalSpacing; }
             float totalHeight = EditorGUI.GetPropertyHeight(property, label, true);
             TextAreaAttribute textAreaAttribute = fieldInfo.GetCustomAttribute<TextAreaAttribute>();
+            DescriptionAttribute descriptionAttribute = fieldInfo.GetCustomAttribute<DescriptionAttribute>();
             // Add text area height
             switch (property.propertyType)
             {
@@ -256,6 +270,11 @@ namespace Treasured.UnitySdk
                     {
                         totalHeight += (textAreaAttribute.minLines) * (EditorGUIUtility.singleLineHeight);
                     }
+                    break;
+                case SerializedPropertyType.Enum:
+                    var content = new GUIContent(descriptionAttribute?.Descriptions[property.enumValueIndex]);
+                    var height = Styles.EnumDescription.CalcSize(content).y;
+                    totalHeight += height;
                     break;
                 default:
                     break;

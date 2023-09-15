@@ -23,7 +23,6 @@ namespace Treasured.UnitySdk
             if (value is TreasuredObject to)
             {
                 writer.WritePropertyName("id");
-                UnityEngine.Debug.LogError(to.name);
                 writer.WriteValue(to.Id);
             }
             else if (value.GetType().GetElementType() == typeof(TreasuredObject) || (value.GetType().GenericTypeArguments.Length == 1 && value.GetType().GenericTypeArguments[0] == typeof(TreasuredObject)))

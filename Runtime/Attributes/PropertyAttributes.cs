@@ -107,6 +107,16 @@ namespace Treasured.UnitySdk
         }
     }
 
+    [AttributeUsage(AttributeTargets.Field)]
+    public class DescriptionAttribute: PropertyAttribute
+    {
+        public string[] Descriptions { get; private set; }
+        public DescriptionAttribute(params string[] descriptions)
+        {
+            this.Descriptions = descriptions;
+        }
+    }
+
     public interface IMethodInvoker
     {
         public string CallbackName { get; }

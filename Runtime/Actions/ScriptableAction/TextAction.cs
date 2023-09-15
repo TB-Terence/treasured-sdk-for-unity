@@ -5,14 +5,13 @@ using UnityEngine.Serialization;
 
 namespace Treasured.UnitySdk
 {
-    [API("showText")]
+    [API("text")]
     public class TextAction : ScriptableAction
     {
         public const string kPattern = "[^\\w]";
         public const int kAverageWordsReadPerSecond = 3;
 
         [TextArea(3, 3)]
-        //[JsonProperty("content")]
         public string message;
 
         [JsonIgnore]

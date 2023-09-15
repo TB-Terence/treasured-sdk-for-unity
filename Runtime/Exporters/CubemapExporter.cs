@@ -105,7 +105,7 @@ namespace Treasured.UnitySdk
             //  If imageFormat is KTX2 then export images as png and then later convert them to KTX2 format  
             ImageFormat imageFormatParser = imageFormat == ImageFormat.Ktx2 ? ImageFormat.PNG : imageFormat;
 
-            if (Scene.thumbnail.type == ThumbnailType.FromCurrentView)
+            if (Scene.thumbnail.type == CaptureMethodType.CurrentSceneView)
             {
 #if UNITY_EDITOR
                 ScreenShot(thumbnailTexture, UnityEditor.SceneView.lastActiveSceneView.camera);
@@ -120,7 +120,7 @@ namespace Treasured.UnitySdk
                     string progressTitle = $"Capturing Hotspots";
                     string progressText = $"{current.name}";
 
-                    if (Scene.thumbnail.type == ThumbnailType.FromHotspot && Scene.thumbnail.hotspot == current)
+                    if ((Scene.thumbnail.type == CaptureMethodType.FromHotspot && Scene.thumbnail.hotspot == current) || (Scene.thumbnail.type == CaptureMethodType.FirstHotspot && index == 0))
                     {
                         Camera.main.transform.SetPositionAndRotation(current.Camera.transform.position, current.Camera.transform.rotation);
                         ScreenShot(thumbnailTexture, camera);

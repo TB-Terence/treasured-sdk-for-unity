@@ -153,6 +153,10 @@ namespace Treasured.UnitySdk
                     exporter.enabled = EditorGUI.Toggle(new Rect(rect.x, rect.y, 16, rect.height), exporter.enabled);
                     EditorGUI.LabelField(new Rect(rect.x + 16, rect.y, rect.width - 16, rect.height), ObjectNames.NicifyVariableName(exporter.GetType().Name));
                 }
+                else if ((editors[index].target is ExporterWindowMenuItem menuItem))
+                {
+                    EditorGUI.LabelField(rect, menuItem.DisplayName);
+                }
                 else
                 {
                     EditorGUI.LabelField(rect, ObjectNames.NicifyVariableName(editors[index].target.GetType().Name));
@@ -212,7 +216,7 @@ namespace Treasured.UnitySdk
                         if (reorderableList.index >= 0 && reorderableList.index < reorderableList.list.Count)
                         {
                             var editor = editors[reorderableList.index];
-                            EditorGUILayout.LabelField(ObjectNames.NicifyVariableName(editor.target.GetType().Name), EditorStyles.boldLabel);
+                            //EditorGUILayout.LabelField(ObjectNames.NicifyVariableName(editor.target.GetType().Name), EditorStyles.boldLabel);
                             editor.OnInspectorGUI();
                         }
                     }

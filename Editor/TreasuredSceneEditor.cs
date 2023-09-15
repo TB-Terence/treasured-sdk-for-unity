@@ -643,7 +643,6 @@ namespace Treasured.UnitySdk
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("creator"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("title"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("description"));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("thumbnail"));
                 serializedObject.ApplyModifiedProperties();
                 EditorGUI.indentLevel--;
             }

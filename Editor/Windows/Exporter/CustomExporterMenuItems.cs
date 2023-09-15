@@ -6,8 +6,21 @@ using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
-    [CustomEditor(typeof(ObjectList))]
-    class ObjectList : ExporterWindowMenuItem
+    [CustomEditor(typeof(ThumbnailMenuItem))]
+    class ThumbnailMenuItem : ExporterWindowMenuItem
+    {
+        readonly string[] description;
+        public override void OnInspectorGUI()
+        {
+            serializedScene.Update();
+            SerializedProperty thumbnail = serializedScene?.FindProperty("thumbnail");
+            EditorGUILayout.PropertyField(thumbnail);
+            serializedScene.ApplyModifiedProperties();
+        }
+    }
+
+    [CustomEditor(typeof(ObjectListMenuItem))]
+    class ObjectListMenuItem : ExporterWindowMenuItem
     {
         public enum GroupToggleState
         {

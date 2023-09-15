@@ -3,20 +3,32 @@ using System;
 
 namespace Treasured.UnitySdk
 {
-    public enum ThumbnailType
+    public enum CaptureMethodType
     {
-        FromCurrentView,
-        FromHotspot,
-        //Custom
+        /// <summary>
+        /// Capture camera view from the first Hotspot
+        /// </summary>
+        FirstHotspot,
+        /// <summary>
+        /// Capture camera view from current Scene View, this will be what you see on your Scene View when you click on the Export button
+        /// </summary>
+        CurrentSceneView,
+        /// <summary>
+        /// Capture camera view from selected Hotspot
+        /// </summary>
+        FromHotspot
     }
 
     [Serializable]
     public class Thumbnail
     {
-        
-
         [JsonIgnore]
-        public ThumbnailType type;
+        [Description(
+            "Capture camera view from the first Hotspot", 
+            "Capture camera view from current Scene View, this will be what you see on your Scene View when you click on the Export button",
+            "Capture camera view from selected Hotspot"
+            )]
+        public CaptureMethodType type = CaptureMethodType.FirstHotspot;
         //[JsonIgnore]
         //public int hotspotIndex;
         [ShowIf("IsFromHotspot")]
@@ -42,7 +54,7 @@ namespace Treasured.UnitySdk
 
         bool IsFromHotspot()
         {
-            return type == ThumbnailType.FromHotspot;
+            return type == CaptureMethodType.FromHotspot;
         }
     }
 }
