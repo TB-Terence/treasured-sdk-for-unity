@@ -226,6 +226,7 @@ namespace Treasured.UnitySdk
             InitializeTabGroups();
             InitializeObjectList();
             ValidateSchema();
+            ValidateGuidedTour();
             try
             {
                 var process = Process.GetProcessById(SessionState.GetInt(SessionKeys.CLIProcessId, -1));
@@ -234,6 +235,14 @@ namespace Treasured.UnitySdk
             catch (Exception)
             {
 
+            }
+        }
+
+        private void ValidateGuidedTour()
+        {
+            if (scene.graph.tours.All(x => x.isDefault == false))
+            {
+                scene.graph.tours[0].isDefault = true;
             }
         }
 

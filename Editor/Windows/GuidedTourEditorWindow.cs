@@ -69,18 +69,37 @@ namespace Treasured.UnitySdk
             tourList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
             {
                 GuidedTour tour = (GuidedTour)tourList.list[index];
-                EditorGUI.LabelField(rect, new GUIContent(tour.title));
+                EditorGUI.LabelField(rect, tour.isDefault ?  EditorGUIUtility.TrTextContentWithIcon(tour.title, "d_NavMeshData Icon") : new GUIContent(tour.title));
+            };
+            tourList.onMouseUpCallback = (ReorderableList list) =>
+            {
+                if (Event.current.button == 1)
+                {
+                    GenericMenu menu = new GenericMenu();
+                    menu.AddItem(new GUIContent("Set as Default"), false, () =>
+                    {
+                        GuidedTour selectedTour = tourList.list[tourList.index] as GuidedTour;
+                        selectedTour.isDefault = true;
+                        foreach (GuidedTour tour in tourList.list)
+                        {
+                            if (tour == selectedTour) continue;
+                            tour.isDefault = false;
+                        }
+                    });
+                    menu.ShowAsContext();
+                }
             };
             OnTourChanged(tourList);
         }
 
-        private GuidedTour CreateNew(ReorderableList list, GuidedTourGraph graph, string defaultName = "")
+        private GuidedTour CreateNew(ReorderableList list, GuidedTourGraph graph, string defaultName = "untitled")
         {
             var tour = GuidedTour.CreateInstance<GuidedTour>();
             graph.tours.Add(tour);
             if (graph.tours.Count == 1)
             {
-                tour.name = tour.title = "default";
+                tour.name = tour.title = "untitled";
+                tour.isDefault = true;
             }
             else
             {
@@ -145,7 +164,7 @@ namespace Treasured.UnitySdk
                             GenericMenu menu = new GenericMenu();
                             menu.AddItem(new GUIContent("New"), false, () =>
                             {
-                                CreateNew(tourList, scene.graph, "New Tour");
+                                CreateNew(tourList, scene.graph);
                                 serializedTour.Update();
                             });
                             menu.AddItem(new GUIContent("Quick Tour/Navigate Through Hotspots"), false, () =>
@@ -182,6 +201,10 @@ namespace Treasured.UnitySdk
                                     {
                                         rotation = hotspot.Camera.transform.rotation
                                     });
+                                    tour.actions.Add(new SleepAction()
+                                    {
+                                        duration = 3
+                                    });
                                     if (!hotspot.actionGraph.TryGetActionGroup("onSelect", out var onSelect)) continue;
                                     foreach (var action in onSelect)
                                     {
@@ -195,11 +218,16 @@ namespace Treasured.UnitySdk
                         {
                             if(tourList.index > -1 && tourList.index < tourList.count)
                             {
+                                bool wasDefault = (tourList.list[tourList.index] as GuidedTour).isDefault;
                                 tourList.list.RemoveAt(tourList.index);
                                 serializedTour = null;
                                 if (tourList.index >= tourList.count)
                                 {
                                     tourList.index = tourList.count - 1;
+                                }
+                                if (wasDefault && tourList.list.Count > 0)
+                                {
+                                    (tourList.list[tourList.index] as GuidedTour).isDefault = true;
                                 }
                             }
                         }

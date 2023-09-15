@@ -24,7 +24,7 @@ namespace Treasured.UnitySdk
                 writer.WriteStartObject();
                 foreach (var tour in guidedTourGraph.tours)
                 {
-                    writer.WritePropertyName(tour.title);
+                    writer.WritePropertyName(tour.isDefault ? "default" : tour.title == "default" ? "untitled" : tour.title);
                     serializer.Serialize(writer, tour);
                 }
                 writer.WriteEndObject();

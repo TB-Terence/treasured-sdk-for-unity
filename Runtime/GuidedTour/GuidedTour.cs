@@ -11,6 +11,8 @@ namespace Treasured.UnitySdk
         [HideInInspector]
         private string _id = Guid.NewGuid().ToString();
         public string Id { get { return _id; } }
+        [HideInInspector]
+        public bool isDefault = false;
         public string title = "New Tour";
         [TextArea(3, 5)]
         public string description = "";
@@ -19,10 +21,5 @@ namespace Treasured.UnitySdk
         [JsonProperty("code")]
         [SerializeReference]
         public ActionCollection actions = new ActionCollection();
-
-        //private void OnEnable()
-        //{
-        //    actionScripts = ScriptableObject.CreateInstance<ActionCollection>();
-        //}
     }
 }
