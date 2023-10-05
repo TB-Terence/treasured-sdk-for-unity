@@ -225,8 +225,8 @@ namespace Treasured.UnitySdk
             CreateCachedEditors();
             InitializeTabGroups();
             InitializeObjectList();
-            ValidateSchema();
-            ValidateGuidedTour();
+            //ValidateSchema();
+            SetDefaultTourIfNone();
             try
             {
                 var process = Process.GetProcessById(SessionState.GetInt(SessionKeys.CLIProcessId, -1));
@@ -238,7 +238,7 @@ namespace Treasured.UnitySdk
             }
         }
 
-        private void ValidateGuidedTour()
+        private void SetDefaultTourIfNone()
         {
             if (scene.graph.tours.All(x => x.isDefault == false))
             {

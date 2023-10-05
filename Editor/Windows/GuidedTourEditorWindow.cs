@@ -182,7 +182,7 @@ namespace Treasured.UnitySdk
                                     });
                                     tour.actions.Add(new SleepAction()
                                     {
-                                        duration = 3
+                                        duration = 2
                                     });
                                 }
                                 serializedTour.Update();
@@ -203,7 +203,7 @@ namespace Treasured.UnitySdk
                                     });
                                     tour.actions.Add(new SleepAction()
                                     {
-                                        duration = 3
+                                        duration = 2
                                     });
                                     if (!hotspot.actionGraph.TryGetActionGroup("onSelect", out var onSelect)) continue;
                                     foreach (var action in onSelect)

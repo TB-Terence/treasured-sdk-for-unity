@@ -58,9 +58,6 @@ namespace Treasured.UnitySdk
                     ScaleByRatio();
                 }
             }
-
-            serializedObject.ApplyModifiedProperties();
-            serializedObject.Update();
             EditorGUILayout.PropertyField(videoContent);
             serializedObject.ApplyModifiedProperties();
         }

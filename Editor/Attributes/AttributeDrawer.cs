@@ -132,14 +132,14 @@ namespace Treasured.UnitySdk
                     Invoke(property, buttonAttributes[i]);
                 }
             }
-            property.serializedObject.ApplyModifiedProperties();
-            EditorGUI.EndProperty();
             if (descriptionAttribute != null && property.propertyType == SerializedPropertyType.Enum)
             {
                 var content = new GUIContent(descriptionAttribute?.Descriptions[property.enumValueIndex]);
                 var rect = GUILayoutUtility.GetRect(content, Styles.EnumDescription);
                 EditorGUI.LabelField(new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight, rect.width, rect.height), content, Styles.EnumDescription);
             }
+            property.serializedObject.ApplyModifiedProperties();
+            EditorGUI.EndProperty();
         }
 
         bool GetCondition(SerializedProperty property, string getter)
