@@ -109,7 +109,6 @@ namespace Treasured.UnitySdk
             list.index = list.count - 1;
             OnTourChanged(list);
             this.Repaint();
-            tourListScrollPosition.y = float.MaxValue;
             return tour as GuidedTour;
         }
 
@@ -121,7 +120,6 @@ namespace Treasured.UnitySdk
             }
             serializedTour = new SerializedObject(scene.graph.tours[tourList.index]);
             selectedAction = null;
-            bool insertAfterCurrent = false;
             actionList = new ReorderableList(scene.graph.tours[tourList.index].actions, typeof(ScriptableActionCollection));
             actionList.headerHeight = 0;
             actionList.displayAdd = actionList.displayRemove = false;
@@ -257,46 +255,91 @@ namespace Treasured.UnitySdk
                                     string nicfyName = GetNicifyActionName(type);
                                     menu.AddItem(new GUIContent(attribute != null ? $"{attribute.Path}/{nicfyName}" : nicfyName), false, () =>
                                     {
-                                        scene.graph.tours[tourList.index].actions.Add(Activator.CreateInstance(type));
-                                        //SerializedProperty element = actionList.serializedProperty.InsertManagedObject(type, insertAfterCurrent ? actionList.index : actionList.count);
-                                        //element.isExpanded = element.managedReferenceFullTypename.EndsWith("GroupAction") ? false : true;
+                                        int index = actionList.index == -1 ? 0 : actionList.index;
+                                        SerializedProperty collection = serializedTour.FindProperty("actions").FindPropertyRelative("_actions");
+                                        collection.InsertManagedObject(type, index);
                                         serializedTour.Update();
                                         serializedTour.ApplyModifiedProperties();
                                         // TODO: Update scroll view
-                                        actionListScrollPosition.y = float.MaxValue;
-                                        actionList.index = actionList.count - 1;
-                                        selectedAction = serializedTour.FindProperty($"actions").FindPropertyRelative("_actions").GetArrayElementAtIndex(actionList.count - 1);
+                                        actionList.index = index + 1;
+                                        selectedAction = collection.GetArrayElementAtIndex(index);
+                                        actionList?.onSelectCallback?.Invoke(actionList);
                                     });
-                                    //CreateActionGroupAttribute[] linkedActionAttributes = (CreateActionGroupAttribute[])Attribute.GetCustomAttributes(type, typeof(CreateActionGroupAttribute));
-                                    //if (linkedActionAttributes != null && linkedActionAttributes.Length > 0)
-                                    //{
-                                    //    foreach (var linkedActionAttribute in linkedActionAttributes)
-                                    //    {
-                                    //        StringBuilder pathBuilder = new StringBuilder();
-                                    //        pathBuilder.Append(attribute != null ? $"{attribute.Path}/{nicfyName}(Group)" : $"{nicfyName}(Group)/");
-                                    //        for (int i = 0; i < linkedActionAttribute.Types.Length; i++)
-                                    //        {
-                                    //            if (i > 0)
-                                    //            {
-                                    //                pathBuilder.Append(", ");
-                                    //            }
-                                    //            pathBuilder.Append(GetNicifyActionName(linkedActionAttribute.Types[i]));
-                                    //        }
-                                    //        menu.AddItem(new GUIContent(pathBuilder.ToString()), false, () =>
-                                    //        {
-                                    //            int index = actionList.index == -1 ? -1 : insertAfterCurrent ? actionList.index : actionList.count;
-                                    //            SerializedProperty element = actionList.serializedProperty.InsertManagedObject(type, index++);
-                                    //            foreach (var linkedType in linkedActionAttribute.Types)
-                                    //            {
-                                    //                actionList.serializedProperty.InsertManagedObject(linkedType, index++);
-                                    //            }
-                                    //            element.isExpanded = element.managedReferenceFullTypename.EndsWith("GroupAction") ? false : true;
-                                    //            element.serializedObject.ApplyModifiedProperties();
-                                    //            actionList.index = index > actionList.count - 1 ? actionList.count - 1 : index;
-                                    //        });
-                                    //    }
-                                    //}
+                                    CreateActionGroupAttribute[] linkedActionAttributes = (CreateActionGroupAttribute[])Attribute.GetCustomAttributes(type, typeof(CreateActionGroupAttribute));
+                                    if (linkedActionAttributes != null && linkedActionAttributes.Length > 0)
+                                    {
+                                        foreach (var linkedActionAttribute in linkedActionAttributes)
+                                        {
+                                            StringBuilder pathBuilder = new StringBuilder();
+                                            pathBuilder.Append(attribute != null ? $"{attribute.Path}/{nicfyName}(Group)" : $"{nicfyName}(Group)/");
+                                            for (int i = 0; i < linkedActionAttribute.Types.Length; i++)
+                                            {
+                                                if (i > 0)
+                                                {
+                                                    pathBuilder.Append(", ");
+                                                }
+                                                pathBuilder.Append(GetNicifyActionName(linkedActionAttribute.Types[i]));
+                                            }
+                                            menu.AddItem(new GUIContent(pathBuilder.ToString()), false, () =>
+                                            {
+                                                int index = actionList.index == -1 ? -1 : actionList.index;
+                                                SerializedProperty collection = serializedTour.FindProperty("actions").FindPropertyRelative("_actions");
+                                                SerializedProperty element = collection.InsertManagedObject(type, index++);
+                                                foreach (var linkedType in linkedActionAttribute.Types)
+                                                {
+                                                    collection.InsertManagedObject(linkedType, index++);
+                                                }
+                                                element.isExpanded = element.managedReferenceFullTypename.EndsWith("GroupAction") ? false : true;
+                                                element.serializedObject.ApplyModifiedProperties();
+                                                actionList.index = index > actionList.count - 1 ? actionList.count - 1 : index;
+                                                actionList?.onSelectCallback?.Invoke(actionList);
+                                            });
+                                        }
+                                    }
                                 }
+                                // TODO: Implement insert actions from selected object's action graph
+                                //if (Selection.activeGameObject.TryGetComponent(out TreasuredObject obj))
+                                //{
+                                //    menu.AddSeparator("");
+                                //    SerializedProperty collection = serializedTour.FindProperty("actions").FindPropertyRelative("_actions");
+                                //    SerializedObject tour = new SerializedObject(obj);
+                                //    SerializedProperty graph = tour.FindProperty(nameof(TreasuredObject.actionGraph));
+                                //    int index = 0;
+                                //    foreach (var actionGroup in obj.actionGraph.GetGroups())
+                                //    {
+                                //        menu.AddItem(new GUIContent($"{obj.name}/{ObjectNames.NicifyVariableName(actionGroup.name)}"), false, (index) => {
+                                //            SerializedProperty group = graph.FindPropertyRelative("_groups").GetArrayElementAtIndex((int)index);
+                                //            SerializedProperty originalCollection = group.FindPropertyRelative("_actions");
+                                //            collection.arraySize += 10;
+                                //            collection.InsertElement(collection.arraySize);
+                                //            //+= originalCollection.arraySize;
+                                //            //for (int i = 0; i < originalCollection.arraySize; i++)
+                                //            //{
+                                //            //    collection.GetArrayElementAtIndex(i).managedReferenceValue = actionGroup[i];
+                                //            //}
+                                //            serializedTour.Update();
+                                //            serializedTour.ApplyModifiedProperties();
+                                //            Debug.LogError(collection.arraySize);
+                                //            //int index = actionList.index == -1 ? 0 : actionList.index;
+                                //            //SerializedProperty originalCollection = graph.GetArrayElementAtIndex(index);
+                                //            //SerializedProperty collection = serializedTour.FindProperty("actions").FindPropertyRelative("_actions");
+                                //            //foreach (var action in group)
+                                //            //{
+                                //            //    originalCollection
+                                //            //       SerializedProperty p = collection.InsertManagedObject(action.GetType(), index++);
+                                //            //    p.Copy();
+                                //            //}
+                                //            //collection.InsertManagedObject(type, index);
+                                //            //serializedTour.Update();
+                                //            //serializedTour.ApplyModifiedProperties();
+                                //            //// TODO: Update scroll view
+                                //            //actionList.index = index + 1;
+                                //            //selectedAction = collection.GetArrayElementAtIndex(index);
+                                //            //actionList?.onSelectCallback?.Invoke(actionList);
+                                //        }, index);
+                                //        index++;
+                                //    }
+                                //}
                                 menu.ShowAsContext();
                             }
                         }

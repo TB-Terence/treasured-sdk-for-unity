@@ -53,7 +53,6 @@ namespace Treasured.UnitySdk
         public string headHTML;
         [TextArea]
         public string bodyHTML;
-        public HTMLRect position;
 
         public List<ScriptNode> ScriptNodes
         {

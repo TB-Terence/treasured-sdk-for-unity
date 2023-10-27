@@ -16,6 +16,7 @@ namespace Treasured.UnitySdk
         [HideInInspector]
         public string code;
         public CustomHTML html;
+        public WidgetPosition position;
 
 
         //[JsonProperty("scripts")]
