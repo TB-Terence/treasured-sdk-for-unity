@@ -201,15 +201,17 @@ namespace Treasured.UnitySdk
                                     {
                                         rotation = hotspot.Camera.transform.rotation
                                     });
+                                    if (hotspot.actionGraph.TryGetActionGroup("onSelect", out var onSelect))
+                                    {
+                                        foreach (var action in onSelect)
+                                        {
+                                            tour.actions.Add(action);
+                                        }
+                                    }
                                     tour.actions.Add(new SleepAction()
                                     {
                                         duration = 2
                                     });
-                                    if (!hotspot.actionGraph.TryGetActionGroup("onSelect", out var onSelect)) continue;
-                                    foreach (var action in onSelect)
-                                    {
-                                        tour.actions.Add(action);
-                                    }
                                 }
                             });
                             menu.ShowAsContext();
@@ -245,7 +247,7 @@ namespace Treasured.UnitySdk
                         {
                             if (GUILayout.Button(EditorGUIUtility.TrIconContent("d_Toolbar Plus More"), EditorStyles.label, GUILayout.Width(18)))
                             {
-                                var actionTypes = UnityEditor.TypeCache.GetTypesDerivedFrom<ScriptableAction>().Where(x => !x.IsAbstract && !x.IsDefined(typeof(ObsoleteAttribute), true));
+                                var actionTypes = UnityEditor.TypeCache.GetTypesDerivedFrom<ScriptableAction>().Where(x => x.IsDefined(typeof(APIAttribute), true) && !x.IsAbstract && !x.IsDefined(typeof(ObsoleteAttribute), true));
                                 GenericMenu menu = new GenericMenu();
                                 foreach (var type in actionTypes)
                                 {

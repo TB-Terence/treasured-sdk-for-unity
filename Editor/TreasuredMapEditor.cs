@@ -5,6 +5,7 @@ using UnityEditor;
 namespace Treasured.UnitySdk
 {
     [CustomEditor(typeof(TreasuredMap))]
+    [Obsolete]
     class TreasuredMapEditor : UnityEditor.Editor
     {
         public override void OnInspectorGUI()

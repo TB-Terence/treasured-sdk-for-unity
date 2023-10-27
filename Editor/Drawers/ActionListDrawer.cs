@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using UnityEditor;
 using UnityEditorInternal;
@@ -150,7 +151,7 @@ namespace Treasured.UnitySdk
 
         private void ShowAddMenu(bool insertAfterCurrent = true)
         {
-            var actionTypes = TypeCache.GetTypesDerivedFrom<T>().Where(x => !x.IsAbstract && !x.IsDefined(typeof(ObsoleteAttribute), true));
+            var actionTypes = TypeCache.GetTypesDerivedFrom<T>().Where(x => x.IsDefined(typeof(APIAttribute), true) && !x.IsAbstract && !x.IsDefined(typeof(ObsoleteAttribute), true));
             GenericMenu menu = new GenericMenu();
             foreach (var type in actionTypes)
             {

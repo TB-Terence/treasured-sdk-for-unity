@@ -2,7 +2,7 @@
 
 namespace Treasured.UnitySdk
 {
-    public enum EmbedPosition
+    public enum WidgetPosition
     {
         TopLeft,
         TopRight,

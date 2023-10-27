@@ -9,6 +9,7 @@ namespace Treasured.UnitySdk
 {
     [DisallowMultipleComponent]
     [AddComponentMenu("Treasured/Treasured Map")]
+    [Obsolete]
     public sealed class TreasuredMap : MonoBehaviour
     {
         #region JSON properties

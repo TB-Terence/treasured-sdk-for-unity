@@ -1,11 +1,11 @@
 ﻿namespace Treasured.UnitySdk.Actions
 {
     //[API("openLink")]
-    [API("embed")]
+    //[API("embed")]
     public class EmbedAction : ScriptableAction
     {
         [Url]
         public string src;
-        public EmbedPosition position;
+        public WidgetPosition position;
     }
 }

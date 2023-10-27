@@ -14,5 +14,6 @@ namespace Treasured.UnitySdk
         public bool showCursor = true;
         [UnityEngine.HideInInspector]
         public bool darkMode = false;
+        public float hotspotButtonScale = 1;
     }
 }

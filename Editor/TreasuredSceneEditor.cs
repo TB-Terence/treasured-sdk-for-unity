@@ -227,6 +227,10 @@ namespace Treasured.UnitySdk
             InitializeObjectList();
             //ValidateSchema();
             SetDefaultTourIfNone();
+            if (!scene.exportSettings.IsNullOrNone() && string.IsNullOrEmpty(scene.exportSettings.folderName))
+            {
+                scene.exportSettings.folderName = ObjectNames.NicifyVariableName(scene.gameObject.scene.name).Replace(" ", "-");
+            }
             try
             {
                 var process = Process.GetProcessById(SessionState.GetInt(SessionKeys.CLIProcessId, -1));
@@ -240,107 +244,9 @@ namespace Treasured.UnitySdk
 
         private void SetDefaultTourIfNone()
         {
-            if (scene.graph.tours.All(x => x.isDefault == false))
+            if (scene.graph.tours.Count > 0 && scene.graph.tours.All(x => x.isDefault == false))
             {
                 scene.graph.tours[0].isDefault = true;
-            }
-        }
-
-        private void ValidateSchema()
-        {
-            int totalUpdated = 0;
-            TreasuredObject[] objects = scene.GetComponentsInChildren<TreasuredObject>(true);
-            foreach (var obj in objects)
-            {
-                if (!obj.actionGraph.TryGetActionGroup("onSelect", out var onSelect))
-                {
-                    onSelect = obj.actionGraph.AddActionGroup("onSelect");
-                }
-                if (obj.OnClick.Count > 0)
-                {
-                    foreach (var actionGroup in obj.OnClick)
-                    {
-                        if (actionGroup == null || actionGroup.Actions == null) { continue; }
-                        if (actionGroup.Actions.Count > 1)
-                        {
-                            if (!onSelect.Contains(actionGroup.Id))
-                            {
-                                GroupAction group = new GroupAction();
-                                group.Id = actionGroup.Id;
-                                foreach (var action in actionGroup.Actions)
-                                {
-                                    ScriptableAction scriptableAction = action.ConvertToScriptableAction();
-                                    scriptableAction.Id = action.Id;
-                                    if (scriptableAction != null)
-                                    {
-                                        group.actions.Add(scriptableAction);
-                                    }
-                                }
-                                onSelect.Add(group);
-                                actionGroup.Actions.Clear();
-                                totalUpdated++;
-                            }
-                        }
-                        else if (actionGroup.Actions.Count == 1)
-                        {
-                            var firstAction = actionGroup.Actions[0];
-                            if (!onSelect.Contains(firstAction.Id))
-                            {
-                                ScriptableAction scriptableAction = firstAction.ConvertToScriptableAction();
-                                scriptableAction.Id = firstAction.Id;
-                                if (scriptableAction != null)
-                                {
-                                    onSelect.Add(scriptableAction);
-                                    totalUpdated++;
-                                    actionGroup.Actions.Clear();
-                                }
-                            }
-                        }
-                    }
-                }
-                if (!obj.onClick.IsNullOrNone() && obj.onClick.Count > 0)
-                {
-                    List<int> indices = new List<int>();
-                    for (int i = 0; i < obj.onClick.Count; i++)
-                    {
-
-                    }
-                    foreach (var action in obj.onClick)
-                    {
-                        if (action != null && !onSelect.Contains(action.Id))
-                        {
-                            onSelect.Add(action);
-                            totalUpdated++;
-                        }
-                    }
-                    obj.onClick.Clear();
-                }
-            }
-            foreach (var video in scene.Videos)
-            {
-                video.videoInfo = new VideoInfo()
-                {
-                    volume = video.volume,
-                    autoplay = video.autoplay,
-                    loop = video.loop,
-                    Path = video.src
-                };
-            }
-            foreach (var sound in scene.Audios)
-            {
-                sound.audioInfo = new AudioInfo()
-                {
-                    volume = sound.volume,
-                    autoplay = false,
-                    loop = sound.loop,
-                    Path = sound.src
-                };
-            }
-            serializedObject.ApplyModifiedProperties();
-            serializedObject.Update();
-            if (totalUpdated > 0)
-            {
-                EditorUtility.DisplayDialog("Action Schema Update", $"Updated {totalUpdated} action(s) to Version 2.", "Ok");
             }
         }
 
@@ -438,9 +344,9 @@ namespace Treasured.UnitySdk
             using (new EditorGUILayout.HorizontalScope())
             {
                 GUILayout.FlexibleSpace();
-                using (new EditorGUI.DisabledGroupScope(String.IsNullOrEmpty(scene.exportSettings.OutputDirectory) ||
-                                                        !Regex.Match(scene.exportSettings.OutputDirectory,
-                                                            @"[a-zA-Z0-9\-]").Success))
+                //using (new EditorGUI.DisabledGroupScope(String.IsNullOrEmpty(scene.exportSettings.OutputDirectory) ||
+                //                                        !Regex.Match(scene.exportSettings.OutputDirectory,
+                //                                            @"[a-zA-Z0-9\-]").Success))
                 {
                     if (GUILayout.Button(
                             EditorGUIUtility.TrTextContentWithIcon("Exporter",
@@ -649,18 +555,18 @@ namespace Treasured.UnitySdk
             if (pageInfoFoldoutState)
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("creator"));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("title"));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("description"));
-                serializedObject.ApplyModifiedProperties();
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(TreasuredScene.creator)));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(TreasuredScene.title)));
+                EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(TreasuredScene.description)));
                 EditorGUI.indentLevel--;
             }
             EditorGUILayout.EndFoldoutHeaderGroup();
             EditorGUILayoutUtils.PropertyFieldFoldout(serializedObject.FindProperty("sceneInfo"));
             EditorGUILayoutUtils.PropertyFieldFoldout(serializedObject.FindProperty("themeInfo"));
-            EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(TreasuredMap.pageEmbeds)));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty(nameof(TreasuredScene.pageEmbeds)));
             EditorGUILayoutUtils.PropertyFieldFoldout(serializedObject.FindProperty("uiSettings"));
             EditorGUILayoutUtils.PropertyFieldFoldout(serializedObject.FindProperty("features"));
+            serializedObject.ApplyModifiedProperties();
         }
     }
 }

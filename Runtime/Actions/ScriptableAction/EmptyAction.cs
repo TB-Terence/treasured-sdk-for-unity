@@ -2,7 +2,7 @@
 
 namespace Treasured.UnitySdk.Actions
 {
-    [API("empty")]
+    //[API("empty")]
     public class EmptyAction : ScriptableAction
     {
     }

@@ -98,10 +98,6 @@ namespace Treasured.UnitySdk
             {
                 contract.Converter = new MediaInfoConverter();
             }
-            if (objectType == typeof(PlayAudioAction))
-            {
-                contract.Converter = new PlayAudioActionConverter();
-            }
             return contract;
         }
 
@@ -129,14 +125,11 @@ namespace Treasured.UnitySdk
             JsonProperty property = base.CreateProperty(member, memberSerialization);
             property.Order = GetOrder(property); // Manually assign the order since we can't add JsonProperty(order) to the `name` field of UnityEngine.Object
             Type type = property.PropertyType;
-            //if (typeof(ScriptableActionCollection).IsAssignableFrom(type))
-            //{
-            //    property.ValueProvider = new ScriptableObjectValueProvider(CreateMemberValueProvider(member), type);
-            //}
             if (property.PropertyType == typeof(CustomHTML))
             {
                 property.ValueProvider = new ObjectValueProvider(CreateMemberValueProvider(member), type);
             }
+            property.ShouldSerialize = (value) => { return ReflectionUtilities.ShouldExport(member, value); };
             return property;
         }
 

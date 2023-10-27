@@ -24,57 +24,29 @@ namespace Treasured.UnitySdk
 
             foreach (var obj in Scene.GetComponentsInChildren<TreasuredObject>())
             {
-                foreach (var actionGroup in obj.OnClick)
+                foreach (var graph in obj.actionGraph.GetGroups())
                 {
-                    foreach (var action in actionGroup.Actions)
+                    foreach (var action in graph)
                     {
-                        if (action is PlayAudioAction playAudioAction)
+                        if (action is AudioAction audioAction)
                         {
-                            if (playAudioAction.audioClip == null)
+                            if (!audioAction.audioInfo.IsLocalContent())
                             {
                                 continue;
                             }
 
-                            if (audioFiles.Contains(playAudioAction.audioClip.name))
+                            if (audioFiles.Contains(audioAction.audioInfo.asset.name))
                             {
                                 continue;
                             }
 
                             //  Copy audio clip to the audios folder
 #if UNITY_EDITOR
-                            var path = AssetDatabase.GetAssetPath(playAudioAction.audioClip);
+                            var path = AssetDatabase.GetAssetPath(audioAction.audioInfo.asset);
                             FileUtil.ReplaceFile(Path.Combine(rootDirectory, path).ToOSSpecificPath(),
                                 Path.Combine(audioDirectory, Path.GetFileName(path)).ToOSSpecificPath());
 
-                            audioFiles.Add(playAudioAction.audioClip.name);
-#endif
-                        }
-                    }
-                }
-
-                foreach (var actionGroup in obj.OnHover)
-                {
-                    foreach (var action in actionGroup.Actions)
-                    {
-                        if (action is PlayAudioAction playAudioAction)
-                        {
-                            if (playAudioAction.audioClip == null)
-                            {
-                                continue;
-                            }
-
-                            if (audioFiles.Contains(playAudioAction.audioClip.name))
-                            {
-                                continue;
-                            }
-
-                            //  Copy audio clip to the audios folder
-#if UNITY_EDITOR
-                            var path = AssetDatabase.GetAssetPath(playAudioAction.audioClip);
-                            FileUtil.ReplaceFile(Path.Combine(rootDirectory, path).ToOSSpecificPath(),
-                                Path.Combine(audioDirectory, Path.GetFileName(path).ToOSSpecificPath()));
-                            
-                            audioFiles.Add(playAudioAction.audioClip.name);
+                            audioFiles.Add(audioAction.audioInfo.asset.name);
 #endif
                         }
                     }

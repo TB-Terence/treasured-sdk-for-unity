@@ -101,9 +101,16 @@ namespace Treasured.UnitySdk
     public class LabelAttribute : PropertyAttribute
     {
         public string Text { get; private set; }
+        public string Tooltip { get; private set; }
         public LabelAttribute(string text)
         {
             Text = text;
+        }
+
+        public LabelAttribute(string text, string tooltip)
+        {
+            Text = text;
+            Tooltip = tooltip;
         }
     }
 

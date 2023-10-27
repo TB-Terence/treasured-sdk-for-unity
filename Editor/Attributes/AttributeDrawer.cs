@@ -16,6 +16,7 @@ namespace Treasured.UnitySdk
     [CustomPropertyDrawer(typeof(PresetAttribute), true)]
     [CustomPropertyDrawer(typeof(LabelAttribute), true)]
     [CustomPropertyDrawer(typeof(DescriptionAttribute), true)]
+    [CustomPropertyDrawer(typeof(TooltipAttribute), true)]
     public class AttributeDrawer : PropertyDrawer
     {
         public static class Styles
@@ -43,9 +44,13 @@ namespace Treasured.UnitySdk
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             LabelAttribute labelAttribute = fieldInfo.GetCustomAttribute<LabelAttribute>();
-            label = labelAttribute != null && !string.IsNullOrWhiteSpace(labelAttribute.Text) ? new GUIContent(labelAttribute.Text) : label;
+            TooltipAttribute tooltipAttribute = fieldInfo.GetCustomAttribute<TooltipAttribute>();
+            label = labelAttribute != null && !string.IsNullOrWhiteSpace(labelAttribute.Text) ? new GUIContent(labelAttribute.Text, tooltipAttribute == null ? labelAttribute.Tooltip : tooltipAttribute.tooltip) : label;
+            if (tooltipAttribute != null)
+            {
+                label.tooltip = tooltipAttribute.tooltip;
+            }
             EditorGUI.BeginProperty(position, label, property);
-            property.serializedObject.Update();
             ValidateInput(property);
             ShowIfAttribute showIfAttribute = fieldInfo.GetCustomAttribute<ShowIfAttribute>();
             ReadOnlyAttribute readOnlyAttribute = fieldInfo.GetCustomAttribute<ReadOnlyAttribute>();
@@ -103,9 +108,7 @@ namespace Treasured.UnitySdk
                         }
                         break;
                     default:
-                        property.serializedObject.Update();
                         EditorGUI.PropertyField(rect, property, GUIContent.none, true);
-                        property.serializedObject.ApplyModifiedProperties();
                         break;
                 }
                 if (EditorGUI.EndChangeCheck())
@@ -138,13 +141,17 @@ namespace Treasured.UnitySdk
                 var rect = GUILayoutUtility.GetRect(content, Styles.EnumDescription);
                 EditorGUI.LabelField(new Rect(position.x, position.y + EditorGUIUtility.singleLineHeight, rect.width, rect.height), content, Styles.EnumDescription);
             }
-            property.serializedObject.ApplyModifiedProperties();
             EditorGUI.EndProperty();
+            property.serializedObject.ApplyModifiedProperties();
+            property.serializedObject.Update();
         }
 
         bool GetCondition(SerializedProperty property, string getter)
         {
+            getter = getter.Trim();
             bool condition = false;
+            bool startsWithNot = getter.StartsWith("!");
+            if (startsWithNot) getter = getter.Substring(1);
             MemberInfo[] memberInfos = fieldInfo.DeclaringType.GetMember(getter, BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
             if (memberInfos.Length == 1)
             {
@@ -170,7 +177,7 @@ namespace Treasured.UnitySdk
                 }
                 else if (obj != null && obj.GetType() == typeof(bool))
                 {
-                    condition = (bool)obj;
+                    condition = startsWithNot ? !(bool)obj : (bool)obj;
                 }
             }
             return condition;

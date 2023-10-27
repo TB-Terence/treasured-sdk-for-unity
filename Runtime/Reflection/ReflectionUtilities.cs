@@ -169,5 +169,49 @@ namespace Treasured.UnitySdk
                 attribute = method.GetCustomAttribute<T>()
             }).ToArray();
         }
+
+        public static bool ShouldExport(MemberInfo memberInfo, object target)
+        {
+            return memberInfo.GetCustomAttributes<ExportIfAttribute>().All(x =>
+            {
+                return GetCondition(memberInfo, target, x);
+            });
+        }
+
+        static bool GetCondition(MemberInfo memberInfo, object target, ExportIfAttribute attribute)
+        {
+            string getter = attribute.Getter.Trim();
+            bool condition = false;
+            bool startsWithNot = getter.StartsWith("!");
+            if (startsWithNot) getter = getter.Substring(1);
+            MemberInfo[] memberInfos = memberInfo.DeclaringType.GetMember(getter, BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic);
+            if (memberInfos.Length == 1)
+            {
+                object obj = null;
+                switch (memberInfos[0])
+                {
+                    case FieldInfo fieldInfo:
+                        obj = fieldInfo.GetValue(target);
+                        break;
+                    case MethodInfo methodInfo:
+                        obj = methodInfo.Invoke(target, null);
+                        break;
+                    case PropertyInfo propertyInfo:
+                        obj = propertyInfo.GetValue(target, null);
+                        break;
+                    default:
+                        break;
+                }
+                if (obj is UnityEngine.Object unityObj)
+                {
+                    condition = !unityObj.IsNullOrNone();
+                }
+                else if (obj != null && obj.GetType() == typeof(bool))
+                {
+                    condition = startsWithNot ? !(bool)obj : (bool)obj;
+                }
+            }
+            return condition;
+        }
     }
 }

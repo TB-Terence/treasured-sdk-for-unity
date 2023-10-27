@@ -13,7 +13,7 @@ namespace Treasured.UnitySdk
         //public string previewUrl;
         [JsonIgnore]
         [Label("Code (deprecated, use html instead)")]
-        [TextArea(3, 5)]
+        [HideInInspector]
         public string code;
         public CustomHTML html;
 
