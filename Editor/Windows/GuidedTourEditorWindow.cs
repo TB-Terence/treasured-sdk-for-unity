@@ -298,48 +298,30 @@ namespace Treasured.UnitySdk
                                     }
                                 }
                                 // TODO: Implement insert actions from selected object's action graph
-                                //if (Selection.activeGameObject.TryGetComponent(out TreasuredObject obj))
-                                //{
-                                //    menu.AddSeparator("");
-                                //    SerializedProperty collection = serializedTour.FindProperty("actions").FindPropertyRelative("_actions");
-                                //    SerializedObject tour = new SerializedObject(obj);
-                                //    SerializedProperty graph = tour.FindProperty(nameof(TreasuredObject.actionGraph));
-                                //    int index = 0;
-                                //    foreach (var actionGroup in obj.actionGraph.GetGroups())
-                                //    {
-                                //        menu.AddItem(new GUIContent($"{obj.name}/{ObjectNames.NicifyVariableName(actionGroup.name)}"), false, (index) => {
-                                //            SerializedProperty group = graph.FindPropertyRelative("_groups").GetArrayElementAtIndex((int)index);
-                                //            SerializedProperty originalCollection = group.FindPropertyRelative("_actions");
-                                //            collection.arraySize += 10;
-                                //            collection.InsertElement(collection.arraySize);
-                                //            //+= originalCollection.arraySize;
-                                //            //for (int i = 0; i < originalCollection.arraySize; i++)
-                                //            //{
-                                //            //    collection.GetArrayElementAtIndex(i).managedReferenceValue = actionGroup[i];
-                                //            //}
-                                //            serializedTour.Update();
-                                //            serializedTour.ApplyModifiedProperties();
-                                //            Debug.LogError(collection.arraySize);
-                                //            //int index = actionList.index == -1 ? 0 : actionList.index;
-                                //            //SerializedProperty originalCollection = graph.GetArrayElementAtIndex(index);
-                                //            //SerializedProperty collection = serializedTour.FindProperty("actions").FindPropertyRelative("_actions");
-                                //            //foreach (var action in group)
-                                //            //{
-                                //            //    originalCollection
-                                //            //       SerializedProperty p = collection.InsertManagedObject(action.GetType(), index++);
-                                //            //    p.Copy();
-                                //            //}
-                                //            //collection.InsertManagedObject(type, index);
-                                //            //serializedTour.Update();
-                                //            //serializedTour.ApplyModifiedProperties();
-                                //            //// TODO: Update scroll view
-                                //            //actionList.index = index + 1;
-                                //            //selectedAction = collection.GetArrayElementAtIndex(index);
-                                //            //actionList?.onSelectCallback?.Invoke(actionList);
-                                //        }, index);
-                                //        index++;
-                                //    }
-                                //}
+                                if (Selection.activeGameObject.TryGetComponent(out TreasuredObject obj))
+                                {
+                                    menu.AddSeparator("");
+                                    SerializedProperty collection = serializedTour.FindProperty("actions").FindPropertyRelative("_actions");
+                                    SerializedObject tour = new SerializedObject(obj);
+                                    SerializedProperty graph = tour.FindProperty(nameof(TreasuredObject.actionGraph));
+                                    foreach (var actionGroup in obj.actionGraph.GetGroups())
+                                    {
+                                        menu.AddItem(new GUIContent($"Insert/{obj.name}/{ObjectNames.NicifyVariableName(actionGroup.name)}"), false, () =>
+                                        {
+                                            ActionCollection list = (ActionCollection)actionList.list;
+                                            int index = actionList.index < 1 ? 0 : actionList.index;
+                                            for (int i = 0; i < actionGroup.Count; i++)
+                                            {
+                                                Type type = actionGroup[i].GetType();
+                                                ScriptableAction action = (ScriptableAction)Activator.CreateInstance(type);
+                                                list.Insert(i + index, action);
+                                                EditorUtility.CopySerializedManagedFieldsOnly(actionGroup[i], action);
+                                            }
+                                            serializedObject.Update();
+                                            serializedObject.ApplyModifiedProperties();
+                                        });
+                                    }
+                                }
                                 menu.ShowAsContext();
                             }
                         }

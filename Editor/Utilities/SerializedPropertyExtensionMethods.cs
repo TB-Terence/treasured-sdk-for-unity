@@ -24,6 +24,17 @@ namespace Treasured.UnitySdk
             return arrayProperty.GetArrayElementAtIndex(indexToInsert + 1 < arrayProperty.arraySize ? indexToInsert + 1 : arrayProperty.arraySize - 1);
         }
 
+        public static SerializedProperty InsertElements(this SerializedProperty arrayProperty, int startIndex, int size)
+        {
+            arrayProperty.ValidateArray();
+            for (int i = startIndex; i < startIndex + size - 1; i++)
+            {
+                arrayProperty.InsertArrayElementAtIndex(i);
+            }
+            arrayProperty.serializedObject.ApplyModifiedProperties();
+            return arrayProperty;
+        }
+
         public static SerializedProperty AppendLast(this SerializedProperty arrayProperty)
         {
             arrayProperty.ValidateArray();
