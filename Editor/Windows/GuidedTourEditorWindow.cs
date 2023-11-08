@@ -125,8 +125,29 @@ namespace Treasured.UnitySdk
             actionList.displayAdd = actionList.displayRemove = false;
             actionList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
             {
+                serializedTour.Update();
                 ScriptableAction action = (ScriptableAction)scene.graph.tours[tourList.index].actions[index];
-                EditorGUI.LabelField(rect, new GUIContent(ObjectNames.NicifyVariableName(action.Type)));
+                GUIContent label = new GUIContent(ObjectNames.NicifyVariableName(action.Type));
+                float width = EditorGUIUtility.labelWidth;
+                Vector2 size = EditorStyles.label.CalcSize(label);
+                EditorGUIUtility.labelWidth = size.x;
+                switch (action)
+                {
+                    case GoToAction goToAction:
+                        goToAction.target = (Hotspot)EditorGUI.ObjectField(rect, label, goToAction.target, typeof(Hotspot), true);
+                        break;
+                    case SleepAction sleepAction:
+                        sleepAction.duration = EditorGUI.FloatField(rect, label, sleepAction.duration);
+                        break;
+                    case PanAction panAction:
+                        panAction.amount = EditorGUI.FloatField(rect, label, panAction.amount);
+                        break;
+                    default:
+                        EditorGUI.LabelField(rect, new GUIContent(label));
+                        break;
+                }
+                EditorGUIUtility.labelWidth = width;
+                serializedTour.ApplyModifiedProperties();
             };
             actionList.onSelectCallback += (ReorderableList list) =>
             {
@@ -306,7 +327,7 @@ namespace Treasured.UnitySdk
                                     SerializedProperty graph = tour.FindProperty(nameof(TreasuredObject.actionGraph));
                                     foreach (var actionGroup in obj.actionGraph.GetGroups())
                                     {
-                                        menu.AddItem(new GUIContent($"Insert/{obj.name}/{ObjectNames.NicifyVariableName(actionGroup.name)}"), false, () =>
+                                        menu.AddItem(new GUIContent($"Insert ({obj.name})/{ObjectNames.NicifyVariableName(actionGroup.name)}"), false, () =>
                                         {
                                             ActionCollection list = (ActionCollection)actionList.list;
                                             int index = actionList.index < 1 ? 0 : actionList.index;
@@ -321,6 +342,11 @@ namespace Treasured.UnitySdk
                                             serializedObject.ApplyModifiedProperties();
                                         });
                                     }
+                                }
+                                else
+                                {
+                                    menu.AddSeparator("");
+                                    menu.AddDisabledItem(new GUIContent("Insert (No selection)"));
                                 }
                                 menu.ShowAsContext();
                             }

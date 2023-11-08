@@ -11,6 +11,7 @@ namespace Treasured.UnitySdk
 {
     public class AudioExporter : Exporter
     {
+        static HashSet<string> fileNames = new HashSet<string>();
         public override DirectoryInfo CreateExportDirectoryInfo()
         {
             return Directory.CreateDirectory(Path.Combine(base.CreateExportDirectoryInfo().FullName, "audios"));
@@ -18,9 +19,12 @@ namespace Treasured.UnitySdk
 
         public override void Export()
         {
-            var audioFiles = new HashSet<string>();
+            fileNames.Clear();
             var audioDirectory = CreateExportDirectoryInfo().FullName;
-            var rootDirectory = Directory.GetCurrentDirectory();
+            var rootDirectory = Application.dataPath;
+
+            AudioInfo bgmInfo = this.Scene.sceneInfo.backgroundMusicInfo;
+            ExportAudio(rootDirectory, audioDirectory, this.Scene.sceneInfo.backgroundMusicInfo);
 
             foreach (var obj in Scene.GetComponentsInChildren<TreasuredObject>())
             {
@@ -30,28 +34,24 @@ namespace Treasured.UnitySdk
                     {
                         if (action is AudioAction audioAction)
                         {
-                            if (!audioAction.audioInfo.IsLocalContent())
-                            {
-                                continue;
-                            }
-
-                            if (audioFiles.Contains(audioAction.audioInfo.asset.name))
-                            {
-                                continue;
-                            }
-
-                            //  Copy audio clip to the audios folder
-#if UNITY_EDITOR
-                            var path = AssetDatabase.GetAssetPath(audioAction.audioInfo.asset);
-                            FileUtil.ReplaceFile(Path.Combine(rootDirectory, path).ToOSSpecificPath(),
-                                Path.Combine(audioDirectory, Path.GetFileName(path)).ToOSSpecificPath());
-
-                            audioFiles.Add(audioAction.audioInfo.asset.name);
-#endif
+                            ExportAudio(rootDirectory, audioDirectory, audioAction.audioInfo);
                         }
                     }
                 }
             }
+        }
+
+        void ExportAudio(string rootDirectory, string audioDirectory, AudioInfo info)
+        {
+            if (!info.IsLocalContent() || fileNames.Contains(info.asset.name)) { return; }
+            //  Copy audio clip to the audios folder
+#if UNITY_EDITOR
+            var path = AssetDatabase.GetAssetPath(info.asset);
+            FileUtil.ReplaceFile(Path.Combine(rootDirectory, Path.GetFileName(path)).ToOSSpecificPath(),
+                Path.Combine(audioDirectory, Path.GetFileName(path)).ToOSSpecificPath());
+
+            fileNames.Add(info.asset.name);
+#endif
         }
     }
 }
