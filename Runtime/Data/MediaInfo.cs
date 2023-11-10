@@ -79,7 +79,7 @@ namespace Treasured.UnitySdk
 
         public override string GetLocalPathPrefix()
         {
-            return "audio";
+            return "audios";
         }
     }
 
