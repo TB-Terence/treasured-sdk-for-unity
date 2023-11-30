@@ -10,6 +10,7 @@ namespace Treasured.UnitySdk
     [Serializable]
     public abstract class MediaInfo<T> where T : UnityEngine.Object
     {
+        public static string BUILD_ROOT = "builds.treasured.ca/dev/360";
         [JsonIgnore]
         [OnValueChanged(nameof(UpdatePath))]
         public T asset;
@@ -30,7 +31,11 @@ namespace Treasured.UnitySdk
         {
             get
             {
-                return IsLocalContent() ? _localPath : _remotePath;
+                if (IsLocalContent() && !TreasuredScene.WorkingScene.IsNullOrNone())
+                {
+                    return $"{BUILD_ROOT}/{TreasuredScene.WorkingScene.exportSettings.folderName}/{_localPath}";
+                }
+                return  _remotePath;
             }
             set
             {
@@ -103,7 +108,7 @@ namespace Treasured.UnitySdk
 
         public override string GetLocalPathPrefix()
         {
-            return "video";
+            return "videos";
         }
     }
 }

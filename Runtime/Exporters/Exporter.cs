@@ -62,6 +62,7 @@ namespace Treasured.UnitySdk
 
         public static void ForceExport(TreasuredScene scene)
         {
+            TreasuredScene.WorkingScene = scene;
             if (string.IsNullOrWhiteSpace(scene.exportSettings.folderName))
             {
                 throw new ArgumentException($"Export Settings > Folder Name is empty.");

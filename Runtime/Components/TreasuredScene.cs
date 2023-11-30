@@ -11,6 +11,8 @@ namespace Treasured.UnitySdk
         [JsonProperty]
         public static readonly string Version = typeof(TreasuredMap).Assembly.GetName().Version.ToString();
 
+        internal static TreasuredScene WorkingScene { get; set; }
+
         [JsonProperty]
         public DateTime Created
         {
