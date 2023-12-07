@@ -48,7 +48,7 @@ namespace Treasured.UnitySdk
 #if UNITY_EDITOR
             var path = AssetDatabase.GetAssetPath(info.asset);
             FileUtil.ReplaceFile(Path.Combine(rootDirectory, Path.GetFileName(path)).ToOSSpecificPath(),
-                Path.Combine(audioDirectory, Path.GetFileName(path)).ToOSSpecificPath());
+                Path.Combine(audioDirectory, Path.GetFileName(path).Replace(' ', '-')).ToOSSpecificPath());
 
             fileNames.Add(info.asset.name);
 #endif

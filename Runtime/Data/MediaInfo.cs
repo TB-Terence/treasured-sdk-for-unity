@@ -31,7 +31,7 @@ namespace Treasured.UnitySdk
         {
             get
             {
-                return IsLocalContent() ? _localPath.Replace(' ', '-') : _remotePath;
+                return IsLocalContent() ? _localPath : _remotePath;
             }
             set
             {
@@ -63,7 +63,7 @@ namespace Treasured.UnitySdk
 #if UNITY_EDITOR
             if (IsLocalContent())
             {
-                _localPath = $"{GetLocalPathPrefix()}/" + System.IO.Path.GetFileName(UnityEditor.AssetDatabase.GetAssetPath(asset));
+                _localPath = $"{GetLocalPathPrefix()}/" + System.IO.Path.GetFileName(UnityEditor.AssetDatabase.GetAssetPath(asset)).Replace(' ', '-');
             }
 #endif
         }
