@@ -31,11 +31,7 @@ namespace Treasured.UnitySdk
         {
             get
             {
-                if (IsLocalContent() && !TreasuredScene.WorkingScene.IsNullOrNone())
-                {
-                    return $"{BUILD_ROOT}/{TreasuredScene.WorkingScene.exportSettings.folderName}/{_localPath}";
-                }
-                return  _remotePath;
+                return IsLocalContent() ? _localPath.Replace(' ', '-') : _remotePath;
             }
             set
             {
