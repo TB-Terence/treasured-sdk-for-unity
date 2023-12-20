@@ -60,7 +60,7 @@ namespace Treasured.UnitySdk
             ForceExport(scene);
         }
 
-        public static void ForceExport(TreasuredScene scene)
+        public static void ForceExport(TreasuredScene scene, params Type[] exporterTypes)
         {
             TreasuredScene.WorkingScene = scene;
             if (string.IsNullOrWhiteSpace(scene.exportSettings.folderName))
@@ -77,7 +77,7 @@ namespace Treasured.UnitySdk
             foreach (var pair in exporterPairs)
             {
                 var exporter = pair.Value;
-                if (!pair.Value.IsNullOrNone() && exporter.enabled)
+                if ((exporterTypes.Length > 0 && exporterTypes.Contains(exporter.GetType())) || (!pair.Value.IsNullOrNone() && exporter.enabled))
                 {
                     try
                     {

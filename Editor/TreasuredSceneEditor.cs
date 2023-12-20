@@ -262,7 +262,10 @@ namespace Treasured.UnitySdk
             }
             if (count > 0)
             {
-                EditorUtility.DisplayDialog("Audio Action Update", $"Updated {count} Audio Action(s) using new schema", "Ok");
+                if(EditorUtility.DisplayDialog("Audio Action Update", $"Updated {count} Audio Action(s) using new schema. Do you want to export the newest data file?", "Export JSON Only", "Skip"))
+                {
+                    Exporter.ForceExport(scene, typeof(JsonExporter));
+                }
             }
         }
 
