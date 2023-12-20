@@ -1,10 +1,12 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace Treasured.UnitySdk
 {
     [API("playAudio")]
     public class AudioAction : ScriptableAction
     {
+        [HideInInspector]
         [TextArea(3, 5)]
         public string src;
 

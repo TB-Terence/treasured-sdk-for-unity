@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -225,7 +226,7 @@ namespace Treasured.UnitySdk
             CreateCachedEditors();
             InitializeTabGroups();
             InitializeObjectList();
-            //ValidateSchema();
+            ValidateSchema();
             SetDefaultTourIfNone();
             if (!scene.exportSettings.IsNullOrNone() && string.IsNullOrEmpty(scene.exportSettings.folderName))
             {
@@ -239,6 +240,44 @@ namespace Treasured.UnitySdk
             catch (Exception)
             {
 
+            }
+        }
+
+        void ValidateSchema()
+        {
+            int count = 0;
+            foreach (var to in scene.GetComponentsInChildren<TreasuredObject>())
+            {
+                if (to.actionGraph.TryGetActionGroup("onSelect", out ActionCollection group))
+                {
+                    UpdateCollection<AudioAction>(group, (action) =>
+                    {
+                        if (string.IsNullOrEmpty(action.audioInfo.Path) && !string.IsNullOrEmpty(action.src))
+                        {
+                            action.audioInfo.Path = action.src;
+                            count++;
+                        }
+                    });
+                }
+            }
+            if (count > 0)
+            {
+                EditorUtility.DisplayDialog("Audio Action Update", $"Updated {count} Audio Action(s) using new schema", "Ok");
+            }
+        }
+
+        void UpdateCollection<T>(ActionCollection actionCollection, Action<T> actionToPerform) where T : ScriptableAction
+        {
+            foreach (ScriptableAction sa in actionCollection)
+            {
+                if (sa is T action)
+                {
+                    actionToPerform.Invoke(action);
+                }
+                else if (sa is GroupAction groupAction)
+                {
+                    UpdateCollection<T>(groupAction.actions, actionToPerform);
+                }
             }
         }
 
