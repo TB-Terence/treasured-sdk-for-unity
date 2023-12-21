@@ -23,20 +23,13 @@ namespace Treasured.UnitySdk
             var audioDirectory = CreateExportDirectoryInfo().FullName;
             var rootDirectory = Application.dataPath;
 
-            AudioInfo bgmInfo = this.Scene.sceneInfo.backgroundMusicInfo;
             ExportAudio(rootDirectory, audioDirectory, this.Scene.sceneInfo.backgroundMusicInfo);
 
             foreach (var obj in Scene.GetComponentsInChildren<TreasuredObject>())
             {
-                foreach (var graph in obj.actionGraph.GetGroups())
+                foreach (var collection in obj.actionGraph.GetGroups())
                 {
-                    foreach (var action in graph)
-                    {
-                        if (action is AudioAction audioAction)
-                        {
-                            ExportAudio(rootDirectory, audioDirectory, audioAction.audioInfo);
-                        }
-                    }
+                    ExportAudioRecursivelyImpl(rootDirectory, audioDirectory, collection);
                 }
             }
         }
@@ -46,12 +39,26 @@ namespace Treasured.UnitySdk
             if (!info.IsLocalContent() || fileNames.Contains(info.asset.name)) { return; }
             //  Copy audio clip to the audios folder
 #if UNITY_EDITOR
-            var path = AssetDatabase.GetAssetPath(info.asset);
-            FileUtil.ReplaceFile(Path.Combine(rootDirectory, Path.GetFileName(path)).ToOSSpecificPath(),
-                Path.Combine(audioDirectory, Path.GetFileName(path).Replace(' ', '-')).ToOSSpecificPath());
-
+            var src = AssetDatabase.GetAssetPath(info.asset);
+            var dst = Path.Combine(audioDirectory, Path.GetFileName(src).Replace(' ', '-')).ToOSSpecificPath();
+            FileUtil.ReplaceFile(src, dst);
             fileNames.Add(info.asset.name);
 #endif
+        }
+
+        void ExportAudioRecursivelyImpl(string rootDirectory, string audioDirectory, ActionCollection actionCollection)
+        {
+            foreach (ScriptableAction sa in actionCollection)
+            {
+                if (sa is AudioAction audioAction)
+                {
+                    ExportAudio(rootDirectory, audioDirectory, audioAction.audioInfo);
+                }
+                else if (sa is GroupAction groupAction)
+                {
+                    ExportAudioRecursivelyImpl(rootDirectory, audioDirectory,  groupAction.actions);
+                }
+            }
         }
     }
 }
