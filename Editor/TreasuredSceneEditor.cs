@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 using Treasured.UnitySdk.Validation;
 using UnityEditor;
@@ -245,7 +246,18 @@ namespace Treasured.UnitySdk
 
         void ValidateSchema()
         {
-            int count = 0;
+            Dictionary<Type, int> count = new Dictionary<Type, int>();
+            Action<Type> increamentCount = (type) =>
+            {
+                if (!count.ContainsKey(type))
+                {
+                    count.Add(type, 1);
+                }
+                else
+                {
+                    count[type]++;
+                };
+            };
             foreach (var to in scene.GetComponentsInChildren<TreasuredObject>())
             {
                 if (to.actionGraph.TryGetActionGroup("onSelect", out ActionCollection group))
@@ -255,14 +267,27 @@ namespace Treasured.UnitySdk
                         if (string.IsNullOrEmpty(action.audioInfo.Path) && !string.IsNullOrEmpty(action.src))
                         {
                             action.audioInfo.Path = action.src;
-                            count++;
+                            increamentCount.Invoke(action.GetType());
+                        }
+                    });
+                    UpdateCollection<CustomEmbedCodeAction>(group, (action) =>
+                    {
+                        if (string.IsNullOrEmpty(action.html.bodyHTML) && !string.IsNullOrEmpty(action.html.headHTML))
+                        {
+                            action.html.bodyHTML = action.html.headHTML;
+                            increamentCount.Invoke(action.GetType());
                         }
                     });
                 }
             }
-            if (count > 0)
+            if (count.Count > 0)
             {
-                if(EditorUtility.DisplayDialog("Audio Action Update", $"Updated {count} Audio Action(s) using new schema. Do you want to export the newest data file?", "Export JSON Only", "Skip"))
+                StringBuilder sb = new StringBuilder();
+                foreach (var type in count)
+                {
+                    sb.AppendLine($"{ObjectNames.NicifyVariableName(type.Key.Name)} - {type.Value}");
+                }
+                if(EditorUtility.DisplayDialog("Action Update", $"Updated Action(s) using new schema\n\n{sb.ToString()}\nDo you want to export the newest data file?", "Export JSON Only", "Skip"))
                 {
                     Exporter.ForceExport(scene, typeof(JsonExporter));
                 }

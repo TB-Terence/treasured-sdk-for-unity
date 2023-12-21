@@ -191,6 +191,7 @@ namespace Treasured.UnitySdk
                                 GuidedTour tour = CreateNew(tourList, scene.graph, "Quick Tour");
                                 foreach (var hotspot in scene.Hotspots)
                                 {
+                                    if (!hotspot.gameObject.activeInHierarchy) continue;
                                     tour.actions.Add(new GoToAction()
                                     {
                                         target = hotspot
@@ -212,6 +213,7 @@ namespace Treasured.UnitySdk
                                 GuidedTour tour = CreateNew(tourList, scene.graph, "Quick Tour");
                                 foreach (var hotspot in scene.Hotspots)
                                 {
+                                    if (!hotspot.gameObject.activeInHierarchy) continue;
                                     tour.actions.Add(new GoToAction()
                                     {
                                         target = hotspot
@@ -222,15 +224,19 @@ namespace Treasured.UnitySdk
                                     });
                                     if (hotspot.actionGraph.TryGetActionGroup("onSelect", out var onSelect))
                                     {
-                                        foreach (var action in onSelect)
+                                        foreach (ScriptableAction action in onSelect)
                                         {
-                                            tour.actions.Add(action);
+                                            if(action.enabled)
+                                                tour.actions.Add(action);
                                         }
                                     }
-                                    tour.actions.Add(new SleepAction()
+                                    if(onSelect.Count > 0)
                                     {
-                                        duration = 2
-                                    });
+                                        tour.actions.Add(new SleepAction()
+                                        {
+                                            duration = 2
+                                        });
+                                    }
                                 }
                             });
                             menu.ShowAsContext();
