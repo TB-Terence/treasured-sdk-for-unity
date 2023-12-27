@@ -230,13 +230,10 @@ namespace Treasured.UnitySdk
                                                 tour.actions.Add(action);
                                         }
                                     }
-                                    if(onSelect.Count > 0)
+                                    tour.actions.Add(new SleepAction()
                                     {
-                                        tour.actions.Add(new SleepAction()
-                                        {
-                                            duration = 2
-                                        });
-                                    }
+                                        duration = 2
+                                    });
                                 }
                             });
                             menu.ShowAsContext();
