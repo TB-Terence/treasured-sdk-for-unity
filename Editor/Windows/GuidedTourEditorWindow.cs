@@ -11,6 +11,15 @@ namespace Treasured.UnitySdk
 {
     internal class GuidedTourEditorWindow : EditorWindow
     {
+        class GuidedTourSettingsWindow: EditorWindow
+        {
+            public static float sleepDuration = 3;
+
+            private void OnGUI()
+            {
+                sleepDuration = EditorGUILayout.FloatField("Default Sleep Duration", sleepDuration);
+            }
+        }
         public static GuidedTourEditorWindow ShowWindow(TreasuredScene scene)
         {
             var window = EditorWindow.GetWindow<GuidedTourEditorWindow>();
@@ -42,6 +51,8 @@ namespace Treasured.UnitySdk
         SerializedObject serializedTour;
 
         SerializedProperty selectedAction;
+
+        GuidedTourSettingsWindow settingsWindow;
 
         private void OnEnable()
         {
@@ -178,6 +189,12 @@ namespace Treasured.UnitySdk
                     {
                         GUILayout.Label(new GUIContent("Tours"), EditorStyles.boldLabel);
                         GUILayout.FlexibleSpace();
+                        if (GUILayout.Button(new GUIContent(EditorGUIUtility.IconContent("Settings")), EditorStyles.label, GUILayout.Width(18))) 
+                        {
+                            settingsWindow = EditorWindow.GetWindow<GuidedTourSettingsWindow>(true, "Guided Tour Settings", true);
+                            settingsWindow.position = new Rect(0, 0, 400, 200) { center = position.center };
+                            settingsWindow.Show();
+                        }
                         if (GUILayout.Button(EditorGUIUtility.TrIconContent("d_Toolbar Plus More"), EditorStyles.label, GUILayout.Width(18)))
                         {
                             GenericMenu menu = new GenericMenu();
@@ -202,7 +219,7 @@ namespace Treasured.UnitySdk
                                     });
                                     tour.actions.Add(new SleepAction()
                                     {
-                                        duration = 2
+                                        duration = GuidedTourSettingsWindow.sleepDuration
                                     });
                                 }
                                 serializedTour.Update();
@@ -232,7 +249,7 @@ namespace Treasured.UnitySdk
                                     }
                                     tour.actions.Add(new SleepAction()
                                     {
-                                        duration = 2
+                                        duration = GuidedTourSettingsWindow.sleepDuration
                                     });
                                 }
                             });
@@ -267,6 +284,20 @@ namespace Treasured.UnitySdk
                         GUILayout.Label(new GUIContent("Actions"), EditorStyles.boldLabel);
                         using (new EditorGUI.DisabledGroupScope(serializedTour == null))
                         {
+                            if (GUILayout.Button(EditorGUIUtility.TrIconContent("d_RotateTool", "Use default value"), EditorStyles.label, GUILayout.Width(18)))
+                            {
+                                foreach (var action in scene.graph.tours[tourList.index].actions)
+                                {
+                                    switch (action)
+                                    {
+                                        case SleepAction sleepAction:
+                                            sleepAction.duration = GuidedTourSettingsWindow.sleepDuration;
+                                            break;
+                                        default:
+                                            break;
+                                    }
+                                }
+                            }
                             if (GUILayout.Button(EditorGUIUtility.TrIconContent("d_Toolbar Plus More"), EditorStyles.label, GUILayout.Width(18)))
                             {
                                 var actionTypes = UnityEditor.TypeCache.GetTypesDerivedFrom<ScriptableAction>().Where(x => x.IsDefined(typeof(APIAttribute), true) && !x.IsAbstract && !x.IsDefined(typeof(ObsoleteAttribute), true));
