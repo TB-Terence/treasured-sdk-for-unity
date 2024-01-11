@@ -17,7 +17,25 @@ namespace Treasured.UnitySdk
         public string code;
         public CustomHTML html;
         public WidgetPosition position;
+        public bool isMinimized = false;
+        public bool allowAutoClose = true;
+        [ShowIf("allowAutoClose")]
+        [Tooltip("Duration in seconds")]
+        [Min(0)]
+        [JsonIgnore]
+        public int autoCloseDuration = 10;
 
+        /// <summary>
+        /// Auto Close Duration in milliseconds
+        /// </summary>
+        [JsonProperty]
+        public float AutoCloseDuration
+        {
+            get
+            {
+                return autoCloseDuration * 1000;
+            }
+        }
 
         //[JsonProperty("scripts")]
         //public string[] Scripts
