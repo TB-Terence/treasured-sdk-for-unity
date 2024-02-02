@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using Treasured.UnitySdk.Actions;
 using Treasured.UnitySdk.Validation;
 using UnityEditor;
 using UnityEditor.PackageManager;
@@ -258,11 +259,12 @@ namespace Treasured.UnitySdk
                     count[type]++;
                 };
             };
+            HashSet<Tuple<ActionCollection, Action<ActionCollection>>> onLateUpdate = new HashSet<Tuple<ActionCollection, Action<ActionCollection>>>();
             foreach (var to in scene.GetComponentsInChildren<TreasuredObject>())
             {
                 if (to.actionGraph.TryGetActionGroup("onSelect", out ActionCollection group))
                 {
-                    UpdateCollection<AudioAction>(group, (action) =>
+                    UpdateCollection<AudioAction>(group, (root, action) =>
                     {
                         if (string.IsNullOrEmpty(action.audioInfo.Path) && !string.IsNullOrEmpty(action.src))
                         {
@@ -270,7 +272,25 @@ namespace Treasured.UnitySdk
                             increamentCount.Invoke(action.GetType());
                         }
                     });
-                    UpdateCollection<CustomEmbedCodeAction>(group, (action) =>
+                    UpdateCollection<EmbedAction>(group, (root, action) =>
+                    {
+                        CustomEmbedCodeAction cec = new CustomEmbedCodeAction();
+                        cec.html = new CustomHTML()
+                        {
+                            bodyHTML = action.src
+                        };
+                        cec.position = action.position;
+                        cec.enabled = action.enabled;
+                        onLateUpdate.Add(new Tuple<ActionCollection, Action<ActionCollection>>(
+                            root,
+                            (root) => {
+                                root.Remove(action);
+                                root.Add(cec);
+                                increamentCount.Invoke(action.GetType());
+                            }
+                        ));
+                    });
+                    UpdateCollection<CustomEmbedCodeAction>(group, (root, action) =>
                     {
                         if (string.IsNullOrEmpty(action.html.bodyHTML) && !string.IsNullOrEmpty(action.html.headHTML))
                         {
@@ -279,6 +299,10 @@ namespace Treasured.UnitySdk
                         }
                     });
                 }
+            }
+            foreach (var update in onLateUpdate)
+            {
+                update.Item2.Invoke(update.Item1);
             }
             if (count.Count > 0)
             {
@@ -294,13 +318,13 @@ namespace Treasured.UnitySdk
             }
         }
 
-        void UpdateCollection<T>(ActionCollection actionCollection, Action<T> actionToPerform) where T : ScriptableAction
+        void UpdateCollection<T>(ActionCollection actionCollection, Action<ActionCollection, T> actionToPerform) where T : ScriptableAction
         {
             foreach (ScriptableAction sa in actionCollection)
             {
                 if (sa is T action)
                 {
-                    actionToPerform.Invoke(action);
+                    actionToPerform.Invoke(actionCollection, action);
                 }
                 else if (sa is GroupAction groupAction)
                 {
@@ -308,7 +332,6 @@ namespace Treasured.UnitySdk
                 }
             }
         }
-
         private void SetDefaultTourIfNone()
         {
             if (scene.graph.tours.Count > 0 && scene.graph.tours.All(x => x.isDefault == false))
