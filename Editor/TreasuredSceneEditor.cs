@@ -279,6 +279,9 @@ namespace Treasured.UnitySdk
                         {
                             bodyHTML = action.src
                         };
+                        cec.title = string.Empty;
+                        cec.description = string.Empty;
+                        cec.html.headHTML = string.Empty;
                         cec.position = action.position;
                         cec.enabled = action.enabled;
                         onLateUpdate.Add(new Tuple<ActionCollection, Action<ActionCollection>>(
