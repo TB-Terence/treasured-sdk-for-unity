@@ -195,7 +195,7 @@ namespace Treasured.UnitySdk
                             settingsWindow.position = new Rect(0, 0, 400, 200) { center = position.center };
                             settingsWindow.Show();
                         }
-                        if (GUILayout.Button(EditorGUIUtility.TrIconContent("d_Toolbar Plus More"), EditorStyles.label, GUILayout.Width(18)))
+                        if (GUILayout.Button(EditorGUIUtility.TrIconContent("Toolbar Plus More"), EditorStyles.label, GUILayout.Width(18)))
                         {
                             GenericMenu menu = new GenericMenu();
                             menu.AddItem(new GUIContent("New"), false, () =>
@@ -255,7 +255,7 @@ namespace Treasured.UnitySdk
                             });
                             menu.ShowAsContext();
                         }
-                        if (GUILayout.Button(EditorGUIUtility.TrIconContent("d_Toolbar Minus"), EditorStyles.label, GUILayout.Width(18)))
+                        if (GUILayout.Button(EditorGUIUtility.TrIconContent("Toolbar Minus"), EditorStyles.label, GUILayout.Width(18)))
                         {
                             if(tourList.index > -1 && tourList.index < tourList.count)
                             {
@@ -284,7 +284,7 @@ namespace Treasured.UnitySdk
                         GUILayout.Label(new GUIContent("Actions"), EditorStyles.boldLabel);
                         using (new EditorGUI.DisabledGroupScope(serializedTour == null))
                         {
-                            if (GUILayout.Button(EditorGUIUtility.TrIconContent("d_RotateTool", "Use default value"), EditorStyles.label, GUILayout.Width(18)))
+                            if (GUILayout.Button(EditorGUIUtility.TrIconContent("RotateTool", "Use default value"), EditorStyles.label, GUILayout.Width(18)))
                             {
                                 foreach (var action in scene.graph.tours[tourList.index].actions)
                                 {
@@ -298,7 +298,7 @@ namespace Treasured.UnitySdk
                                     }
                                 }
                             }
-                            if (GUILayout.Button(EditorGUIUtility.TrIconContent("d_Toolbar Plus More"), EditorStyles.label, GUILayout.Width(18)))
+                            if (GUILayout.Button(EditorGUIUtility.TrIconContent("Toolbar Plus More"), EditorStyles.label, GUILayout.Width(18)))
                             {
                                 var actionTypes = UnityEditor.TypeCache.GetTypesDerivedFrom<ScriptableAction>().Where(x => x.IsDefined(typeof(APIAttribute), true) && !x.IsAbstract && !x.IsDefined(typeof(ObsoleteAttribute), true));
                                 GenericMenu menu = new GenericMenu();
@@ -385,7 +385,7 @@ namespace Treasured.UnitySdk
                                 menu.ShowAsContext();
                             }
                         }
-                        if (GUILayout.Button(EditorGUIUtility.TrIconContent("d_Toolbar Minus"), EditorStyles.label, GUILayout.Width(18)))
+                        if (GUILayout.Button(EditorGUIUtility.TrIconContent("Toolbar Minus"), EditorStyles.label, GUILayout.Width(18)))
                         {
                             if (actionList.index > -1 && actionList.index < actionList.count)
                             {
@@ -409,7 +409,7 @@ namespace Treasured.UnitySdk
                 }
                 using (new GUILayout.VerticalScope())
                 {
-                    GUILayout.Label("Guided Tour Info", EditorStyles.whiteLargeLabel);
+                    GUILayout.Label("Guided Tour Info", EditorStyles.boldLabel);
                     EditorGUI.indentLevel++;
                     if (serializedTour != null)
                     {
@@ -420,7 +420,7 @@ namespace Treasured.UnitySdk
                         EditorGUILayout.LabelField("No Tour is selected", EditorStyles.centeredGreyMiniLabel);
                     }
                     EditorGUI.indentLevel--;
-                    GUILayout.Label("Action Info", EditorStyles.whiteLargeLabel);
+                    GUILayout.Label("Action Info", EditorStyles.boldLabel);
                     EditorGUI.indentLevel++;
                     using (var actionInfoScope = new GUILayout.ScrollViewScope(actionInfoScrollPosition, GUILayout.ExpandHeight(true)))
                     {
@@ -439,7 +439,7 @@ namespace Treasured.UnitySdk
                     EditorGUI.indentLevel--;
                 }
             }
-                    serializedObject.ApplyModifiedProperties();
+            serializedObject.ApplyModifiedProperties();
         }
     }
 }
