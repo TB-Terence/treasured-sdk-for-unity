@@ -434,7 +434,7 @@ namespace Treasured.UnitySdk
                 {
                     newPath = EditorGUILayout.TextField(label, path);
                 }
-                if (GUILayout.Button(EditorGUIUtility.TrIconContent("FolderOpened On Icon", tooltip), EditorStyles.label, GUILayout.Width(20), GUILayout.Height(18)))
+                if (GUILayout.Button(EditorGUIUtility.TrIconContent("_Popup", tooltip), EditorStyles.label, GUILayout.Width(18), GUILayout.Height(18)))
                 {
                     newPath = EditorUtility.OpenFolderPanel(label, path, "");
                     if (!string.IsNullOrEmpty(newPath))

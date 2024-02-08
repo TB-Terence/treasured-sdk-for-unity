@@ -37,7 +37,7 @@ namespace Treasured.UnitySdk
 
         public static void Show(TreasuredScene scene, ValidationException e)
         {
-            var window = EditorWindow.GetWindow<SceneExporterWindow>(true, "Scene Exporter", true);
+            var window = EditorWindow.GetWindow<SceneExporterWindow>("Scene Exporter");
             window.scene = scene;
             window.results = e.results.Select(result => new ListItem() { validationResult = result}).OrderBy(x => x.validationResult.priority).ToList();
             Styles.tabs[0].text = $"({e.infos.Count})";

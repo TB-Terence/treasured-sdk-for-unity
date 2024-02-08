@@ -442,9 +442,8 @@ namespace Treasured.UnitySdk
                 //                                            @"[a-zA-Z0-9\-]").Success))
                 {
                     if (GUILayout.Button(
-                            EditorGUIUtility.TrTextContentWithIcon("Exporter",
-                                $"Export scene to {TreasuredSDKPreferences.Instance.customExportFolder}/{scene.exportSettings.folderName}",
-                                "SceneLoadIn"), Styles.exportButton, scene.exportSettings.ExportType == ExportType.Production ? GUILayout.MaxWidth(200) : GUILayout.MaxWidth(150)))
+                            new GUIContent("Exporter",
+                                $"Export scene to {TreasuredSDKPreferences.Instance.customExportFolder}/{scene.exportSettings.folderName}"), Styles.exportButton, scene.exportSettings.ExportType == ExportType.Production ? GUILayout.MaxWidth(200) : GUILayout.MaxWidth(150)))
                     {
                         try
                         {
@@ -480,7 +479,7 @@ namespace Treasured.UnitySdk
                 {
                     if (GUILayout.Button(
                         EditorGUIUtility.TrTextContent("Build",
-                            "Build the export and host it on the server. This function is enabled when the directory exist.", "d_BuildSettings.Web.Small"),
+                            "Build the export and host it on the server. This function is enabled when the directory exist.", "BuildSettings.Web.Small"),
                         Styles.exportButton, GUILayout.MaxWidth(150)))
                     {
                         var buildProcess =
@@ -545,7 +544,7 @@ namespace Treasured.UnitySdk
                         using (new EditorGUI.DisabledGroupScope(!Directory.Exists(scene.exportSettings.OutputDirectory)))
                         {
                             if (GUILayout.Button(
-                                    EditorGUIUtility.TrTextContentWithIcon("Play", "Run in browser", "d_PlayButton On"),
+                                    EditorGUIUtility.TrTextContentWithIcon("Play", "Run in browser", "PlayButton On"),
                                     Styles.exportButton, GUILayout.MaxWidth(150)))
                             {
                                 // Run `treasured dev` to start dev server
@@ -580,7 +579,7 @@ namespace Treasured.UnitySdk
                         Color oldColor = GUI.backgroundColor;
                         GUI.backgroundColor = new Color(1.0f, 0.1f, 0.2f);
                         if (GUILayout.Button(
-                                EditorGUIUtility.TrTextContentWithIcon("Stop", "Stop running server", "d_PreMatQuad"),
+                                EditorGUIUtility.TrTextContentWithIcon("Stop", "Stop running server", "PreMatQuad"),
                                 Styles.exportButton, GUILayout.MaxWidth(150)))
                         {
                             try

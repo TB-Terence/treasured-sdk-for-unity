@@ -49,7 +49,7 @@ namespace Treasured.UnitySdk
 
         public static void Show(TreasuredScene scene)
         {
-            var window = EditorWindow.GetWindow<TreasuredSceneExporterWindow>(true, "Treasured Scene Exporter", true);
+            var window = EditorWindow.GetWindow<TreasuredSceneExporterWindow>("Treasured Scene Exporter");
             window.scene = scene;
             window.Initialize();
             window.RunPreExportCheck();

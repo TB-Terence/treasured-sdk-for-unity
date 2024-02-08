@@ -28,7 +28,7 @@ namespace Treasured.UnitySdk
                 }
                 using (new EditorGUI.DisabledGroupScope(!Directory.Exists(settings.OutputDirectory)))
                 {
-                    if (GUILayout.Button(EditorGUIUtility.TrIconContent("SceneLoadIn", "Open Folder"), EditorStyles.label, GUILayout.Width(20)))
+                    if (GUILayout.Button(EditorGUIUtility.TrIconContent("FolderOpened Icon", "Open Folder"), EditorStyles.label, GUILayout.Width(18), GUILayout.Height(18)))
                     {
                         EditorUtility.OpenWithDefaultApp(settings.OutputDirectory);
                     }
