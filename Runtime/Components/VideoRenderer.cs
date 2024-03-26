@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.Video;
+using System;
 
 namespace Treasured.UnitySdk
 {
@@ -15,6 +16,7 @@ namespace Treasured.UnitySdk
         private string _aspectRatio = "16:9";
 
         [JsonIgnore]
+        [Obsolete("Use videoInfo.asset instead")]
         public VideoClip VideoClip;
 
         public VideoInfo videoInfo;
@@ -22,18 +24,22 @@ namespace Treasured.UnitySdk
         [Url]
         [JsonIgnore]
         [FormerlySerializedAs("Src")]
+        [Obsolete("Use videoInfo.Path instead")]
         public string src;
         [Range(0, 100)]
         [FormerlySerializedAs("Volume")]
         [JsonIgnore]
+        [Obsolete("Use videoInfo.volume instead")]
         public int volume = 100;
         [FormerlySerializedAs("Loop")]
         [JsonIgnore]
+        [Obsolete("Use videoInfo.loop instead")]
         public bool loop = true;
         /// <summary>
         /// Auto play the video when start.
         /// </summary>
         [JsonIgnore]
+        [Obsolete("Use videoInfo.autoplay instead")]
         public bool autoplay = true;
         #endregion
 

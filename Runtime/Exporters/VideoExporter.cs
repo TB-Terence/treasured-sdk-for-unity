@@ -23,23 +23,22 @@ namespace Treasured.UnitySdk
             {
                 if (obj is VideoRenderer videoRenderer)
                 {
-                    if (videoRenderer.VideoClip == null)
+                    if (videoRenderer.videoInfo.asset == null)
                     {
                         continue;
                     }
 
-                    if (videoFiles.Contains(videoRenderer.VideoClip.name))
+                    if (videoFiles.Contains(videoRenderer.videoInfo.asset.name))
                     {
                         continue;
                     }
-
                     //  Copy video clip to the videos folder
 #if UNITY_EDITOR
-                    var path = AssetDatabase.GetAssetPath(videoRenderer.VideoClip);
+                    var path = AssetDatabase.GetAssetPath(videoRenderer.videoInfo.asset);
                     FileUtil.ReplaceFile(Path.Combine(rootDirectory, path).ToOSSpecificPath(),
                         Path.Combine(videoDirectory, Path.GetFileName(path)).ToOSSpecificPath());
 
-                    videoFiles.Add(videoRenderer.VideoClip.name);
+                    videoFiles.Add(videoRenderer.videoInfo.asset.name);
 #endif
                 }
             }
