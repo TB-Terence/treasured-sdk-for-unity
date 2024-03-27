@@ -26,6 +26,8 @@ namespace Treasured.UnitySdk
                     writer.WriteValue(video.Path);
                     writer.WritePropertyName(nameof(VideoRenderer.volume));
                     writer.WriteValue(video.volume);
+                    writer.WritePropertyName("muted");
+                    writer.WriteValue(video.muted);
                     writer.WritePropertyName(nameof(VideoRenderer.loop));
                     writer.WriteValue(video.loop);
                     writer.WritePropertyName(nameof(VideoRenderer.autoplay));
